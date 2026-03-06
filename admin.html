@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Admin — BookingSystem</title>
+<style>
+/* ── Design Tokens ─────────────────────────────────────────
+   Source: Minimal Design Cheat Sheet
+   Base hue: Navy #060f1c
+   Font: Figtree 400 / 600
+──────────────────────────────────────────────────────────── */
+:root {
+  /* Navy scale */
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;   /* accent / interaction */
+  --color-500: #3a6285;   /* hover */
+  --color-600: #2b4d6b;   /* active */
+  --color-700: #1a3249;
+  --color-800: #0f2035;
+  --color-900: #060f1c;   /* base */
+
+  /* Neutrals */
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-500: #6b7685;
+  --neutral-600: #505a68;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --text-hero:     48px;
+  --text-heading:  24px;
+  --text-body:     16px;
+  --text-caption:  12px;
+  --weight-regular:  400;
+  --weight-semibold: 600;
+
+  /* Spacing (8-pt grid) */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  16px;
+  --sp-4:  24px;
+  --sp-5:  32px;
+  --sp-6:  48px;
+  --sp-7:  64px;
+  --sp-8:  96px;
+  --sp-9: 128px;
+
+  /* Layout */
+  --container-max: 1280px;
+  --container-pad: 32px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg: 16px;
+
+  /* Shadow */
+  --shadow: 0 1px 3px rgba(6,15,28,0.08);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+
+  /* Animation */
+  --transition: 150ms ease;
+}
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-700);
+  background: var(--neutral-50);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+h1 {
+  font-size: var(--text-hero);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.1;
+}
+h2 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.3;
+}
+p { line-height: 1.6; }
+
+/* ── Utility ────────────────────────────────────────────── */
+.text-muted   { color: var(--neutral-500); font-size: var(--text-caption); }
+.text-caption { font-size: var(--text-caption); color: var(--neutral-600); }
+.text-body    { font-size: var(--text-body); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ── App Shell ──────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--container-pad);
+  gap: var(--sp-5);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-brand svg { color: var(--color-400); }
+.topbar-spacer { flex: 1; }
+.topbar-meta {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-role-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-50);
+  color: var(--color-600);
+  border: 1px solid var(--color-100);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.topbar-role-badge.role-admin   { background: var(--color-900); color: var(--neutral-0); border-color: var(--color-900); }
+.topbar-role-badge.role-teacher { background: var(--color-700); color: var(--neutral-0); border-color: var(--color-700); }
+.topbar-role-badge.role-student { background: var(--color-50);  color: var(--color-700); border-color: var(--color-200); }
+
+/* ── Page Content ───────────────────────────────────────── */
+.page {
+  flex: 1;
+  padding: var(--sp-6) var(--container-pad);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Page Header ────────────────────────────────────────── */
+.page-header {
+  margin-bottom: var(--sp-6);
+}
+.page-header h2 {
+  margin-bottom: var(--sp-1);
+}
+.page-header p {
+  color: var(--neutral-500);
+  font-size: var(--text-body);
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--neutral-200);
+  margin: var(--sp-4) 0;
+}
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: var(--sp-5);
+  right: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  background: var(--neutral-900);
+  color: var(--neutral-0);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  max-width: 300px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  box-shadow: var(--shadow);
+  animation: toast-in 200ms ease forwards;
+}
+.toast.toast-exit { animation: toast-out 200ms ease forwards; }
+.toast.toast-error { background: #3d1515; }
+.toast-icon { flex-shrink: 0; margin-top: 1px; }
+.toast strong { display: block; font-weight: var(--weight-semibold); margin-bottom: 2px; }
+@keyframes toast-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(12px); opacity: 0; }
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --container-pad: 16px; }
+  h1 { font-size: 32px; }
+  .page { padding: var(--sp-4) var(--container-pad); }
+}
+@media (max-width: 480px) {
+  :root { --container-pad: 16px; }
+}
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  line-height: 1.5;
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+  white-space: nowrap;
+  user-select: none;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--color-400);
+  border-color: var(--color-400);
+  color: var(--neutral-0);
+}
+.btn-primary:hover   { background: var(--color-500); border-color: var(--color-500); }
+.btn-primary:active  { background: var(--color-600); border-color: var(--color-600); }
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--neutral-300);
+  border-color: var(--neutral-300);
+  cursor: not-allowed;
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--neutral-0);
+  border-color: var(--neutral-200);
+  color: var(--neutral-700);
+}
+.btn-secondary:hover  { background: var(--neutral-100); border-color: var(--neutral-300); }
+.btn-secondary:active { background: var(--neutral-200); }
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--neutral-600);
+}
+.btn-ghost:hover  { background: var(--neutral-100); }
+.btn-ghost:active { background: var(--neutral-200); }
+
+/* Danger */
+.btn-danger {
+  background: transparent;
+  border-color: var(--neutral-200);
+  color: #c0392b;
+}
+.btn-danger:hover  { background: #fdf0ee; border-color: #e8b4ae; }
+.btn-danger:active { background: #fae0db; }
+
+/* Size modifier */
+.btn-sm {
+  font-size: var(--text-caption);
+  padding: var(--sp-1) var(--sp-3);
+}
+
+/* ── Form Elements ──────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.form-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-input,
+.form-select {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+  appearance: none;
+}
+.form-input::placeholder { color: var(--neutral-300); }
+.form-input:hover,
+.form-select:hover  { border-color: var(--neutral-300); }
+.form-input:focus,
+.form-select:focus  {
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7685' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--sp-2) center;
+  padding-right: var(--sp-5);
+  cursor: pointer;
+}
+.form-hint {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+.form-error-msg {
+  font-size: var(--text-caption);
+  color: #c0392b;
+}
+
+/* Form row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+@media (max-width: 480px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+.card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.card-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.card-description {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  margin-top: var(--sp-1);
+}
+
+/* ── Table ──────────────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--sp-4));
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption);
+}
+.table th {
+  text-align: left;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-200);
+  white-space: nowrap;
+}
+.table th:first-child { padding-left: var(--sp-4); }
+.table th:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  color: var(--neutral-700);
+  vertical-align: middle;
+}
+.table td:first-child { padding-left: var(--sp-4); }
+.table td:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr:hover td { background: var(--neutral-50); }
+
+/* ── Badge ──────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.badge-admin   { background: var(--color-900); color: var(--neutral-0); }
+.badge-teacher { background: var(--color-700); color: var(--neutral-0); }
+.badge-student { background: var(--color-50);  color: var(--color-700); border: 1px solid var(--color-200); }
+
+/* ── Empty State ────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--neutral-500);
+}
+.empty-state svg { margin-bottom: var(--sp-3); color: var(--neutral-300); }
+.empty-state p   { font-size: var(--text-caption); }
+
+/* ── Stats Row ──────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.stat-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+}
+.stat-label {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-2);
+}
+.stat-value {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+@media (max-width: 768px) {
+  .stats-row { grid-template-columns: 1fr; }
+}
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,15,28,0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--sp-4);
+  animation: fade-in 150ms ease;
+}
+.modal {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  width: 100%;
+  max-width: 440px;
+  animation: modal-in 200ms ease;
+}
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.modal-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.modal-close {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+.modal-close:hover { background: var(--neutral-100); }
+.modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.modal-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Login Page ─────────────────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--neutral-50);
+}
+.login-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  width: 100%;
+  max-width: 400px;
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+  color: var(--neutral-900);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+.login-logo svg { color: var(--color-400); }
+.login-heading {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-1);
+}
+.login-sub {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  margin-bottom: var(--sp-5);
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.login-hint {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  color: var(--neutral-600);
+  line-height: 1.7;
+}
+.login-hint strong {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  display: block;
+  margin-bottom: var(--sp-1);
+}
+.login-hint code {
+  font-family: monospace;
+  background: var(--neutral-200);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--neutral-700);
+}
+
+/* ── Admin Layout ───────────────────────────────────────── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+@media (max-width: 768px) {
+  .admin-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Segmented Control (Tab-like) ───────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+.segmented-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-1) var(--sp-3);
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.segmented-btn:hover { color: var(--neutral-700); }
+.segmented-btn.active {
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  box-shadow: var(--shadow);
+}
+.segmented-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <span class="topbar-brand">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 10h8M10 6v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      BookingSystem
+    </span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-meta">
+      <span id="topbar-name"></span>
+      <span class="topbar-role-badge role-admin">Admin</span>
+      <button class="btn btn-ghost btn-sm" id="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2h3a1 1 0 011 1v10a1 1 0 01-1 1h-3M7 11l4-4-4-4M11 8H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign out
+      </button>
+    </div>
+  </header>
+  <main class="page">
+    <div class="page-header"><h2>User management</h2><p>Create and manage teachers and students.</p></div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Teachers</div><div class="stat-value" id="stat-teachers">—</div></div>
+      <div class="stat-card"><div class="stat-label">Students</div><div class="stat-value" id="stat-students">—</div></div>
+      <div class="stat-card"><div class="stat-label">Total bookings</div><div class="stat-value" id="stat-bookings">—</div></div>
+    </div>
+    <div class="admin-grid">
+      <div class="card">
+        <div class="card-header"><div><div class="card-title">Create user</div><div class="card-description">Add a teacher or student.</div></div></div>
+        <form id="create-form" novalidate>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-3)">
+            <div class="form-group">
+              <label class="form-label" for="f-uid">UID</label>
+              <input class="form-input" type="text" id="f-uid" placeholder="e.g. t1, s2" autocapitalize="none" spellcheck="false"/>
+              <span class="form-error-msg" id="e-uid" style="display:none"></span>
+              <span class="form-hint">Used to sign in.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-name">Name</label>
+              <input class="form-input" type="text" id="f-name" placeholder="Full name"/>
+              <span class="form-error-msg" id="e-name" style="display:none"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-role">Role</label>
+              <select class="form-select" id="f-role">
+                <option value="">Select role…</option>
+                <option value="teacher">Teacher</option>
+                <option value="student">Student</option>
+              </select>
+              <span class="form-error-msg" id="e-role" style="display:none"></span>
+            </div>
+            <button class="btn btn-primary" type="submit" style="align-self:flex-start">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Create user
+            </button>
+          </div>
+        </form>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Users</div><div class="card-description">All teachers and students.</div></div>
+          <div class="segmented">
+            <button class="segmented-btn active" data-tab="teacher">Teachers</button>
+            <button class="segmented-btn" data-tab="student">Students</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>UID</th><th>Name</th><th>Info</th><th>Action</th></tr></thead>
+            <tbody id="user-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+/* ── STORE ── */
+var KEYS = { USERS: 'app_users', BOOKINGS: 'app_bookings', SELECTIONS: 'app_selections' };
+function _load(key) { try { var r = localStorage.getItem(key); return r ? (JSON.parse(r) || []) : []; } catch(e) { return []; } }
+function _save(key, data) { try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {} }
+function _uuid() { if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID(); return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+(function() { var u = _load(KEYS.USERS); var ok = false; for (var i=0;i<u.length;i++) { if (u[i].role==='admin') { ok=true; break; } } if (!ok) { u.push({uid:'admin',name:'Administrator',role:'admin'}); _save(KEYS.USERS,u); } })();
+var Users = {
+  all: function() { return _load(KEYS.USERS); },
+  byUid: function(uid) { var u=this.all(); for (var i=0;i<u.length;i++) { if (u[i].uid===uid) return u[i]; } return null; },
+  byRole: function(role) { return this.all().filter(function(u) { return u.role===role; }); },
+  create: function(o) { var u=this.all(); for (var i=0;i<u.length;i++) { if (u[i].uid===o.uid) throw new Error('UID "'+o.uid+'" already exists.'); } if (!o.uid||!o.name||!o.role) throw new Error('All fields required.'); var user={uid:o.uid.trim(),name:o.name.trim(),role:o.role}; u.push(user); _save(KEYS.USERS,u); return user; },
+  delete: function(uid) { if (uid==='admin') throw new Error('Cannot delete admin.'); var u=this.all(); _save(KEYS.USERS, u.filter(function(x){return x.uid!==uid;})); Selections.deleteByUser(uid); Bookings.deleteByUser(uid); }
+};
+var Bookings = {
+  all: function() { return _load(KEYS.BOOKINGS); },
+  byTeacher: function(tid) { return this.all().filter(function(b){return b.teacherId===tid;}); },
+  byStudent:  function(sid) { return this.all().filter(function(b){return b.studentId===sid;}); },
+  create: function(o) { var b=this.all(); var item={bookingId:_uuid(),teacherId:o.teacherId,studentId:o.studentId||null,date:o.date,start:o.start,end:o.end,status:o.status||'available'}; b.push(item); _save(KEYS.BOOKINGS,b); return item; },
+  update: function(id, patch) { var b=this.all().map(function(x){ if (x.bookingId!==id) return x; var u={}; for (var k in x) u[k]=x[k]; for (var p in patch) u[p]=patch[p]; return u; }); _save(KEYS.BOOKINGS,b); },
+  delete: function(id) { _save(KEYS.BOOKINGS, this.all().filter(function(b){return b.bookingId!==id;})); },
+  deleteByUser: function(uid) { _save(KEYS.BOOKINGS, this.all().filter(function(b){return b.teacherId!==uid && b.studentId!==uid;})); }
+};
+var Selections = {
+  all: function() { return _load(KEYS.SELECTIONS); },
+  byStudent: function(sid) { return this.all().filter(function(s){return s.studentId===sid;}); },
+  byTeacher: function(tid) { return this.all().filter(function(s){return s.teacherId===tid;}); },
+  exists: function(sid,tid) { var l=this.all(); for (var i=0;i<l.length;i++) { if (l[i].studentId===sid && l[i].teacherId===tid) return true; } return false; },
+  create: function(sid,tid) { if (this.exists(sid,tid)) return; var l=this.all(); l.push({studentId:sid,teacherId:tid}); _save(KEYS.SELECTIONS,l); },
+  delete: function(sid,tid) { _save(KEYS.SELECTIONS, this.all().filter(function(s){return !(s.studentId===sid && s.teacherId===tid);})); },
+  deleteByUser: function(uid) { _save(KEYS.SELECTIONS, this.all().filter(function(s){return s.studentId!==uid && s.teacherId!==uid;})); }
+};
+window.Store = { Users:Users, Bookings:Bookings, Selections:Selections };
+
+/* ── AUTH ── */
+var Auth = {
+  login: function(uid) { var u=Store.Users.byUid(uid.trim()); if (!u) throw new Error('No user with UID "'+uid+'".'); try { localStorage.setItem('app_session', JSON.stringify(u)); } catch(e) { throw new Error('Cannot save session.'); } return u; },
+  logout: function() { try { localStorage.removeItem('app_session'); } catch(e) {} window.location.href='index.html'; },
+  current: function() { try { var r=localStorage.getItem('app_session'); return r ? JSON.parse(r) : null; } catch(e) { return null; } },
+  require: function(role) { var u=this.current(); if (!u) { window.location.href='index.html'; return null; } var roles=Array.isArray(role)?role:[role]; var ok=false; for (var i=0;i<roles.length;i++){if(roles[i]===u.role){ok=true;break;}} if (!ok) { var map={admin:'admin.html',teacher:'teacher.html',student:'student.html'}; window.location.href=map[u.role]||'index.html'; return null; } return u; }
+};
+window.Auth = Auth;
+
+/* ── TOAST ── */
+var Toast = (function() {
+  var cnt = null;
+  function getCnt() { if (!cnt) { cnt=document.createElement('div'); cnt.className='toast-container'; document.body.appendChild(cnt); } return cnt; }
+  function show(msg, type) {
+    var el=document.createElement('div'); el.className='toast'+(type==='error'?' toast-error':'');
+    var icon = type==='error'
+      ? '<svg class="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#e74c3c" stroke-width="1.5"/><path d="M8 5v3M8 11v.5" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round"/></svg>'
+      : '<svg class="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#4d7aa0" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#4d7aa0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    el.innerHTML = icon + '<span>'+msg+'</span>';
+    getCnt().appendChild(el);
+    setTimeout(function(){ el.classList.add('toast-exit'); setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},200); }, 3500);
+  }
+  return { success: function(m){show(m,'success');}, error: function(m){show(m,'error');} };
+})();
+window.Toast = Toast;
+
+/* ── MODAL ── */
+var Modal = {
+  show: function(o) {
+    var ov=document.createElement('div'); ov.className='modal-overlay';
+    ov.innerHTML='<div class="modal" role="dialog"><div class="modal-header"><span class="modal-title">'+o.title+'</span><button class="modal-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="modal-body">'+o.bodyHTML+'</div>'+(o.footerHTML?'<div class="modal-footer">'+o.footerHTML+'</div>':'')+'</div>';
+    document.body.appendChild(ov);
+    var close=function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
+    ov.querySelector('.modal-close').addEventListener('click', close);
+    ov.addEventListener('click', function(e){ if(e.target===ov) close(); });
+    function esc(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown',esc); } }
+    document.addEventListener('keydown', esc);
+    return { close: close };
+  }
+};
+window.Modal = Modal;
+/**
+ * admin.js — Admin View Logic
+ */
+
+var currentUser = null;
+var activeTab   = 'teacher';
+
+document.addEventListener('DOMContentLoaded', function() {
+  currentUser = Auth.require('admin');
+  if (!currentUser) return;
+
+  document.getElementById('topbar-name').textContent = currentUser.name;
+
+  // Tab switching
+  document.querySelectorAll('.segmented-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      activeTab = btn.dataset.tab;
+      document.querySelectorAll('.segmented-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      renderTable();
+    });
+  });
+
+  document.getElementById('create-form').addEventListener('submit', handleCreate);
+  document.getElementById('logout-btn').addEventListener('click', function() { Auth.logout(); });
+
+  renderStats();
+  renderTable();
+});
+
+function handleCreate(e) {
+  e.preventDefault();
+  var uid  = document.getElementById('f-uid').value.trim();
+  var name = document.getElementById('f-name').value.trim();
+  var role = document.getElementById('f-role').value;
+
+  clearErrors();
+  var valid = true;
+  if (!uid)  { showError('e-uid',  'UID is required.');    valid = false; }
+  if (!name) { showError('e-name', 'Name is required.');   valid = false; }
+  if (!role) { showError('e-role', 'Select a role.');      valid = false; }
+  if (!valid) return;
+
+  try {
+    Store.Users.create({ uid: uid, name: name, role: role });
+    Toast.success((role === 'teacher' ? 'Teacher' : 'Student') + ' <strong>' + name + '</strong> created.');
+    e.target.reset();
+    activeTab = role;
+    document.querySelectorAll('.segmented-btn').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.tab === role);
+    });
+    renderStats();
+    renderTable();
+  } catch(err) {
+    showError('e-uid', err.message);
+  }
+}
+
+function handleDelete(uid) {
+  var user = Store.Users.byUid(uid);
+  if (!user) return;
+
+  var result = Modal.show({
+    title: 'Delete user',
+    bodyHTML: '<p style="color:var(--neutral-700)">Delete <strong>' + user.name + '</strong> (' + user.uid + ')? All their bookings and selections will also be removed.</p>',
+    footerHTML: '<button class="btn btn-ghost" id="modal-cancel">Cancel</button><button class="btn btn-danger" id="modal-confirm">Delete</button>'
+  });
+
+  document.getElementById('modal-cancel').addEventListener('click', result.close);
+  document.getElementById('modal-confirm').addEventListener('click', function() {
+    try {
+      Store.Users.delete(uid);
+      Toast.success('User <strong>' + user.name + '</strong> deleted.');
+      renderStats();
+      renderTable();
+    } catch(err) {
+      Toast.error(err.message);
+    }
+    result.close();
+  });
+}
+
+function renderStats() {
+  var users    = Store.Users.all();
+  var teachers = users.filter(function(u) { return u.role === 'teacher'; }).length;
+  var students = users.filter(function(u) { return u.role === 'student'; }).length;
+  var bookings = Store.Bookings.all().length;
+  document.getElementById('stat-teachers').textContent = teachers;
+  document.getElementById('stat-students').textContent = students;
+  document.getElementById('stat-bookings').textContent = bookings;
+}
+
+function renderTable() {
+  var users = Store.Users.byRole(activeTab);
+  var tbody = document.getElementById('user-tbody');
+
+  if (!users.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:var(--sp-6) var(--sp-4);color:var(--neutral-500);font-size:var(--text-caption)">No ' + activeTab + 's yet.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = users.map(function(u) {
+    var bookingCount = activeTab === 'teacher'
+      ? Store.Bookings.byTeacher(u.uid).length
+      : Store.Bookings.byStudent(u.uid).length;
+    var selCount = activeTab === 'teacher'
+      ? Store.Selections.byTeacher(u.uid).length
+      : Store.Selections.byStudent(u.uid).length;
+
+    return '<tr>'
+      + '<td><code style="font-family:monospace;font-size:var(--text-caption);background:var(--neutral-100);padding:2px 6px;border-radius:3px;color:var(--neutral-700)">' + u.uid + '</code></td>'
+      + '<td style="font-weight:var(--weight-semibold);color:var(--neutral-900)">' + u.name + '</td>'
+      + '<td style="color:var(--neutral-500);font-size:var(--text-caption)">'
+        + (activeTab === 'teacher'
+            ? selCount + ' student' + (selCount !== 1 ? 's' : '') + ' · ' + bookingCount + ' slot' + (bookingCount !== 1 ? 's' : '')
+            : selCount + ' teacher' + (selCount !== 1 ? 's' : '') + ' · ' + bookingCount + ' booking' + (bookingCount !== 1 ? 's' : ''))
+      + '</td>'
+      + '<td><button class="btn btn-danger btn-sm" onclick="handleDelete(\'' + u.uid + '\')">'
+        + '<svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+        + ' Remove</button></td>'
+      + '</tr>';
+  }).join('');
+}
+
+function showError(id, msg) {
+  var el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+function clearErrors() {
+  ['e-uid','e-name','e-role'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) { el.textContent = ''; el.style.display = 'none'; }
+  });
+}
+</script>
+</body>
+</html>

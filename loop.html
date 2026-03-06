@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Morphing Colors Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+        }
+
+        #controls {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: rgba(20, 20, 30, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 20px;
+            border-radius: 15px;
+            color: white;
+            max-width: 320px;
+            max-height: 90vh;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        #controls.hidden {
+            transform: translateX(-110%);
+            opacity: 0;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-group:last-child {
+            border-bottom: none;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #a0a0b0;
+        }
+
+        .slider {
+            width: 100%;
+            height: 6px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            outline: none;
+            transition: background 0.3s;
+        }
+
+        .slider:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+            transition: transform 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+            border: none;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            margin: 5px 0;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button.secondary {
+            background: rgba(255, 255, 255, 0.1);
+            box-shadow: none;
+        }
+
+        .button.danger {
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+        }
+
+        #colorList {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .color-item {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-item:hover {
+            transform: scale(1.1);
+        }
+
+        .color-item::after {
+            content: 'Ã—';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .color-item:hover::after {
+            opacity: 1;
+        }
+
+        #colorPicker {
+            width: 50px;
+            height: 40px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+        }
+
+        #menuToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(20, 20, 30, 0.9);
+            backdrop-filter: blur(10px);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 1001;
+            transition: transform 0.3s, background 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #menuToggle:hover {
+            transform: scale(1.1);
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .preset-buttons .button {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        h3 {
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            color: #a0a0b0;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            #controls {
+                max-width: 280px;
+                padding: 15px;
+            }
+            
+            .button {
+                padding: 12px;
+            }
+        }
+
+        /* Scrollbar styling */
+        #controls::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #controls::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+
+        #controls::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        #controls::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <button id="menuToggle">â˜°</button>
+    
+    <div id="controls">
+        <h3>ðŸŽ¨ Morphing Colors Control</h3>
+        
+        <div class="control-group">
+            <div class="control-label">
+                <span>Farben</span>
+            </div>
+            <div id="colorList"></div>
+            <div style="display: flex; gap: 10px; align-items: center; margin-top: 10px;">
+                <input type="color" id="colorPicker" value="#667eea">
+                <button class="button" onclick="addColor()">Farbe hinzufÃ¼gen</button>
+            </div>
+            <button class="button danger" onclick="clearColors()">Alle lÃ¶schen</button>
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Geschwindigkeit</span>
+                <span id="speedValue">1.0</span>
+            </div>
+            <input type="range" class="slider" id="speedSlider" min="0.1" max="5" value="1" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Zoom</span>
+                <span id="zoomValue">1.0</span>
+            </div>
+            <input type="range" class="slider" id="zoomSlider" min="0.5" max="3" value="1" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>SchÃ¤rfe/Blur</span>
+                <span id="sharpnessValue">0.5</span>
+            </div>
+            <input type="range" class="slider" id="sharpnessSlider" min="0" max="1" value="0.5" step="0.01">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Glow IntensitÃ¤t</span>
+                <span id="glowValue">0.3</span>
+            </div>
+            <input type="range" class="slider" id="glowSlider" min="0" max="1" value="0.3" step="0.01">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Wellen-Effekt</span>
+                <span id="waveValue">0.5</span>
+            </div>
+            <input type="range" class="slider" id="waveSlider" min="0" max="2" value="0.5" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>Rotation</span>
+                <span id="rotationValue">0.2</span>
+            </div>
+            <input type="range" class="slider" id="rotationSlider" min="0" max="2" value="0.2" step="0.1">
+        </div>
+
+        <div class="control-group">
+            <div class="control-label">
+                <span>KomplexitÃ¤t</span>
+                <span id="complexityValue">3</span>
+            </div>
+            <input type="range" class="slider" id="complexitySlider" min="1" max="8" value="3" step="1">
+        </div>
+
+        <div class="control-group">
+            <div class="checkbox-group">
+                <input type="checkbox" id="pulseCheck" checked>
+                <label for="pulseCheck">Puls-Effekt</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="mirrorCheck">
+                <label for="mirrorCheck">Spiegel-Modus</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="particlesCheck">
+                <label for="particlesCheck">Partikel-Effekt</label>
+            </div>
+        </div>
+
+        <div class="control-group">
+            <button class="button" onclick="saveSettings()">â¬‡ Einstellungen speichern</button>
+            <button class="button" onclick="loadSettings()">â¬† Einstellungen laden</button>
+            <button class="button secondary" onclick="toggleFullscreen()">â›¶ Vollbild</button>
+            
+            <div class="preset-buttons">
+                <button class="button secondary" onclick="loadPreset('ocean')">ðŸŒŠ Ozean</button>
+                <button class="button secondary" onclick="loadPreset('sunset')">ðŸŒ… Sunset</button>
+                <button class="button secondary" onclick="loadPreset('aurora')">ðŸŒŒ Aurora</button>
+                <button class="button secondary" onclick="loadPreset('neon')">ðŸ’œ Neon</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const controls = document.getElementById('controls');
+        const menuToggle = document.getElementById('menuToggle');
+        
+        let width, height;
+        let time = 0;
+        let colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c'];
+        let particles = [];
+        
+        // Settings
+        let settings = {
+            speed: 1,
+            zoom: 1,
+            sharpness: 0.5,
+            glow: 0.3,
+            wave: 0.5,
+            rotation: 0.2,
+            complexity: 3,
+            pulse: true,
+            mirror: false,
+            particlesEnabled: false
+        };
+
+        // Initialize
+        function init() {
+            resizeCanvas();
+            updateColorList();
+            setupEventListeners();
+            
+            // Initialize particles after canvas is sized
+            if (width > 0 && height > 0) {
+                for (let i = 0; i < 50; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        size: Math.random() * 3 + 1
+                    });
+                }
+            }
+            
+            animate();
+        }
+
+        function resizeCanvas() {
+            width = canvas.width = window.innerWidth || 1;
+            height = canvas.height = window.innerHeight || 1;
+        }
+
+        function setupEventListeners() {
+            window.addEventListener('resize', resizeCanvas);
+            
+            // Menu toggle
+            menuToggle.addEventListener('click', () => {
+                controls.classList.toggle('hidden');
+                menuToggle.textContent = controls.classList.contains('hidden') ? 'â˜°' : 'âœ•';
+            });
+            
+            // Sliders
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                settings.speed = parseFloat(e.target.value);
+                document.getElementById('speedValue').textContent = settings.speed.toFixed(1);
+            });
+            
+            document.getElementById('zoomSlider').addEventListener('input', (e) => {
+                settings.zoom = parseFloat(e.target.value);
+                document.getElementById('zoomValue').textContent = settings.zoom.toFixed(1);
+            });
+            
+            document.getElementById('sharpnessSlider').addEventListener('input', (e) => {
+                settings.sharpness = parseFloat(e.target.value);
+                document.getElementById('sharpnessValue').textContent = settings.sharpness.toFixed(2);
+            });
+            
+            document.getElementById('glowSlider').addEventListener('input', (e) => {
+                settings.glow = parseFloat(e.target.value);
+                document.getElementById('glowValue').textContent = settings.glow.toFixed(2);
+            });
+            
+            document.getElementById('waveSlider').addEventListener('input', (e) => {
+                settings.wave = parseFloat(e.target.value);
+                document.getElementById('waveValue').textContent = settings.wave.toFixed(1);
+            });
+            
+            document.getElementById('rotationSlider').addEventListener('input', (e) => {
+                settings.rotation = parseFloat(e.target.value);
+                document.getElementById('rotationValue').textContent = settings.rotation.toFixed(1);
+            });
+            
+            document.getElementById('complexitySlider').addEventListener('input', (e) => {
+                settings.complexity = parseInt(e.target.value);
+                document.getElementById('complexityValue').textContent = settings.complexity;
+            });
+            
+            // Checkboxes
+            document.getElementById('pulseCheck').addEventListener('change', (e) => {
+                settings.pulse = e.target.checked;
+            });
+            
+            document.getElementById('mirrorCheck').addEventListener('change', (e) => {
+                settings.mirror = e.target.checked;
+            });
+            
+            document.getElementById('particlesCheck').addEventListener('change', (e) => {
+                settings.particlesEnabled = e.target.checked;
+            });
+            
+            // Touch events for fullscreen exit
+            let touchTimer;
+            canvas.addEventListener('touchstart', (e) => {
+                if (document.fullscreenElement) {
+                    touchTimer = setTimeout(() => {
+                        document.exitFullscreen();
+                    }, 500);
+                }
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                clearTimeout(touchTimer);
+            });
+        }
+
+        function addColor() {
+            const color = document.getElementById('colorPicker').value;
+            if (colors.length < 10) {
+                colors.push(color);
+                updateColorList();
+            }
+        }
+
+        function removeColor(index) {
+            if (colors.length > 2) {
+                colors.splice(index, 1);
+                updateColorList();
+            }
+        }
+
+        function clearColors() {
+            colors = ['#667eea', '#764ba2'];
+            updateColorList();
+        }
+
+        function updateColorList() {
+            const colorList = document.getElementById('colorList');
+            colorList.innerHTML = '';
+            colors.forEach((color, index) => {
+                const div = document.createElement('div');
+                div.className = 'color-item';
+                div.style.background = color;
+                div.onclick = () => removeColor(index);
+                colorList.appendChild(div);
+            });
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        function interpolateColors(colors, t) {
+            const scaledT = t * (colors.length - 1);
+            const index = Math.floor(scaledT);
+            const fraction = scaledT - index;
+            
+            const color1 = hexToRgb(colors[index % colors.length]);
+            const color2 = hexToRgb(colors[(index + 1) % colors.length]);
+            
+            return {
+                r: Math.round(color1.r + (color2.r - color1.r) * fraction),
+                g: Math.round(color1.g + (color2.g - color1.g) * fraction),
+                b: Math.round(color1.b + (color2.b - color1.b) * fraction)
+            };
+        }
+
+        function animate() {
+            // Skip animation if canvas has no size
+            if (width <= 0 || height <= 0) {
+                requestAnimationFrame(animate);
+                return;
+            }
+            
+            time += 0.001 * settings.speed;
+            
+            // Create gradient effect
+            const imageData = ctx.createImageData(width, height);
+            const data = imageData.data;
+            
+            const pulseEffect = settings.pulse ? Math.sin(time * 2) * 0.3 + 0.7 : 1;
+            
+            for (let x = 0; x < width; x++) {
+                for (let y = 0; y < height; y++) {
+                    const index = (y * width + x) * 4;
+                    
+                    // Calculate position with zoom
+                    let px = (x - width / 2) / (width * settings.zoom) + 0.5;
+                    let py = (y - height / 2) / (height * settings.zoom) + 0.5;
+                    
+                    // Apply rotation
+                    if (settings.rotation > 0) {
+                        const angle = time * settings.rotation;
+                        const cos = Math.cos(angle);
+                        const sin = Math.sin(angle);
+                        const tx = px - 0.5;
+                        const ty = py - 0.5;
+                        px = tx * cos - ty * sin + 0.5;
+                        py = tx * sin + ty * cos + 0.5;
+                    }
+                    
+                    // Apply wave distortion
+                    if (settings.wave > 0) {
+                        px += Math.sin(py * 10 + time * 3) * settings.wave * 0.02;
+                        py += Math.cos(px * 10 + time * 2) * settings.wave * 0.02;
+                    }
+                    
+                    // Apply mirror effect
+                    if (settings.mirror) {
+                        px = Math.abs(px - 0.5) + 0.5;
+                        py = Math.abs(py - 0.5) + 0.5;
+                    }
+                    
+                    // Calculate color based on position and time
+                    let colorT = 0;
+                    for (let i = 1; i <= settings.complexity; i++) {
+                        colorT += Math.sin(px * i * Math.PI + time) * 
+                                 Math.cos(py * i * Math.PI - time * 0.7);
+                    }
+                    
+                    colorT = (colorT / settings.complexity + 1) / 2;
+                    
+                    // Apply sharpness
+                    const sharpnessFactor = settings.sharpness * 10;
+                    colorT = Math.pow(colorT, Math.exp(-sharpnessFactor + 5));
+                    
+                    // Get interpolated color
+                    const color = interpolateColors(colors, colorT);
+                    
+                    // Apply glow effect
+                    const glowIntensity = 1 + settings.glow * Math.sin(colorT * Math.PI);
+                    
+                    data[index] = Math.min(255, color.r * glowIntensity * pulseEffect);
+                    data[index + 1] = Math.min(255, color.g * glowIntensity * pulseEffect);
+                    data[index + 2] = Math.min(255, color.b * glowIntensity * pulseEffect);
+                    data[index + 3] = 255;
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw particles if enabled
+            if (settings.particlesEnabled) {
+                drawParticles();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+
+        function drawParticles() {
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Wrap around edges
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                if (window.innerWidth <= 768) {
+                    controls.classList.add('hidden');
+                    menuToggle.textContent = 'â˜°';
+                }
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function saveSettings() {
+            const data = {
+                colors: colors,
+                settings: settings
+            };
+            const json = JSON.stringify(data);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'morphing-colors-settings.json';
+            a.click();
+        }
+
+        function loadSettings() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        colors = data.colors || colors;
+                        Object.assign(settings, data.settings);
+                        updateColorList();
+                        updateControls();
+                    } catch (error) {
+                        alert('Fehler beim Laden der Einstellungen');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function updateControls() {
+            document.getElementById('speedSlider').value = settings.speed;
+            document.getElementById('speedValue').textContent = settings.speed.toFixed(1);
+            document.getElementById('zoomSlider').value = settings.zoom;
+            document.getElementById('zoomValue').textContent = settings.zoom.toFixed(1);
+            document.getElementById('sharpnessSlider').value = settings.sharpness;
+            document.getElementById('sharpnessValue').textContent = settings.sharpness.toFixed(2);
+            document.getElementById('glowSlider').value = settings.glow;
+            document.getElementById('glowValue').textContent = settings.glow.toFixed(2);
+            document.getElementById('waveSlider').value = settings.wave;
+            document.getElementById('waveValue').textContent = settings.wave.toFixed(1);
+            document.getElementById('rotationSlider').value = settings.rotation;
+            document.getElementById('rotationValue').textContent = settings.rotation.toFixed(1);
+            document.getElementById('complexitySlider').value = settings.complexity;
+            document.getElementById('complexityValue').textContent = settings.complexity;
+            document.getElementById('pulseCheck').checked = settings.pulse;
+            document.getElementById('mirrorCheck').checked = settings.mirror;
+            document.getElementById('particlesCheck').checked = settings.particlesEnabled;
+        }
+
+        function loadPreset(preset) {
+            switch(preset) {
+                case 'ocean':
+                    colors = ['#0077be', '#00a8cc', '#00d4aa', '#a8e6cf'];
+                    settings.wave = 1.5;
+                    settings.complexity = 4;
+                    settings.pulse = true;
+                    break;
+                case 'sunset':
+                    colors = ['#ff6b6b', '#feca57', '#ff9ff3', '#ff6348'];
+                    settings.glow = 0.6;
+                    settings.rotation = 0.1;
+                    settings.pulse = false;
+                    break;
+                case 'aurora':
+                    colors = ['#00d2ff', '#3a7bd5', '#00ff88', '#a8ff78'];
+                    settings.wave = 0.8;
+                    settings.glow = 0.8;
+                    settings.complexity = 6;
+                    break;
+                case 'neon':
+                    colors = ['#f700ff', '#00ffff', '#ff00ff', '#00ff00'];
+                    settings.glow = 1;
+                    settings.sharpness = 0.8;
+                    settings.mirror = true;
+                    break;
+            }
+            updateColorList();
+            updateControls();
+        }
+
+        // Initialize on load
+        init();
+    </script>
+</body>
+</html>

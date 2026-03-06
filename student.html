@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Student — BookingSystem</title>
+<style>
+/* ── Design Tokens ─────────────────────────────────────────
+   Source: Minimal Design Cheat Sheet
+   Base hue: Navy #060f1c
+   Font: Figtree 400 / 600
+──────────────────────────────────────────────────────────── */
+:root {
+  /* Navy scale */
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;   /* accent / interaction */
+  --color-500: #3a6285;   /* hover */
+  --color-600: #2b4d6b;   /* active */
+  --color-700: #1a3249;
+  --color-800: #0f2035;
+  --color-900: #060f1c;   /* base */
+
+  /* Neutrals */
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-500: #6b7685;
+  --neutral-600: #505a68;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+
+  /* Typography */
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --text-hero:     48px;
+  --text-heading:  24px;
+  --text-body:     16px;
+  --text-caption:  12px;
+  --weight-regular:  400;
+  --weight-semibold: 600;
+
+  /* Spacing (8-pt grid) */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  16px;
+  --sp-4:  24px;
+  --sp-5:  32px;
+  --sp-6:  48px;
+  --sp-7:  64px;
+  --sp-8:  96px;
+  --sp-9: 128px;
+
+  /* Layout */
+  --container-max: 1280px;
+  --container-pad: 32px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg: 16px;
+
+  /* Shadow */
+  --shadow: 0 1px 3px rgba(6,15,28,0.08);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+
+  /* Animation */
+  --transition: 150ms ease;
+}
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-700);
+  background: var(--neutral-50);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+h1 {
+  font-size: var(--text-hero);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.1;
+}
+h2 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.3;
+}
+p { line-height: 1.6; }
+
+/* ── Utility ────────────────────────────────────────────── */
+.text-muted   { color: var(--neutral-500); font-size: var(--text-caption); }
+.text-caption { font-size: var(--text-caption); color: var(--neutral-600); }
+.text-body    { font-size: var(--text-body); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+
+/* ── App Shell ──────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--container-pad);
+  gap: var(--sp-5);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-brand svg { color: var(--color-400); }
+.topbar-spacer { flex: 1; }
+.topbar-meta {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-role-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-50);
+  color: var(--color-600);
+  border: 1px solid var(--color-100);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.topbar-role-badge.role-admin   { background: var(--color-900); color: var(--neutral-0); border-color: var(--color-900); }
+.topbar-role-badge.role-teacher { background: var(--color-700); color: var(--neutral-0); border-color: var(--color-700); }
+.topbar-role-badge.role-student { background: var(--color-50);  color: var(--color-700); border-color: var(--color-200); }
+
+/* ── Page Content ───────────────────────────────────────── */
+.page {
+  flex: 1;
+  padding: var(--sp-6) var(--container-pad);
+  max-width: var(--container-max);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ── Page Header ────────────────────────────────────────── */
+.page-header {
+  margin-bottom: var(--sp-6);
+}
+.page-header h2 {
+  margin-bottom: var(--sp-1);
+}
+.page-header p {
+  color: var(--neutral-500);
+  font-size: var(--text-body);
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--neutral-200);
+  margin: var(--sp-4) 0;
+}
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  bottom: var(--sp-5);
+  right: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  background: var(--neutral-900);
+  color: var(--neutral-0);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  max-width: 300px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  box-shadow: var(--shadow);
+  animation: toast-in 200ms ease forwards;
+}
+.toast.toast-exit { animation: toast-out 200ms ease forwards; }
+.toast.toast-error { background: #3d1515; }
+.toast-icon { flex-shrink: 0; margin-top: 1px; }
+.toast strong { display: block; font-weight: var(--weight-semibold); margin-bottom: 2px; }
+@keyframes toast-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(12px); opacity: 0; }
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --container-pad: 16px; }
+  h1 { font-size: 32px; }
+  .page { padding: var(--sp-4) var(--container-pad); }
+}
+@media (max-width: 480px) {
+  :root { --container-pad: 16px; }
+}
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  line-height: 1.5;
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+  white-space: nowrap;
+  user-select: none;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--color-400);
+  border-color: var(--color-400);
+  color: var(--neutral-0);
+}
+.btn-primary:hover   { background: var(--color-500); border-color: var(--color-500); }
+.btn-primary:active  { background: var(--color-600); border-color: var(--color-600); }
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--neutral-300);
+  border-color: var(--neutral-300);
+  cursor: not-allowed;
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--neutral-0);
+  border-color: var(--neutral-200);
+  color: var(--neutral-700);
+}
+.btn-secondary:hover  { background: var(--neutral-100); border-color: var(--neutral-300); }
+.btn-secondary:active { background: var(--neutral-200); }
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--neutral-600);
+}
+.btn-ghost:hover  { background: var(--neutral-100); }
+.btn-ghost:active { background: var(--neutral-200); }
+
+/* Danger */
+.btn-danger {
+  background: transparent;
+  border-color: var(--neutral-200);
+  color: #c0392b;
+}
+.btn-danger:hover  { background: #fdf0ee; border-color: #e8b4ae; }
+.btn-danger:active { background: #fae0db; }
+
+/* Size modifier */
+.btn-sm {
+  font-size: var(--text-caption);
+  padding: var(--sp-1) var(--sp-3);
+}
+
+/* ── Form Elements ──────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.form-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-input,
+.form-select {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+  appearance: none;
+}
+.form-input::placeholder { color: var(--neutral-300); }
+.form-input:hover,
+.form-select:hover  { border-color: var(--neutral-300); }
+.form-input:focus,
+.form-select:focus  {
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7685' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--sp-2) center;
+  padding-right: var(--sp-5);
+  cursor: pointer;
+}
+.form-hint {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+.form-error-msg {
+  font-size: var(--text-caption);
+  color: #c0392b;
+}
+
+/* Form row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+@media (max-width: 480px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+.card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.card-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.card-description {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  margin-top: var(--sp-1);
+}
+
+/* ── Table ──────────────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--sp-4));
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption);
+}
+.table th {
+  text-align: left;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-200);
+  white-space: nowrap;
+}
+.table th:first-child { padding-left: var(--sp-4); }
+.table th:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  color: var(--neutral-700);
+  vertical-align: middle;
+}
+.table td:first-child { padding-left: var(--sp-4); }
+.table td:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table tr:last-child td { border-bottom: none; }
+.table tbody tr:hover td { background: var(--neutral-50); }
+
+/* ── Badge ──────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.badge-admin   { background: var(--color-900); color: var(--neutral-0); }
+.badge-teacher { background: var(--color-700); color: var(--neutral-0); }
+.badge-student { background: var(--color-50);  color: var(--color-700); border: 1px solid var(--color-200); }
+
+/* ── Empty State ────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--neutral-500);
+}
+.empty-state svg { margin-bottom: var(--sp-3); color: var(--neutral-300); }
+.empty-state p   { font-size: var(--text-caption); }
+
+/* ── Stats Row ──────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.stat-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+}
+.stat-label {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-2);
+}
+.stat-value {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+@media (max-width: 768px) {
+  .stats-row { grid-template-columns: 1fr; }
+}
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,15,28,0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: var(--sp-4);
+  animation: fade-in 150ms ease;
+}
+.modal {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  width: 100%;
+  max-width: 440px;
+  animation: modal-in 200ms ease;
+}
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.modal-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.modal-close {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+.modal-close:hover { background: var(--neutral-100); }
+.modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.modal-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Login Page ─────────────────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--neutral-50);
+}
+.login-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  width: 100%;
+  max-width: 400px;
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+  color: var(--neutral-900);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+.login-logo svg { color: var(--color-400); }
+.login-heading {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-1);
+}
+.login-sub {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  margin-bottom: var(--sp-5);
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.login-hint {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  color: var(--neutral-600);
+  line-height: 1.7;
+}
+.login-hint strong {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  display: block;
+  margin-bottom: var(--sp-1);
+}
+.login-hint code {
+  font-family: monospace;
+  background: var(--neutral-200);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--neutral-700);
+}
+
+/* ── Admin Layout ───────────────────────────────────────── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+@media (max-width: 768px) {
+  .admin-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Segmented Control (Tab-like) ───────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+.segmented-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-1) var(--sp-3);
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.segmented-btn:hover { color: var(--neutral-700); }
+.segmented-btn.active {
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  box-shadow: var(--shadow);
+}
+.segmented-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.view-nav { display:flex; gap:2px; border-bottom:1px solid var(--neutral-200); margin-bottom:var(--sp-5); }
+.view-nav-btn { font-family:var(--font); font-size:var(--text-body); font-weight:600; padding:var(--sp-2) var(--sp-4); border:none; border-bottom:2px solid transparent; background:transparent; color:var(--neutral-500); cursor:pointer; margin-bottom:-1px; }
+.view-nav-btn:hover { color:var(--neutral-700); }
+.view-nav-btn.active { color:var(--neutral-900); border-bottom-color:var(--color-400); }
+#catalog-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:var(--sp-4); }
+.teacher-card { transition:border-color 150ms ease; }
+.teacher-card-selected { border-color:var(--color-300); }
+.student-cal-layout { display:grid; grid-template-columns:264px 1fr; gap:var(--sp-4); align-items:start; }
+@media (max-width:768px) { .student-cal-layout { grid-template-columns:1fr; } }
+.cal-nav { display:flex; align-items:center; justify-content:space-between; margin-bottom:var(--sp-3); }
+.cal-nav-label { font-size:var(--text-body); font-weight:600; color:var(--neutral-900); }
+.cal-btn { width:32px; height:32px; border:1px solid var(--neutral-200); border-radius:var(--radius-sm); background:var(--neutral-0); cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--neutral-700); }
+.cal-btn:hover { background:var(--neutral-100); }
+.cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:var(--sp-2); }
+.cal-weekday { text-align:center; font-size:10px; font-weight:600; color:var(--neutral-500); text-transform:uppercase; letter-spacing:0.04em; }
+.cal-days { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+.cal-day { aspect-ratio:1; display:flex; align-items:center; justify-content:center; border-radius:var(--radius-sm); font-size:var(--text-caption); cursor:pointer; border:1px solid transparent; color:var(--neutral-700); position:relative; }
+.cal-day:hover:not(.other-month) { background:var(--neutral-100); }
+.cal-day.other-month { color:var(--neutral-300); pointer-events:none; }
+.cal-day.today { font-weight:600; color:var(--color-400); border-color:var(--color-400); }
+.cal-day.selected { background:var(--color-900); color:var(--neutral-0); border-color:var(--color-900); font-weight:600; }
+.cal-day.has-avail::after { content:''; position:absolute; bottom:2px; left:50%; transform:translateX(-50%); width:4px; height:4px; border-radius:50%; background:var(--color-400); }
+.cal-day.has-mybook::after { background:var(--color-700); }
+.cal-day.selected::after { background:var(--neutral-0) !important; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <span class="topbar-brand">
+      <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><rect x="1" y="1" width="18" height="18" rx="4" stroke="currentColor" stroke-width="1.5"/><path d="M6 10h8M10 6v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      BookingSystem
+    </span>
+    <div class="topbar-spacer"></div>
+    <div class="topbar-meta">
+      <span id="topbar-name"></span>
+      <span class="topbar-role-badge role-student">Student</span>
+      <button class="btn btn-ghost btn-sm" id="logout-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 2h3a1 1 0 011 1v10a1 1 0 01-1 1h-3M7 11l4-4-4-4M11 8H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Sign out
+      </button>
+    </div>
+  </header>
+  <main class="page">
+    <div class="page-header"><h2>My lessons</h2><p>Find teachers and book sessions.</p></div>
+    <div class="stats-row" style="grid-template-columns:1fr 1fr;max-width:400px">
+      <div class="stat-card"><div class="stat-label">My teachers</div><div class="stat-value" id="stat-teachers">—</div></div>
+      <div class="stat-card"><div class="stat-label">Booked</div><div class="stat-value" id="stat-bookings">—</div></div>
+    </div>
+    <div class="view-nav">
+      <button class="view-nav-btn active" id="nav-catalog">Teacher catalog</button>
+      <button class="view-nav-btn" id="nav-calendar">Book a lesson</button>
+    </div>
+    <div id="view-catalog">
+      <div id="catalog-grid"><p class="text-muted">Loading…</p></div>
+    </div>
+    <div id="view-calendar" style="display:none">
+      <div id="teacher-picker" style="margin-bottom:var(--sp-4)"></div>
+      <div id="cal-section" style="display:none">
+        <div class="student-cal-layout">
+          <div class="card">
+            <div class="cal-nav">
+              <button class="cal-btn" id="prev-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <span class="cal-nav-label" id="month-label"></span>
+              <button class="cal-btn" id="next-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+            <div class="cal-weekdays"><div class="cal-weekday">Mo</div><div class="cal-weekday">Tu</div><div class="cal-weekday">We</div><div class="cal-weekday">Th</div><div class="cal-weekday">Fr</div><div class="cal-weekday">Sa</div><div class="cal-weekday">Su</div></div>
+            <div class="cal-days" id="cal-days"></div>
+            <div style="margin-top:var(--sp-3);display:flex;flex-direction:column;gap:4px">
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neutral-500)"><span style="width:8px;height:8px;border-radius:50%;background:var(--color-400);flex-shrink:0"></span>Available slots</div>
+              <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--neutral-500)"><span style="width:8px;height:8px;border-radius:50%;background:var(--color-700);flex-shrink:0"></span>Your booking</div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title" style="margin-bottom:var(--sp-3)">Available slots</div>
+            <div id="slot-panel"><p class="text-muted" style="text-align:center;padding:var(--sp-6) 0">Select a day to see slots.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+/* ── STORE ── */
+var KEYS = { USERS: 'app_users', BOOKINGS: 'app_bookings', SELECTIONS: 'app_selections' };
+function _load(key) { try { var r = localStorage.getItem(key); return r ? (JSON.parse(r) || []) : []; } catch(e) { return []; } }
+function _save(key, data) { try { localStorage.setItem(key, JSON.stringify(data)); } catch(e) {} }
+function _uuid() { if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID(); return Math.random().toString(36).slice(2) + Date.now().toString(36); }
+(function() { var u = _load(KEYS.USERS); var ok = false; for (var i=0;i<u.length;i++) { if (u[i].role==='admin') { ok=true; break; } } if (!ok) { u.push({uid:'admin',name:'Administrator',role:'admin'}); _save(KEYS.USERS,u); } })();
+var Users = {
+  all: function() { return _load(KEYS.USERS); },
+  byUid: function(uid) { var u=this.all(); for (var i=0;i<u.length;i++) { if (u[i].uid===uid) return u[i]; } return null; },
+  byRole: function(role) { return this.all().filter(function(u) { return u.role===role; }); },
+  create: function(o) { var u=this.all(); for (var i=0;i<u.length;i++) { if (u[i].uid===o.uid) throw new Error('UID "'+o.uid+'" already exists.'); } if (!o.uid||!o.name||!o.role) throw new Error('All fields required.'); var user={uid:o.uid.trim(),name:o.name.trim(),role:o.role}; u.push(user); _save(KEYS.USERS,u); return user; },
+  delete: function(uid) { if (uid==='admin') throw new Error('Cannot delete admin.'); var u=this.all(); _save(KEYS.USERS, u.filter(function(x){return x.uid!==uid;})); Selections.deleteByUser(uid); Bookings.deleteByUser(uid); }
+};
+var Bookings = {
+  all: function() { return _load(KEYS.BOOKINGS); },
+  byTeacher: function(tid) { return this.all().filter(function(b){return b.teacherId===tid;}); },
+  byStudent:  function(sid) { return this.all().filter(function(b){return b.studentId===sid;}); },
+  create: function(o) { var b=this.all(); var item={bookingId:_uuid(),teacherId:o.teacherId,studentId:o.studentId||null,date:o.date,start:o.start,end:o.end,status:o.status||'available'}; b.push(item); _save(KEYS.BOOKINGS,b); return item; },
+  update: function(id, patch) { var b=this.all().map(function(x){ if (x.bookingId!==id) return x; var u={}; for (var k in x) u[k]=x[k]; for (var p in patch) u[p]=patch[p]; return u; }); _save(KEYS.BOOKINGS,b); },
+  delete: function(id) { _save(KEYS.BOOKINGS, this.all().filter(function(b){return b.bookingId!==id;})); },
+  deleteByUser: function(uid) { _save(KEYS.BOOKINGS, this.all().filter(function(b){return b.teacherId!==uid && b.studentId!==uid;})); }
+};
+var Selections = {
+  all: function() { return _load(KEYS.SELECTIONS); },
+  byStudent: function(sid) { return this.all().filter(function(s){return s.studentId===sid;}); },
+  byTeacher: function(tid) { return this.all().filter(function(s){return s.teacherId===tid;}); },
+  exists: function(sid,tid) { var l=this.all(); for (var i=0;i<l.length;i++) { if (l[i].studentId===sid && l[i].teacherId===tid) return true; } return false; },
+  create: function(sid,tid) { if (this.exists(sid,tid)) return; var l=this.all(); l.push({studentId:sid,teacherId:tid}); _save(KEYS.SELECTIONS,l); },
+  delete: function(sid,tid) { _save(KEYS.SELECTIONS, this.all().filter(function(s){return !(s.studentId===sid && s.teacherId===tid);})); },
+  deleteByUser: function(uid) { _save(KEYS.SELECTIONS, this.all().filter(function(s){return s.studentId!==uid && s.teacherId!==uid;})); }
+};
+window.Store = { Users:Users, Bookings:Bookings, Selections:Selections };
+
+/* ── AUTH ── */
+var Auth = {
+  login: function(uid) { var u=Store.Users.byUid(uid.trim()); if (!u) throw new Error('No user with UID "'+uid+'".'); try { localStorage.setItem('app_session', JSON.stringify(u)); } catch(e) { throw new Error('Cannot save session.'); } return u; },
+  logout: function() { try { localStorage.removeItem('app_session'); } catch(e) {} window.location.href='index.html'; },
+  current: function() { try { var r=localStorage.getItem('app_session'); return r ? JSON.parse(r) : null; } catch(e) { return null; } },
+  require: function(role) { var u=this.current(); if (!u) { window.location.href='index.html'; return null; } var roles=Array.isArray(role)?role:[role]; var ok=false; for (var i=0;i<roles.length;i++){if(roles[i]===u.role){ok=true;break;}} if (!ok) { var map={admin:'admin.html',teacher:'teacher.html',student:'student.html'}; window.location.href=map[u.role]||'index.html'; return null; } return u; }
+};
+window.Auth = Auth;
+
+/* ── TOAST ── */
+var Toast = (function() {
+  var cnt = null;
+  function getCnt() { if (!cnt) { cnt=document.createElement('div'); cnt.className='toast-container'; document.body.appendChild(cnt); } return cnt; }
+  function show(msg, type) {
+    var el=document.createElement('div'); el.className='toast'+(type==='error'?' toast-error':'');
+    var icon = type==='error'
+      ? '<svg class="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#e74c3c" stroke-width="1.5"/><path d="M8 5v3M8 11v.5" stroke="#e74c3c" stroke-width="1.5" stroke-linecap="round"/></svg>'
+      : '<svg class="toast-icon" width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#4d7aa0" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#4d7aa0" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    el.innerHTML = icon + '<span>'+msg+'</span>';
+    getCnt().appendChild(el);
+    setTimeout(function(){ el.classList.add('toast-exit'); setTimeout(function(){if(el.parentNode)el.parentNode.removeChild(el);},200); }, 3500);
+  }
+  return { success: function(m){show(m,'success');}, error: function(m){show(m,'error');} };
+})();
+window.Toast = Toast;
+
+/* ── MODAL ── */
+var Modal = {
+  show: function(o) {
+    var ov=document.createElement('div'); ov.className='modal-overlay';
+    ov.innerHTML='<div class="modal" role="dialog"><div class="modal-header"><span class="modal-title">'+o.title+'</span><button class="modal-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button></div><div class="modal-body">'+o.bodyHTML+'</div>'+(o.footerHTML?'<div class="modal-footer">'+o.footerHTML+'</div>':'')+'</div>';
+    document.body.appendChild(ov);
+    var close=function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); };
+    ov.querySelector('.modal-close').addEventListener('click', close);
+    ov.addEventListener('click', function(e){ if(e.target===ov) close(); });
+    function esc(e){ if(e.key==='Escape'){ close(); document.removeEventListener('keydown',esc); } }
+    document.addEventListener('keydown', esc);
+    return { close: close };
+  }
+};
+window.Modal = Modal;
+/**
+ * student.js — Student View Logic
+ */
+
+var currentUser     = null;
+var activeView      = 'catalog';
+var activeTeacherId = null;
+var viewYear        = 0;
+var viewMonth       = 0;
+var selectedDate    = null;
+
+var TODAY = new Date();
+TODAY.setHours(0,0,0,0);
+
+var MONTH_NAMES = ['January','February','March','April','May','June',
+                   'July','August','September','October','November','December'];
+
+document.addEventListener('DOMContentLoaded', function() {
+  currentUser = Auth.require('student');
+  if (!currentUser) return;
+
+  document.getElementById('topbar-name').textContent = currentUser.name;
+
+  var now = new Date();
+  viewYear  = now.getFullYear();
+  viewMonth = now.getMonth();
+
+  document.getElementById('logout-btn').addEventListener('click', function() { Auth.logout(); });
+  document.getElementById('nav-catalog').addEventListener('click', function() { switchView('catalog'); });
+  document.getElementById('nav-calendar').addEventListener('click', function() { switchView('calendar'); });
+
+  renderStats();
+  switchView('catalog');
+});
+
+/* ── View Switcher ────────────────────────────────────── */
+function switchView(view) {
+  activeView = view;
+  document.getElementById('nav-catalog').classList.toggle('active', view === 'catalog');
+  document.getElementById('nav-calendar').classList.toggle('active', view === 'calendar');
+  document.getElementById('view-catalog').style.display  = view === 'catalog'  ? '' : 'none';
+  document.getElementById('view-calendar').style.display = view === 'calendar' ? '' : 'none';
+
+  if (view === 'catalog')  renderCatalog();
+  if (view === 'calendar') renderTeacherPicker();
+}
+
+/* ── Stats ────────────────────────────────────────────── */
+function renderStats() {
+  var selections = Store.Selections.byStudent(currentUser.uid);
+  var bookings   = Store.Bookings.byStudent(currentUser.uid).filter(function(b) { return b.status === 'booked'; });
+  document.getElementById('stat-teachers').textContent = selections.length;
+  document.getElementById('stat-bookings').textContent = bookings.length;
+}
+
+/* ── Catalog ──────────────────────────────────────────── */
+function renderCatalog() {
+  var allTeachers  = Store.Users.byRole('teacher');
+  var mySelections = Store.Selections.byStudent(currentUser.uid).map(function(s) { return s.teacherId; });
+  var container    = document.getElementById('catalog-grid');
+
+  if (!allTeachers.length) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:var(--sp-7);color:var(--neutral-500);font-size:var(--text-caption)">No teachers available yet.</div>';
+    return;
+  }
+
+  var html = '';
+  for (var i = 0; i < allTeachers.length; i++) {
+    var teacher    = allTeachers[i];
+    var isSelected = mySelections.indexOf(teacher.uid) !== -1;
+    var availCount = Store.Bookings.byTeacher(teacher.uid)
+      .filter(function(b) { return b.status === 'available'; }).length;
+
+    html += '<div class="card teacher-card' + (isSelected ? ' teacher-card-selected' : '') + '">'
+      + '<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:var(--sp-2);margin-bottom:var(--sp-3)">'
+      + '<div>'
+      + '<div style="font-weight:var(--weight-semibold);color:var(--neutral-900);margin-bottom:var(--sp-1)">' + teacher.name + '</div>'
+      + '<code style="font-size:var(--text-caption);background:var(--neutral-100);padding:2px 6px;border-radius:3px;color:var(--neutral-600)">' + teacher.uid + '</code>'
+      + '</div>'
+      + (isSelected ? '<span style="font-size:var(--text-caption);font-weight:var(--weight-semibold);color:var(--color-600);background:var(--color-50);border:1px solid var(--color-200);padding:2px var(--sp-2);border-radius:var(--radius-sm)">Selected</span>' : '')
+      + '</div>'
+      + '<div style="font-size:var(--text-caption);color:var(--neutral-500);margin-bottom:var(--sp-3)">' + availCount + ' available slot' + (availCount !== 1 ? 's' : '') + '</div>'
+      + '<div style="display:flex;gap:var(--sp-2)">';
+
+    if (isSelected) {
+      html += '<button class="btn btn-secondary btn-sm" onclick="openTeacherCalendar(\'' + teacher.uid + '\')">View calendar</button>'
+            + '<button class="btn btn-ghost btn-sm" onclick="deselectTeacher(\'' + teacher.uid + '\')">Remove</button>';
+    } else {
+      html += '<button class="btn btn-primary btn-sm" onclick="selectTeacher(\'' + teacher.uid + '\')">Select</button>';
+    }
+
+    html += '</div></div>';
+  }
+  container.innerHTML = html;
+}
+
+function selectTeacher(teacherId) {
+  Store.Selections.create(currentUser.uid, teacherId);
+  var teacher = Store.Users.byUid(teacherId);
+  Toast.success(teacher.name + ' added to your teachers.');
+  renderStats();
+  renderCatalog();
+}
+
+function deselectTeacher(teacherId) {
+  Store.Selections.delete(currentUser.uid, teacherId);
+  var teacher = Store.Users.byUid(teacherId);
+  Toast.success(teacher.name + ' removed.');
+  renderStats();
+  renderCatalog();
+}
+
+function openTeacherCalendar(teacherId) {
+  activeTeacherId = teacherId;
+  selectedDate    = null;
+  switchView('calendar');
+}
+
+/* ── Teacher Picker ───────────────────────────────────── */
+function renderTeacherPicker() {
+  var myTeachers = Store.Selections.byStudent(currentUser.uid)
+    .map(function(s) { return Store.Users.byUid(s.teacherId); })
+    .filter(function(t) { return t !== null; });
+
+  var picker = document.getElementById('teacher-picker');
+
+  if (!myTeachers.length) {
+    picker.innerHTML = '<p class="text-muted">No teachers selected yet. Go to the catalog first.</p>';
+    document.getElementById('cal-section').style.display = 'none';
+    return;
+  }
+
+  if (!activeTeacherId) activeTeacherId = myTeachers[0].uid;
+
+  var options = myTeachers.map(function(t) {
+    return '<option value="' + t.uid + '"' + (t.uid === activeTeacherId ? ' selected' : '') + '>' + t.name + '</option>';
+  }).join('');
+
+  picker.innerHTML = '<div class="form-group" style="max-width:280px">'
+    + '<label class="form-label" for="teacher-select">Teacher</label>'
+    + '<select class="form-select" id="teacher-select">' + options + '</select>'
+    + '</div>';
+
+  document.getElementById('teacher-select').addEventListener('change', function(e) {
+    activeTeacherId = e.target.value;
+    selectedDate    = null;
+    renderCalendar();
+    renderSlotPanel();
+  });
+
+  document.getElementById('cal-section').style.display = '';
+
+  // Re-bind nav buttons each time (they may have been replaced)
+  var prevBtn = document.getElementById('prev-btn');
+  var nextBtn = document.getElementById('next-btn');
+  // Clone to remove old listeners
+  var newPrev = prevBtn.cloneNode(true);
+  var newNext = nextBtn.cloneNode(true);
+  prevBtn.parentNode.replaceChild(newPrev, prevBtn);
+  nextBtn.parentNode.replaceChild(newNext, nextBtn);
+  newPrev.addEventListener('click', prevMonth);
+  newNext.addEventListener('click', nextMonth);
+
+  renderCalendar();
+  renderSlotPanel();
+}
+
+/* ── Calendar ─────────────────────────────────────────── */
+function renderCalendar() {
+  document.getElementById('month-label').textContent = MONTH_NAMES[viewMonth] + ' ' + viewYear;
+
+  var grid = document.getElementById('cal-days');
+  grid.innerHTML = '';
+
+  var first    = new Date(viewYear, viewMonth, 1);
+  var startDow = first.getDay();
+  startDow = startDow === 0 ? 6 : startDow - 1;
+  var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  var prevDays    = new Date(viewYear, viewMonth, 0).getDate();
+
+  for (var i = startDow - 1; i >= 0; i--) {
+    grid.appendChild(makeDayCell(prevDays - i, true));
+  }
+
+  for (var d = 1; d <= daysInMonth; d++) {
+    (function(day) {
+      var date    = new Date(viewYear, viewMonth, day);
+      var isPast  = date < TODAY;
+      var isToday = date.getTime() === TODAY.getTime();
+      var isSel   = selectedDate && date.getTime() === selectedDate.getTime();
+      var dateStr = fmtDate(date);
+
+      var teacherSlots = activeTeacherId
+        ? Store.Bookings.byTeacher(activeTeacherId).filter(function(b) { return b.date === dateStr; })
+        : [];
+      var hasAvail  = teacherSlots.some(function(s) { return s.status === 'available'; });
+      var hasMyBook = teacherSlots.some(function(s) { return s.studentId === currentUser.uid; });
+
+      var cell = makeDayCell(day, false, isToday, isSel, hasAvail && !isPast, hasMyBook);
+      if (!isPast) {
+        cell.addEventListener('click', function() {
+          selectedDate = date;
+          renderCalendar();
+          renderSlotPanel();
+        });
+        cell.setAttribute('tabindex', '0');
+        cell.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            selectedDate = date;
+            renderCalendar();
+            renderSlotPanel();
+          }
+        });
+      }
+      grid.appendChild(cell);
+    })(d);
+  }
+
+  var total    = startDow + daysInMonth;
+  var trailing = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (var t = 1; t <= trailing; t++) {
+    grid.appendChild(makeDayCell(t, true));
+  }
+}
+
+function makeDayCell(num, otherMonth, isToday, isSelected, hasAvail, hasMyBook) {
+  var el = document.createElement('div');
+  el.className = 'cal-day';
+  el.textContent = num;
+  if (otherMonth) el.classList.add('other-month');
+  if (isToday)    el.classList.add('today');
+  if (isSelected) el.classList.add('selected');
+  if (hasAvail)   el.classList.add('has-avail');
+  if (hasMyBook)  el.classList.add('has-mybook');
+  return el;
+}
+
+function prevMonth() {
+  viewMonth--;
+  if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+  renderCalendar();
+  renderSlotPanel();
+}
+function nextMonth() {
+  viewMonth++;
+  if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+  renderCalendar();
+  renderSlotPanel();
+}
+
+/* ── Slot Panel ───────────────────────────────────────── */
+function renderSlotPanel() {
+  var panel = document.getElementById('slot-panel');
+  if (!selectedDate || !activeTeacherId) {
+    panel.innerHTML = '<p class="text-muted" style="text-align:center;padding:var(--sp-6) 0">Select a day to see slots.</p>';
+    return;
+  }
+
+  var dateStr      = fmtDate(selectedDate);
+  var teacherSlots = Store.Bookings.byTeacher(activeTeacherId)
+    .filter(function(b) { return b.date === dateStr; })
+    .sort(function(a, b) { return a.start.localeCompare(b.start); });
+
+  var label   = selectedDate.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long' });
+  var teacher = Store.Users.byUid(activeTeacherId);
+
+  var html = '<div style="font-weight:var(--weight-semibold);color:var(--neutral-900);font-size:var(--text-caption);margin-bottom:var(--sp-3)">'
+    + label + (teacher ? ' · ' + teacher.name : '') + '</div>';
+
+  if (!teacherSlots.length) {
+    html += '<p class="text-muted" style="text-align:center;padding:var(--sp-4) 0">No slots on this day.</p>';
+  } else {
+    for (var i = 0; i < teacherSlots.length; i++) {
+      var card = studentSlotCard(teacherSlots[i]);
+      if (card) html += card;
+    }
+    if (html.indexOf('slot-row') === -1) {
+      html += '<p class="text-muted" style="text-align:center;padding:var(--sp-4) 0">No bookable slots on this day.</p>';
+    }
+  }
+
+  panel.innerHTML = html;
+}
+
+function studentSlotCard(slot) {
+  var isMyBooking = slot.studentId === currentUser.uid && slot.status === 'booked';
+  var isAvailable = slot.status === 'available';
+
+  if (!isMyBooking && !isAvailable) return '';
+
+  var bg = 'var(--neutral-0)';
+  var border = 'var(--neutral-200)';
+  var textColor = 'var(--neutral-700)';
+  var statusLabel = 'Available';
+  var actions = '';
+
+  if (isMyBooking) {
+    bg = 'var(--color-50)';
+    border = 'var(--color-200)';
+    textColor = 'var(--color-700)';
+    statusLabel = 'Your booking';
+    actions = '<button class="btn btn-sm btn-secondary" onclick="openMoveModal(\'' + slot.bookingId + '\')">Move</button>'
+            + '<button class="btn btn-sm btn-danger" onclick="cancelBooking(\'' + slot.bookingId + '\')">Cancel</button>';
+  } else {
+    actions = '<button class="btn btn-sm btn-primary" onclick="bookSlot(\'' + slot.bookingId + '\')">Book</button>';
+  }
+
+  return '<div class="slot-row" style="display:flex;align-items:center;justify-content:space-between;padding:var(--sp-2) var(--sp-3);border:1px solid ' + border + ';border-radius:var(--radius-sm);background:' + bg + ';margin-bottom:var(--sp-2);gap:var(--sp-3);">'
+    + '<div>'
+    + '<div style="font-weight:var(--weight-semibold);color:' + textColor + ';font-size:var(--text-caption)">' + slot.start + ' – ' + slot.end + '</div>'
+    + '<div style="font-size:var(--text-caption);color:var(--neutral-500)">' + statusLabel + '</div>'
+    + '</div>'
+    + '<div style="display:flex;gap:var(--sp-2)">' + actions + '</div>'
+    + '</div>';
+}
+
+/* ── Book ─────────────────────────────────────────────── */
+function bookSlot(bookingId) {
+  Store.Bookings.update(bookingId, { status: 'booked', studentId: currentUser.uid });
+  Toast.success('Slot booked.');
+  renderStats();
+  renderCalendar();
+  renderSlotPanel();
+}
+
+/* ── Cancel ───────────────────────────────────────────── */
+function cancelBooking(bookingId) {
+  var result = Modal.show({
+    title: 'Cancel booking',
+    bodyHTML: '<p style="color:var(--neutral-700)">Are you sure you want to cancel this booking?</p>',
+    footerHTML: '<button class="btn btn-ghost" id="modal-cancel">Keep it</button><button class="btn btn-danger" id="modal-confirm">Cancel booking</button>'
+  });
+  document.getElementById('modal-cancel').addEventListener('click', result.close);
+  document.getElementById('modal-confirm').addEventListener('click', function() {
+    Store.Bookings.update(bookingId, { status: 'available', studentId: null });
+    Toast.success('Booking cancelled.');
+    renderStats();
+    renderCalendar();
+    renderSlotPanel();
+    result.close();
+  });
+}
+
+/* ── Move ─────────────────────────────────────────────── */
+function openMoveModal(bookingId) {
+  var all     = Store.Bookings.all();
+  var current = null;
+  for (var i = 0; i < all.length; i++) {
+    if (all[i].bookingId === bookingId) { current = all[i]; break; }
+  }
+  if (!current) return;
+
+  var available = Store.Bookings.byTeacher(activeTeacherId)
+    .filter(function(b) { return b.status === 'available' && b.bookingId !== bookingId; })
+    .sort(function(a, b) { return a.date.localeCompare(b.date) || a.start.localeCompare(b.start); });
+
+  var options = available.length
+    ? available.map(function(s) { return '<option value="' + s.bookingId + '">' + s.date + ' · ' + s.start + '–' + s.end + '</option>'; }).join('')
+    : '<option disabled>No available slots</option>';
+
+  var result = Modal.show({
+    title: 'Move booking',
+    bodyHTML:
+      '<p style="font-size:var(--text-caption);color:var(--neutral-500)">Current: <strong>' + current.date + ' · ' + current.start + '–' + current.end + '</strong></p>'
+      + '<div class="form-group">'
+      + '<label class="form-label" for="move-target">New slot</label>'
+      + '<select class="form-select" id="move-target"' + (!available.length ? ' disabled' : '') + '>' + options + '</select>'
+      + '</div>',
+    footerHTML:
+      '<button class="btn btn-ghost" id="modal-cancel">Cancel</button>'
+      + '<button class="btn btn-primary" id="modal-confirm"' + (!available.length ? ' disabled' : '') + '>Move</button>'
+  });
+
+  document.getElementById('modal-cancel').addEventListener('click', result.close);
+  document.getElementById('modal-confirm').addEventListener('click', function() {
+    var targetId = document.getElementById('move-target').value;
+    if (!targetId) return;
+    Store.Bookings.update(bookingId, { status: 'available', studentId: null });
+    Store.Bookings.update(targetId, { status: 'booked', studentId: currentUser.uid });
+    Toast.success('Booking moved.');
+    renderStats();
+    renderCalendar();
+    renderSlotPanel();
+    result.close();
+  });
+}
+
+/* ── Helpers ──────────────────────────────────────────── */
+function fmtDate(date) {
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
+}
+</script>
+</body>
+</html>
