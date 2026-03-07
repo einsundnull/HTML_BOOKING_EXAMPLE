@@ -1,0 +1,85 @@
+/* ══════════════════════════════════════════════════════════
+   student.css — Student-specific styles
+   Grid styles (slot-grid-table, gc-*, grid-topbar etc.)
+   are inherited from teacher.css.
+══════════════════════════════════════════════════════════ */
+
+/* ── Layout helpers ─────────────────────────────────────── */
+.view-hidden { display: none !important; }
+
+.stats-row-student { grid-template-columns: 1fr 1fr; max-width: 400px; }
+
+/* ── View nav tabs ──────────────────────────────────────── */
+.view-nav        { display: flex; gap: 2px; border-bottom: 1px solid var(--neutral-200); margin-bottom: var(--sp-5); }
+.view-nav-btn    { font-family: var(--font); font-size: var(--text-body); font-weight: var(--weight-semibold); padding: var(--sp-2) var(--sp-4); border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--neutral-500); cursor: pointer; transition: color var(--transition), border-color var(--transition); margin-bottom: -1px; }
+.view-nav-btn:hover  { color: var(--neutral-700); }
+.view-nav-btn.active { color: var(--neutral-900); border-bottom-color: var(--color-400); }
+
+/* ── Catalog grid ───────────────────────────────────────── */
+.catalog-grid         { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-4); }
+.catalog-empty        { grid-column: 1 / -1; text-align: center; padding: var(--sp-7) 0; }
+
+/* ── Teacher cards ──────────────────────────────────────── */
+.teacher-card          { transition: border-color var(--transition); }
+.teacher-card-selected { border-color: var(--color-300); }
+.teacher-card-top      { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.teacher-card-name     { font-weight: var(--weight-semibold); color: var(--neutral-900); margin-bottom: var(--sp-1); }
+.teacher-card-avail    { margin-bottom: var(--sp-3); }
+.teacher-card-actions  { display: flex; gap: var(--sp-2); }
+.teacher-selected-badge { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--color-600); background: var(--color-50); border: 1px solid var(--color-200); padding: 2px var(--sp-2); border-radius: var(--radius-sm); white-space: nowrap; }
+
+/* ── Teacher picker in calendar view ───────────────────── */
+.teacher-picker-wrap { display: flex; align-items: flex-end; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap: wrap; }
+.teacher-picker-wrap .form-label { margin-bottom: var(--sp-1); display: block; }
+.teacher-picker-wrap .form-select { min-width: 200px; }
+
+.cal-hint { margin-bottom: var(--sp-3); }
+
+/* ── Grid legend swatch for "mine" ──────────────────────── */
+.swatch-mine { background: var(--color-900); border-color: var(--color-900); }
+
+/* ── Student grid cell — own booking (navy) ─────────────── */
+.grid-cell.gc-mine              { background: var(--color-900); border-color: var(--color-900); cursor: pointer; }
+.grid-cell.gc-mine:hover        { background: var(--color-700); border-color: var(--color-700); }
+
+/* ── Month calendar (student) ───────────────────────────── */
+.student-cal-layout     { display: grid; grid-template-columns: 280px 1fr; gap: var(--sp-4); align-items: start; }
+@media (max-width: 700px) { .student-cal-layout { grid-template-columns: 1fr; } }
+
+.cal-nav        { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
+.cal-nav-label  { font-size: var(--text-body); font-weight: var(--weight-semibold); color: var(--neutral-900); }
+.cal-btn        { width: 32px; height: 32px; border: 1px solid var(--neutral-200); border-radius: var(--radius-sm); background: var(--neutral-0); cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--neutral-700); transition: background var(--transition), border-color var(--transition); }
+.cal-btn:hover  { background: var(--neutral-100); border-color: var(--neutral-300); }
+.cal-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.cal-weekdays   { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-1); margin-bottom: var(--sp-2); }
+.cal-weekday    { text-align: center; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); text-transform: uppercase; letter-spacing: .04em; }
+.cal-days       { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-1); }
+
+.cal-day        { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: var(--text-caption); cursor: pointer; border: 1px solid transparent; transition: background var(--transition), border-color var(--transition); color: var(--neutral-700); position: relative; }
+.cal-day:hover:not(.other-month) { background: var(--neutral-100); border-color: var(--neutral-200); }
+.cal-day:focus-visible           { outline: none; box-shadow: var(--focus-ring); }
+.cal-day.other-month             { color: var(--neutral-300); cursor: default; pointer-events: none; }
+.cal-day.today                   { font-weight: var(--weight-semibold); color: var(--color-400); border-color: var(--color-400); }
+.cal-day.selected                { background: var(--color-900); color: var(--neutral-0); border-color: var(--color-900); font-weight: var(--weight-semibold); }
+.cal-day.has-avail::after        { content: ''; position: absolute; bottom: 3px; left: 50%; transform: translateX(-50%); width: 4px; height: 4px; border-radius: 50%; background: var(--color-400); }
+.cal-day.has-mybook::after       { background: var(--color-700); }
+.cal-day.selected::after         { background: var(--neutral-0) !important; }
+
+.cal-legend      { display: flex; flex-direction: column; gap: var(--sp-1); margin-top: var(--sp-3); }
+.cal-legend-item { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--text-caption); color: var(--neutral-500); }
+.cal-legend-dot  { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.cal-legend-dot-avail  { background: var(--color-400); }
+.cal-legend-dot-booked { background: var(--color-700); }
+
+/* ── Day slot list ──────────────────────────────────────── */
+.day-slots-card    { }
+.day-slots-heading { font-weight: var(--weight-semibold); color: var(--neutral-900); margin-bottom: var(--sp-3); font-size: var(--text-caption); }
+.day-slots-empty   { text-align: center; padding: var(--sp-5) 0; }
+
+.day-slot-list { display: flex; flex-direction: column; }
+.day-slot-row  { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--neutral-100); gap: var(--sp-3); }
+.day-slot-row:last-child { border-bottom: none; }
+.day-slot-row-mine { background: var(--color-50); padding-left: var(--sp-2); padding-right: var(--sp-2); border-radius: var(--radius-sm); margin: 0 calc(var(--sp-2) * -1); }
+
+.day-slot-time { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-800); white-space: nowrap; flex: 1; }
