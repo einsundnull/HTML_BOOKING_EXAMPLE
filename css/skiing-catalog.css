@@ -1,0 +1,430 @@
+/* ══════════════════════════════════════════════════════════
+   skiing-catalog.css — Teacher Catalog Page
+   Depends on: tokens.css, base.css, components.css,
+               navbar.css, profile.css, landing.css
+   Note: pv-* classes (sections, hero, terrain, certs, specs,
+         contact) are reused from profile.css — not redefined.
+══════════════════════════════════════════════════════════ */
+
+/* ── Catalog Header ─────────────────────────────────────── */
+.catalog-header {
+  background: var(--color-900);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: var(--sp-5) var(--container-pad) var(--sp-4);
+}
+
+.catalog-header-inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+.catalog-header-top {
+  margin-bottom: var(--sp-3);
+}
+
+.catalog-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.catalog-back-link:hover { color: rgba(255,255,255,0.75); }
+
+.catalog-title {
+  font-size: clamp(24px, 4vw, 36px);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-0);
+  margin: 0 0 var(--sp-1);
+  letter-spacing: -0.02em;
+}
+
+.catalog-subtitle {
+  font-size: var(--text-caption);
+  color: rgba(255,255,255,0.45);
+  margin: 0 0 var(--sp-4);
+}
+
+/* ── Filter bar ─────────────────────────────────────────── */
+.catalog-filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.catalog-filter-group {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.catalog-filter-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.catalog-filter-chips {
+  display: flex;
+  gap: var(--sp-1);
+  flex-wrap: wrap;
+}
+
+.catalog-chip {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+
+.catalog-chip:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.catalog-chip.active {
+  background: var(--color-400);
+  color: var(--neutral-0);
+  border-color: var(--color-400);
+}
+
+.catalog-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* ── Catalog Main ───────────────────────────────────────── */
+.catalog-main {
+  background: var(--neutral-50);
+  min-height: calc(100vh - 180px);
+  padding: var(--sp-5) var(--container-pad) var(--sp-8);
+}
+
+.catalog-inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+}
+
+/* ── Catalog Grid ───────────────────────────────────────── */
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4);
+  align-items: start;
+}
+
+@media (max-width: 700px) {
+  .catalog-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Teacher Card (collapsed) ───────────────────────────── */
+.tc-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  /* Span 2 cols when expanded */
+}
+
+.tc-card.is-expanded {
+  grid-column: 1 / -1;
+  border-color: var(--color-300);
+  box-shadow: 0 4px 24px rgba(6,15,28,0.10);
+}
+
+/* Card summary (always visible) */
+.tc-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.tc-summary:hover { background: var(--neutral-50); }
+
+.tc-card.is-expanded .tc-summary {
+  background: var(--neutral-50);
+  border-bottom: 1px solid var(--neutral-200);
+  cursor: default;
+}
+
+.tc-card.is-expanded .tc-summary:hover { background: var(--neutral-50); }
+
+/* Avatar */
+.tc-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--color-100);
+}
+
+.tc-avatar-placeholder {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--neutral-100);
+  border: 2px solid var(--neutral-200);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-300);
+}
+
+/* Summary info */
+.tc-summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.tc-summary-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin: 0 0 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tc-summary-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.tc-summary-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+
+.tc-summary-exp {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+}
+
+.tc-summary-price {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-400);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Lang badges in summary */
+.tc-summary-langs {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Chat button in summary row */
+.tc-chat-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--neutral-100);
+  border: none;
+  cursor: pointer;
+  color: var(--neutral-500);
+  transition: background var(--transition), color var(--transition);
+}
+
+.tc-chat-btn:hover {
+  background: var(--color-50);
+  color: var(--color-500);
+}
+
+.tc-chat-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* FAB active state when a card is expanded */
+.chat-fab.tc-fab-active {
+  background: var(--color-900);
+  color: var(--neutral-0);
+  border-color: var(--color-700);
+}
+
+.chat-fab.tc-fab-active:hover {
+  background: var(--color-700);
+}
+
+/* Expand toggle button */
+.tc-expand-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--neutral-100);
+  border: none;
+  cursor: pointer;
+  color: var(--neutral-500);
+  transition: background var(--transition), color var(--transition), transform var(--transition);
+}
+
+.tc-expand-btn:hover {
+  background: var(--color-100);
+  color: var(--color-500);
+}
+
+.tc-expand-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.tc-card.is-expanded .tc-expand-btn {
+  background: var(--color-900);
+  color: var(--neutral-0);
+  transform: rotate(180deg);
+}
+
+/* ── Card Preview (bio + specs, collapsed only) ─────────── */
+.tc-preview {
+  padding: 0 var(--sp-4) var(--sp-3);
+  border-top: 1px solid var(--neutral-100);
+}
+
+.tc-preview-bio {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  line-height: 1.6;
+  margin: var(--sp-2) 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tc-preview-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: var(--sp-2);
+}
+
+.tc-preview-chip {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  background: var(--color-50);
+  color: var(--color-600);
+  border: 1px solid var(--color-100);
+}
+
+.tc-preview-chip-more {
+  font-size: 11px;
+  color: var(--neutral-400);
+  padding: 2px var(--sp-1);
+  align-self: center;
+}
+
+/* ── Card Detail (expanded) ─────────────────────────────── */
+.tc-detail {
+  display: none;
+  padding: var(--sp-4);
+}
+
+.tc-card.is-expanded .tc-detail {
+  display: block;
+  animation: tc-detail-in 180ms ease;
+}
+
+@keyframes tc-detail-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Detail layout: two-column on wide */
+.tc-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+@media (max-width: 600px) {
+  .tc-detail-grid { grid-template-columns: 1fr; }
+}
+
+/* Reuse pv-section but remove margin-bottom inside detail */
+.tc-detail .pv-section {
+  margin-bottom: 0;
+}
+
+/* Full-width sections */
+.tc-detail-full {
+  margin-bottom: var(--sp-3);
+}
+
+.tc-detail-full .pv-section {
+  margin-bottom: 0;
+}
+
+/* ── Book CTA inside detail ─────────────────────────────── */
+.tc-book-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--neutral-100);
+  flex-wrap: wrap;
+}
+
+.tc-book-hint {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  flex: 1;
+}
+
+.tc-book-btn {
+  min-width: 160px;
+  justify-content: center;
+}
+
+/* ── Empty State ────────────────────────────────────────── */
+.catalog-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+}
+
+.catalog-empty-text {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  margin: 0;
+}

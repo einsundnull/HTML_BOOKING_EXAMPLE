@@ -1,0 +1,67 @@
+/* ── Design Tokens ─────────────────────────────────────────
+   Source: Minimal Design Cheat Sheet
+   Base hue: Navy #060f1c
+   Font: Figtree 400 / 600
+──────────────────────────────────────────────────────────── */
+:root {
+  /* Navy scale */
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;   /* accent / interaction */
+  --color-500: #3a6285;   /* hover */
+  --color-600: #2b4d6b;   /* active */
+  --color-700: #1a3249;
+  --color-800: #0f2035;
+  --color-900: #060f1c;   /* base */
+
+  /* Neutrals */
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-500: #6b7685;
+  --neutral-600: #505a68;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+
+  /* Typography */
+  --font:          'Figtree', sans-serif;
+  --text-hero:     48px;
+  --text-heading:  24px;
+  --text-body:     16px;
+  --text-caption:  12px;
+  --weight-regular:  400;
+  --weight-semibold: 600;
+
+  /* Spacing (8-pt grid) */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  16px;
+  --sp-4:  24px;
+  --sp-5:  32px;
+  --sp-6:  48px;
+  --sp-7:  64px;
+  --sp-8:  96px;
+  --sp-9: 128px;
+
+  /* Layout */
+  --container-max: 1280px;
+  --container-pad: 32px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg: 16px;
+
+  /* Shadow */
+  --shadow: 0 1px 3px rgba(6,15,28,0.08);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+
+  /* Animation */
+  --transition: 150ms ease;
+}

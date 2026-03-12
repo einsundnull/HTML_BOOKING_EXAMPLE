@@ -7,16 +7,16 @@
 /* ── Layout helpers ─────────────────────────────────────── */
 .view-hidden { display: none !important; }
 
-.stats-row-student { grid-template-columns: 1fr 1fr; max-width: 400px; }
+.stats-row-student { grid-template-columns: 1fr 1fr; max-width: 400px; width: 100%; }
 
 /* ── View nav tabs ──────────────────────────────────────── */
-.view-nav        { display: flex; gap: 2px; border-bottom: 1px solid var(--neutral-200); margin-bottom: var(--sp-5); }
+.view-nav        { display: flex; gap: 2px; border-bottom: 1px solid var(--neutral-200); margin-bottom: var(--sp-5); flex-wrap: wrap; }
 .view-nav-btn    { font-family: var(--font); font-size: var(--text-body); font-weight: var(--weight-semibold); padding: var(--sp-2) var(--sp-4); border: none; border-bottom: 2px solid transparent; background: transparent; color: var(--neutral-500); cursor: pointer; transition: color var(--transition), border-color var(--transition); margin-bottom: -1px; }
 .view-nav-btn:hover  { color: var(--neutral-700); }
 .view-nav-btn.active { color: var(--neutral-900); border-bottom-color: var(--color-400); }
 
 /* ── Catalog grid ───────────────────────────────────────── */
-.catalog-grid         { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--sp-4); }
+.catalog-grid         { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(240px, 100%), 1fr)); gap: var(--sp-4); }
 .catalog-empty        { grid-column: 1 / -1; text-align: center; padding: var(--sp-7) 0; }
 
 /* ── Teacher cards ──────────────────────────────────────── */
@@ -31,7 +31,7 @@
 /* ── Teacher picker in calendar view ───────────────────── */
 .teacher-picker-wrap { display: flex; align-items: flex-end; gap: var(--sp-3); margin-bottom: var(--sp-4); flex-wrap: wrap; }
 .teacher-picker-wrap .form-label { margin-bottom: var(--sp-1); display: block; }
-.teacher-picker-wrap .form-select { min-width: 200px; }
+.teacher-picker-wrap .form-select { min-width: 0; width: 100%; max-width: 300px; }
 
 .cal-hint { margin-bottom: var(--sp-3); }
 
@@ -43,7 +43,7 @@
 .grid-cell.gc-mine:hover        { background: var(--color-700); border-color: var(--color-700); }
 
 /* ── Month calendar (student) ───────────────────────────── */
-.student-cal-layout     { display: grid; grid-template-columns: 280px 1fr; gap: var(--sp-4); align-items: start; }
+.student-cal-layout     { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: var(--sp-4); align-items: start; width: 100%; min-width: 0; }
 @media (max-width: 700px) { .student-cal-layout { grid-template-columns: 1fr; } }
 
 .cal-nav        { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-3); }
@@ -52,11 +52,11 @@
 .cal-btn:hover  { background: var(--neutral-100); border-color: var(--neutral-300); }
 .cal-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 
-.cal-weekdays   { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-1); margin-bottom: var(--sp-2); }
+.cal-weekdays   { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-1); margin-bottom: var(--sp-2); }
 .cal-weekday    { text-align: center; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); text-transform: uppercase; letter-spacing: .04em; }
-.cal-days       { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--sp-1); }
+.cal-days       { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: var(--sp-1); }
 
-.cal-day        { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: var(--text-caption); cursor: pointer; border: 1px solid transparent; transition: background var(--transition), border-color var(--transition); color: var(--neutral-700); position: relative; }
+.cal-day        { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-sm); font-size: var(--text-caption); cursor: pointer; border: 1px solid transparent; transition: background var(--transition), border-color var(--transition); color: var(--neutral-700); position: relative; min-width: 0; overflow: hidden; }
 .cal-day:hover:not(.other-month) { background: var(--neutral-100); border-color: var(--neutral-200); }
 .cal-day:focus-visible           { outline: none; box-shadow: var(--focus-ring); }
 .cal-day.other-month             { color: var(--neutral-300); cursor: default; pointer-events: none; }
@@ -73,13 +73,238 @@
 .cal-legend-dot-booked { background: var(--color-700); }
 
 /* ── Day slot list ──────────────────────────────────────── */
-.day-slots-card    { }
+.day-slots-card    { width: 100%; box-sizing: border-box; overflow: hidden; min-width: 0; }
 .day-slots-heading { font-weight: var(--weight-semibold); color: var(--neutral-900); margin-bottom: var(--sp-3); font-size: var(--text-caption); }
 .day-slots-empty   { text-align: center; padding: var(--sp-5) 0; }
 
-.day-slot-list { display: flex; flex-direction: column; }
-.day-slot-row  { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--neutral-100); gap: var(--sp-3); }
-.day-slot-row:last-child { border-bottom: none; }
-.day-slot-row-mine { background: var(--color-50); padding-left: var(--sp-2); padding-right: var(--sp-2); border-radius: var(--radius-sm); margin: 0 calc(var(--sp-2) * -1); }
+#day-slots-wrapper {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.day-slot-list     { display: flex; flex-direction: column; gap: var(--sp-2); }
 
-.day-slot-time { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-800); white-space: nowrap; flex: 1; }
+/* Available slot row — simple, old layout */
+.day-slot-row       { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-2) 0; border-bottom: 1px solid var(--neutral-100); gap: var(--sp-2); min-height: 40px; min-width: 0; overflow: hidden; }
+.day-slot-row:last-of-type { border-bottom: none; }
+.day-slot-time      { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-800); white-space: nowrap; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+/* ── Collapsible day block ──────────────────────────────── */
+.day-block-wrapper  { border-radius: var(--radius-md); overflow: hidden; min-width: 0; width: 100%; }
+
+/* Block header */
+.day-block-header   { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-3); cursor: pointer; user-select: none; }
+.day-block-header:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.day-block-mine      { background: var(--color-900); }
+/* Pending amber beats navy */
+.day-block-mine.block-pending { background: #fef9ec !important; border: 2px solid #f5a623 !important; }
+.day-block-mine.block-pending .day-block-time,
+.day-block-mine.block-pending .day-block-meta,
+.day-block-mine.block-pending .day-block-chevron { color: #7a5c00 !important; }
+.day-block-mine.block-pending .bk-block-move-btn { border-color: rgba(122,92,0,0.4) !important; color: #7a5c00 !important; }
+.day-block-mine:hover { background: var(--color-700); }
+.day-block-available  { background: var(--color-100); border: 1px solid var(--color-200); }
+.day-block-available:hover { background: var(--color-200); }
+
+.day-block-time     { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); flex: 1; white-space: nowrap; }
+.day-block-mine .day-block-time { color: var(--neutral-0); }
+.day-block-available .day-block-time { color: var(--color-800); }
+
+.day-block-meta     { font-size: var(--text-caption); white-space: nowrap; }
+.day-block-mine .day-block-meta     { color: var(--color-300); }
+.day-block-available .day-block-meta { color: var(--color-500); }
+
+.day-block-chevron  { display: flex; align-items: center; transition: transform var(--transition); flex-shrink: 0; }
+.day-block-chevron.is-open { transform: rotate(180deg); }
+.day-block-mine .day-block-chevron     { color: var(--neutral-0); }
+.day-block-available .day-block-chevron { color: var(--color-600); }
+
+/* Detail panel */
+.day-block-detail         { display: none; }
+.day-block-detail.is-open { display: block; }
+.day-block-detail-mine      { background: var(--color-50); border: 1px solid var(--color-200); border-top: none; }
+.day-block-detail-available { background: var(--neutral-0); border: 1px solid var(--color-200); border-top: none; }
+
+/* Individual slot rows inside detail */
+.day-block-slot-row { display: flex; flex-direction: row; align-items: center; justify-content: space-between; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--color-100); gap: var(--sp-2); }
+.day-block-slot-row:last-child { border-bottom: none; }
+
+.day-block-slot-time { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-800); white-space: nowrap; }
+
+/* day-save-fab removed — now uses .booking-fab-group in base.css */
+
+/* ── My bookings block ──────────────────────────────────── */
+.my-booking-block        { cursor: pointer; }
+.my-booking-block:hover .my-booking-block-header { background: var(--color-700); }
+.my-booking-block:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-md); }
+.my-booking-arrow        { display: flex; align-items: center; color: var(--neutral-0); flex-shrink: 0; }
+
+/* ── My Bookings: collapsible blocks ────────────────────── */
+.all-booking-chevron         { display: flex; align-items: center; color: var(--neutral-0); transition: transform var(--transition); flex-shrink: 0; }
+.all-booking-chevron.is-open { transform: rotate(180deg); }
+.all-booking-block-detail         { display: none; background: var(--neutral-0); border: 1px solid var(--neutral-100); border-top: none; }
+.all-booking-block-detail.is-open { display: block; padding: var(--sp-2) var(--sp-3); }
+
+.my-booking-slot-row  { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); padding: var(--sp-2) 0; border-bottom: 1px solid var(--neutral-100); }
+.my-booking-slot-row:last-of-type { border-bottom: none; }
+.my-booking-slot-time    { font-family: monospace; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-800); white-space: nowrap; }
+.my-booking-slot-teacher { font-size: var(--text-caption); color: var(--neutral-500); flex: 1; padding: 0 var(--sp-2); }
+
+.my-booking-cal-btn { margin-top: var(--sp-2); width: 100%; justify-content: center; }
+
+/* ── Sgrid pending action buttons (in topbar, next to close) ── */
+.sgrid-action-btn {
+  gap: 4px;
+}
+.sgrid-action-btn.is-hidden {
+  display: none !important;
+}
+.sgrid-dismiss-btn {
+  background: #b91c1c !important;
+  border-color: #b91c1c !important;
+  color: #fff !important;
+}
+.sgrid-save-btn {
+  background: #15803d !important;
+  border-color: #15803d !important;
+  color: #fff !important;
+}
+#sgrid-save-badge {
+  font-size: 12px;
+  font-weight: 700;
+  min-width: 16px;
+  text-align: center;
+}
+
+/* ── Student overlay: topbar must never overflow ─────────── */
+#student-grid-overlay {
+  overflow: hidden; /* clip anything that escapes */
+}
+#student-grid-overlay .grid-topbar {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  width: 100%;
+  box-sizing: border-box;
+  max-width: 100vw;
+}
+/* On narrow screens hide legend + title, compress week label */
+@media (max-width: 520px) {
+  #student-grid-overlay .grid-legend  { display: none; }
+  #student-grid-overlay .grid-topbar-title { display: none; }
+  #student-grid-overlay .grid-week-label { min-width: 0; font-size: 11px; }
+  #student-grid-overlay .grid-topbar-right { margin-left: auto; flex-shrink: 1; min-width: 0; }
+}
+
+/* Make grid scroll independently; allow FAB to sit above without clipping */
+.slot-grid-overlay .grid-scroll {
+  padding-bottom: 80px;
+  overflow: auto;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+/* ── Teacher Card — Profil-Erweiterungen ────────────────────── */
+.teacher-card-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-300);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.teacher-card-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.teacher-card-namewrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.teacher-card-price {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-400);
+}
+
+.teacher-card-specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+  margin-top: var(--sp-2);
+}
+
+.teacher-card-spec-chip {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: 999px;
+  background: var(--color-50);
+  color: var(--color-700);
+  border: 1px solid var(--color-200);
+  white-space: nowrap;
+}
+
+.teacher-card-spec-more {
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+  border-color: var(--neutral-200);
+}
+
+.teacher-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.teacher-card-profile-link {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-400);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.teacher-card-profile-link:hover {
+  color: var(--color-500);
+  text-decoration: underline;
+}
+
+/* ── Free slots inside expanded booking block ───────────── */
+.my-booking-free-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: var(--sp-2) var(--sp-3) var(--sp-1);
+  border-top: 1px solid var(--neutral-100);
+  margin-top: var(--sp-1);
+}
+
+.my-booking-free-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  background: var(--neutral-50);
+}
+
+.my-booking-free-row:last-child {
+  border-bottom: none;
+}

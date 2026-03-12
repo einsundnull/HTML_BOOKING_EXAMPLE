@@ -1,0 +1,307 @@
+/* ── navbar.css ─────────────────────────────────────────── */
+
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--color-900);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.navbar-inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+/* Brand */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-0);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.navbar-brand svg { opacity: 0.85; }
+.navbar-brand:hover { color: var(--neutral-0); opacity: 0.85; }
+
+/* Nav links */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.navbar-link {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+.navbar-link:hover {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.85);
+}
+.navbar-link.active {
+  background: rgba(255,255,255,0.10);
+  color: var(--neutral-0);
+}
+
+/* Right side */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.navbar-username {
+  font-size: var(--text-caption);
+  color: rgba(255,255,255,0.55);
+}
+
+.navbar-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+.navbar-badge.role-admin   { background: rgba(77,122,160,0.25); color: var(--color-300); }
+.navbar-badge.role-teacher { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.7); }
+.navbar-badge.role-student { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); }
+
+.navbar-logout {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.45);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--sp-2);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.navbar-logout:hover {
+  background: rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.75);
+  border-color: rgba(255,255,255,0.2);
+}
+.navbar-logout:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .navbar-inner { padding: 0 var(--sp-3); gap: var(--sp-2); }
+  .navbar-username { display: none; }
+  .navbar-link { padding: var(--sp-1) var(--sp-2); }
+}
+
+/* ── Hamburger Button ───────────────────────────────────── */
+.navbar-hamburger-wrap {
+  position: relative;
+}
+
+.navbar-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+.navbar-hamburger:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.25);
+}
+
+.navbar-hamburger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.navbar-hamburger-bar {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 2px;
+  transition:
+    transform 200ms ease,
+    opacity   200ms ease;
+  transform-origin: center;
+}
+
+/* Hamburger → X animation */
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
+/* ── Dropdown Menu ──────────────────────────────────────── */
+.navbar-dropdown {
+  position: absolute;
+  top: calc(100% + var(--sp-2));
+  right: 0;
+  min-width: 200px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(6,15,28,0.12);
+  z-index: 300;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition:
+    opacity  150ms ease,
+    transform 150ms ease;
+}
+
+.navbar-dropdown.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.navbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-700);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.navbar-dropdown-item:hover {
+  background: var(--neutral-50);
+  color: var(--neutral-900);
+}
+
+.navbar-dropdown-item:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-400);
+}
+
+.navbar-dropdown-item svg {
+  color: var(--neutral-400);
+  flex-shrink: 0;
+}
+
+.navbar-dropdown-divider {
+  height: 1px;
+  background: var(--neutral-200);
+  margin: var(--sp-1) 0;
+}
+
+.navbar-dropdown-logout {
+  color: var(--neutral-500);
+}
+
+.navbar-dropdown-logout:hover {
+  background: #fdf0ee;
+  color: #c0392b;
+}
+
+.navbar-dropdown-logout:hover svg {
+  color: #c0392b;
+}
+
+/* ── Welcome Modal ──────────────────────────────────────── */
+.welcome-modal {
+  max-width: 400px;
+  text-align: center;
+}
+
+.welcome-modal-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-3);
+}
+
+.welcome-modal-title {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-2);
+}
+
+.welcome-modal-body {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  line-height: 1.6;
+  margin: 0 0 var(--sp-4);
+}
+
+.welcome-modal .modal-footer {
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+/* ── Dropdown User Info Header ──────────────────────────── */
+.navbar-dropdown-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--sp-3) var(--sp-3) var(--sp-2);
+}
+
+.navbar-dropdown-username {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.2;
+}
+
+.navbar-dropdown-role {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  text-transform: capitalize;
+}
+
