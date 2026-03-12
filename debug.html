@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Debug</title>
+  <style>
+    body { font-family: monospace; padding: 24px; background: #f8f9fb; color: #0d1117; }
+    h2 { margin-bottom: 8px; }
+    pre { background: #fff; border: 1px solid #e2e6eb; padding: 16px; border-radius: 4px; white-space: pre-wrap; word-break: break-all; margin-bottom: 16px; }
+    .ok  { color: green; font-weight: bold; }
+    .err { color: red;   font-weight: bold; }
+    button { margin: 4px; padding: 6px 14px; cursor: pointer; font-family: monospace; }
+  </style>
+</head>
+<body>
+<h2>BookingSystem — Debug</h2>
+
+<h3>1. localStorage raw</h3>
+<pre id="raw"></pre>
+
+<h3>2. Store.Users.all()</h3>
+<pre id="users"></pre>
+
+<h3>3. URL Parameter</h3>
+<pre id="url"></pre>
+
+<h3>4. Auth.current()</h3>
+<pre id="authcurrent"></pre>
+
+<h3>5. Actions</h3>
+<button onclick="clearAll()">⚠️ Clear ALL localStorage</button>
+<button onclick="location.reload()">Reload</button>
+<button onclick="location.href='./index.html'">Go to Login</button>
+
+<script src="./js/store.js"></script>
+<script src="./js/auth.js"></script>
+<script>
+  // 1. Raw localStorage
+  var rawOut = '';
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    rawOut += k + ':\n' + localStorage.getItem(k) + '\n\n';
+  }
+  document.getElementById('raw').textContent = rawOut || '(empty)';
+
+  // 2. Store.Users
+  try {
+    var users = Store.Users.all();
+    document.getElementById('users').innerHTML =
+      '<span class="' + (users.length ? 'ok' : 'err') + '">' + users.length + ' user(s)</span>\n'
+      + JSON.stringify(users, null, 2);
+  } catch(e) {
+    document.getElementById('users').innerHTML = '<span class="err">ERROR: ' + e.message + '</span>';
+  }
+
+  // 3. URL
+  document.getElementById('url').textContent =
+    'href:   ' + window.location.href + '\n'
+    + 'search: ' + window.location.search + '\n'
+    + 'uid param: ' + new URLSearchParams(window.location.search).get('uid');
+
+  // 4. Auth.current()
+  try {
+    var cur = Auth.current();
+    document.getElementById('authcurrent').innerHTML =
+      cur
+        ? '<span class="ok">Found: ' + JSON.stringify(cur) + '</span>'
+        : '<span class="err">null — no user found for this uid</span>';
+  } catch(e) {
+    document.getElementById('authcurrent').innerHTML = '<span class="err">ERROR: ' + e.message + '</span>';
+  }
+
+  function clearAll() {
+    if (confirm('Clear ALL localStorage? This resets all users and bookings.')) {
+      localStorage.clear();
+      location.reload();
+    }
+  }
+</script>
+</body>
+</html>
