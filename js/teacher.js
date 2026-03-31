@@ -5083,8 +5083,6 @@ function _showVisModal(slot, initVis, initList, initGrp, students, onSave) {
   var grpMax     = (initGrp > 1 ? initGrp : 3);
   var searchQ   = { white: '', black: '' };
 
-  function _esc2(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
   function _buildStudentListHTML(key, q) {
     var sel = (key === 'white') ? whiteList : blackList;
     var filtered = students.filter(function(s) {
@@ -5093,12 +5091,12 @@ function _showVisModal(slot, initVis, initList, initGrp, students, onSave) {
     if (!filtered.length) return '<div class="svc-combo-empty">Kein Sch\u00fcler gefunden</div>';
     var html = '';
     filtered.forEach(function(s) {
-      var name    = _esc2(AppService.getDisplayNameSync(s.uid) || s.uid);
+      var name    = _esc(AppService.getDisplayNameSync(s.uid) || s.uid);
       var checked = sel.indexOf(s.uid) !== -1 ? ' checked' : '';
       var bookings = AppService.getSlotsByStudentSync(s.uid).filter(function(sl) { return sl.teacherId === currentUser.uid && sl.status === 'booked'; }).length;
       html += '<label class="svc-combo-row">' +
-        '<input type="checkbox" data-uid="' + _esc2(s.uid) + '"' + checked + '>' +
-        '<div class="svc-avatar">' + _esc2((name.charAt(0) || '?').toUpperCase()) + '</div>' +
+        '<input type="checkbox" data-uid="' + _esc(s.uid) + '"' + checked + '>' +
+        '<div class="svc-avatar">' + _esc((name.charAt(0) || '?').toUpperCase()) + '</div>' +
         '<span class="svc-stu-name">' + name + '</span>' +
         '<span class="svc-stu-meta">' + bookings + ' Buchung' + (bookings !== 1 ? 'en' : '') + '</span>' +
         '</label>';
@@ -5109,12 +5107,12 @@ function _showVisModal(slot, initVis, initList, initGrp, students, onSave) {
   function _buildChipsHTML(key) {
     var list = (key === 'white') ? whiteList : blackList;
     return list.map(function(uid) {
-      var name = _esc2(AppService.getDisplayNameSync(uid) || uid);
+      var name = _esc(AppService.getDisplayNameSync(uid) || uid);
       var init = (name.charAt(0) || '?').toUpperCase();
       return '<span class="svc-chip">' +
-        '<span class="svc-chip-av">' + _esc2(init) + '</span>' +
+        '<span class="svc-chip-av">' + _esc(init) + '</span>' +
         name +
-        '<button class="svc-chip-x" data-uid="' + _esc2(uid) + '" type="button">\u00d7</button>' +
+        '<button class="svc-chip-x" data-uid="' + _esc(uid) + '" type="button">\u00d7</button>' +
         '</span>';
     }).join('');
   }
@@ -5571,10 +5569,6 @@ function _svgLock() {
 function _svgRefresh() {
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
 }
-function _esc(str) {
-  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
 /* Wire up overlay buttons — called from init after DOM ready */
 function _tdvInitListeners() {
   document.getElementById('tdv-back-btn').addEventListener('click', closeTeacherDayView);

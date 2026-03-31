@@ -8,30 +8,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
   <script src="./js/app-config.js"></script>
-  <script src="./js/timezone-service.js"></script>
-  <script>
-    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
-    (function() {
-      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
-      var css = [
-        './css/tokens.css',
-        './css/base.css',
-        './css/components.css',
-        './css/navbar.css',
-        './css/profile.css',
-        './css/teacher.css',
-        './css/wallet.css',
-        './css/chat.css',
-      ];
-      var head = document.head;
-      for (var i = 0; i < css.length; i++) {
-        var link = document.createElement('link');
-        link.rel  = 'stylesheet';
-        link.href = css[i] + v;
-        head.appendChild(link);
-      }
-    }());
-  </script>
 </head>
 <body>
 

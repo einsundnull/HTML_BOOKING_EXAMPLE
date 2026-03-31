@@ -34,7 +34,7 @@ var Toast = (function() {
     getContainer().appendChild(el);
     setTimeout(function() {
       el.classList.add('toast-exit');
-      el.addEventListener('animationend', function() { el.remove(); });
+      el.addEventListener('animationend', function() { el.remove(); }, { once: true });
     }, duration);
   }
 
@@ -90,6 +90,15 @@ var Modal = {
     return { overlay: overlay, close: close };
   }
 };
+
+/* ── Shared HTML-escape ───────────────────────────────── */
+function _esc(str) {
+  return String(str || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+window._esc = _esc;
 
 /* ── Icons ────────────────────────────────────────────── */
 var Icons = {
@@ -2200,16 +2209,6 @@ function buildTeacherSearchCombo(inputId, placeholder, teachers, onSelect, conta
   return wrap;
 }
 window.buildTeacherSearchCombo = buildTeacherSearchCombo;
-
-function _esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-window._esc = _esc;
 
 /**
  * _getActorUid() — resolves the current logged-in user's uid.

@@ -25,11 +25,6 @@
   };
 
   /* ── Helpers ─────────────────────────────────────────── */
-  function _esc(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
   function _fmt(amount) {
     var n = parseFloat(amount);
     return (isNaN(n) ? '0,00' : n.toFixed(2).replace('.', ',')) + ' \u20ac';

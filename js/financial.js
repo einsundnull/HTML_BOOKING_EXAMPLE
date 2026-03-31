@@ -43,9 +43,6 @@
     var el = document.getElementById(id);
     if (el) el.textContent = val;
   }
-  function _esc(s) {
-    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
   function _fmtDate(d) {
     if (!d) return '\u2014';
     var obj = new Date(d + (d.length === 10 ? 'T00:00:00' : ''));

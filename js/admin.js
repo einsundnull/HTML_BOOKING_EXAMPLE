@@ -1321,15 +1321,6 @@ function _clearErrors() {
   }
 }
 
-function _esc(str) {
-  return String(str || '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
 /* ══════════════════════════════════════════════════════
    AUDIT LOG
    Vollständige Buchungs- und Zahlungshistorie aller User.

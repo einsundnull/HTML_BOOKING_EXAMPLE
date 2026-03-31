@@ -20,7 +20,7 @@
 /* ── Asset-Version ──────────────────────────────────────────
    NUR HIER ändern — gilt automatisch für alle Seiten.       */
 
-var APP_VERSION = '2026-03-30-9';
+var APP_VERSION = '2026-03-31-1';
 
 /* ── Zentrale Disziplin-Labels (SSOT für skiing-catalog.js, admin.js, profile.js) ── */
 var DISC_LABELS = {
@@ -42,7 +42,16 @@ var DISC_LABELS = {
 var _PAGE_ASSETS = {
 
   'dashboard.html': {
-    css: [],
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css',
+      './css/wallet.css',
+      './css/chat.css',
+      './css/dashboard.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -63,7 +72,17 @@ var _PAGE_ASSETS = {
   },
 
   'student.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/teacher.css',
+      './css/wallet.css',
+      './css/profile.css',
+      './css/student.css',
+      './css/chat.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -85,7 +104,16 @@ var _PAGE_ASSETS = {
   },
 
   'teacher.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css',
+      './css/teacher.css',
+      './css/wallet.css',
+      './css/chat.css'
+    ],
     js: [
       /* Core — needed for first paint */
       './js/currency-provider-mock.js',
@@ -129,7 +157,15 @@ var _PAGE_ASSETS = {
   },
 
   'my-students.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css',
+      './css/my-students.css',
+      './css/chat.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -150,7 +186,14 @@ var _PAGE_ASSETS = {
   },
 
   'admin.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/wallet.css',
+      './css/admin.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -169,7 +212,14 @@ var _PAGE_ASSETS = {
   },
 
   'financial.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/wallet.css',
+      './css/financial.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -187,7 +237,13 @@ var _PAGE_ASSETS = {
   },
 
   'wallet.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/wallet.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -207,7 +263,13 @@ var _PAGE_ASSETS = {
   },
 
   'wallet-standalone.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/wallet.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -227,7 +289,14 @@ var _PAGE_ASSETS = {
   },
 
   'user-detail.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/wallet.css',
+      './css/user-detail.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -247,7 +316,13 @@ var _PAGE_ASSETS = {
   },
 
   'profile-edit.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -266,7 +341,14 @@ var _PAGE_ASSETS = {
   },
 
   'profile-view.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css',
+      './css/chat.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -285,7 +367,13 @@ var _PAGE_ASSETS = {
   },
 
   'landing.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/landing.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -303,7 +391,13 @@ var _PAGE_ASSETS = {
   },
 
   'skiing.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/skiing.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -317,7 +411,16 @@ var _PAGE_ASSETS = {
   },
 
   'skiing-catalog.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/navbar.css',
+      './css/profile.css',
+      './css/landing.css',
+      './css/skiing-catalog.css',
+      './css/catalog-filter-drawer.css'
+    ],
     js: [
       './js/currency-provider-mock.js',
       './js/currency-service.js',
@@ -339,7 +442,12 @@ var _PAGE_ASSETS = {
   },
 
   'index.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [
+      './css/tokens.css',
+      './css/base.css',
+      './css/components.css',
+      './css/login.css'
+    ],
     js: [
       './js/store.js',
       './js/profile.js',
@@ -350,20 +458,8 @@ var _PAGE_ASSETS = {
     ]
   },
 
-  'db-seed.html': {
-    css: []  /* CSS injected per-page inline script */,
-    js: [
-      './js/store.js',
-      './js/profile.js',
-      './js/adapter-localstorage.js',
-      './js/adapter-firestore.js',
-      './js/app-service.js',
-      './js/chat.js'
-    ]
-  },
-
   'debug.html': {
-    css: []  /* CSS injected per-page inline script */,
+    css: [],
     js: [
       './js/store.js',
       './js/auth.js'
@@ -391,7 +487,13 @@ var _PAGE_ASSETS = {
   var head = document.head || document.getElementsByTagName('head')[0];
   if (!head) { return; }
 
-  /* ── CSS: stamped via inline script in each HTML <head> ── */
+  /* ── CSS <link> Tags — synchronous for correct rendering ── */
+  for (var ci = 0; ci < assets.css.length; ci++) {
+    var link = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.href = assets.css[ci] + v;
+    head.appendChild(link);
+  }
 
   /* ── JS <script> Tags — defer so body is parsed first ── */
   for (var ji = 0; ji < assets.js.length; ji++) {

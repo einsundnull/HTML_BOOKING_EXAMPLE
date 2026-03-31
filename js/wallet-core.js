@@ -90,15 +90,6 @@ var WalletCore = (function () {
     } catch (e) { return iso || ''; }
   }
 
-  function escHtml(str) {
-    return String(str || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   /* ── Shared TX-Item-Builder ─────────────────────────────── */
   function buildTxItem(tx, i18n, uid) {
     var li       = document.createElement('li');
@@ -149,8 +140,8 @@ var WalletCore = (function () {
         } catch(e) { return ''; }
       })();
       tsDisplay = '<span class="wallet-tx-time-block">' +
-        escHtml(localFmt) +
-        '<span class="tx-utc-badge">UTC ' + escHtml(utcFmt) + '</span>' +
+        _esc(localFmt) +
+        '<span class="tx-utc-badge">UTC ' + _esc(utcFmt) + '</span>' +
       '</span>';
     } else {
       tsDisplay = '<span class="wallet-tx-date">' + formatDate(tx.createdAt) + '</span>';
@@ -160,17 +151,17 @@ var WalletCore = (function () {
       '<div class="wallet-tx-icon ' + txType + '" aria-hidden="true">' + icon + '</div>' +
       '<div class="wallet-tx-body">' +
         '<div class="wallet-tx-row1">' +
-          '<span class="wallet-tx-type">' + escHtml(typeLabel) + '</span>' +
-          '<span class="wallet-tx-amount ' + (isPositive ? 'positive' : 'negative') + '">' + escHtml(amountStr) + '</span>' +
+          '<span class="wallet-tx-type">' + _esc(typeLabel) + '</span>' +
+          '<span class="wallet-tx-amount ' + (isPositive ? 'positive' : 'negative') + '">' + _esc(amountStr) + '</span>' +
         '</div>' +
         '<div class="wallet-tx-row2">' +
           tsDisplay +
-          '<span class="wallet-tx-balance">' + escHtml(balanceStr) + '</span>' +
+          '<span class="wallet-tx-balance">' + _esc(balanceStr) + '</span>' +
         '</div>' +
-        (descShort ? '<div class="wallet-tx-desc">' + escHtml(descShort) + '</div>' : '') +
+        (descShort ? '<div class="wallet-tx-desc">' + _esc(descShort) + '</div>' : '') +
         buildTxMetaLine(tx) +
       '</div>' +
-      '<div style="text-align:right;flex-shrink:0"><span class="wallet-tx-status ' + txStatus + '">' + escHtml(statusLabel) + '</span></div>';
+      '<div style="text-align:right;flex-shrink:0"><span class="wallet-tx-status ' + txStatus + '">' + _esc(statusLabel) + '</span></div>';
 
     /* Click → open detail sheet */
     li.style.cursor = 'pointer';
@@ -219,7 +210,7 @@ var WalletCore = (function () {
     }
 
     if (!parts.length) return '';
-    return '<div class="wallet-tx-meta">' + escHtml(parts.join(' · ')) + '</div>';
+    return '<div class="wallet-tx-meta">' + _esc(parts.join(' · ')) + '</div>';
   }
 
   /* ── Shared Validierung ─────────────────────────────────── */
@@ -584,7 +575,7 @@ var WalletCore = (function () {
     function row(label, value, highlight) {
       if (value === null || value === undefined || value === '') return '';
       return '<div class="wtx-detail-row' + (highlight ? ' highlight' : '') + '">' +
-        '<span class="wtx-detail-label">' + escHtml(label) + '</span>' +
+        '<span class="wtx-detail-label">' + _esc(label) + '</span>' +
         '<span class="wtx-detail-value">' + value + '</span>' +
         '</div>';
     }
@@ -604,12 +595,12 @@ var WalletCore = (function () {
     function name(uid) {
       if (!uid) return null;
       var n = (typeof ProfileStore !== 'undefined') ? ProfileStore.getDisplayName(uid) : null;
-      return n ? escHtml(n) + ' <span style="color:#9ca3af;font-size:11px">(' + escHtml(uid) + ')</span>' : escHtml(uid);
+      return n ? _esc(n) + ' <span style="color:#9ca3af;font-size:11px">(' + _esc(uid) + ')</span>' : _esc(uid);
     }
     function money(v) {
       if (v === null || v === undefined) return null;
-      if (typeof _fmtForUser !== 'undefined') return escHtml(_fmtForUser(parseFloat(v), uid));
-      return escHtml(parseFloat(v).toFixed(2).replace('.', ',') + ' €');
+      if (typeof _fmtForUser !== 'undefined') return _esc(_fmtForUser(parseFloat(v), uid));
+      return _esc(parseFloat(v).toFixed(2).replace('.', ',') + ' €');
     }
 
     /* ── Helper: build a dual-timestamp row (local + UTC + timezone) ── */
@@ -627,23 +618,23 @@ var WalletCore = (function () {
       var utcDisplay = fmtDt(utcIso);
       /* Build offset label from TZ if available */
       var tzLabel = tz && tz !== 'UTC'
-        ? escHtml(tz) + (typeof TimezoneService !== 'undefined'
-            ? ' (' + escHtml(TimezoneService.formatOffset(tz, utcIso.slice(0, 10))) + ')'
+        ? _esc(tz) + (typeof TimezoneService !== 'undefined'
+            ? ' (' + _esc(TimezoneService.formatOffset(tz, utcIso.slice(0, 10))) + ')'
             : '')
         : 'UTC';
 
       if (!localIso) {
         /* Legacy TX without dual timestamp — show UTC only */
-        return row(label, escHtml(utcDisplay));
+        return row(label, _esc(utcDisplay));
       }
       return '<div class="wtx-detail-row" style="flex-direction:column;align-items:stretch;padding:0;gap:0;border-bottom:1px solid var(--neutral-100)">' +
         '<div style="display:flex;justify-content:space-between;padding:5px 0">' +
-          '<span class="wtx-detail-label">' + escHtml(label) + ' (lokal)</span>' +
-          '<span class="wtx-detail-value">' + escHtml(localDisplay) + '</span>' +
+          '<span class="wtx-detail-label">' + _esc(label) + ' (lokal)</span>' +
+          '<span class="wtx-detail-value">' + _esc(localDisplay) + '</span>' +
         '</div>' +
         '<div class="wtx-tz-row">' +
           '<span class="wtx-tz-row-label">UTC</span>' +
-          '<span class="wtx-tz-row-value">' + escHtml(utcDisplay) + '</span>' +
+          '<span class="wtx-tz-row-value">' + _esc(utcDisplay) + '</span>' +
         '</div>' +
         '<div class="wtx-tz-row" style="border-top:none">' +
           '<span class="wtx-tz-row-label">Zeitzone</span>' +
@@ -658,20 +649,20 @@ var WalletCore = (function () {
         ? new Date(localIso).toLocaleString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
         : fmtDt(utcIso);
       var utcDisplay = fmtDt(utcIso);
-      if (!localIso) return row(label, escHtml(utcDisplay));
+      if (!localIso) return row(label, _esc(utcDisplay));
       var tzLabel = tz && tz !== 'UTC'
-        ? escHtml(tz) + (typeof TimezoneService !== 'undefined'
-            ? ' (' + escHtml(TimezoneService.formatOffset(tz, utcIso.slice(0, 10))) + ')'
+        ? _esc(tz) + (typeof TimezoneService !== 'undefined'
+            ? ' (' + _esc(TimezoneService.formatOffset(tz, utcIso.slice(0, 10))) + ')'
             : '')
         : 'UTC';
       return '<div class="wtx-detail-row" style="flex-direction:column;align-items:stretch;padding:0;gap:0;border-bottom:1px solid var(--neutral-100)">' +
         '<div style="display:flex;justify-content:space-between;padding:5px 0">' +
-          '<span class="wtx-detail-label">' + escHtml(label) + ' (lokal)</span>' +
-          '<span class="wtx-detail-value">' + escHtml(localDisplay) + '</span>' +
+          '<span class="wtx-detail-label">' + _esc(label) + ' (lokal)</span>' +
+          '<span class="wtx-detail-value">' + _esc(localDisplay) + '</span>' +
         '</div>' +
         '<div class="wtx-tz-row">' +
           '<span class="wtx-tz-row-label">UTC</span>' +
-          '<span class="wtx-tz-row-value">' + escHtml(utcDisplay) + '</span>' +
+          '<span class="wtx-tz-row-value">' + _esc(utcDisplay) + '</span>' +
         '</div>' +
         '<div class="wtx-tz-row" style="border-top:none">' +
           '<span class="wtx-tz-row-label">Zeitzone</span>' +
@@ -682,49 +673,49 @@ var WalletCore = (function () {
 
     /* ── Sections ── */
     var secBase = '';
-    secBase += row('Typ', escHtml(typeLabel));
+    secBase += row('Typ', _esc(typeLabel));
     secBase += row('Betrag',
       '<strong style="color:' + (isPos ? '#065f46' : '#991b1b') + '">' +
-      escHtml((isPos ? '+' : '') + (typeof _fmtForUser !== 'undefined' ? _fmtForUser(parseFloat(tx.amount || 0), uid) : parseFloat(tx.amount || 0).toFixed(2).replace('.', ',') + ' €')) +
+      _esc((isPos ? '+' : '') + (typeof _fmtForUser !== 'undefined' ? _fmtForUser(parseFloat(tx.amount || 0), uid) : parseFloat(tx.amount || 0).toFixed(2).replace('.', ',') + ' €')) +
       '</strong>', true);
     secBase += row('Saldo danach', money(tx.balance));
     secBase += rowDualTs('Zeitpunkt', tx);
-    secBase += row('Status', '<span class="wallet-tx-status ' + escHtml(tx.status || '') + '">' +
-      escHtml((i18n['txStatus' + (tx.status || '').charAt(0).toUpperCase() + (tx.status || '').slice(1)] || tx.status || '')) + '</span>');
-    secBase += row('Beschreibung', tx.description ? escHtml(tx.description) : null);
+    secBase += row('Status', '<span class="wallet-tx-status ' + _esc(tx.status || '') + '">' +
+      _esc((i18n['txStatus' + (tx.status || '').charAt(0).toUpperCase() + (tx.status || '').slice(1)] || tx.status || '')) + '</span>');
+    secBase += row('Beschreibung', tx.description ? _esc(tx.description) : null);
     secBase += row('Wallet-Inhaber', name(tx.uid));
     secBase += row('Gegenpartei', name(tx.relatedUid));
 
     var secSlot = '';
     if (m.slotDate) {
       var timeRange = m.slotTimeStart
-        ? escHtml(m.slotTimeStart + (m.slotTimeEnd ? '–' + m.slotTimeEnd : ''))
-        : (m.slotTime ? escHtml(m.slotTime) : null);
-      secSlot += row('Stundendatum', escHtml(fmtDate2(m.slotDate)));
+        ? _esc(m.slotTimeStart + (m.slotTimeEnd ? '–' + m.slotTimeEnd : ''))
+        : (m.slotTime ? _esc(m.slotTime) : null);
+      secSlot += row('Stundendatum', _esc(fmtDate2(m.slotDate)));
       secSlot += row('Uhrzeit', timeRange);
-      if (m.slotCount && m.slotCount > 1) secSlot += row('Anzahl Slots', escHtml(String(m.slotCount)));
+      if (m.slotCount && m.slotCount > 1) secSlot += row('Anzahl Slots', _esc(String(m.slotCount)));
     }
     if (m.oldDate) {
-      secSlot += row('Verschoben von', escHtml(fmtDate2(m.oldDate) + (m.oldTime ? ' ' + m.oldTime : '')));
-      secSlot += row('Verschoben nach', escHtml(fmtDate2(m.newDate) + (m.newTime ? ' ' + m.newTime : '')));
+      secSlot += row('Verschoben von', _esc(fmtDate2(m.oldDate) + (m.oldTime ? ' ' + m.oldTime : '')));
+      secSlot += row('Verschoben nach', _esc(fmtDate2(m.newDate) + (m.newTime ? ' ' + m.newTime : '')));
     }
     secSlot += row('Lehrer', name(m.teacherId));
     secSlot += row('Schüler', name(m.studentId));
-    if (m.initiatorRole) secSlot += row('Initiiert durch', escHtml(m.initiatorRole === 'teacher' ? 'Lehrer' : 'Schüler'));
+    if (m.initiatorRole) secSlot += row('Initiiert durch', _esc(m.initiatorRole === 'teacher' ? 'Lehrer' : 'Schüler'));
 
     var secPayment = '';
     if (m.fullAmount != null && m.fullAmount > 0) secPayment += row('Gesamtpreis', money(m.fullAmount), true);
     if (m.depositAmount != null && m.depositAmount > 0) {
       var depLabel = money(m.depositAmount);
       if (m.depositType === 'percent' && m.depositPercent != null) {
-        depLabel += ' <span style="color:#9ca3af;font-size:11px">(' + escHtml(String(m.depositPercent)) + '% Deposit)</span>';
+        depLabel += ' <span style="color:#9ca3af;font-size:11px">(' + _esc(String(m.depositPercent)) + '% Deposit)</span>';
       } else if (m.depositType === 'fixed') {
         depLabel += ' <span style="color:#9ca3af;font-size:11px">(Fixbetrag)</span>';
       }
       secPayment += row('Deposit', depLabel);
     }
     if (m.paymentMode) {
-      secPayment += row('Zahlungsart', escHtml(m.paymentMode === 'cash_on_site' ? 'Bar vor Ort' : 'Online'));
+      secPayment += row('Zahlungsart', _esc(m.paymentMode === 'cash_on_site' ? 'Bar vor Ort' : 'Online'));
     }
     if (m.bookedAt) secPayment += rowMetaTs('Gebucht am', m.bookedAt, m.bookedAtLocal, tx.actorTimezone);
 
@@ -732,23 +723,23 @@ var WalletCore = (function () {
     if (m.cancellationTier) {
       var tierMap = { full_refund:'Volle Rückerstattung', partial:'Teilrückerstattung',
         forfeit:'Kein Deposit zurück', teacher_cancel:'Lehrer storniert', no_escrow:'Kein Escrow' };
-      secCancel += row('Stornierungsbedingung', escHtml(tierMap[m.cancellationTier] || m.cancellationTier), true);
+      secCancel += row('Stornierungsbedingung', _esc(tierMap[m.cancellationTier] || m.cancellationTier), true);
     }
     if (m.cancelledAt) secCancel += rowMetaTs('Storniert am', m.cancelledAt, m.cancelledAtLocal, tx.actorTimezone);
     if (m.noEscrowReason) {
       var noEscMap = { cash_on_site:'Zahlung bar vor Ort', deposit_unpaid:'Deposit nicht bezahlt' };
-      secCancel += row('Grund (kein Escrow)', escHtml(noEscMap[m.noEscrowReason] || m.noEscrowReason));
+      secCancel += row('Grund (kein Escrow)', _esc(noEscMap[m.noEscrowReason] || m.noEscrowReason));
     }
 
     var secIds = '';
-    secIds += row('TX-ID', '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + escHtml(tx.txId || '—') + '</span>');
-    if (m.escrowId) secIds += row('Escrow-ID', '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + escHtml(m.escrowId) + '</span>');
-    if (m.slotId)   secIds += row('Slot-ID',   '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + escHtml(m.slotId) + '</span>');
+    secIds += row('TX-ID', '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + _esc(tx.txId || '—') + '</span>');
+    if (m.escrowId) secIds += row('Escrow-ID', '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + _esc(m.escrowId) + '</span>');
+    if (m.slotId)   secIds += row('Slot-ID',   '<span style="font-family:monospace;font-size:11px;color:#9ca3af">' + _esc(m.slotId) + '</span>');
 
     function section(title, content) {
       if (!content) return '';
       return '<div class="wtx-detail-section"><div class="wtx-detail-section-title">' +
-        escHtml(title) + '</div>' + content + '</div>';
+        _esc(title) + '</div>' + content + '</div>';
     }
 
     /* Determine the contact recipient (the other party in this TX) */
@@ -781,7 +772,7 @@ var WalletCore = (function () {
                   '<path d="M14 2H2a1 1 0 00-1 1v8a1 1 0 001 1h3l3 3 3-3h3a1 1 0 001-1V3a1 1 0 00-1-1z"' +
                   ' stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>' +
                 '</svg>' +
-                escHtml(recipientName) + ' kontaktieren' +
+                _esc(recipientName) + ' kontaktieren' +
               '</button>'
             : '') +
           walletBtnHTML +
@@ -795,10 +786,10 @@ var WalletCore = (function () {
       '<div class="wtx-detail-panel" role="dialog" aria-modal="true">' +
         '<div class="wtx-detail-handle"></div>' +
         '<div class="wtx-detail-header">' +
-          '<div class="wallet-tx-icon ' + escHtml(txType) + ' wtx-header-icon">' + escHtml(icon) + '</div>' +
+          '<div class="wallet-tx-icon ' + _esc(txType) + ' wtx-header-icon">' + _esc(icon) + '</div>' +
           '<div>' +
-            '<div class="wtx-header-type">' + escHtml(typeLabel) + '</div>' +
-            '<div class="wtx-header-date">' + escHtml(fmtDt(tx.createdAt)) + '</div>' +
+            '<div class="wtx-header-type">' + _esc(typeLabel) + '</div>' +
+            '<div class="wtx-header-date">' + _esc(fmtDt(tx.createdAt)) + '</div>' +
           '</div>' +
           '<button class="wtx-detail-close" id="wtx-close-btn" aria-label="Schließen">✕</button>' +
         '</div>' +
@@ -982,19 +973,19 @@ var WalletCore = (function () {
         /* Use first TX id for click-through */
         var firstTxId = g.txs[0].txId;
 
-        return '<div class="wtx-related-item" data-related-txid="' + escHtml(firstTxId) + '"' +
-          ' data-related-txids="' + escHtml(g.txs.map(function(t){return t.txId;}).join(',')) + '">' +
-          '<div class="wtx-related-icon wallet-tx-icon ' + escHtml(gType) + '">' + (TX_ICONS[gType] || '·') + '</div>' +
+        return '<div class="wtx-related-item" data-related-txid="' + _esc(firstTxId) + '"' +
+          ' data-related-txids="' + _esc(g.txs.map(function(t){return t.txId;}).join(',')) + '">' +
+          '<div class="wtx-related-icon wallet-tx-icon ' + _esc(gType) + '">' + (TX_ICONS[gType] || '·') + '</div>' +
           '<div class="wtx-related-info">' +
-            '<div class="wtx-related-type">' + escHtml(gTypeLabel) + escHtml(gCountStr) + '</div>' +
-            '<div class="wtx-related-date">' + escHtml(gDate) + '</div>' +
+            '<div class="wtx-related-type">' + _esc(gTypeLabel) + _esc(gCountStr) + '</div>' +
+            '<div class="wtx-related-date">' + _esc(gDate) + '</div>' +
           '</div>' +
-          '<div class="wtx-related-amount wallet-tx-amount ' + gAmtClass + '">' + escHtml(gAmtStr) + '</div>' +
+          '<div class="wtx-related-amount wallet-tx-amount ' + gAmtClass + '">' + _esc(gAmtStr) + '</div>' +
         '</div>';
       }).join('');
 
       var html = '<div class="wtx-detail-section wtx-related-section">' +
-        '<div class="wtx-detail-section-title">' + escHtml(label) + '</div>' +
+        '<div class="wtx-detail-section-title">' + _esc(label) + '</div>' +
         '<div class="wtx-related-list">' + rows + '</div>' +
         '</div>';
 
@@ -1034,14 +1025,14 @@ var WalletCore = (function () {
       '<div class="wtx-inquiry-panel">' +
         '<div class="wtx-inquiry-header">' +
           '<button class="wtx-detail-close" id="wtx-inq-close" aria-label="Schließen">✕</button>' +
-          '<div class="wtx-inquiry-title">Nachricht an ' + escHtml(recipientName) + '</div>' +
+          '<div class="wtx-inquiry-title">Nachricht an ' + _esc(recipientName) + '</div>' +
         '</div>' +
         '<div class="wtx-inquiry-body">' +
           '<div class="wtx-inquiry-tx-preview">' +
             '<div class="wtx-inquiry-preview-label">Bezieht sich auf</div>' +
-            '<div class="wtx-inquiry-preview-type">' + escHtml(typeLabel) + '</div>' +
+            '<div class="wtx-inquiry-preview-type">' + _esc(typeLabel) + '</div>' +
             summaryLines.map(function(l) {
-              return '<div class="wtx-inquiry-preview-line">' + escHtml(l) + '</div>';
+              return '<div class="wtx-inquiry-preview-line">' + _esc(l) + '</div>';
             }).join('') +
           '</div>' +
           '<label class="form-label" for="wtx-inq-msg">Deine Nachricht</label>' +
@@ -1086,7 +1077,7 @@ var WalletCore = (function () {
       if (typeof ChatStore !== 'undefined' && typeof ChatStore.sendTxInquiry === 'function') {
         ChatStore.sendTxInquiry(senderUid, recipientUid, tx, msg);
         if (typeof Toast !== 'undefined') {
-          Toast.success('Nachricht an ' + escHtml(recipientName) + ' gesendet.');
+          Toast.success('Nachricht an ' + _esc(recipientName) + ' gesendet.');
         }
         closeInquiry();
       } else {
@@ -1102,7 +1093,6 @@ var WalletCore = (function () {
     loadI18n:        loadI18n,
     formatAmount:    formatAmount,
     formatDate:      formatDate,
-    escHtml:         escHtml,
     buildTxItem:     buildTxItem,
     buildTxMetaLine: buildTxMetaLine,
     validateAmount:  validateAmount,

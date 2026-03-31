@@ -93,10 +93,6 @@ function _longDate(dateStr) {
   });
 }
 
-function _escHtml(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
 /* ── Status icon SVGs (12×12, stroke-based, no fill) ─────── */
 var _ICONS = {
   /* Kreis mit Häkchen: Bestätigt (Zukunft) */
@@ -504,7 +500,7 @@ function _openBlockDialog(block, currentUser) {
     overdue:   { cls: 'dash-badge dash-badge--overdue   dash-badge--label', icon: _ICONS.overdue,   label: 'Nicht bestätigt' }
   };
   var bc = badgeCfg[badgeState];
-  var statusBadge = '<span class="' + bc.cls + '">' + bc.icon + ' ' + _escHtml(bc.label) + '</span>';
+  var statusBadge = '<span class="' + bc.cls + '">' + bc.icon + ' ' + _esc(bc.label) + '</span>';
 
   /* Action rules:
      - Verlegen / Stornieren: NUR wenn Zukunft UND unbestätigt
@@ -524,9 +520,9 @@ function _openBlockDialog(block, currentUser) {
       '<div class="dash-dialog-party">' +
         '<div class="dash-dialog-avatar">' + buildAvatarHTML(otherUid, { size: 'md', role: otherRole }) + '</div>' +
         '<div class="dash-dialog-info">' +
-          '<div class="dash-dialog-name">' + _escHtml(otherName) + '</div>' +
-          '<div class="dash-dialog-date">' + _escHtml(_longDate(block.dateStr)) + '</div>' +
-          '<div class="dash-dialog-time">' + _escHtml(block.start + ' \u2013 ' + block.end) +
+          '<div class="dash-dialog-name">' + _esc(otherName) + '</div>' +
+          '<div class="dash-dialog-date">' + _esc(_longDate(block.dateStr)) + '</div>' +
+          '<div class="dash-dialog-time">' + _esc(block.start + ' \u2013 ' + block.end) +
             ' &middot; ' + slotCount + ' Slot' + (slotCount !== 1 ? 's' : '') + '</div>' +
         '</div>' +
       '</div>' +
