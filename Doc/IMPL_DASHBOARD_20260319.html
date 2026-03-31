@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPL — Dashboard: Schedule ListView</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy:#060f1c; --navy-800:#0f2035;
+      --n0:#fff; --n50:#f8f9fb; --n100:#f0f2f5; --n200:#e2e6eb;
+      --n400:#9aa3af; --n500:#6b7685; --n700:#2d3540; --n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a; --ok-bg:#f0fff4; --ok-bd:#bbf7d0;
+      --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+      --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+    }
+    .ph { background:var(--navy); padding:28px 40px 24px; }
+    .ph-eye { font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+              text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:6px; }
+    .ph-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:5px; }
+    .ph-sub { font-size:13px; color:rgba(255,255,255,.5); max-width:760px; margin-bottom:14px; }
+    .ph-meta { display:flex; gap:8px; flex-wrap:wrap; }
+    .ph-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+                border-radius:999px; font-size:11px; font-weight:600;
+                background:rgba(255,255,255,.1); color:rgba(255,255,255,.75);
+                border:1px solid rgba(255,255,255,.15); }
+    .page { padding:28px 40px; max-width:1100px; margin:0 auto; }
+    @media(max-width:700px) { .ph,.page { padding:16px; } }
+    .sec { margin-bottom:44px; }
+    .sec-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px;
+               padding-bottom:9px; border-bottom:2px solid var(--n200); }
+    .sec-title { font-size:17px; font-weight:700; }
+    .sec-sub { font-size:12px; color:var(--n500); margin-left:auto; font-family:var(--mono); }
+    .callout { padding:11px 16px; border-radius:8px; border-left:3px solid;
+               font-size:13px; line-height:1.6; margin-bottom:14px; }
+    .c-ok   { background:var(--ok-bg);   border-color:var(--ok);   color:#14532d; }
+    .c-info { background:var(--info-bg); border-color:var(--info); color:#1a3a6b; }
+    .c-warn { background:var(--warn-bg); border-color:var(--warn); color:#7b3500; }
+    .callout strong { font-weight:700; }
+    .callout code { font-family:var(--mono); font-size:11.5px;
+                    background:rgba(0,0,0,.08); padding:1px 4px; border-radius:3px; }
+    .tw { overflow-x:auto; border-radius:8px; border:1px solid var(--n200); margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--navy-800); color:rgba(255,255,255,.82); text-align:left;
+               padding:9px 13px; font-size:10px; font-weight:700;
+               letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    tbody td { padding:9px 13px; border-bottom:1px solid var(--n200);
+               vertical-align:top; color:var(--n700); line-height:1.5; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr.r-new { background:var(--info-bg); }
+    tbody tr.r-ctx { background:var(--n50); }
+    code { font-family:var(--mono); font-size:11.5px; background:rgba(6,15,28,.07);
+           padding:1px 5px; border-radius:3px; color:#1a3249; }
+    .code-label { display:inline-block; background:rgba(255,255,255,.1);
+                  color:rgba(255,255,255,.6); font-family:var(--mono); font-size:10px;
+                  font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+                  padding:3px 10px; border-radius:4px 4px 0 0; }
+    .code-block { background:var(--navy); border-radius:0 8px 8px 8px;
+                  padding:14px 18px; overflow-x:auto; margin-bottom:14px; }
+    .code-block code { font-family:var(--mono); font-size:12px; color:#e2e8f0;
+                       white-space:pre; display:block; line-height:1.75;
+                       background:none; padding:0; border-radius:0; }
+    .cm{color:#64748b} .ck{color:#93c5fd} .cs{color:#86efac} .cg{color:#6ee7b7}
+    /* Mock UI */
+    .mock { border:1px solid var(--n200); border-radius:12px; overflow:hidden;
+            background:var(--n50); margin-bottom:14px; max-width:360px; }
+    .mock-header { background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+                   padding:8px 12px; text-transform:uppercase; letter-spacing:.05em; }
+    .mock-body { padding:12px; }
+    .mock-stats { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px; }
+    .mock-stat { background:#fff; border:1px solid var(--n200); border-radius:6px;
+                 padding:8px; text-align:center; }
+    .mock-stat-lbl { font-size:9px; color:var(--n400); text-transform:uppercase;
+                     font-weight:700; letter-spacing:.04em; }
+    .mock-stat-val { font-size:18px; font-weight:700; color:var(--n900); }
+    .mock-month { font-size:10px; font-weight:700; color:var(--n400); text-transform:uppercase;
+                  letter-spacing:.06em; padding:6px 0 4px; border-bottom:1px solid var(--n200);
+                  margin-bottom:8px; }
+    .mock-day { display:grid; grid-template-columns:40px 1fr; gap:0 10px; margin-bottom:8px; }
+    .mock-day-lbl { text-align:center; }
+    .mock-day-wd { font-size:9px; color:var(--n400); font-weight:700; text-transform:uppercase; }
+    .mock-day-num { font-size:16px; font-weight:700; color:var(--n900); }
+    .mock-day-num.today { color:#4d7aa0; }
+    .mock-slots { display:flex; flex-direction:column; gap:5px; }
+    .mock-lesson { display:flex; align-items:center; gap:8px; background:#fff;
+                   border:1px solid var(--n200); border-radius:6px;
+                   border-left:3px solid; padding:6px 8px; }
+    .mock-lesson.conf  { border-left-color:#065f46; }
+    .mock-lesson.pend  { border-left-color:#f5a623; }
+    .mock-lesson.past  { border-left-color:#c9d0d9; opacity:.65; }
+    .mock-lesson-body { flex:1; }
+    .mock-lesson-name { font-size:11px; font-weight:700; color:var(--n900); }
+    .mock-lesson-time { font-size:10px; color:var(--n500); }
+    .mock-avatar { width:28px; height:28px; border-radius:50%; background:var(--n100);
+                   display:flex; align-items:center; justify-content:center;
+                   font-size:9px; font-weight:700; color:var(--n500); flex-shrink:0; }
+    .flow { display:flex; flex-direction:column; margin-bottom:14px; }
+    .flow-step { display:grid; grid-template-columns:28px 1fr; border:1px solid var(--n200);
+                 border-bottom:none; background:var(--n0); }
+    .flow-step:first-child { border-radius:8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom:1px solid var(--n200); border-radius:0 0 8px 8px; }
+    .flow-num { background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+                display:flex; align-items:flex-start; justify-content:center; padding-top:12px; }
+    .flow-body { padding:10px 14px; }
+    .flow-fn  { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--navy); margin-bottom:3px; }
+    .flow-file{ font-size:10px; font-weight:700; text-transform:uppercase;
+                letter-spacing:.05em; color:var(--n400); margin-bottom:3px; }
+    .flow-desc{ font-size:12px; color:var(--n500); line-height:1.5; }
+    footer { margin-top:48px; padding:14px 0; border-top:1px solid var(--n200);
+             display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    footer span { font-family:var(--mono); font-size:11px; color:var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Dashboard</div>
+  <div class="ph-title">Dashboard — Schedule ListView</div>
+  <div class="ph-sub">
+    Standalone-Seite für Lehrer und Schüler. Zeigt kommende Stunden als chronologische
+    Tages-Liste gruppiert nach Monat. Kein inline-CSS, kein inline-JS,
+    HTML/JS/CSS streng getrennt. Rollen-adaptiv über <code>Auth.current().role</code>.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">dashboard.html · dashboard.js · dashboard.css</span>
+    <span class="ph-badge">locales/dashboard.json</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-25</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- NEUE DATEIEN -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Neue Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>dashboard.html</code></td><td>HTML-Struktur. Lädt CSS + JS via app-config. Kein eigenes JavaScript.</td></tr>
+          <tr class="r-new"><td><code>css/dashboard.css</code></td><td>Alle Dashboard-spezifischen Styles. Keine inline-Styles, alle Werte via Design-Tokens.</td></tr>
+          <tr class="r-new"><td><code>js/dashboard.js</code></td><td>Daten laden, DOM aufbauen, i18n, Rollen-Logik.</td></tr>
+          <tr class="r-new"><td><code>locales/dashboard.json</code></td><td>i18n-Keys auf Deutsch. Namespace = <code>dashboard</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr><td><code>js/app-config.js</code></td><td><code>'dashboard.html'</code> in <code>_PAGE_ASSETS</code> registriert. <code>APP_VERSION</code> → <code>2026-03-19-25</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- MOCK UI -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">UI-Struktur</div></div>
+    <div class="mock">
+      <div class="mock-header">Dashboard — Lehrer-Ansicht</div>
+      <div class="mock-body">
+        <div class="mock-stats">
+          <div class="mock-stat"><div class="mock-stat-lbl">Heute</div><div class="mock-stat-val">2</div></div>
+          <div class="mock-stat"><div class="mock-stat-lbl">Woche</div><div class="mock-stat-val">8</div></div>
+          <div class="mock-stat"><div class="mock-stat-lbl">Kommend</div><div class="mock-stat-val">31</div></div>
+        </div>
+        <div class="mock-month">März 2026</div>
+        <div class="mock-day">
+          <div class="mock-day-lbl"><div class="mock-day-wd">Fr.</div><div class="mock-day-num today">20</div></div>
+          <div class="mock-slots">
+            <div class="mock-lesson conf">
+              <div class="mock-lesson-body"><div class="mock-lesson-name">S1</div><div class="mock-lesson-time">14:00 – 14:30</div></div>
+              <div class="mock-avatar">S1</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-day">
+          <div class="mock-day-lbl"><div class="mock-day-wd">Sa.</div><div class="mock-day-num">21</div></div>
+          <div class="mock-slots">
+            <div class="mock-lesson pend">
+              <div class="mock-lesson-body"><div class="mock-lesson-name">Matthias H.</div><div class="mock-lesson-time">10:00 – 10:30</div></div>
+              <div class="mock-avatar">MH</div>
+            </div>
+            <div class="mock-lesson pend">
+              <div class="mock-lesson-body"><div class="mock-lesson-name">Matthias H.</div><div class="mock-lesson-time">11:00 – 11:30</div></div>
+              <div class="mock-avatar">MH</div>
+            </div>
+          </div>
+        </div>
+        <div class="mock-month">April 2026</div>
+        <div class="mock-day">
+          <div class="mock-day-lbl"><div class="mock-day-wd">Mi.</div><div class="mock-day-num">1</div></div>
+          <div class="mock-slots">
+            <div class="mock-lesson pend">
+              <div class="mock-lesson-body"><div class="mock-lesson-name">S1</div><div class="mock-lesson-time">09:00 – 09:30</div></div>
+              <div class="mock-avatar">S1</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INIT FLOW -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Init-Ablauf</div></div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js — window load</div>
+          <div class="flow-fn">Auth.current()</div>
+          <div class="flow-desc">Liest <code>?uid=</code> aus der URL. Kein User → Redirect zu <code>index.html</code>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">Navbar.init('dashboard')</div>
+          <div class="flow-desc">Shared Navbar initialisieren. Wallet-Badge wird über <code>WalletPanel.refresh()</code> aktualisiert.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">_loadDashI18n(cb)</div>
+          <div class="flow-desc">Lädt <code>locales/dashboard.json</code> async via XHR mit Cache-Buster.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js — im i18n-Callback</div>
+          <div class="flow-fn">_loadSlots(currentUser)</div>
+          <div class="flow-desc">
+            Lehrer: <code>AppService.getSlotsByTeacherSync(uid)</code><br>
+            Schüler: <code>AppService.getSlotsByStudentSync(uid)</code><br>
+            Filter: nur <code>status === 'booked'</code> mit <code>studentId</code>. Sortiert nach Datum + Zeit.
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">_buildStats(slots, currentUser, today)</div>
+          <div class="flow-desc">Rendert 3 <code>stat-card</code>s: Heute · Diese Woche · Kommende (alle Zukünftigen).</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">6</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">_buildSchedule(slots, currentUser)</div>
+          <div class="flow-desc">
+            Filtert: <code>date >= today</code>. Gruppiert nach Datum, dann nach Monat.
+            Rendert Monat-Header → Tag-Gruppe (Wochentag + Zahl links, Karten rechts).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROLLEN-LOGIK -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Rollen-Logik — Lehrer vs. Schüler</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Aspekt</th><th>Lehrer</th><th>Schüler</th></tr></thead>
+        <tbody>
+          <tr><td>Slots laden</td><td><code>getSlotsByTeacherSync(uid)</code></td><td><code>getSlotsByStudentSync(uid)</code></td></tr>
+          <tr><td>„Andere Partei" im Karten-Avatar</td><td><code>slot.studentId</code></td><td><code>slot.teacherId</code></td></tr>
+          <tr><td>Avatar-Rolle</td><td><code>'student'</code></td><td><code>'teacher'</code></td></tr>
+          <tr><td>Name in Karte</td><td>Name des Schülers</td><td>Name des Lehrers</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CARD STATES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Karten-Zustände — linker Farbrand</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>CSS-Klasse</th><th>Bedingung</th><th>Farbe</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>.dash-lesson--confirmed</code></td><td><code>slot.confirmedAt</code> gesetzt &amp;&amp; nicht vergangen</td><td>Grün (<code>--status-confirmed-icon</code>)</td><td>Bestätigt, zukünftig</td></tr>
+          <tr><td><code>.dash-lesson--pending</code></td><td>Kein <code>confirmedAt</code> &amp;&amp; nicht vergangen</td><td>Amber (<code>--pending-amber</code>)</td><td>Gebucht, noch unbestätigt</td></tr>
+          <tr><td><code>.dash-lesson--past</code></td><td><code>slot.date &lt; today</code></td><td>Grau (<code>--neutral-300</code>), opacity 0.65</td><td>Vergangen</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-info">
+      <strong>Hinweis:</strong> Das Dashboard zeigt standardmäßig nur Slots mit <code>date &gt;= today</code>.
+      Vergangene Slots werden nicht angezeigt — die <code>past</code>-Klasse ist für mögliche
+      zukünftige Erweiterungen (z.B. History-Tab) vorbereitet.
+    </div>
+  </div>
+
+  <!-- CSS CLASSES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">CSS-Klassen (dashboard.css)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Element</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr><td><code>.dash-month-header</code></td><td>Monatsüberschrift</td><td>„März 2026" — uppercase, gedämpft, mit Trennlinie</td></tr>
+          <tr><td><code>.dash-day</code></td><td>Tagesgruppe</td><td>2-Spalten-Grid: 48px Label + 1fr Karten</td></tr>
+          <tr><td><code>.dash-day-label</code></td><td>Linke Spalte</td><td>Wochentag (kurz) + Tageszahl übereinander</td></tr>
+          <tr><td><code>.dash-day-weekday</code></td><td>„Fr."</td><td>Caption, uppercase, gedämpft</td></tr>
+          <tr><td><code>.dash-day-num</code></td><td>„20"</td><td>Groß, semibold</td></tr>
+          <tr><td><code>.dash-day-num--today</code></td><td>Modifier</td><td>Akzentfarbe für heutiges Datum</td></tr>
+          <tr><td><code>.dash-day-slots</code></td><td>Rechte Spalte</td><td>Flex-Column, gap sp-2</td></tr>
+          <tr><td><code>.dash-lesson</code></td><td>Buchungskarte</td><td>Flex, weißer Hintergrund, 3px linker Rand, border-radius md</td></tr>
+          <tr><td><code>.dash-lesson-body</code></td><td>Name + Zeit</td><td>flex:1, min-width:0 (verhindert Overflow)</td></tr>
+          <tr><td><code>.dash-lesson-name</code></td><td>Name</td><td>semibold, text-overflow:ellipsis</td></tr>
+          <tr><td><code>.dash-lesson-time</code></td><td>Uhrzeit</td><td>caption, gedämpft</td></tr>
+          <tr><td><code>.dash-lesson-avatar</code></td><td>Avatar-Wrapper</td><td>flex-shrink:0, nutzt <code>buildAvatarHTML()</code></td></tr>
+          <tr><td><code>.dash-empty</code></td><td>Leerzustand</td><td>Zentriert, gedämpft</td></tr>
+          <tr><td><code>.dash-loading</code></td><td>Ladezustand</td><td>Platzhalter während i18n lädt</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WIEDERVERWENDETE KOMPONENTEN -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Wiederverwendete Komponenten — kein neuer Code</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Komponente</th><th>Quelle</th><th>Verwendet für</th></tr></thead>
+        <tbody>
+          <tr class="r-ctx"><td><code>.page</code>, <code>.page-header</code></td><td>base.css</td><td>Seitenlayout, Titel + Untertitel</td></tr>
+          <tr class="r-ctx"><td><code>.stats-row</code>, <code>.stat-card</code>, <code>.stat-label</code>, <code>.stat-value</code></td><td>components.css</td><td>3 Stats oben</td></tr>
+          <tr class="r-ctx"><td><code>buildAvatarHTML(uid, opts)</code></td><td>ui.js</td><td>Avatar-Bubble in jeder Buchungskarte</td></tr>
+          <tr class="r-ctx"><td><code>ProfileStore.getDisplayName(uid)</code></td><td>profile.js</td><td>Name in Buchungskarte</td></tr>
+          <tr class="r-ctx"><td><code>AppService.slotEndTime(time)</code></td><td>app-service.js</td><td>Endzeit berechnen für „14:00 – 14:30"</td></tr>
+          <tr class="r-ctx"><td><code>Auth.current()</code></td><td>auth.js</td><td>Aktuellen User + Rolle ermitteln</td></tr>
+          <tr class="r-ctx"><td><code>Navbar.init('dashboard')</code></td><td>navbar.js</td><td>Shared Navbar</td></tr>
+          <tr class="r-ctx"><td><code>.avatar-img</code>, <code>.avatar-initials</code>, <code>.avatar-sm/md/lg</code></td><td>base.css</td><td>Avatar-Bubble-Styling</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- URL USAGE -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">URL-Aufruf</div></div>
+    <div class="code-label">Beispiele</div>
+    <div class="code-block"><code><span class="cm"><!-- Lehrer -->
+</span><span class="cs">dashboard.html?uid=t1</span>
+
+<span class="cm"><!-- Schüler -->
+</span><span class="cs">dashboard.html?uid=s1</span></code></div>
+    <div class="callout c-warn">
+      Kein gültiger <code>uid</code>-Parameter → automatischer Redirect zu <code>index.html</code>.
+      Die Rolle wird aus <code>Store.Users.byUid(uid).role</code> gelesen.
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_DASHBOARD_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-25 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

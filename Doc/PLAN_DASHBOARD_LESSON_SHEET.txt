@@ -1,0 +1,192 @@
+================================================================
+PLAN — Dashboard: Lesson Detail Bottom Sheet
+Booking System · 19. März 2026
+================================================================
+
+ZIEL
+────
+Klick auf eine Lesson-Karte im Dashboard öffnet ein
+Bottom Sheet mit Infos zur Stunde und Aktions-Buttons.
+Rollen-adaptiv: Teacher und Student sehen unterschiedliche Aktionen.
+
+
+AUSLÖSER
+────────
+  Dashboard-Karte (.dash-lesson) → click → _openLessonSheet(slot, currentUser)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UI-STRUKTUR — Bottom Sheet
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+┌────────────────────────────────────────────────┐  ← .sheet-overlay (dunkel)
+│                                                │
+│  ┌──────────────────────────────────────────┐  │
+│  │  ── (drag handle)                        │  │  ← .sheet-handle
+│  │                                          │  │
+│  │  STUNDE                                  │  │  ← .sheet-section-title
+│  │  ┌────────────────────────────────────┐  │  │
+│  │  │ [Avatar]  Name                     │  │  │  ← .sheet-party
+│  │  │           Datum · Wochentag        │  │  │
+│  │  │           14:00 – 14:30            │  │  │
+│  │  └────────────────────────────────────┘  │  │
+│  │                                          │  │
+│  │  STATUS                                  │  │  ← .sheet-section-title
+│  │  ┌────────────────────────────────────┐  │  │
+│  │  │  ✓ Bestätigt      [badge-grün]     │  │  │  oder
+│  │  │  ⏳ Unbestätigt   [badge-amber]    │  │  │
+│  │  └────────────────────────────────────┘  │  │
+│  │                                          │  │
+│  │  ─────────────────────────────────────   │  │  ← Divider
+│  │                                          │  │
+│  │  AKTIONEN                                │  │
+│  │  ┌────────────────────────────────────┐  │  │
+│  │  │  [btn]  Kontaktieren               │  │  │  ← immer
+│  │  │  [btn]  Bestätigen                 │  │  │  ← nur wenn unbestätigt
+│  │  │  [btn]  Verlegen                   │  │  │  ← nur wenn zukünftig
+│  │  │  [btn]  Stornieren                 │  │  │  ← nur wenn zukünftig (danger)
+│  │  │  [btn]  Freigeben  (Teacher only)  │  │  │  ← Teacher: nur wenn bestätigt + zukünftig
+│  │  └────────────────────────────────────┘  │  │
+│  └──────────────────────────────────────────┘  │  ← .sheet (weißes Panel von unten)
+└────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AKTIONEN — Rollen-Matrix
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aktion          Schüler     Lehrer      Bedingung
+──────────────────────────────────────────────────────────────
+Kontaktieren    ✓           ✓           immer
+Bestätigen      ✓           ✓           !isConfirmed && !isPast
+Verlegen        ✓           ✓           !isPast
+Stornieren      ✓           ✓           !isPast
+Freigeben       –           ✓           isConfirmed && !isPast
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AKTIONS-IMPLEMENTIERUNG — Wiederverwendung bestehender Funktionen
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aktion          Shared Function (bereits in ui.js / chat.js)
+──────────────────────────────────────────────────────────────
+Kontaktieren    ChatPanel.openWith(otherUid)
+Bestätigen      AppService.confirmBlock(bookedSlots, cb)
+                  → dann Modal.show (Bestätigungs-Dialog)
+                  → _buildConfirmDetailBody() für Zahlungsinfo
+Verlegen        openMoveBlockDialogShared(opts)  [ui.js]
+Stornieren      _showCancelBlockPolicyDialog(...)  [ui.js]
+Freigeben       _openReleaseDialog(block)  [teacher.js]
+                  → Funktion muss zu dashboard.js portiert werden
+                  → oder als window-global exponiert werden
+
+WICHTIG: Alle Dialog-Funktionen sind bereits fertig implementiert
+und können direkt aufgerufen werden — kein Neuschreiben nötig.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEUE DATEIEN / ÄNDERUNGEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Datei                     Änderung
+──────────────────────────────────────────────────────────────
+js/dashboard.js           _openLessonSheet(slot, currentUser) hinzufügen
+                          _buildLessonCard() → click listener hinzufügen
+                          Nach Aktion: Dashboard neu rendern
+
+css/dashboard.css         .sheet-overlay, .sheet, .sheet-handle,
+                          .sheet-party, .sheet-section-title,
+                          .sheet-actions, .sheet-action-btn
+                          Alle Werte via Design-Tokens.
+                          KEINE inline-Styles.
+
+js/app-config.js          dashboard.html: chat.js + wallet-core.js +
+                          wallet-panel.js hinzufügen
+                          (benötigt für ChatPanel + Confirm-Dialog)
+                          APP_VERSION bump
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BESTEHENDE PROBLEME — VOR IMPLEMENTIERUNG ZU PRÜFEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. _openReleaseDialog() ist in teacher.js definiert — nicht global.
+   Fix: als window._openReleaseDialog exponieren ODER
+        Logik in dashboard.js direkt mit AppService.releaseSlot aufrufen.
+
+2. openMoveBlockDialogShared() erwartet ein "block"-Objekt mit
+   {bookedSlots, dateStr, start, end, student/teacher}.
+   Dashboard hat nur einzelne slot-Objekte.
+   Fix: block-Objekt aus einzelnem Slot synthetisieren.
+
+3. _showCancelBlockPolicyDialog() erwartet slots[], pendingMap, actorRole.
+   Fix: slots = [slot], pendingMap = {}, actorRole = currentUser.role.
+
+4. ChatPanel benötigt chat.js + den Chat-FAB in der HTML.
+   Fix: chat.js zu dashboard-Assets hinzufügen +
+        Chat-FAB-HTML in dashboard.html einfügen.
+
+5. AppService.confirmBlock erwartet fullSlots[] (mit .price etc.).
+   Fix: Slot aus getAllSlotsSync() anreichern (wie in confirmBlock fix).
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SLOT → BLOCK SYNTHESE (für Dialoge)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Da im Dashboard einzelne Slots statt Blocks vorliegen:
+
+  var fullSlot  = getFullSlot(slot.slotId)  // aus getAllSlotsSync()
+  var otherUid  = role=teacher ? slot.studentId : slot.teacherId
+  var endTime   = AppService.slotEndTime(slot.time)
+
+  var block = {
+    dateStr:          slot.date,
+    today:            todayKey,
+    start:            slot.time,
+    end:              endTime,
+    bookedSlots:      [fullSlot],
+    isFullyConfirmed: !!slot.confirmedAt,
+    hasPending:       false,
+    student:          { uid: slot.studentId },   // teacher-context
+    teacher:          { uid: slot.teacherId }    // student-context
+  }
+
+Dieser Block kann direkt an alle bestehenden Dialog-Funktionen
+übergeben werden.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ANIMATIONS-VERHALTEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Öffnen:  .sheet fährt von unten rein  (transform: translateY)
+  Schließen: Klick auf Overlay oder ✕   → translateY(100%)
+  CSS transition: 300ms ease
+  Kein JS-Animation-Framework — nur CSS transitions via Klassen.
+  Klasse .is-open auf .sheet-overlay steuert alles.
+
+
+================================================================
+ZUSAMMENFASSUNG
+================================================================
+
+Neue Funktionen in dashboard.js:    _openLessonSheet, _buildBlock,
+                                    _handleConfirm, _handleCancel,
+                                    _handleMove, _handleRelease,
+                                    _handleContact, _rerender
+
+Neue CSS-Klassen in dashboard.css:  ~10 Klassen, alle via Tokens
+
+Geänderte Dateien:                  app-config.js (Assets + Version)
+                                    dashboard.html (Chat-FAB HTML)
+
+Wiederverwendete Funktionen:        _buildConfirmDetailBody (ui.js)
+                                    openMoveBlockDialogShared (ui.js)
+                                    _showCancelBlockPolicyDialog (ui.js)
+                                    Modal.show (components)
+                                    ChatPanel.openWith (chat.js)
+                                    AppService.confirmBlock
+                                    AppService.releaseSlot
+
+================================================================

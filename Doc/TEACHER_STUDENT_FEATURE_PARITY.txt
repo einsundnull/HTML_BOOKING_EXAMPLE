@@ -1,0 +1,24 @@
+## Vollständige Gegenüberstellung: Teacher Schedule/All Bookings vs. Student Book a Lesson/My Bookings
+
+### 1. Sticky Day-Nav-Bar (scrollender « ‹ Datum › »-Balken)
+
+| Feature | Teacher | Student | Status |
+|---|---|---|---|
+| HTML vorhanden | ✅ `#day-nav-bar` + `#day-nav-sentinel` | ✅ identisches HTML | ✅ |
+| `checkDayNavSticky()` | ✅ vorhanden | ❌ fehlt komplett | **FEHLT** |
+| `updateDayNavBar()` | ✅ vorhanden | ❌ fehlt komplett | **FEHLT** |
+| `navDay(delta)` | ✅ vorhanden | ❌ fehlt | **FEHLT** |
+| `navMonth(delta)` | ✅ vorhanden | ❌ fehlt | **FEHLT** |
+| Button-Click-Handler | ✅ `day-nav-prev/next` → `navDay` | ❌ nicht verdrahtet | **FEHLT** |
+| Scroll-Listener | ✅ `scroll → checkDayNavSticky` | ❌ fehlt | **FEHLT** |
+| `renderDaySlots()` ruft update auf | n/a | ❌ kein Call zu updateDayNavBar | **FEHLT** |
+
+### 2. Lehrer/Schüler-Filter-Dropdown in Buchungsübersicht
+
+| Feature | Teacher (All Bookings) | Student (My Bookings) | Status |
+|---|---|---|---|
+| Dropdown "Alle Schüler" | ✅ statisches HTML + dynamisch befüllt | ❌ kein Dropdown | **FEHLT** |
+| Filter-Variable | `bookingsFilter.student` | `bookingsFilter.student` (existiert) | ✅ State da |
+| Dropdown beeinflusst Zählung | ✅ | ❌ | **FEHLT** |
+| Dropdown beeinflusst Liste | ✅ | ❌ | **FEHLT** |
+| "Alle Lehrer" als Default | ✅ | ❌ | **FEHLT** |

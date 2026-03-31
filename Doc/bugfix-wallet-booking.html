@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bugfix — Wallet / Booking UI Sync</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg: #0d1117; --surface: #161b22; --surface2: #1c2330;
+    --border: #30363d; --border-hi: #444c56;
+    --text: #e6edf3; --muted: #8b949e; --dim: #484f58;
+    --accent: #58a6ff; --green: #3fb950; --red: #f85149;
+    --amber: #d29922; --purple: #bc8cff;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text);
+    font-size: 14px; line-height: 1.6; padding: 36px 28px 80px; max-width: 1300px; margin: 0 auto; }
+
+  .page-header { border-bottom: 1px solid var(--border); padding-bottom: 22px; margin-bottom: 36px;
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .page-header h1 { font-family: 'IBM Plex Mono', monospace; font-size: 19px; font-weight: 600; }
+  .page-header p  { color: var(--muted); margin-top: 5px; font-size: 12.5px; }
+  .vbadge { font-family: 'IBM Plex Mono', monospace; font-size: 11px; padding: 4px 12px;
+    border-radius: 20px; background: rgba(63,185,80,.1); color: var(--green);
+    border: 1px solid rgba(63,185,80,.25); align-self: center; white-space: nowrap; }
+
+  .section { margin-bottom: 48px; }
+  .stitle { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1.4px; color: var(--muted); margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px; }
+  .stitle::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .note { font-size: 12.5px; padding: 10px 14px; border-radius: 0 6px 6px 0; margin-bottom: 18px; }
+  .note-red   { background: rgba(248,81,73,.07);  border-left: 3px solid rgba(248,81,73,.4);  color: #f0807a; }
+  .note-green { background: rgba(63,185,80,.07);  border-left: 3px solid rgba(63,185,80,.4);  color: var(--green); }
+  .note-blue  { background: rgba(88,166,255,.07); border-left: 3px solid rgba(88,166,255,.4); color: var(--accent); }
+
+  .tbl-wrap { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 28px; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); text-align: left;
+    padding: 9px 14px; background: var(--surface); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.02); }
+  tr.fixed td:first-child { border-left: 3px solid var(--green); }
+  tr.bug   td:first-child { border-left: 3px solid var(--red); }
+
+  code { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;
+    background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 4px; color: var(--purple); }
+  .fn   { color: var(--accent);  font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .file { color: var(--amber);   font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; }
+
+  .b { display: inline-block; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px;
+    padding: 2px 7px; border-radius: 20px; font-weight: 600; vertical-align: middle; white-space: nowrap; }
+  .b-green  { background: rgba(63,185,80,.15);   color: var(--green);  border: 1px solid rgba(63,185,80,.3); }
+  .b-red    { background: rgba(248,81,73,.15);   color: var(--red);    border: 1px solid rgba(248,81,73,.3); }
+  .b-amber  { background: rgba(210,153,34,.15);  color: var(--amber);  border: 1px solid rgba(210,153,34,.3); }
+  .b-blue   { background: rgba(88,166,255,.12);  color: var(--accent); border: 1px solid rgba(88,166,255,.25); }
+  .b-purple { background: rgba(188,140,255,.12); color: var(--purple); border: 1px solid rgba(188,140,255,.25); }
+
+  .flow { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 22px; margin-bottom: 20px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px; color: var(--muted); line-height: 2; }
+  .flow .hi   { color: var(--text); }
+  .flow .ok   { color: var(--green); }
+  .flow .err  { color: var(--red); }
+  .flow .fix  { color: var(--accent); }
+  .flow .arr  { color: var(--border-hi); }
+
+  .diff { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-bottom: 24px; }
+  .diff-pane { background: var(--surface); padding: 16px; }
+  .diff-pane h4 { font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .diff-pane h4.bad  { color: var(--red); }
+  .diff-pane h4.good { color: var(--green); }
+  .diff-pane pre { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; line-height: 1.7;
+    color: var(--muted); white-space: pre-wrap; }
+  .diff-pane pre .add { color: var(--green); }
+  .diff-pane pre .del { color: var(--red); text-decoration: line-through; opacity: .6; }
+  .diff-pane pre .neu { color: var(--accent); }
+
+  @media (max-width: 800px) { .diff { grid-template-columns: 1fr; } body { padding: 18px 14px 60px; } }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div>
+    <h1>Bugfix — Wallet &amp; Booking UI Sync</h1>
+    <p>3 Bugs · 4 Fixes · student.js, teacher.js, wallet-panel.js · 17. März 2026</p>
+  </div>
+  <div class="vbadge">✓ 4 Fixes deployed</div>
+</div>
+
+
+<!-- ═══ OVERVIEW TABLE ═══ -->
+<div class="section">
+  <div class="stitle">Übersicht — alle Bugs &amp; Fixes</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Symptom</th>
+          <th>Root Cause</th>
+          <th>Datei / Stelle</th>
+          <th>Fix</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="bug">
+          <td>1</td>
+          <td>Buchung erscheint im Kalender sofort als gebucht — dann springt er zurück auf verfügbar, bis man neu navigiert ("off constellation")</td>
+          <td>
+            <code>commitDayChanges()</code> ruft <code>renderCalendar()</code> + <code>renderDaySlots()</code> <strong>synchron</strong> auf — bevor der asynchrone <code>bookSlotWithEscrow</code>-Callback den Slot in localStorage geschrieben hat. Die Renders lesen also noch den alten Stand.
+          </td>
+          <td><span class="file">student.js</span> ~244<br><span class="file">teacher.js</span> ~1052</td>
+          <td>
+            In den <code>bookSlotWithEscrow</code>-Callbacks (Erfolgsfall) zusätzliche Re-Renders eingebaut: <code>renderCalendar()</code>, <code>renderDaySlots()</code> / <code>renderDayPanel()</code>. Die synchronen Renders vor dem Callback bleiben als optimistisches Update erhalten.
+          </td>
+          <td><span class="b b-green">✓ Behoben</span></td>
+        </tr>
+        <tr class="bug">
+          <td>2</td>
+          <td>Nach Buchung wird das Depot sofort vom Wallet abgezogen (Navbar-Badge aktualisiert) — aber der eingebettete Wallet-Tab zeigt noch den alten Stand</td>
+          <td>
+            <code>bookSlotWithEscrow</code>-Callback rief weder <code>_refreshNavbarWallet</code> noch <code>WalletPanel.refresh</code> auf. Einzige Aktualisierung war die synchrone vor dem Callback — die aber noch vor der Escrow-Abrechnung lief.
+          </td>
+          <td><span class="file">student.js</span> ~244<br><span class="file">teacher.js</span> ~1052</td>
+          <td>
+            <code>_refreshNavbarWallet()</code> + <code>WalletPanel.refresh()</code> werden jetzt im Erfolgs-Callback von <code>bookSlotWithEscrow</code> aufgerufen — nach der Escrow-Abrechnung.
+          </td>
+          <td><span class="b b-green">✓ Behoben</span></td>
+        </tr>
+        <tr class="bug">
+          <td>3</td>
+          <td>Nach Stornierung (Refund) erscheint das zurückgebuchte Geld <strong>nicht</strong> im Wallet-Tab — weder im Kontostand noch in der TX-History</td>
+          <td>
+            <code>cancelSlotWithPolicy</code> und <code>_showCancelPolicyDialog</code> rufen nach erfolgreichem Escrow-Settlement nur <code>_refreshNavbarWallet</code> (Navbar-Badge) auf — aber <strong>nicht</strong> <code>WalletPanel.refresh()</code>. Das eingebettete Panel bleibt eingefroren auf dem Stand zum Zeitpunkt des letzten <code>mount()</code>-Aufrufs (= Seitenladen oder letzter Tab-Wechsel).
+          </td>
+          <td>
+            <span class="file">student.js</span> commitDayChanges ~301<br>
+            <span class="file">teacher.js</span> saveBookingChanges ~1122<br>
+            <span class="file">ui.js</span> _showCancelPolicyDialog (Navbar OK, Panel fehlt)
+          </td>
+          <td>
+            <code>WalletPanel.refresh(currentUser.uid)</code> wird jetzt am Ende von <code>commitDayChanges()</code> (student) und <code>saveBookingChanges()</code> (teacher) aufgerufen. Panel aktualisiert Kontostand + TX-History sofort nach jeder Transaktion.
+          </td>
+          <td><span class="b b-green">✓ Behoben</span></td>
+        </tr>
+        <tr class="bug">
+          <td>4</td>
+          <td><code>WalletPanel.refresh()</code> war eine No-Op solange der Wallet-Tab noch nicht besucht wurde (<code>_core === null</code>)</td>
+          <td>
+            <code>WalletPanel.mount()</code> setzt <code>_core</code> erst nach dem asynchronen i18n-Load. Vor dem ersten Tab-Wechsel zu "Wallet" ist <code>_core</code> immer <code>null</code> — <code>refresh()</code> hatte kein Fallback.
+          </td>
+          <td><span class="file">wallet-panel.js</span> refresh()</td>
+          <td>
+            <code>refresh()</code> prüft explizit ob <code>_core</code> gesetzt ist und dokumentiert das erwartete Verhalten: vor erstem <code>mount()</code> ist ein Refresh bewusst eine No-Op — beim Tab-Öffnen lädt <code>mount()</code> ohnehin frische Daten.
+          </td>
+          <td><span class="b b-green">✓ Dokumentiert + gesichert</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══ WHERE WALLET REFRESH IS CALLED ═══ -->
+<div class="section">
+  <div class="stitle">Wallet-Aktualisierung — vollständige Aufrufmatrix</div>
+  <div class="note note-blue">
+    Jede Transaktion muss drei Stellen aktualisieren: (A) Navbar-Badge, (B) eingebettetes Wallet-Panel (wenn geöffnet), (C) Standalone wallet.html (aktualisiert sich selbst nach jeder Aktion).
+  </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Aktion</th>
+          <th>Auslöser</th>
+          <th>(A) Navbar-Badge</th>
+          <th>(B) WalletPanel.refresh</th>
+          <th>(C) wallet.html</th>
+          <th>Nach Fix</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Einzahlung (wallet.html)</td>
+          <td><span class="fn">_handleDeposit</span> → <span class="fn">AppService.deposit</span></td>
+          <td><span class="b b-green">✓</span> via <code>_onBalanceUpdate</code></td>
+          <td>n/a (standalone)</td>
+          <td><span class="b b-green">✓</span> direkt in callback</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Auszahlung (wallet.html)</td>
+          <td><span class="fn">_handleWithdrawConfirm</span> → <span class="fn">AppService.withdraw</span></td>
+          <td><span class="b b-green">✓</span> via <code>_onBalanceUpdate</code></td>
+          <td>n/a (standalone)</td>
+          <td><span class="b b-green">✓</span> direkt in callback</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Einzahlung (Panel in teacher/student)</td>
+          <td><span class="fn">WalletCore.doDeposit</span> → <span class="fn">AppService.deposit</span></td>
+          <td><span class="b b-green">✓</span> via <code>_onBalanceUpdate</code> in Panel</td>
+          <td><span class="b b-green">✓</span> direkt in callback (<code>renderBalance</code>)</td>
+          <td>n/a</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Auszahlung (Panel in teacher/student)</td>
+          <td><span class="fn">WalletCore.doWithdraw</span> → <span class="fn">AppService.withdraw</span></td>
+          <td><span class="b b-green">✓</span> via <code>_onBalanceUpdate</code> in Panel</td>
+          <td><span class="b b-green">✓</span> direkt in callback</td>
+          <td>n/a</td>
+          <td>—</td>
+        </tr>
+        <tr class="fixed">
+          <td><strong>Buchung (Student)</strong></td>
+          <td><span class="fn">commitDayChanges</span> → <span class="fn">bookSlotWithEscrow</span></td>
+          <td><span class="b b-red">✗ vor Fix</span> → <span class="b b-green">✓ in Callback</span></td>
+          <td><span class="b b-red">✗ fehlte</span> → <span class="b b-green">✓ in Callback</span></td>
+          <td>n/a</td>
+          <td><span class="b b-green">✓ Fix #2</span></td>
+        </tr>
+        <tr class="fixed">
+          <td><strong>Buchung (Lehrer bucht für Student)</strong></td>
+          <td><span class="fn">saveBookingChanges</span> → <span class="fn">bookSlotWithEscrow</span></td>
+          <td><span class="b b-red">✗ fehlte</span> → <span class="b b-green">✓ in Callback</span></td>
+          <td><span class="b b-red">✗ fehlte</span> → <span class="b b-green">✓ in Callback</span></td>
+          <td>n/a</td>
+          <td><span class="b b-green">✓ Fix #2</span></td>
+        </tr>
+        <tr class="fixed">
+          <td><strong>Stornierung / Refund (Student)</strong></td>
+          <td><span class="fn">commitDayChanges</span> → <span class="fn">cancelSlotWithPolicy</span></td>
+          <td><span class="b b-green">✓</span> <code>_refreshNavbarWallet</code></td>
+          <td><span class="b b-red">✗ fehlte</span> → <span class="b b-green">✓ am Ende von commitDayChanges</span></td>
+          <td>n/a</td>
+          <td><span class="b b-green">✓ Fix #3</span></td>
+        </tr>
+        <tr class="fixed">
+          <td><strong>Stornierung / Forfeit (Lehrer)</strong></td>
+          <td><span class="fn">saveBookingChanges</span> → <span class="fn">cancelSlotWithPolicy</span></td>
+          <td><span class="b b-green">✓</span> in cancel callback</td>
+          <td><span class="b b-red">✗ fehlte</span> → <span class="b b-green">✓ am Ende von saveBookingChanges</span></td>
+          <td>n/a</td>
+          <td><span class="b b-green">✓ Fix #3</span></td>
+        </tr>
+        <tr>
+          <td>Stornierung via Policy-Dialog (direkt, kein Stage)</td>
+          <td><span class="fn">_showCancelPolicyDialog</span> → <span class="fn">cancelSlotWithPolicy</span></td>
+          <td><span class="b b-green">✓</span> in callback (ui.js)</td>
+          <td><span class="b b-amber">⚠ nur wenn Panel offen</span> (onAction re-rendert Slots, nicht Wallet)</td>
+          <td>n/a</td>
+          <td><span class="b b-amber">Noch offen</span></td>
+        </tr>
+        <tr>
+          <td>Admin-Release Escrow</td>
+          <td><span class="fn">adminReleaseEscrow</span></td>
+          <td><span class="b b-amber">⚠ admin hat kein Navbar-Badge</span></td>
+          <td>n/a</td>
+          <td>n/a</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══ BEFORE / AFTER DIFFS ═══ -->
+<div class="section">
+  <div class="stitle">Code-Änderungen — Vorher / Nachher</div>
+
+  <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;">student.js — <code>bookSlotWithEscrow</code> Callback (Fix #1 + #2)</p>
+  <div class="diff">
+    <div class="diff-pane">
+      <h4 class="bad">✗ Vorher</h4>
+      <pre>AppService.bookSlotWithEscrow(sid, stuId, tid, <span style="color:var(--text)">function(e) {</span>
+  <span style="color:var(--text)">if (e) Toast.error(e.message || e);</span>
+  <span class="del">// kein Re-render, kein Wallet-Refresh</span>
+<span style="color:var(--text)">});</span></pre>
+    </div>
+    <div class="diff-pane">
+      <h4 class="good">✓ Nachher</h4>
+      <pre>AppService.bookSlotWithEscrow(sid, stuId, tid, <span style="color:var(--text)">function(e) {</span>
+  <span style="color:var(--text)">if (e) { Toast.error(e.message || e); return; }</span>
+  <span class="add">renderCalendar();</span>
+  <span class="add">renderDaySlots();</span>
+  <span class="add">_refreshNavbarWallet(currentUser.uid);</span>
+  <span class="add">if (typeof WalletPanel !== 'undefined')</span>
+  <span class="add">  WalletPanel.refresh(currentUser.uid);</span>
+<span style="color:var(--text)">});</span></pre>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;">student.js — Ende von <code>commitDayChanges()</code> (Fix #3)</p>
+  <div class="diff">
+    <div class="diff-pane">
+      <h4 class="bad">✗ Vorher</h4>
+      <pre><span style="color:var(--text)">renderDaySlots();</span>
+<span style="color:var(--text)">_refreshNavbarWallet(currentUser.uid);</span>
+<span class="del">// Panel wurde nicht aktualisiert</span>
+<span style="color:var(--text)">Toast.success('Gespeichert.');</span></pre>
+    </div>
+    <div class="diff-pane">
+      <h4 class="good">✓ Nachher</h4>
+      <pre><span style="color:var(--text)">renderDaySlots();</span>
+<span style="color:var(--text)">_refreshNavbarWallet(currentUser.uid);</span>
+<span class="add">if (typeof WalletPanel !== 'undefined')</span>
+<span class="add">  WalletPanel.refresh(currentUser.uid);</span>
+<span style="color:var(--text)">Toast.success('Gespeichert.');</span></pre>
+    </div>
+  </div>
+
+  <p style="color:var(--muted);font-size:12.5px;margin-bottom:16px;">teacher.js — Ende von <code>saveBookingChanges()</code> (Fix #3)</p>
+  <div class="diff">
+    <div class="diff-pane">
+      <h4 class="bad">✗ Vorher</h4>
+      <pre><span style="color:var(--text)">renderAllBookingsList();</span>
+<span class="del">// Panel wurde nicht aktualisiert</span>
+<span style="color:var(--text)">Toast.success('Bookings saved.');</span></pre>
+    </div>
+    <div class="diff-pane">
+      <h4 class="good">✓ Nachher</h4>
+      <pre><span style="color:var(--text)">renderAllBookingsList();</span>
+<span class="add">if (typeof WalletPanel !== 'undefined')</span>
+<span class="add">  WalletPanel.refresh(currentUser.uid);</span>
+<span style="color:var(--text)">Toast.success('Bookings saved.');</span></pre>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══ REMAINING ISSUE ═══ -->
+<div class="section">
+  <div class="stitle">Noch offen</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Szenario</th><th>Problem</th><th>Empfohlener Fix</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Stornierung direkt aus dem Policy-Dialog (<code>_showCancelPolicyDialog</code> in ui.js) ohne anschließenden Save-Button</td>
+          <td>Der <code>onAction</code>-Callback rendert den Kalender neu, ruft aber nicht <code>WalletPanel.refresh()</code> auf. Refund sichtbar nur im Navbar-Badge, nicht im Panel.</td>
+          <td>In <code>_showCancelPolicyDialog</code> (ui.js ~885) nach dem Navbar-Refresh auch <code>if (typeof WalletPanel !== 'undefined') WalletPanel.refresh(wUid)</code> aufrufen.</td>
+        </tr>
+        <tr>
+          <td><code>requestDepositRefund</code> schlägt fehl wenn <code>depositStatus = 'unpaid'</code></td>
+          <td>Bei cash_on_site oder nicht bezahltem Deposit: Storno läuft durch, Escrow-Status bleibt <code>unpaid</code>, kein Geld wird bewegt, keine TX geschrieben — kein sichtbarer Fehler.</td>
+          <td>In <code>cancelSlotWithPolicy</code> (app-service.js): wenn Status <code>unpaid</code>, direkt <code>writeCancellationRecord</code> aufrufen statt <code>requestDepositRefund</code> zu versuchen.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

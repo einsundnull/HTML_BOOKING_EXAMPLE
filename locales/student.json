@@ -1,0 +1,80 @@
+{
+  "tabMyTeachers":        "Meine Lehrer",
+  "tabBookLesson":        "Stunde buchen",
+  "tabMyBookings":        "Meine Buchungen",
+  "tabWallet":            "Wallet",
+  "tabDashboard":         "Dashboard",
+
+  "pageTitle":            "Meine Stunden",
+  "pageSubtitle":         "Lehrer finden und Stunden buchen.",
+
+  "statMyTeachers":       "Meine Lehrer",
+  "statBooked":           "Gebucht",
+
+  "cardSelected":         "Ausgew\u00e4hlt",
+  "cardAvailSlots":       "verf\u00fcgbarer Slot",
+  "cardAvailSlotsPlural": "verf\u00fcgbare Slots",
+  "btnBookLessons":       "Stunden buchen",
+  "btnRemove":            "Entfernen",
+  "btnSelect":            "Ausw\u00e4hlen",
+
+  "sectionMyTeachers":    "Meine Lehrer",
+  "sectionPending":       "Ausstehende Anfragen",
+
+  "pendingLabel":         "Anfrage ausstehend",
+  "btnCancelRequest":     "Zur\u00fcckziehen",
+
+  "emptyMyTeachers":      "Du hast noch keine Lehrer ausgew\u00e4hlt.",
+  "emptyCtaLabel":        "Zum Lehrerkatalog",
+
+  "noTeacherSelected":    "Kein Lehrer ausgew\u00e4hlt",
+  "noSlotsToday":         "Keine Slots an diesem Tag.",
+
+  "calLegendAvail":       "Verf\u00fcgbar",
+  "calLegendBooked":      "Meine Buchung",
+  "calWeekdayMo":         "Mo",
+  "calWeekdayTu":         "Di",
+  "calWeekdayWe":         "Mi",
+  "calWeekdayTh":         "Do",
+  "calWeekdayFr":         "Fr",
+  "calWeekdaySa":         "Sa",
+  "calWeekdaySu":         "So",
+
+  "monthJan": "Januar",   "monthFeb": "Februar",  "monthMar": "M\u00e4rz",
+  "monthApr": "April",    "monthMay": "Mai",       "monthJun": "Juni",
+  "monthJul": "Juli",     "monthAug": "August",    "monthSep": "September",
+  "monthOct": "Oktober",  "monthNov": "November",  "monthDec": "Dezember",
+
+  "gridHeaderTime":       "Zeit",
+
+  "slotAvailable":        "Verf\u00fcgbar",
+  "slotMyBooking":        "Meine Buchung",
+  "slotConfirmed":        "\u2713 Best\u00e4tigt",
+  "slotCancel":           "Stornieren",
+  "slotBooked":           "Belegt",
+  "slotPending":          "Vorgemerkt",
+  "slotPendingCancel":    "Vorgemerkt: Stornieren",
+  "slotUndo":             "R\u00fckg\u00e4ngig",
+  "slotBook":             "Buchen",
+
+  "fabDismiss":           "Verwerfen",
+  "fabDone":              "Fertig",
+
+  "recurringBook":        "\u21bb\u00a0 Regelm\u00e4\u00dfig buchen",
+
+  "modalCancelReqTitle":  "Anfrage zur\u00fcckziehen",
+  "modalCancelReqBody":   "M\u00f6chtest du die Anfrage an {name} zur\u00fcckziehen?",
+  "modalBtnCancel":       "Abbrechen",
+  "modalBtnConfirm":      "Zur\u00fcckziehen",
+
+  "toastTeacherAdded":    "{name} zu deinen Lehrern hinzugef\u00fcgt.",
+  "toastTeacherRemoved":  "{name} entfernt.",
+  "toastRequestWithdrawn":"{name} \u2014 Anfrage zur\u00fcckgezogen.",
+  "toastNoFreeSlot":      "Kein freier Slot an diesem Tag als Ausgangspunkt verf\u00fcgbar.",
+
+  "walletBalance":        "Guthaben: ",
+  "walletInsufficient":   " \u2014 Nicht genug",
+  "depositCovered":       " gedeckt",
+  "depositInsufficient":  " \u2014 Guthaben zu gering",
+  "deposit":              "Deposit: "
+}

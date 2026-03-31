@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOC — Recurring Booking: Price &amp; Deposit Display</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540; --n900: #0d1117;
+      --mono: 'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca;
+    }
+
+    /* ── Header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1140px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+
+    /* ── Sections ── */
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+
+    /* ── Callouts ── */
+    .callout { padding: 11px 15px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: #14532d; }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: #1a3a6b; }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: #7b3500; }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: #7f1d1d; }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Tables ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-fix  { background: #f0fff4; }
+    tbody tr.r-pre  { background: #fff0f0; }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+
+    /* ── Code blocks ── */
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75; background: none;
+                       padding: 0; border-radius: 0; color: #e2e8f0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .cn { color: #fde68a; }
+    .cg { color: #6ee7b7; } .ce { color: #fca5a5; }
+
+    /* ── Badges ── */
+    .badge { display: inline-flex; padding: 2px 8px; border-radius: 999px;
+             font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .b-new { background: var(--ok-bg);   color: #14532d; border: 1px solid var(--ok-bd); }
+    .b-mod { background: var(--warn-bg); color: #7b3500; border: 1px solid var(--warn-bd); }
+    .b-js  { background: #fef9ec; color: #7b3500; border: 1px solid #fde68a; }
+    .b-css { background: var(--info-bg); color: #1e3a8a; border: 1px solid var(--info-bd); }
+
+    /* ── Flow steps ── */
+    .flow { display: flex; flex-direction: column; margin-bottom: 16px; }
+    .flow-step { display: flex; gap: 14px; padding: 11px 13px; background: var(--n0);
+                 border: 1px solid var(--n200); border-bottom: none; }
+    .flow-step:first-child { border-radius: 8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .flow-num { width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+                color: #fff; font-size: 11px; font-weight: 700;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0; margin-top: 1px; }
+    .flow-title { font-weight: 700; font-size: 13px; color: var(--n900); margin-bottom: 3px; }
+    .flow-desc  { font-size: 12px; color: var(--n500); line-height: 1.55; }
+
+    /* ── Two-column grid ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* ── Mock UI widgets ── */
+    .mock-dialog { background: var(--n0); border-radius: 12px; border: 1px solid var(--n200);
+                   box-shadow: 0 8px 32px rgba(6,15,28,.12); overflow: hidden; }
+    .mock-title  { font-size: 11px; font-weight: 700; color: var(--n500);
+                   text-transform: uppercase; letter-spacing: .05em;
+                   padding: 8px 12px; background: var(--n50);
+                   border-bottom: 1px solid var(--n200); }
+    .mock-body   { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+    .mock-summary { font-size: 13px; font-weight: 700; color: var(--n900); }
+    .mock-check-row { display: flex; justify-content: space-between; align-items: center;
+                      font-size: 12px; padding: 4px 0; border-bottom: 1px solid var(--n100); }
+    .mock-check-row:last-of-type { border-bottom: none; }
+    .mock-check-row span { color: var(--n400); }
+    .mock-check-row strong { font-family: var(--mono); font-weight: 700; color: var(--n900); font-size: 12px; }
+    .mock-check-sub { font-size: 11px; color: var(--n400); padding: 0 0 4px; }
+    .mock-ok   { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
+                 background: var(--ok-bg); color: #14532d; }
+    .mock-warn { font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 6px;
+                 background: var(--warn-bg); color: #7b3500; }
+    .mock-week-list { display: flex; flex-direction: column; gap: 4px; }
+    .mock-week { display: flex; align-items: center; gap: 8px; padding: 5px 8px;
+                 border-radius: 6px; font-size: 11px; }
+    .mock-week-ok   { background: #f0fff4; }
+    .mock-week-fail { background: var(--err-bg); }
+    .mock-week-icon { font-weight: 700; width: 14px; text-align: center; flex-shrink: 0; }
+    .mock-week-ok   .mock-week-icon { color: #14532d; }
+    .mock-week-fail .mock-week-icon { color: #7f1d1d; }
+    .mock-week-date { flex: 1; color: var(--n700); }
+    .mock-week-price { font-family: var(--mono); font-weight: 700; color: #2563eb;
+                       font-size: 11px; margin-left: auto; flex-shrink: 0; }
+    .mock-week-cash  { font-style: italic; color: var(--n500); font-size: 11px;
+                       margin-left: auto; flex-shrink: 0; }
+    .mock-week-reason { color: #7f1d1d; font-size: 10px; }
+    .mock-btn { width: 100%; padding: 10px; border-radius: 8px; border: none;
+                background: #1e3a5f; color: #fff; font-size: 13px; font-weight: 700;
+                cursor: default; text-align: center; }
+    .mock-divider { height: 1px; background: var(--n200); margin: 2px 0; }
+    .mock-label { font-size: 10px; font-weight: 700; color: var(--n500);
+                  text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Feature Documentation · BookingSystem · ui.js + teacher.css</div>
+  <div class="ph-title">Recurring Booking — Price &amp; Deposit Display</div>
+  <div class="ph-sub">
+    Beide recurring-Buchungsdialoge zeigen jetzt vollständige Preis- und Depositinformationen:
+    Preis pro Wochenzeile, aufgeschlüsselter Kosten-Block (Deposit jetzt / Restbetrag /
+    Bar vor Ort), Guthabenprüfung und Gesamtpreis im Bestätigungs-Button.
+    Währungsumrechnung über <code>_fmtForUser()</code>.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">ui.js &nbsp;·&nbsp; teacher.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-12</span>
+    <span class="ph-badge">2 Dialog-Pfade &nbsp;·&nbsp; 4 Zahlungsmodi</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ── OVERVIEW ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Übersicht — Was wurde geändert</div></div>
+
+    <div class="callout c-err">
+      <strong>Vorher:</strong> Wochenzeilen zeigten nur Datum und Uhrzeit, ohne Preis.
+      Der Bestätigungs-Button zeigte nur „4 verfügbare Tage buchen" ohne Kostenzusammenfassung.
+      Es gab keinerlei Hinweis auf Deposit vs. Vollpreis vs. Barzahlung.
+    </div>
+    <div class="callout c-ok">
+      <strong>Nachher:</strong> Jede Wochenzeile trägt das passende Preis-Badge (Deposit,
+      Vollpreis oder „Bar vor Ort"). Ein Kosten-Block darunter schlüsselt genau auf, was
+      <em>jetzt</em> fällig ist vs. was bei Bestätigung fällig wird. Der Button enthält die
+      relevante Gesamtzahl. Alle Beträge nutzen <code>_fmtForUser()</code> für korrekte
+      Währungsdarstellung.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Element</th><th>Vorher</th><th>Nachher</th></tr></thead>
+        <tbody>
+          <tr class="r-pre">
+            <td>Wochenzeile</td>
+            <td>„Woche 1: Do., 26.03.2026 &nbsp;14:00–14:30"</td>
+            <td>+ Preis-Badge rechts: z.B. „€50 Deposit" / „€90,00" / „Bar vor Ort"</td>
+          </tr>
+          <tr class="r-pre">
+            <td>Info-Block</td>
+            <td>Keiner / nur Guthaben-Zeile ohne Deposit-Aufschlüsselung</td>
+            <td>Vollständige Aufschlüsselung: Deposit jetzt · Depositlabel · Restbetrag · Guthaben · Status</td>
+          </tr>
+          <tr class="r-pre">
+            <td>Bestätigungs-Button</td>
+            <td>„4 verfügbare Tage buchen"</td>
+            <td>„4 Termine buchen — Deposit: €200" / „— €360,00" / „— Bar vor Ort"</td>
+          </tr>
+          <tr class="r-pre">
+            <td>Währung</td>
+            <td>Kein Preis → keine Umrechnung nötig</td>
+            <td><code>_fmtForUser(amount, stuId)</code> — zeigt Betrag in Anzeigewährung des Schülers</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── TWO DIALOG PATHS ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Zwei Dialog-Pfade — beide aktualisiert</div>
+      <span class="sec-sub">ui.js</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Wichtig:</strong> In <code>ui.js</code> existieren zwei getrennte recurring-Dialoge.
+      Beide wurden identisch aktualisiert. Sie teilen dieselbe Render-Logik, aber leben in
+      verschiedenen Closures mit verschiedenen Variablennamen.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Dialog</th><th>Funktion</th><th>Ausgelöst durch</th><th>Wochenformat</th><th>Schleifentyp</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Dialog 1</strong><br><span class="badge b-mod">Fix 1</span></td>
+            <td><code>buildStudentBookingDialog</code></td>
+            <td>„Regelmäßig"-Button innerhalb des Buchungsmodals<br><em>(Screenshot im Ticket)</em></td>
+            <td>„Woche N: Do., 26.03.2026 14:00–14:30"</td>
+            <td>Feste Anzahl Wochen (<code>recurWeeks</code> Input)</td>
+          </tr>
+          <tr>
+            <td><strong>Dialog 2</strong><br><span class="badge b-mod">Fix 2</span></td>
+            <td><code>_openRecurringBookingDialog</code></td>
+            <td>„Regelmäßig buchen"-Button direkt im Day-Panel</td>
+            <td>Volles Datum + Uhrzeit</td>
+            <td>Anzahl Wochen oder Von–Bis-Datumsbereich</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Unterschied Dialog 1 vs. Dialog 2:</strong> Dialog 1 hat eine interne
+      <code>_renderRecurResult(dep)</code>-Hilfsfunktion, die nach dem async
+      <code>calcDepositInfo</code>-Call aufgerufen wird. Dialog 2 rendert direkt im Callback.
+      Der Render-Code ist inhaltlich identisch.
+    </div>
+  </div>
+
+  <!-- ── 4 PAYMENT MODES ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Vier Zahlungsmodi — vollständige Anzeigelogik</div>
+    </div>
+
+    <div class="two-col">
+
+      <!-- Mode 1: cash_on_site -->
+      <div>
+        <div class="mock-label">Modus 1 — Bar vor Ort (<code>cash_on_site</code>)</div>
+        <div class="mock-dialog">
+          <div class="mock-title">Regelmäßig buchen</div>
+          <div class="mock-body">
+            <div class="mock-summary">4 von 4 Wochen verfügbar</div>
+            <div class="mock-ok">✓ Zahlung bar vor Ort — kein Guthaben benötigt</div>
+            <div class="mock-week-list">
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 1: Do., 26.03.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-cash">Bar vor Ort</span>
+              </div>
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 2: Do., 02.04.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-cash">Bar vor Ort</span>
+              </div>
+            </div>
+            <div class="mock-btn">4 Termine buchen — Bar vor Ort</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 2: no deposit -->
+      <div>
+        <div class="mock-label">Modus 2 — Kein Deposit, Vollpreis sofort</div>
+        <div class="mock-dialog">
+          <div class="mock-title">Regelmäßig buchen</div>
+          <div class="mock-body">
+            <div class="mock-summary">4 von 4 Wochen verfügbar &nbsp;·&nbsp; Gesamt: <strong>€180,00</strong></div>
+            <div class="mock-check-row"><span>Vollpreis sofort</span><strong>€180,00</strong></div>
+            <div class="mock-check-row"><span>Guthaben</span><strong>€250,00</strong></div>
+            <div class="mock-ok">✓ Kein Deposit — Guthaben ausreichend</div>
+            <div class="mock-week-list">
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 1: Do., 26.03.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-price">€45,00</span>
+              </div>
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 2: Do., 02.04.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-price">€45,00</span>
+              </div>
+            </div>
+            <div class="mock-btn">4 Termine buchen — €180,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 3: deposit required, can afford -->
+      <div>
+        <div class="mock-label">Modus 3 — Deposit erforderlich, Guthaben OK</div>
+        <div class="mock-dialog">
+          <div class="mock-title">Regelmäßig buchen</div>
+          <div class="mock-body">
+            <div class="mock-summary">4 von 4 Wochen verfügbar &nbsp;·&nbsp; Gesamt: <strong>€180,00</strong></div>
+            <div class="mock-check-row"><span>Deposit jetzt</span><strong>€80,00</strong></div>
+            <div class="mock-check-sub">(€20,00 pro Slot — fixed)</div>
+            <div class="mock-check-row"><span>Restbetrag bei Bestätigung</span><strong>€100,00</strong></div>
+            <div class="mock-check-row"><span>Guthaben</span><strong>€120,00</strong></div>
+            <div class="mock-ok">✓ Guthaben ausreichend für Deposit</div>
+            <div class="mock-week-list">
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 1: Do., 26.03.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-price">€20 Deposit</span>
+              </div>
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 2: Do., 02.04.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-price">€20 Deposit</span>
+              </div>
+            </div>
+            <div class="mock-btn">4 Termine buchen — Deposit: €80,00</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode 4: deposit required, cannot afford -->
+      <div>
+        <div class="mock-label">Modus 4 — Deposit erforderlich, Guthaben zu niedrig</div>
+        <div class="mock-dialog">
+          <div class="mock-title">Regelmäßig buchen</div>
+          <div class="mock-body">
+            <div class="mock-summary">4 von 4 Wochen verfügbar &nbsp;·&nbsp; Gesamt: <strong>€180,00</strong></div>
+            <div class="mock-check-row"><span>Deposit jetzt</span><strong>€80,00</strong></div>
+            <div class="mock-check-sub">(€20,00 pro Slot — 20%)</div>
+            <div class="mock-check-row"><span>Restbetrag bei Bestätigung</span><strong>€100,00</strong></div>
+            <div class="mock-check-row"><span>Guthaben</span><strong>€50,00</strong></div>
+            <div class="mock-warn">⚠ Es fehlen €30,00 für das Deposit</div>
+            <div class="mock-week-list">
+              <div class="mock-week mock-week-ok">
+                <span class="mock-week-icon">✓</span>
+                <span class="mock-week-date">Woche 1: Do., 26.03.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-price">€20 Deposit</span>
+              </div>
+              <div class="mock-week mock-week-fail">
+                <span class="mock-week-icon">✗</span>
+                <span class="mock-week-date">Woche 2: Do., 02.04.2026 &nbsp;14:00–14:30</span>
+                <span class="mock-week-reason">Bereits gebucht</span>
+              </div>
+            </div>
+            <div class="mock-btn" style="opacity:.4;cursor:not-allowed">— (Button versteckt) —</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout c-info">
+      <strong>canProceed-Logik:</strong> Der Bestätigungs-Button wird nur angezeigt wenn
+      <code>availCount &gt; 0</code> — unabhängig vom Guthaben. Das bedeutet: ein Schüler
+      kann auch bei zu niedrigem Guthaben technisch fortfahren. Die Warnung ist informativ,
+      kein harter Block — konsistent mit dem Verhalten des regulären Buchungsmodals.
+    </div>
+  </div>
+
+  <!-- ── EXECUTION FLOW ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Ausführungsfluss — Dialog 1 (buildStudentBookingDialog)</div>
+      <span class="sec-sub">recurCheckBtn → async → render</span>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div>
+          <div class="flow-title">Verfügbarkeit prüfen geklickt</div>
+          <div class="flow-desc"><code>recurCheckBtn.addEventListener('click', ...)</code> feuert.
+          <code>pricePerSlot</code> wird via <code>AppService.getTeacherPriceSync(teacherId)</code>
+          gelesen — synchron, kein Callback nötig.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div>
+          <div class="flow-title">Wochenverfügbarkeit berechnen (sync)</div>
+          <div class="flow-desc">Schleife W=1…N: Datum berechnen, Slots materialisieren,
+          <code>isFreeSlot()</code>-Check. Ergebnis in <code>recurData[]</code>.
+          <code>availCount</code> und <code>totalCost</code> berechnen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div>
+          <div class="flow-title">Deposit-Info holen (async)</div>
+          <div class="flow-desc">Wenn <code>pricePerSlot &gt; 0</code>:
+          <code>AppService.calcDepositInfo(teacherId, pricePerSlot, cb)</code>.
+          Bei Fehler oder <code>pricePerSlot === 0</code>: <code>_renderRecurResult(null)</code>
+          direkt aufrufen (kein Deposit, kostenlos).</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div>
+          <div class="flow-title">_renderRecurResult(dep) — im Callback</div>
+          <div class="flow-desc">Wallet sync lesen. <code>payMode</code>, <code>reqDep</code>,
+          <code>depAmt</code>, <code>depTotal</code> aus <code>dep</code> extrahieren.
+          <code>fmt()</code>-Funktion bauen (<code>_fmtForUser</code> oder Fallback).</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div>
+          <div class="flow-title">HTML-Rendering nach Zahlungsmodus</div>
+          <div class="flow-desc">Branch: <code>pricePerSlot===0</code> → kostenlos.
+          <code>cash_on_site</code> → Bar-Zeile. <code>!reqDep</code> → Vollpreis + Guthabencheck.
+          <code>reqDep</code> → Deposit-Aufschlüsselung (jetzt / pro Slot / Restbetrag / Guthaben).</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">6</div>
+        <div>
+          <div class="flow-title">Wochenzeilen rendern mit Preis-Badge</div>
+          <div class="flow-desc">Pro <code>recurData[r]</code>: Icon, Datum+Uhrzeit,
+          dann Preis-Badge: <code>recur-row-price</code> (Deposit oder Vollpreis),
+          <code>recur-row-price--cash</code> (Bar vor Ort, kursiv), oder leer bei nicht-verfügbaren Zeilen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">7</div>
+        <div>
+          <div class="flow-title">Button-Label bauen</div>
+          <div class="flow-desc">„N Termine buchen" + Suffix:
+          „ — Bar vor Ort" / „ — Deposit: €X" / „ — €Y" / kein Suffix bei kostenlos.
+          Button-Visibility hängt nur von <code>availCount &gt; 0</code> ab.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KEY VARS ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Schlüsselvariablen &amp; Berechnungen</div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Variable</th><th>Quelle</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><code>pricePerSlot</code></td>
+            <td><code>AppService.getTeacherPriceSync(teacherId)</code></td>
+            <td>Preis pro Einzelslot in EUR (synchron). 0 = kostenlos.</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>totalCost</code></td>
+            <td><code>availCount × slotCount × pricePerSlot</code></td>
+            <td>Gesamtkosten aller verfügbaren Wochen. In Dialog 2: <code>availCount × pricePerSlot</code> (slotCount=1).</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>dep.paymentMode</code></td>
+            <td><code>AppService.calcDepositInfo()</code> callback</td>
+            <td><code>'instant'</code> | <code>'cash_on_site'</code>. Bei cash_on_site: kein Guthaben nötig.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>dep.requiresDeposit</code></td>
+            <td><code>AppService.calcDepositInfo()</code> callback</td>
+            <td><code>true</code> = Deposit erforderlich. <code>false</code> = Vollpreis sofort.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>dep.depositAmount</code></td>
+            <td><code>AppService.calcDepositInfo()</code> callback</td>
+            <td>Depositbetrag pro Slot (bereits anteilig berechnet). Kann fixed oder percent sein.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>dep.depositType</code></td>
+            <td><code>AppService.calcDepositInfo()</code> callback</td>
+            <td><code>'fixed'</code> | <code>'percent'</code>. Steuert Depositlabel-Text.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>dep.depositPercent</code></td>
+            <td><code>AppService.calcDepositInfo()</code> callback</td>
+            <td>Nur bei <code>depositType='percent'</code>. Z.B. <code>20</code> → „20% pro Slot".</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>depTotal</code></td>
+            <td><code>depAmt × availCount</code> (gerundet auf Cent)</td>
+            <td>Gesamter Depositbetrag für alle verfügbaren Wochen.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>restTotal</code></td>
+            <td><code>max(0, totalCost − depTotal)</code></td>
+            <td>Restbetrag fällig bei Bestätigung der Stunden.</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>fmt(amount)</code></td>
+            <td>Closure: <code>_fmtForUser(a, stuId)</code> oder Fallback</td>
+            <td>Konvertiert EUR-Betrag in die Anzeigewährung des Schülers.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>calcDepositInfo-Aufruf:</strong> Der Aufruf erfolgt mit
+      <code>pricePerSlot</code> (Einzelslotpreis), nicht mit <code>totalCost</code>.
+      Der Adapter berechnet intern den Depositbetrag basierend auf dem Einzelpreis
+      (bei percent-Deposit: <code>pricePerSlot × percent / 100</code>).
+      Die Multiplikation mit <code>availCount</code> erfolgt danach im Frontend.
+    </div>
+  </div>
+
+  <!-- ── DEPOSIT LABEL LOGIC ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Deposit-Label — fixed vs. percent</div>
+    </div>
+
+    <div class="code-label">ui.js — depLabel-Berechnung (identisch in beiden Dialogen)</div>
+    <div class="code-block"><code><span class="ck">var</span> depLabel = (dep.depositType === <span class="cs">'percent'</span>)
+  ? fmt(depAmt) + <span class="cs">' ('</span> + dep.depositPercent + <span class="cs">'% pro Slot)'</span>
+  : fmt(depAmt) + <span class="cs">' pro Slot'</span>;
+
+<span class="cm">/* Beispiele im Info-Block:
+   fixed:   "€50,00 pro Slot"
+   percent: "€9,00 (20% pro Slot)"           */</span>
+
+html += <span class="cs">'&lt;div class="bk-check-row"&gt;&lt;span&gt;Deposit jetzt&lt;/span&gt;&lt;strong&gt;'</span>
+  + fmt(depTotal) + <span class="cs">'&lt;/strong&gt;&lt;/div&gt;'</span>;
+html += <span class="cs">'&lt;div class="bk-check-row"&gt;&lt;span class="recur-deposit-sub"&gt;('</span>
+  + depLabel + <span class="cs">')&lt;/span&gt;&lt;/div&gt;'</span>;</code></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>depositType</th><th>Werte-Beispiel</th><th>Label-Anzeige</th><th>Row-Badge</th><th>Button-Suffix</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>fixed</code></td>
+            <td>depositAmount=50, 4 Termine</td>
+            <td>Deposit jetzt: €200,00<br><span style="font-size:11px;color:#9aa3af">(€50,00 pro Slot)</span></td>
+            <td>€50 Deposit</td>
+            <td>— Deposit: €200,00</td>
+          </tr>
+          <tr>
+            <td><code>percent</code></td>
+            <td>depositPercent=20, pricePerSlot=45, 4 Termine</td>
+            <td>Deposit jetzt: €36,00<br><span style="font-size:11px;color:#9aa3af">(€9,00 · 20% pro Slot)</span></td>
+            <td>€9 Deposit</td>
+            <td>— Deposit: €36,00</td>
+          </tr>
+          <tr>
+            <td>kein Deposit</td>
+            <td>requiresDeposit=false</td>
+            <td>Vollpreis sofort: €180,00<br>Guthaben: €250,00</td>
+            <td>€45,00</td>
+            <td>— €180,00</td>
+          </tr>
+          <tr>
+            <td><code>cash_on_site</code></td>
+            <td>paymentMode=cash_on_site</td>
+            <td>✓ Zahlung bar vor Ort</td>
+            <td>Bar vor Ort <em>(kursiv)</em></td>
+            <td>— Bar vor Ort</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── CSS ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Neue CSS-Klassen</div>
+      <span class="sec-sub">teacher.css</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Zweck</th><th>Styling</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>.recur-deposit-sub</code></td>
+            <td>Deposit-Sublabel in der <code>.bk-check-row</code><br>z.B. „(€50,00 pro Slot)"</td>
+            <td><code>font-size: caption; color: neutral-400; font-weight: normal</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>.recur-row-price--cash</code></td>
+            <td>Preis-Badge für <code>cash_on_site</code> in der Wochenzeile<br>„Bar vor Ort"</td>
+            <td><code>font-style: italic; color: neutral-500; margin-left: auto</code></td>
+          </tr>
+          <tr>
+            <td><code>.recur-row-price</code></td>
+            <td>Bereits vorhanden — Preis-Badge für normalen Preis und Deposit</td>
+            <td><code>color: color-600; font-weight: semibold; margin-left: auto</code></td>
+          </tr>
+          <tr>
+            <td><code>.recur-wallet-ok</code><br><code>.recur-wallet-warn</code></td>
+            <td>Bereits vorhanden — Status-Badge unter dem Info-Block</td>
+            <td>Grün (confirmed-bg) / Amber (held-bg)</td>
+          </tr>
+          <tr>
+            <td><code>.bk-check-row</code></td>
+            <td>Bereits vorhanden (aus teacher.js Affordability-Check) — wiederverwendet</td>
+            <td>Label-Wert-Zeile, border-bottom</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── CHANGED FILES ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion / Bereich</th><th>Typ</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/ui.js</code></td>
+            <td><code>buildStudentBookingDialog</code><br>recurCheckBtn-Listener (~Zeile 420)</td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <code>pricePerSlot</code> und <code>endTime</code> neu gelesen.<br>
+              <code>totalCost = availCount × slotCount × pricePerSlot</code>.<br>
+              Async <code>calcDepositInfo</code>-Aufruf mit <code>_renderRecurResult(dep)</code>-Callback.<br>
+              Vollständige 4-Branch-Render-Logik inkl. Wochenzeilen-Badge und Button-Label.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/ui.js</code></td>
+            <td><code>_openRecurringBookingDialog</code><br>checkBtn-Listener (~Zeile 870)</td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              Altes Wallet-Check (simple canAfford) ersetzt.<br>
+              Async <code>calcDepositInfo</code>-Aufruf direkt im checkBtn-Handler.<br>
+              Identische 4-Branch-Render-Logik. Fehlerfall (<code>errDep</code>) → Fallback auf <code>null</code>.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>css/teacher.css</code></td>
+            <td>Recur-Dialog Styles</td>
+            <td><span class="badge b-new">Neu</span></td>
+            <td>
+              <code>.recur-deposit-sub</code> — gedämpftes Deposit-Sublabel.<br>
+              <code>.recur-row-price--cash</code> — kursives „Bar vor Ort"-Badge.
+            </td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td><code>2026-03-19-11</code> → <code>2026-03-19-12</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ERROR HANDLING ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Fehlerbehandlung &amp; Fallbacks</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Szenario</th><th>Verhalten</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>calcDepositInfo</code> gibt Fehler zurück</td>
+            <td>Dialog 1: <code>_renderRecurResult(null)</code> → rendert ohne Deposit-Info (wie kostenlos). Dialog 2: <code>dep</code> wird via <code>(!errDep &amp;&amp; dep)</code>-Guards abgesichert → alle Deposit-Flags fallen auf Fallback-Werte.</td>
+          </tr>
+          <tr>
+            <td><code>pricePerSlot === 0</code></td>
+            <td>Dialog 1: <code>calcDepositInfo</code> wird gar nicht aufgerufen, direkt <code>_renderRecurResult(null)</code>. Dialog 2: <code>calcDepositInfo</code> wird immer aufgerufen (keine Preis-Prüfung im outer scope). Beide rendern „Kostenlose Buchung".</td>
+          </tr>
+          <tr>
+            <td><code>_fmtForUser</code> nicht verfügbar</td>
+            <td>Fallback: <code>'€' + parseFloat(a).toFixed(2).replace('.', ',')</code></td>
+          </tr>
+          <tr>
+            <td><code>AppService.getWalletSync</code> gibt <code>null</code> zurück</td>
+            <td><code>balance = 0</code> → Guthaben-Zeile zeigt €0,00 → canProceed abhängig von Modus</td>
+          </tr>
+          <tr>
+            <td><code>restTotal</code> wird negativ (Deposit &gt; Vollpreis)</td>
+            <td><code>Math.max(0, restTotal)</code> — Restbetrag-Zeile wird nicht gerendert wenn 0</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>RECUR_PRICE_DEPOSIT_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-12 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

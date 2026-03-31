@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Add Slots expanded</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:  #f0f3f7; --color-100: #dde4ed; --color-200: #bccada;
+  --color-300: #8fa9c0; --color-400: #4d7aa0; --color-500: #3a6285;
+  --color-600: #2b4d6b; --color-700: #1a3249; --color-900: #060f1c;
+  --neutral-0: #fff; --neutral-50: #f8f9fb; --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb; --neutral-300: #c9d0d9; --neutral-400: #9aa3af;
+  --neutral-500: #6b7685; --neutral-700: #2d3540; --neutral-900: #0d1117;
+  --pending-amber: #f5a623; --pending-amber-bg: #fef3cd; --pending-amber-tx: #7a5c00;
+  --slot-timeout-bg: #fef9ec; --slot-timeout-bd: #f5d97e; --slot-timeout-tx: #7a5c00;
+  --status-confirmed-bg: #f0fdf4; --status-confirmed-bd: #bbf7d0; --status-confirmed-tx: #14532d;
+  --font: 'Figtree', sans-serif;
+  --text-body: 16px; --text-small: 14px; --text-caption: 12px;
+  --weight-regular: 400; --weight-semibold: 600;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 16px; --sp-4: 24px; --sp-5: 32px;
+  --radius-sm: 4px; --radius-md: 8px;
+  --shadow-sm: 0 1px 2px rgba(6,15,28,0.06);
+  --transition: 150ms ease;
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: var(--font);
+  background: var(--neutral-100);
+  padding: var(--sp-4) var(--sp-3);
+  min-height: 100vh;
+}
+
+/* ── Phone frame ── */
+.frame {
+  max-width: 390px;
+  margin: 0 auto;
+  background: var(--neutral-0);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgba(6,15,28,0.14);
+}
+
+/* ── Day nav bar (existing, unchanged) ── */
+.day-nav-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--color-900);
+  gap: var(--sp-2);
+}
+.day-nav-btn {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.08);
+  color: var(--neutral-0);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.day-nav-label {
+  flex: 1; text-align: center;
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-0);
+}
+
+/* ── Sub-tabs (existing, unchanged) ── */
+.day-tab-nav {
+  display: flex; gap: 2px;
+  border-bottom: 1px solid var(--neutral-200);
+  padding: 0 var(--sp-3);
+}
+.day-tab-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-2) var(--sp-3);
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  margin-bottom: -1px;
+  transition: color var(--transition), border-color var(--transition);
+}
+.day-tab-btn.active {
+  color: var(--color-900);
+  border-bottom-color: var(--color-900);
+}
+
+/* ── Panel wrapper ── */
+.day-panel-wrapper { padding: var(--sp-3); }
+
+/* ── Header row (existing .day-panel-header) ── */
+.day-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-3);
+  gap: var(--sp-2);
+}
+
+/* ── Buttons (existing classes) ── */
+.btn {
+  font-family: var(--font);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  touch-action: manipulation;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  outline: none;
+  border: 1px solid transparent;
+}
+.btn:focus-visible { box-shadow: var(--focus-ring); }
+.btn-sm { font-size: var(--text-caption); padding: 5px var(--sp-2); min-height: 30px; }
+.btn-primary {
+  background: var(--color-900); color: var(--neutral-0);
+  border-color: var(--color-900);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: var(--color-700); border-color: var(--color-700); }
+}
+.btn-ghost {
+  background: transparent; color: var(--neutral-700);
+  border-color: var(--neutral-200);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover { background: var(--neutral-100); }
+}
+.btn-ghost.active-mode {
+  background: var(--color-50);
+  color: var(--color-700);
+  border-color: var(--color-200);
+}
+
+/* ── avail-row (existing, unchanged) ── */
+.avail-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-1);
+  min-height: 44px;
+}
+.avail-row:last-child { margin-bottom: 0; }
+.avail-row-time {
+  font-family: monospace;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  white-space: nowrap;
+  min-width: 100px;
+}
+.avail-row-status {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  flex: 1;
+}
+.avail-row-actions {
+  display: flex; align-items: center;
+  gap: var(--sp-1); flex-shrink: 0;
+}
+/* muted variants */
+.avail-row-timeout  { background: var(--slot-timeout-bg); }
+.avail-row-timeout .avail-row-time   { color: var(--pending-amber-tx); }
+.avail-row-timeout .avail-row-status { color: var(--pending-amber-tx); }
+.avail-row-disabled { background: var(--neutral-50); }
+.avail-row-disabled .avail-row-time   { color: var(--neutral-400); }
+.avail-row-disabled .avail-row-status { color: var(--neutral-400); }
+/* NEW: empty row — not yet a slot */
+.avail-row-empty { background: var(--neutral-50); border-style: dashed; }
+.avail-row-empty .avail-row-time   { color: var(--neutral-400); }
+.avail-row-empty .avail-row-status { color: var(--neutral-300); }
+
+/* ── Section divider between existing and empty slots ── */
+.avail-section-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-3) 0 var(--sp-2);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.avail-section-divider::before,
+.avail-section-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--neutral-200);
+}
+
+/* ── Toggle label for "Add Slots" mode ── */
+.add-slots-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--color-50);
+  border: 1px solid var(--color-200);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--sp-3);
+  gap: var(--sp-2);
+}
+.add-slots-mode-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-600);
+}
+
+/* ── Trash icon ── */
+.icon-trash { width: 14px; height: 14px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- Day nav bar — identical to existing -->
+  <div class="day-nav-bar">
+    <button class="day-nav-btn" title="Vorheriger Monat">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12L4 8l4-4M12 12L8 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="day-nav-btn" title="Vorheriger Tag">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <span class="day-nav-label">Do., 19. März 2026</span>
+    <button class="day-nav-btn" title="Nächster Tag">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button class="day-nav-btn" title="Nächster Monat">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l4-4-4-4M8 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+
+  <!-- Sub-tabs — identical to existing -->
+  <div class="day-tab-nav">
+    <button class="day-tab-btn active">Verfügbarkeit</button>
+    <button class="day-tab-btn">Buchungen</button>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       STATE A: Normal (Add Slots collapsed)
+       "Add slots" Button öffnet den unteren Bereich
+  ══════════════════════════════════════════ -->
+  <div id="state-a" class="day-panel-wrapper">
+
+    <div class="day-panel-header">
+      <button class="btn btn-primary btn-sm" onclick="toggleAddMode()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Add slots
+      </button>
+    </div>
+
+    <!-- Existing slots — identical avail-row layout -->
+    <div class="avail-row">
+      <span class="avail-row-time">12:30 – 13:00</span>
+      <span class="avail-row-status">Frei</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="avail-row">
+      <span class="avail-row-time">13:00 – 13:30</span>
+      <span class="avail-row-status">Frei</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-timeout">
+      <span class="avail-row-time">14:00 – 14:30</span>
+      <span class="avail-row-status">Timeout</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Aktivieren</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+  </div><!-- /state-a -->
+
+
+  <!-- ══════════════════════════════════════════
+       STATE B: Add Slots expanded
+       Alle nicht-verfügbaren Zeiten erscheinen
+       darunter — gleiche avail-row, leere Variante
+  ══════════════════════════════════════════ -->
+  <div id="state-b" class="day-panel-wrapper" style="display:none">
+
+    <!-- Mode bar — zeigt dass "Add Slots" aktiv ist, mit Schließen-Button -->
+    <div class="add-slots-mode-bar">
+      <span class="add-slots-mode-label">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" style="margin-right:4px;vertical-align:-2px"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Slots hinzufügen
+      </span>
+      <button class="btn btn-ghost btn-sm" onclick="toggleAddMode()">Schließen</button>
+    </div>
+
+    <!-- BESTEHENDE SLOTS — identisch wie State A -->
+    <div class="avail-row">
+      <span class="avail-row-time">12:30 – 13:00</span>
+      <span class="avail-row-status">Frei</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="avail-row">
+      <span class="avail-row-time">13:00 – 13:30</span>
+      <span class="avail-row-status">Frei</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-timeout">
+      <span class="avail-row-time">14:00 – 14:30</span>
+      <span class="avail-row-status">Timeout</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Aktivieren</button>
+        <button class="btn btn-ghost btn-sm" aria-label="Löschen">
+          <svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- DIVIDER — trennt bestehende von leeren Slots -->
+    <div class="avail-section-divider">Nicht belegt</div>
+
+    <!-- LEERE SLOTS — gleiche avail-row, gestrichelt, ausgegraut
+         Buttons: "Verfügbar" und "Timeout" — exakt die gleichen wie oben -->
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">06:00 – 06:30</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">06:30 – 07:00</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">07:00 – 07:30</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">07:30 – 08:00</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">08:00 – 08:30</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">08:30 – 09:00</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">09:00 – 09:30</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <div class="avail-row avail-row-empty">
+      <span class="avail-row-time">09:30 – 10:00</span>
+      <span class="avail-row-status">—</span>
+      <div class="avail-row-actions">
+        <button class="btn btn-ghost btn-sm">Verfügbar</button>
+        <button class="btn btn-ghost btn-sm">Timeout</button>
+      </div>
+    </div>
+
+    <!-- ... bis 22:00, hier abgekürzt -->
+    <div style="text-align:center;padding:var(--sp-3);font-size:var(--text-caption);color:var(--neutral-400)">
+      … weiter bis 22:00
+    </div>
+
+  </div><!-- /state-b -->
+
+</div><!-- /frame -->
+
+<script>
+function toggleAddMode() {
+  var a = document.getElementById('state-a');
+  var b = document.getElementById('state-b');
+  if (a.style.display === 'none') {
+    a.style.display = '';
+    b.style.display = 'none';
+  } else {
+    a.style.display = 'none';
+    b.style.display = '';
+  }
+}
+</script>
+
+</body>
+</html>

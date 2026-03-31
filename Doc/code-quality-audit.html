@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Quality Audit — Dead Code / Redundanz / Race Conditions</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2330;
+    --border:#30363d; --border-hi:#444c56;
+    --text:#e6edf3; --muted:#8b949e; --dim:#484f58;
+    --accent:#58a6ff; --green:#3fb950; --red:#f85149;
+    --amber:#d29922; --purple:#bc8cff; --teal:#39d353;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:14px;line-height:1.6;padding:36px 28px 80px;max-width:1400px;margin:0 auto;}
+
+  .ph{border-bottom:1px solid var(--border);padding-bottom:22px;margin-bottom:36px;
+    display:flex;align-items:flex-start;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .ph h1{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;}
+  .ph p{color:var(--muted);margin-top:5px;font-size:12.5px;}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:36px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px 16px;}
+  .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .stat-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px;}
+  .stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+  .sec{margin-bottom:48px;}
+  .st{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-bottom:16px;
+    display:flex;align-items:center;gap:10px;}
+  .st::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  .tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:24px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.6px;color:var(--muted);text-align:left;
+    padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+
+  /* severity row colouring via left border */
+  tr.sev-high   td:first-child{border-left:3px solid var(--red);}
+  tr.sev-medium td:first-child{border-left:3px solid var(--amber);}
+  tr.sev-low    td:first-child{border-left:3px solid var(--dim);}
+  tr.sev-info   td:first-child{border-left:3px solid var(--accent);}
+
+  code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;color:var(--purple);}
+  .fn{color:var(--accent);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .file{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;white-space:nowrap;}
+  .b-red   {background:rgba(248,81,73,.15); color:var(--red);   border:1px solid rgba(248,81,73,.3);}
+  .b-amber {background:rgba(210,153,34,.15);color:var(--amber); border:1px solid rgba(210,153,34,.3);}
+  .b-green {background:rgba(63,185,80,.15); color:var(--green); border:1px solid rgba(63,185,80,.3);}
+  .b-blue  {background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.25);}
+  .b-dim   {background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);}
+  .b-purple{background:rgba(188,140,255,.12);color:var(--purple);border:1px solid rgba(188,140,255,.25);}
+
+  @media(max-width:900px){.stats{grid-template-columns:1fr 1fr;}body{padding:18px 14px 60px;}}
+</style>
+</head>
+<body>
+
+<div class="ph">
+  <div>
+    <h1>Code Quality Audit</h1>
+    <p>Dead Code · Redundanz · Phantom Code · Race Conditions · 17. März 2026</p>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Race Conditions</div>
+    <div class="stat-value" style="color:var(--red)">3</div>
+    <div class="stat-sub">kritisch / hoch</div></div>
+  <div class="stat"><div class="stat-label">Dead Code</div>
+    <div class="stat-value" style="color:var(--red)">7</div>
+    <div class="stat-sub">Dateien / Funktionen</div></div>
+  <div class="stat"><div class="stat-label">Redundanz</div>
+    <div class="stat-value" style="color:var(--amber)">6</div>
+    <div class="stat-sub">duplizierte Logikblöcke</div></div>
+  <div class="stat"><div class="stat-label">Phantom Code</div>
+    <div class="stat-value" style="color:var(--amber)">4</div>
+    <div class="stat-sub">Arch.-Verletzungen</div></div>
+  <div class="stat"><div class="stat-label">Gesamt Befunde</div>
+    <div class="stat-value" style="color:var(--text)">20</div>
+    <div class="stat-sub">über alle JS-Dateien</div></div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     MASTER TABLE
+════════════════════════════════════════ -->
+<div class="sec">
+  <div class="st">Vollständige Befund-Tabelle</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Kategorie</th>
+          <th>Befund</th>
+          <th>Datei / Zeile</th>
+          <th>Auswirkung</th>
+          <th>Schwere</th>
+          <th>Empfehlung</th>
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- ── RACE CONDITIONS ── -->
+
+        <tr class="sev-high">
+          <td>R1</td>
+          <td><span class="b b-red">Race Condition</span></td>
+          <td>
+            <strong>Synchrone Renders vor asyncem Schreiben — mehrere Ops</strong><br>
+            <code>commitDayChanges()</code> / <code>saveBookingChanges()</code> feuern <em>n</em> parallele
+            <code>bookSlotWithEscrow</code>- und <code>cancelSlotWithPolicy</code>-Calls in einer Schleife.
+            <code>pendingDayChanges = {}</code> und die UI-Renders folgen synchron — also bevor
+            <em>irgendein</em> Callback zurückgekommen ist. Bei 3 gebuchten Slots z.B. feuern
+            3 unabhängige Callbacks, die alle nochmals <code>renderCalendar()</code> aufrufen —
+            6 Renders total, keine Reihenfolgengarantie, kein Barrier/Counter.
+          </td>
+          <td><span class="file">student.js</span> ~236<br><span class="file">teacher.js</span> ~1044</td>
+          <td>Flackernde UI bei mehreren gleichzeitigen Buchungen. Letzter Callback "gewinnt".</td>
+          <td><span class="b b-red">Hoch</span></td>
+          <td>Promise.all-Äquivalent: Counter-Barrier (<code>var done=0; if(++done===total)</code>) — erst wenn alle Callbacks zurück, ein einziger Re-render + Wallet-Refresh.</td>
+        </tr>
+
+        <tr class="sev-high">
+          <td>R2</td>
+          <td><span class="b b-red">Race Condition</span></td>
+          <td>
+            <strong>Double-Save möglich — kein Busy-Guard</strong><br>
+            Weder <code>confirmAndCommit()</code> noch <code>saveBookingChanges()</code> setzen
+            einen <code>_saving</code>-Flag oder deaktivieren den Save-Button für die Dauer
+            der asynchronen Schleife. Schnelles Doppelklicken auf "Speichern" schickt
+            dieselben Slot-IDs zweimal in die Adapter-Schicht.
+          </td>
+          <td><span class="file">student.js</span> ~165<br><span class="file">teacher.js</span> ~1044</td>
+          <td>Doppelte Escrow-Anlage, doppelter Deposit-Abzug möglich.</td>
+          <td><span class="b b-red">Hoch</span></td>
+          <td><code>btn.disabled = true</code> sofort beim Klick, <code>btn.disabled = false</code> erst im letzten Callback (Barrier).</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>R3</td>
+          <td><span class="b b-red">Race Condition</span></td>
+          <td>
+            <strong>Navbar-Wallet in teacher.js Cancel-Pfad doppelt aktualisiert</strong><br>
+            Im Cancel-Callback von <code>saveBookingChanges()</code> wird <code>AppService.getWallet</code>
+            aufgerufen und das Badge inline gesetzt (Zeile ~1087). Direkt danach ruft das
+            Ende von <code>saveBookingChanges()</code> <code>WalletPanel.refresh()</code> auf,
+            das <em>ebenfalls</em> <code>AppService.getWallet</code> aufruft und via
+            <code>_onBalanceUpdate</code> dasselbe Badge setzt. Zwei parallele async Calls auf
+            dasselbe DOM-Element — letzter gewinnt.
+          </td>
+          <td><span class="file">teacher.js</span> ~1087 + ~1132</td>
+          <td>Kein falsches Verhalten, aber zwei unnötige getWallet-Requests pro Cancel-Op.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Inline-Navbar-Refresh im Cancel-Callback entfernen — <code>WalletPanel.refresh()</code> am Ende deckt beides ab.</td>
+        </tr>
+
+        <!-- ── DEAD CODE ── -->
+
+        <tr class="sev-high">
+          <td>D1</td>
+          <td><span class="b b-red">Dead Code</span></td>
+          <td>
+            <strong>6 Snapshot-Dateien mit Timestamp — nie geladen</strong><br>
+            <code>student_1772799460115.js</code>, <code>teacher_1772799460201.js</code>,
+            <code>store_1772799460462.js</code>, <code>admin_1772799460283.js</code>,
+            <code>ui_1772799460339.js</code>, <code>auth_1772799460397.js</code>
+            sind alte Versionsstände. Keine einzige HTML-Datei referenziert sie.
+            <code>store_1772799460462.js</code> enthält ein veraltetes Schema
+            (<code>Bookings</code> statt <code>Slots</code>) — würde bei versehentlichem Laden
+            <code>window.Store</code> überschreiben und alle Slot-Zugriffe brechen.
+          </td>
+          <td><span class="file">js/*.js</span> (6 Dateien)</td>
+          <td>Kein aktiver Bug, aber destruktiv wenn versehentlich eingebunden. Verwirrend im Repo.</td>
+          <td><span class="b b-red">Hoch (Risiko)</span></td>
+          <td>Löschen oder in separaten <code>/snapshots/</code>-Ordner verschieben.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>D2</td>
+          <td><span class="b b-red">Dead Code</span></td>
+          <td>
+            <strong><code>loop.html</code> — Morphing Colors Visualizer</strong><br>
+            Vollständig eigenständige Animation-Seite ohne Verbindung zum Booking-System.
+            Kein Navbar, kein Auth, kein Link von anderen Seiten. Rein dekorativer Test.
+          </td>
+          <td><span class="file">loop.html</span></td>
+          <td>Keine. Totes Artefakt.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Aus dem Projektordner entfernen.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>D3</td>
+          <td><span class="b b-red">Dead Code</span></td>
+          <td>
+            <strong><code>wallet-standalone.html</code> ist nahezu identisch zu <code>wallet.html</code></strong><br>
+            Einzige Unterschiede: fehlendes <code>viewport-fit=cover</code>, kein
+            <code>&lt;div id="navbar-root"&gt;</code>. Beide laden dasselbe
+            <code>wallet.js</code>. Kein Link zu <code>wallet-standalone.html</code> von
+            irgendwo im Projekt.
+          </td>
+          <td><span class="file">wallet-standalone.html</span></td>
+          <td>Keine. Verwaiste Kopie.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Löschen — <code>wallet.html</code> ist die kanonische Datei.</td>
+        </tr>
+
+        <tr class="sev-low">
+          <td>D4</td>
+          <td><span class="b b-red">Dead Code</span></td>
+          <td>
+            <strong><code>adapter-firestore.js</code> — vollständiger Stub</strong><br>
+            Alle 129 Funktionen rufen intern <code>_stub()</code> auf und geben einen Fehler zurück.
+            Kein einziger Aufruf ist implementiert. Derzeit nicht eingebunden
+            (<code>app-config.js</code> zeigt auf <code>LocalStorageAdapter</code>).
+          </td>
+          <td><span class="file">adapter-firestore.js</span></td>
+          <td>Kein aktiver Bug. Misleading — sieht implementiert aus.</td>
+          <td><span class="b b-dim">Info</span></td>
+          <td>Header-Kommentar prominenter kennzeichnen: <em>"NOT IMPLEMENTED — alle Methoden sind Stubs"</em>.</td>
+        </tr>
+
+        <!-- ── REDUNDANZ ── -->
+
+        <tr class="sev-high">
+          <td>N1</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong><code>renderBookingsPanel</code> vs. <code>renderAllBookingsList</code></strong><br>
+            Beide Funktionen implementieren dieselbe Pipeline: Slots laden → Filter anwenden
+            (<code>_applyTimeFilter</code>, <code>_applyConfirmFilter</code>) → Blocks mergen →
+            Accordion rendern. <code>renderBookingsPanel</code> ist auf einen einzelnen Tag
+            eingeschränkt, sonst gleiche Logik. Eigener Kommentar im Code:
+            <em>"identical to renderAllBookingsList"</em>.
+          </td>
+          <td><span class="file">teacher.js</span> ~675 + ~1575</td>
+          <td>Jede Logik-Änderung muss in beiden Funktionen gemacht werden.</td>
+          <td><span class="b b-red">Hoch</span></td>
+          <td><code>renderBookingsPanel</code> soll <code>renderAllBookingsList</code> mit einem Tag-Filter aufrufen, statt parallele Implementierung zu halten.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>N2</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong><code>_mergeStudentBookingBlocks</code> vs. <code>mergeAllBookingBlocks</code></strong><br>
+            student.js hat <code>_mergeStudentBookingBlocks</code>, teacher.js hat
+            <code>mergeAllBookingBlocks</code>. Beide gruppieren Slots nach Datum + Lehrer/Schüler
+            in dieselbe Block-Struktur. Unterschied: Gruppierungsfeld
+            (<code>teacherId</code> vs. <code>studentId</code>) — ein Parameter würde genügen.
+          </td>
+          <td><span class="file">student.js</span> ~1503<br><span class="file">teacher.js</span> (via ui.js)</td>
+          <td>Duplizierte Merge-Logik. Bugfix muss zweimal gemacht werden.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Eine gemeinsame <code>mergeBookingBlocks(dateStr, slots, today, groupByField)</code> in <code>ui.js</code> oder neuem <code>booking-utils.js</code>.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>N3</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong>Zeit-Filter inline in student.js, Hilfsfunktion in teacher.js nicht genutzt</strong><br>
+            <code>teacher.js</code> hat <code>_applyTimeFilter(slots, filter, today)</code> als
+            zentrale Hilfsfunktion (5 Aufrufstellen). <code>student.js</code> filtert
+            past/upcoming direkt inline (<code>s.date &lt; today</code> / <code>s.date &gt;= today</code>)
+            ohne die Hilfsfunktion — obwohl <code>student.js</code> im gleichen Scope läuft.
+          </td>
+          <td><span class="file">student.js</span> ~1443<br><span class="file">teacher.js</span> ~194, 220, 696, 725, 1600</td>
+          <td>Inkonsistentes Filterverhalten möglich wenn Logik divergiert.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td><code>_applyTimeFilter</code> nach <code>ui.js</code> verschieben (global verfügbar), student.js nutzt sie dann direkt.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>N4</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong><code>_calcBlockCounts</code> vs. <code>_calcStudentBlockCounts</code></strong><br>
+            teacher.js hat eine 20-Zeilen-Implementierung; student.js hat eine 5-Zeilen-Variante.
+            Beide zählen Buchungsblöcke für Badge-Anzeigen. Verschiedene
+            Signaturen, gleicher Zweck.
+          </td>
+          <td><span class="file">teacher.js</span> ~1556<br><span class="file">student.js</span> ~1394</td>
+          <td>Geringe Auswirkung. Wartungsaufwand bei Badge-Logik-Änderungen.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Gemeinsame Hilfsfunktion in ui.js / booking-utils.js.</td>
+        </tr>
+
+        <tr class="sev-low">
+          <td>N5</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong>Inline Navbar-Badge-Update vs. <code>WalletPanel._onBalanceUpdate</code></strong><br>
+            Das Setzen von <code>navbar-wallet-amount</code> passiert an 5+ Stellen mit
+            identischem Inline-Code: <code>parseFloat(w.balance).toFixed(2).replace('.', ',') + ' €'</code>.
+            <code>WalletCore.formatAmount()</code> existiert bereits, wird aber nicht überall verwendet.
+          </td>
+          <td><span class="file">student.js</span> ~161<br><span class="file">teacher.js</span> ~1059, ~1087<br><span class="file">ui.js</span> ~887, ~988</td>
+          <td>Format-Konsistenz-Bug möglich wenn an einer Stelle vergessen wird zu aktualisieren.</td>
+          <td><span class="b b-dim">Low</span></td>
+          <td>Gemeinsame <code>refreshNavbarWallet(uid)</code>-Funktion in <code>ui.js</code> die <code>WalletCore.formatAmount</code> nutzt.</td>
+        </tr>
+
+        <tr class="sev-low">
+          <td>N6</td>
+          <td><span class="b b-amber">Redundanz</span></td>
+          <td>
+            <strong><code>renderAllBookings()</code> ist ein dicker Wrapper um <code>renderAllBookingsList()</code></strong><br>
+            <code>renderAllBookings()</code> baut Dropdown-Optionen auf und ruft dann
+            <code>renderAllBookingsList()</code> auf. Wird 3-mal aufgerufen. Die Dropdown-Logik
+            müsste eigentlich nur einmal beim View-Wechsel initialisiert werden, nicht bei
+            jedem Render-Zyklus.
+          </td>
+          <td><span class="file">teacher.js</span> ~1430</td>
+          <td>Dropdown wird bei jedem Filter-Klick neu aufgebaut. Unnötige DOM-Operationen.</td>
+          <td><span class="b b-dim">Low</span></td>
+          <td>Dropdown-Init einmalig beim View-Wechsel auf "all-bookings". <code>renderAllBookings()</code> nur noch als dünner Dispatcher.</td>
+        </tr>
+
+        <!-- ── PHANTOM CODE (Architektur-Verletzungen) ── -->
+
+        <tr class="sev-high">
+          <td>P1</td>
+          <td><span class="b b-purple">Phantom Code</span></td>
+          <td>
+            <strong><code>ui.js</code> greift direkt auf <code>Store.Slots.confirm()</code> zu</strong><br>
+            Zeile 221: <code>Store.Slots.confirm(block.bookedSlots[ci].slotId)</code> direkt
+            im Confirm-Klick-Handler. Bypasses AppService komplett. Kein Escrow-Handling,
+            kein Callback, kein Fehler-Handling. Alle anderen Bestätigungen im Code
+            (teacher.js ~1769, student.js ~1583) gehen korrekt über
+            <code>AppService.confirmSlot()</code>.
+          </td>
+          <td><span class="file">ui.js</span> ~221</td>
+          <td>Bestätigungen die über diesen Pfad laufen haben kein Escrow-Settlement und kein Error-Handling. Stille Inkonsistenz.</td>
+          <td><span class="b b-red">Hoch</span></td>
+          <td><code>Store.Slots.confirm()</code> ersetzen durch <code>AppService.confirmSlot(slotId, cb)</code> mit Fehler-Toast.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>P2</td>
+          <td><span class="b b-purple">Phantom Code</span></td>
+          <td>
+            <strong><code>ui.js</code> greift mehrfach direkt auf <code>Store.Slots.*</code> zu</strong><br>
+            Zeilen 119, 281, 315, 349, 358, 362, 510: <code>Store.Slots.all()</code>,
+            <code>Store.Slots.byTeacherDate()</code> direkt aus <code>ui.js</code>.
+            Laut Architektur-Guideline: "Consumer-Code darf NIEMALS direkt auf Store.*
+            zugreifen. Immer nur über AppService.*".
+            <code>ui.js</code> ist shared Consumer-Code.
+          </td>
+          <td><span class="file">ui.js</span> ~119, 281, 315, 349, 358, 362, 510</td>
+          <td>Kein direkter Bug, aber bei Adapter-Swap (→ Firestore) würden diese Aufrufe nicht mitmigriert.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td>Durch entsprechende <code>AppService.*Sync()</code>-Aufrufe ersetzen. AppService hat bereits alle nötigen Sync-Helfer.</td>
+        </tr>
+
+        <tr class="sev-medium">
+          <td>P3</td>
+          <td><span class="b b-purple">Phantom Code</span></td>
+          <td>
+            <strong><code>ui.js</code> nutzt <code>Store.Recurring.materialiseWeek()</code> direkt</strong><br>
+            Zeile 437: <code>Store.Recurring.materialiseWeek(teacherId, weekDates)</code>
+            direkt im Move-Dialog. <code>AppService.materialiseWeek()</code> existiert und
+            sollte stattdessen genutzt werden.
+          </td>
+          <td><span class="file">ui.js</span> ~437</td>
+          <td>Gleiche Adapter-Swap-Problematik wie P2.</td>
+          <td><span class="b b-amber">Mittel</span></td>
+          <td><code>AppService.materialiseWeek(teacherId, weekDates, cb)</code> nutzen.</td>
+        </tr>
+
+        <tr class="sev-low">
+          <td>P4</td>
+          <td><span class="b b-purple">Phantom Code</span></td>
+          <td>
+            <strong><code>teacher.js</code> nutzt <code>Store.slotTimesInRange()</code> direkt</strong><br>
+            Zeile 1209: <code>Store.slotTimesInRange(GRID_START, GRID_END)</code> direkt im
+            Slot-Grid. <code>AppService.slotTimesInRange()</code> ist als Synchron-Helper
+            exportiert und sollte stattdessen genutzt werden.
+          </td>
+          <td><span class="file">teacher.js</span> ~1209</td>
+          <td>Wie P2/P3 — bricht bei Adapter-Swap.</td>
+          <td><span class="b b-dim">Low</span></td>
+          <td>Einzeilige Änderung: <code>AppService.slotTimesInRange(GRID_START, GRID_END)</code>.</td>
+        </tr>
+
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══ PRIORITY MATRIX ═══ -->
+<div class="sec">
+  <div class="st">Prioritäts-Matrix — Aufwand vs. Auswirkung</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr><th>Befund</th><th>Aufwand</th><th>Auswirkung</th><th>Reihenfolge</th></tr>
+      </thead>
+      <tbody>
+        <tr class="sev-high">
+          <td>P1 — <code>Store.Slots.confirm()</code> in ui.js</td>
+          <td><span class="b b-green">1 Zeile</span></td>
+          <td>Escrow-Bypass bei Bestätigungen</td>
+          <td><strong>1</strong></td>
+        </tr>
+        <tr class="sev-high">
+          <td>R2 — Double-Save kein Busy-Guard</td>
+          <td><span class="b b-green">5 Zeilen</span></td>
+          <td>Doppelter Deposit-Abzug möglich</td>
+          <td><strong>2</strong></td>
+        </tr>
+        <tr class="sev-high">
+          <td>D1 — 6 Snapshot-Dateien löschen</td>
+          <td><span class="b b-green">rm 6 Dateien</span></td>
+          <td>Destruktiv bei versehentlichem Einbinden</td>
+          <td><strong>3</strong></td>
+        </tr>
+        <tr class="sev-high">
+          <td>R1 — Callback-Barrier für parallele Async-Ops</td>
+          <td><span class="b b-amber">~20 Zeilen</span></td>
+          <td>Flackern + Race bei Mehrfach-Buchung</td>
+          <td><strong>4</strong></td>
+        </tr>
+        <tr class="sev-high">
+          <td>N1 — <code>renderBookingsPanel</code> Redundanz</td>
+          <td><span class="b b-amber">~30 Zeilen</span></td>
+          <td>Doppelte Pflegepflicht bei Buchungs-Logik</td>
+          <td><strong>5</strong></td>
+        </tr>
+        <tr class="sev-medium">
+          <td>R3 — Doppelter getWallet-Call in teacher Cancel</td>
+          <td><span class="b b-green">3 Zeilen löschen</span></td>
+          <td>2× getWallet pro Cancel-Op</td>
+          <td><strong>6</strong></td>
+        </tr>
+        <tr class="sev-medium">
+          <td>P2 / P3 / P4 — Store.*-Direktzugriffe in ui.js / teacher.js</td>
+          <td><span class="b b-green">8 Einzelzeilen</span></td>
+          <td>Bricht bei Adapter-Swap → Firestore</td>
+          <td><strong>7</strong></td>
+        </tr>
+        <tr class="sev-medium">
+          <td>N2/N3/N4 — Merge + Filter + BlockCount Redundanzen</td>
+          <td><span class="b b-red">~60 Zeilen Refactor</span></td>
+          <td>Wartungsaufwand, Konsistenz</td>
+          <td><strong>8</strong></td>
+        </tr>
+        <tr class="sev-low">
+          <td>D2/D3 — loop.html + wallet-standalone.html löschen</td>
+          <td><span class="b b-green">rm 2 Dateien</span></td>
+          <td>Repo-Hygiene</td>
+          <td><strong>9</strong></td>
+        </tr>
+        <tr class="sev-low">
+          <td>N5/N6 — Navbar-Badge-Format + renderAllBookings-Wrapper</td>
+          <td><span class="b b-green">Klein</span></td>
+          <td>Format-Konsistenz, DOM-Performance</td>
+          <td><strong>10</strong></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

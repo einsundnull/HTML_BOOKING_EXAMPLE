@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="IMPL">
+  <meta name="doc-subject"  content="Student Meine Lehrer — Confirmed/Pending Kategorien">
+  <title>IMPL — Student Teacher Categories 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .ph-badge.fix { background: rgba(192,57,43,.3);  border-color: rgba(192,57,43,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug { background: #fff8f8; }
+    tbody tr.r-fix { background: #f8fff8; }
+    tbody tr.r-new { background: var(--info-bg); }
+    tbody tr.r-ctx { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+
+    /* UI Mock */
+    .mock { background: #fff; border: 1px solid #e2e6eb; border-radius: 12px;
+            overflow: hidden; max-width: 320px; box-shadow: 0 2px 8px rgba(6,15,28,.07); }
+    .mock-header { background: var(--navy); padding: 10px 14px; }
+    .mock-title { font-size: 16px; font-weight: 700; color: #fff; }
+    .mock-sub { font-size: 11px; color: rgba(255,255,255,.45); }
+    .mock-stats { display: flex; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #f0f2f5; }
+    .mock-stat { background: #f8f9fb; border: 1px solid #e2e6eb; border-radius: 8px;
+                 padding: 8px 12px; flex: 1; }
+    .mock-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase;
+                       letter-spacing: .05em; color: #9aa3af; }
+    .mock-stat-val { font-size: 22px; font-weight: 700; color: #0d1117; }
+    .mock-stat-sub { font-size: 11px; font-weight: 600; color: #d97706; margin-top: 2px; }
+    .mock-section { padding: 10px 14px 4px; display: flex; align-items: center; gap: 6px;
+                    border-bottom: 1px solid #f0f2f5; }
+    .mock-section-label { font-size: 10px; font-weight: 700; text-transform: uppercase;
+                          letter-spacing: .06em; color: #6b7685; }
+    .mock-section-badge { font-size: 10px; font-weight: 700; padding: 1px 6px;
+                          border-radius: 999px; background: #e2e6eb; color: #6b7685; }
+    .mock-section.pending .mock-section-label { color: #d97706; }
+    .mock-section.pending .mock-section-badge {
+      background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+    .mock-card { display: flex; flex-direction: column; gap: 0;
+                 margin: 8px 14px; border: 1px solid #e2e6eb; border-radius: 8px;
+                 overflow: hidden; }
+    .mock-card.confirmed { border-color: #4d7aa0; }
+    .mock-card.pending   { border-color: #d97706; border-style: dashed; opacity: .9; }
+    .mock-card-top { display: flex; align-items: center; gap: 10px; padding: 10px 12px; }
+    .mock-avatar { width: 36px; height: 36px; border-radius: 50%; background: #dde4ed;
+                   display: flex; align-items: center; justify-content: center;
+                   font-size: 12px; font-weight: 700; color: #3a6285; flex-shrink: 0; }
+    .mock-name { font-size: 13px; font-weight: 600; color: #0d1117; flex: 1; }
+    .mock-badge-selected { font-size: 10px; font-weight: 700; padding: 2px 7px;
+                           border-radius: 4px; background: #f0fff4; color: #14532d;
+                           border: 1px solid #bbf7d0; }
+    .mock-pending-lbl { font-size: 10px; font-weight: 700; padding: 2px 7px;
+                        border-radius: 4px; background: #fffbeb; color: #d97706;
+                        border: 1px solid #fde68a; }
+    .mock-card-actions { display: flex; gap: 6px; padding: 8px 12px;
+                         border-top: 1px solid #f0f2f5; }
+    .mock-btn-sm { font-size: 11px; font-weight: 600; padding: 4px 10px;
+                   border-radius: 6px; border: 1px solid #e2e6eb;
+                   background: #fff; color: #3a6285; }
+    .mock-btn-sm.primary { background: #3a6285; color: #fff; border-color: #3a6285; }
+    .mock-btn-sm.ghost   { background: transparent; color: #6b7685; }
+
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-fix { background: var(--ok-bg);   color: var(--ok-tx);   border: 1px solid var(--ok-bd); }
+    .sev-new { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    .sev-bug { background: var(--err-bg);  color: var(--err-tx);  border: 1px solid var(--err-bd); }
+
+    /* State diagram */
+    .state-diagram { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+    .state-box { border: 1px solid var(--n200); border-radius: 8px; overflow: hidden;
+                 flex: 1; min-width: 180px; }
+    .state-title { padding: 8px 12px; font-size: 11px; font-weight: 700;
+                   text-transform: uppercase; letter-spacing: .05em; }
+    .state-title.confirmed { background: var(--ok-bg);   color: var(--ok-tx);   border-bottom: 1px solid var(--ok-bd); }
+    .state-title.pending   { background: var(--warn-bg); color: var(--warn-tx); border-bottom: 1px solid var(--warn-bd); }
+    .state-title.neither   { background: var(--n50);     color: var(--n500);    border-bottom: 1px solid var(--n200); }
+    .state-body { padding: 10px 12px; font-size: 12px; color: var(--n700); line-height: 1.7; }
+    .state-body code { font-size: 11px; }
+
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">IMPL · Student Dashboard · BookingSystem</div>
+  <div class="ph-title">Meine Lehrer — Confirmed &amp; Pending Kategorien</div>
+  <div class="ph-sub">
+    Der Tab „Meine Lehrer" zeigt jetzt zwei separate Sektionen:
+    bestätigte Lehrer (aktive Selection) und ausstehende Anfragen (student_request gesendet,
+    noch nicht akzeptiert). Stats-Karte zeigt Pending-Zähler. Pending-Karte hat
+    „Zurückziehen"-Button. Guideline-Verletzung <code>style.cursor</code> behoben.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge inf">🔵 Feature</span>
+    <span class="ph-badge fix">🔴 Bug Fix</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">2 Dateien · student.js · student.css</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-11</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — AUSGANGSLAGE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-before">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-before">Ausgangslage — Was fehlte</h2>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Bug:</strong> <code>renderCatalog()</code> filterte nur Lehrer aus
+      <code>Store.Selections</code> — also nur bereits akzeptierte Verbindungen.
+      Pending-Lehrer (Anfrage gesendet, aber Lehrer hat noch nicht reagiert) wurden
+      <strong>gar nicht angezeigt</strong>, obwohl <code>teacher-card-pending</code> CSS
+      bereits existierte und <code>buildTeacherCard()</code> den <code>isPending</code>-Pfad
+      bereits implementiert hatte. Der Pfad war dead code.
+    </div>
+
+    <div class="callout c-err">
+      <strong>Guideline-Verletzung:</strong> <code>card.style.cursor = 'pointer'</code>
+      in <code>buildTeacherCard()</code> — direktes <code>element.style.*</code>.
+      Layout §8: <em>„element.style.* → IMMER classList verwenden"</em>.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — STATE-MACHINE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-states">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-states">Lehrer-Zustände im Student-Dashboard</h2>
+    </div>
+
+    <div class="state-diagram">
+      <div class="state-box">
+        <div class="state-title confirmed">✅ Confirmed</div>
+        <div class="state-body">
+          In <code>Store.Selections</code><br>
+          <code>ChatStore.getRequestStatus()</code> → <code>'accepted'</code><br><br>
+          Sektion: <strong>Meine Lehrer</strong><br>
+          Buttons: „Book lessons" + „Remove"
+        </div>
+      </div>
+      <div class="state-box">
+        <div class="state-title pending">⏳ Pending</div>
+        <div class="state-body">
+          Nicht in <code>Store.Selections</code><br>
+          <code>ChatStore.getRequestStatus()</code> → <code>'pending'</code><br><br>
+          Sektion: <strong>Ausstehende Anfragen</strong><br>
+          Buttons: Badge + „Zurückziehen"
+        </div>
+      </div>
+      <div class="state-box">
+        <div class="state-title neither">— Kein Kontakt</div>
+        <div class="state-body">
+          Nicht in <code>Store.Selections</code><br>
+          Kein <code>student_request</code> Chat<br><br>
+          Nur im Lehrerkatalog sichtbar<br>
+          Nicht in „Meine Lehrer"
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Datenquelle für Pending:</strong> <code>ChatStore.getRequestStatus(teacherId, studentId)</code>
+      liest den letzten <code>type:'service'</code>-Eintrag mit <code>serviceEvent:'student_request'</code>
+      aus der Konversation. <code>requestStatus</code> kann <code>'pending'</code>,
+      <code>'accepted'</code> oder <code>'declined'</code> sein.
+      Dieser Wert ist die einzige Quelle der Wahrheit für ausstehende Anfragen —
+      kein neuer Storage-Key nötig.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — UI VORHER / NACHHER
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-ui">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-ui">UI — Nachher</h2>
+    </div>
+
+    <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#9aa3af;margin-bottom:8px;">Neue Ansicht</div>
+        <div class="mock">
+          <div class="mock-header">
+            <div class="mock-title">My lessons</div>
+            <div class="mock-sub">Find teachers and book your sessions.</div>
+          </div>
+          <div class="mock-stats">
+            <div class="mock-stat">
+              <div class="mock-stat-label">My teachers</div>
+              <div class="mock-stat-val">2</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-label">My teachers</div>
+              <div class="mock-stat-val">2</div>
+              <div class="mock-stat-sub">1 ausstehend</div>
+            </div>
+          </div>
+
+          <div class="mock-section">
+            <span class="mock-section-label">Meine Lehrer</span>
+            <span class="mock-section-badge">1</span>
+          </div>
+          <div class="mock-card confirmed">
+            <div class="mock-card-top">
+              <div class="mock-avatar">MH</div>
+              <div class="mock-name">Matthias Heinold</div>
+              <span class="mock-badge-selected">Selected</span>
+            </div>
+            <div class="mock-card-actions">
+              <span class="mock-btn-sm primary">Book lessons</span>
+              <span class="mock-btn-sm ghost">Remove</span>
+            </div>
+          </div>
+
+          <div class="mock-section pending" style="margin-top:4px;">
+            <span class="mock-section-label">Ausstehende Anfragen</span>
+            <span class="mock-section-badge">1</span>
+          </div>
+          <div class="mock-card pending" style="margin-bottom:14px;">
+            <div class="mock-card-top">
+              <div class="mock-avatar">T2</div>
+              <div class="mock-name">T2</div>
+              <span class="mock-pending-lbl">⏳ Anfrage ausstehend</span>
+            </div>
+            <div class="mock-card-actions">
+              <span class="mock-btn-sm ghost">Zurückziehen</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — IMPLEMENTIERUNGSTABELLE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-impl">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-impl">Implementierungstabelle</h2>
+      <span class="sec-sub">2 Dateien · 5 Änderungen</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Datei</th><th>Funktion / Stelle</th><th>Art</th><th>Änderung</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-new">
+            <td>1</td>
+            <td><code>student.js</code></td>
+            <td><code>renderCatalog()</code></td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>
+              Separates Laden von <strong>Confirmed</strong> (aus <code>Store.Selections</code>)
+              und <strong>Pending</strong> (aus <code>ChatStore.getRequestStatus()</code>).
+              Zwei Sektions-Header mit Zählern. Leerer Zustand zeigt CTA zum Lehrerkatalog
+              nur wenn <em>beide</em> Listen leer sind.
+            </td>
+          </tr>
+          <tr class="r-new">
+            <td>2</td>
+            <td><code>student.js</code></td>
+            <td><code>buildTeacherCard()</code> — pending Zweig</td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>
+              Pending-Karte zeigt <code>.teacher-card-pending-label</code> (amber Badge „⏳ Anfrage ausstehend")
+              und einen „Zurückziehen"-Button mit Bestätigungs-Modal via <code>Modal.show()</code>.
+            </td>
+          </tr>
+          <tr class="r-new">
+            <td>3</td>
+            <td><code>student.js</code></td>
+            <td><code>renderStats()</code></td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>
+              Pending-Lehrer werden gezählt. Wenn &gt; 0: kleines <code>.stat-pending-badge</code>
+              unter dem Zählwert in der Stat-Karte (<em>„N ausstehend"</em>).
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td>4</td>
+            <td><code>student.js</code></td>
+            <td><code>buildTeacherCard()</code> — cursor</td>
+            <td><span class="sev sev-bug">Bug Fix</span></td>
+            <td>
+              <code>card.style.cursor = 'pointer'</code> → <code>card.classList.add('is-clickable')</code>.
+              Layout-Guideline §8: kein <code>element.style.*</code>.
+            </td>
+          </tr>
+          <tr class="r-new">
+            <td>5</td>
+            <td><code>student.css</code></td>
+            <td>Neue Klassen</td>
+            <td><span class="sev sev-new">Styling</span></td>
+            <td>
+              <code>.teacher-section-header</code> / <code>.teacher-section-label</code> /
+              <code>.teacher-section-count</code> (+ pending-Varianten) /
+              <code>.teacher-card-pending-label</code> (amber, mit ⏳ via <code>::before</code>) /
+              <code>.stat-pending-badge</code> / <code>.is-clickable</code>
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td>6</td>
+            <td><code>app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><span class="sev sev-bug">Standard</span></td>
+            <td><code>'2026-03-21-10'</code> → <code>'2026-03-21-11'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5 — CALL-PIPELINE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-pipeline">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-pipeline">Aufrufkette — renderCatalog()</h2>
+    </div>
+
+    <div class="code-label">student.js — renderCatalog() — Ablauf</div>
+    <div class="code-block"><code><span class="cm">// 1. Alle Teacher laden (sync)</span>
+<span class="ck">var</span> allTeachers  = AppService.getUsersByRoleSync(<span class="cs">'teacher'</span>);
+<span class="ck">var</span> mySelections = AppService.getSelectionsByStudentSync(currentUser.uid)
+  .map(<span class="ck">function</span>(s) { <span class="ck">return</span> s.teacherId; });
+
+<span class="cm">// 2. Confirmed = in Selections</span>
+<span class="ck">var</span> confirmedTeachers = allTeachers.filter(<span class="ck">function</span>(t) {
+  <span class="ck">return</span> mySelections.indexOf(t.uid) !== -1;
+});
+
+<span class="cm">// 3. Pending = student_request gesendet, NICHT in Selections</span>
+<span class="ck">var</span> pendingTeachers = allTeachers.filter(<span class="ck">function</span>(t) {
+  <span class="ck">if</span> (mySelections.indexOf(t.uid) !== -1) <span class="ck">return</span> false;
+  <span class="ck">var</span> status = ChatStore.getRequestStatus(t.uid, currentUser.uid);
+  <span class="ck">return</span> status === <span class="cs">'pending'</span>;
+});
+
+<span class="cm">// 4. Beide leer → Empty State mit CTA zum Katalog</span>
+<span class="cm">// 5. Confirmed > 0 → Sektions-Header + Karten</span>
+<span class="cm">// 6. Pending > 0 → Sektions-Header (amber) + Karten mit Zurückziehen-Button</span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Guideline</th><th>Anforderung</th><th>Eingehalten?</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>Layout §8</code></td>
+            <td>Kein <code>element.style.*</code></td>
+            <td>✅ <code>card.style.cursor</code> → <code>card.classList.add('is-clickable')</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §5 — Dialoge</code></td>
+            <td>Kein <code>window.confirm()</code> — immer <code>Modal.show()</code></td>
+            <td>✅ Zurückziehen-Bestätigung via <code>Modal.show()</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §2 — Tokens</code></td>
+            <td>CSS Custom Properties statt Hardcoded-Werte</td>
+            <td>✅ <code>var(--warn)</code>, <code>var(--warn-bg)</code>, <code>var(--warn-bd)</code> durchgehend</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §3</code></td>
+            <td>Existierende Funktionen wiederverwenden</td>
+            <td>✅ <code>buildTeacherCard()</code> unverändert wiederverwendet — nur der aufrufende Code wurde erweitert. <code>ChatStore.getRequestStatus()</code> war bereits vorhanden.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §8</code></td>
+            <td><code>APP_VERSION</code> erhöhen</td>
+            <td>✅ <code>2026-03-21-10</code> → <code>2026-03-21-11</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §2 — Schichten</code></td>
+            <td>Kein direkter <code>Store.*</code>-Zugriff im Consumer</td>
+            <td>✅ Pending-Status über <code>ChatStore.getRequestStatus()</code> gelesen — kein direkter localStorage-Zugriff</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>IMPL_STUDENT_TEACHER_CATEGORIES_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-11 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

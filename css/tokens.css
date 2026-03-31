@@ -1,0 +1,239 @@
+/* ── Design Tokens ─────────────────────────────────────────
+   Source: Minimal Design Cheat Sheet
+   Base hue: Navy #060f1c
+   Font: Figtree 400 / 600
+──────────────────────────────────────────────────────────── */
+:root {
+  /* Navy scale */
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;   /* accent / interaction */
+  --color-500: #3a6285;   /* hover */
+  --color-600: #2b4d6b;   /* active */
+  --color-700: #1a3249;
+  --color-800: #0f2035;
+  --color-900: #060f1c;   /* base */
+
+  /* Neutrals */
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-400: #9aa3af;
+  --neutral-500: #6b7685;
+  --neutral-600: #505a68;
+  --neutral-700: #2d3540;
+  --neutral-800: #1a2130;
+  --neutral-900: #0d1117;
+
+  /* Aliases */
+  --white: #ffffff;
+
+  /* Pink — other-teacher bookings in student grid */
+  --pink-100: #fce7f3;
+  --pink-400: #ec4899;
+  --pink-600: #be185d;
+  --pink-700: #9d174d;
+
+
+  --font:          'Figtree', sans-serif;
+  --text-hero:     48px;
+  --text-heading:  24px;
+  --text-large:    20px;
+  --text-body:     16px;
+  --text-small:    14px;
+  --text-caption:  12px;
+  --weight-regular:  400;
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+
+  /* Spacing (8-pt grid) */
+  --sp-1:   4px;
+  --sp-2:   8px;
+  --sp-3:  16px;
+  --sp-4:  24px;
+  --sp-5:  32px;
+  --sp-6:  48px;
+  --sp-7:  64px;
+  --sp-8:  96px;
+  --sp-9: 128px;
+
+  /* Layout */
+  --container-max: 1280px;
+  --container-pad: 32px;
+
+  /* Radius */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius:     8px;   /* alias for --radius-md */
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 2px rgba(6,15,28,0.06);
+  --shadow:    0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg: 0 4px 16px rgba(6,15,28,0.12);
+
+  /* Focus */
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+
+  /* Animation */
+  --transition:    150ms ease;
+  --duration-fast: 100ms;
+
+  /* Semantic aliases */
+  --accent: var(--color-400);   /* interactive accent colour */
+  --red:    #dc2626;            /* raw red for inline danger text */
+
+  /* ── Status — Confirmed (green) ─────────────────────────── */
+  --status-confirmed-bg:    #f0fdf4;
+  --status-confirmed-bd:    #bbf7d0;
+  --status-confirmed-tx:    #14532d;
+  --status-confirmed-icon:  #065f46;
+
+  /* ── Status — Pending / Held (amber) ────────────────────── */
+  --status-pending-bg:      #fef9ec;
+  --status-pending-bd:      #f5d97e;
+  --status-pending-tx:      #7a5c00;
+
+  /* ── Status — Held Escrow (warm amber — slightly different) */
+  --status-held-bg:         #fef3c7;
+  --status-held-bd:         #fde68a;
+  --status-held-tx:         #92400e;
+
+  /* ── Status — Pending Amber (bright — staged/unconfirmed) ─ */
+  --pending-amber:          #f5a623;
+  --pending-amber-bg:       #fef3cd;
+  --pending-amber-hover-bg: #fde68a;
+  --pending-amber-tx:       #7a5c00;
+
+  /* ── Status — Timeout (muted yellow) ────────────────────── */
+  --slot-timeout-bg:        #fef9ec;
+  --slot-timeout-bd:        #f5d97e;
+  --slot-timeout-tx:        #7a5c00;
+  --slot-timeout-hover-bg:  #fdf0c0;
+
+  /* ── Status — Failed / Error (red) ──────────────────────── */
+  --status-failed-bg:       #fee2e2;
+  --status-failed-bd:       #fecaca;
+  --status-failed-tx:       #991b1b;
+
+  /* ── Status — Info / Future (blue) ──────────────────────── */
+  --status-info-bg:         #eff6ff;
+  --status-info-bd:         #bfdbfe;
+  --status-info-tx:         #1e3a8a;
+
+  /* ── Status — Refund Blue (light) ───────────────────────── */
+  --status-refund-bg:       #dbeafe;
+  --status-refund-bd:       #93c5fd;
+  --status-refund-tx:       #1e40af;
+
+  /* ── Status — Future / Purple ────────────────────────────── */
+  --status-future-bg:       #faf5ff;
+  --status-future-bd:       #e9d5ff;
+  --status-future-tx:       #4c1d95;
+
+  /* ── Status — Save OK (bright green) ────────────────────── */
+  --status-save-ok-bg:      #dcfce7;
+  --status-save-ok-tx:      #166534;
+  --status-save-warn-bg:    #fef9ec;
+  --status-save-warn-tx:    #7a5c00;
+
+  /* ── Danger (delete / cancel / error actions) ────────────── */
+  --danger-tx:              #c0392b;
+  --danger-strong-tx:       #b91c1c;
+  --danger-hover-bg:        #fdf0ee;
+  --danger-active-bg:       #fae0db;
+  --danger-bd:              #e8b4ae;
+  --danger-fab-bg:          #b91c1c;
+
+  /* ── Toast backgrounds ────────────────────────────────────── */
+  --toast-error-bg:         #3d1515;
+  --toast-info-bg:          #1a2a3a;
+
+  /* ── Chart colours ────────────────────────────────────────── */
+  --chart-confirmed:        #22c55e;
+  --chart-booked:           #93c5fd;
+
+  /* ── Save FAB ─────────────────────────────────────────────── */
+  --fab-save-bg:            #15803d;
+  --fab-discard-bg:         #b91c1c;
+
+  /* ── Role badge (teacher/student) ────────────────────────── */
+  --role-teacher-bg:        #dbeafe;
+  --role-teacher-tx:        #1e40af;
+  --role-student-bg:        #d1fae5;
+  --role-student-tx:        #065f46;
+  --role-admin-bg:          #fef3c7;
+  --role-admin-tx:          #92400e;
+
+  /* ── TX move / purple ─────────────────────────────────────── */
+  --tx-move-bg:             #ede9fe;
+  --tx-move-tx:             #5b21b6;
+
+  /* ── Wallet rank ─────────────────────────────────────────── */
+  --rank-1-bg:              #fef3c7;
+  --rank-1-tx:              #78350f;
+  --rank-2-bg:              #f1f5f9;
+  --rank-2-tx:              #475569;
+  --rank-3-bg:              #fff1f2;
+  --rank-3-tx:              #7f1d1d;
+
+  /* ── Error dialog (dark overlay context) ────────────────── */
+  --error-dialog-bg:        #1a0a0a;
+  --error-dialog-bd:        #7f2020;
+  --error-dialog-icon:      #e05a5a;
+  --error-dialog-title:     #fca5a5;
+
+  /* ── Semantic ok / warn / danger shorthands ──────────────── */
+  --ok:                     #16a34a;
+  --ok-bg:                  #dcfce7;
+  --ok-tx:                  #166534;
+  --warn:                   #f59e0b;
+  --warn-bg:                #fef9ec;
+  --warn-tx:                #7a5c00;
+  --warn-bd:                #fde68a;
+
+  /* ── Toast icon colours ───────────────────────────────────── */
+  --toast-success-icon:     #4d7aa0;
+  --toast-error-icon:       #e74c3c;
+
+  /* ── Cancel-policy tier colours ──────────────────────────── */
+  --tier-full-tx:           #166534;
+  --tier-full-bg:           #dcfce7;
+  --tier-partial-tx:        #7a5c00;
+  --tier-partial-bg:        #fef9ec;
+  --tier-forfeit-tx:        #991b1b;
+  --tier-forfeit-bg:        #fee2e2;
+  --tier-none-tx:           #374151;
+  --tier-none-bg:           #f3f4f6;
+
+  /* ── Balance after colour ─────────────────────────────────── */
+  --balance-positive:       #16a34a;
+  --balance-negative:       #dc2626;
+
+  /* ── Recur student card header border colours ─────────────── */
+  --recur-stu-ok-bd:        #16a34a;
+  --recur-stu-warn-bd:      #f59e0b;
+  --recur-stu-err-bd:       #dc2626;
+
+  /* ── Visibility-grid status colours ─────────────────────── */
+  --vis-visible-bg:         #f0fdf4;
+  --vis-visible-bd:         #bbf7d0;
+  --vis-visible-tx:         #16a34a;
+  --vis-hidden-bg:          #fee2e2;
+  --vis-hidden-bd:          #fca5a5;
+  --vis-hidden-tx:          #dc2626;
+  --vis-autobl-bg:          #fef3c7;
+  --vis-autobl-bd:          #fde68a;
+  --vis-autobl-tx:          #78350f;
+  --vis-newonly-bg:         #faf5ff;
+  --vis-newonly-bd:         #ddd6fe;
+  --vis-newonly-tx:         #8b5cf6;
+  --vis-group:              #10b981;
+  --vis-group-full:         #f87171;
+}

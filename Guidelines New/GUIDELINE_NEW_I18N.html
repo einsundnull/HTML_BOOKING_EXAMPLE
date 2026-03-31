@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — i18n</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+</head>
+<body>
+
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <!-- Desktop links -->
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-dot" style="background:#b45309;" aria-hidden="true"></span><span class="label">Audit</span>
+    </a></li>
+  </ul>
+  <!-- Mobile hamburger -->
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+<!-- Mobile nav drawer -->
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-mobile-dot" style="background:#b45309;"></span>Audit
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<main class="gl-page">
+  <div class="gl-container">
+
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:var(--soft-badge);" aria-hidden="true"></span>
+        Guideline · Internationalisierung
+      </div>
+      <h1 class="gl-page-title">i18n — Internationalisierung</h1>
+      <p class="gl-page-subtitle">
+        Regeln für alle sichtbaren UI-Texte. Jeder Text ist von Anfang an i18n-kompatibel —
+        Standardsprache Deutsch. Namespace entspricht immer dem Namen der aufrufenden HTML-Seite.
+        Diese Datei ersetzt die i18n-Abschnitte aus <em>Guideline_Layout_and_Styling</em> und <em>GUIDELINES_JS</em>.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-arch">🟢 Arch-Rule</span>
+        <span class="gl-badge gl-badge-soft">🔵 Soft-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">Standard: Deutsch (de)</span>
+      </div>
+    </header>
+
+    <!-- ── 1. GRUNDREGELN ─────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-i18n-basics">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-i18n-basics">1. Grundregeln</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Jeder für den User sichtbare Text ist i18n-kompatibel — von Anfang an</div>
+            <div class="gl-rule-desc">
+              Kein hardcodierter Anzeigetext im HTML oder JS. Buttons, Labels, Fehlermeldungen, Platzhalter, ARIA-Labels,
+              Tooltips — alles geht über i18n-Keys. Kein Text darf direkt in HTML-Attributen oder JS-Strings stehen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-bad">❌  &lt;button&gt;Speichern&lt;/button&gt;              /* hardcoded */</span>
+<span class="c-bad">❌  btn.textContent = 'Speichern';           /* hardcoded in JS */</span>
+<span class="c-ok">✅  &lt;button data-i18n="saveBtn"&gt;Speichern&lt;/button&gt;</span>
+<span class="c-ok">✅  btn.textContent = t('saveBtn');          /* über i18n-Funktion */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Standardsprache: Deutsch (de)</div>
+            <div class="gl-rule-desc">
+              Alle Fallback-Texte und Default-Werte sind auf Deutsch. Der HTML-Root trägt <code style="font-family:var(--font-mono);font-size:12px;">lang="de"</code>.
+              Andere Sprachen werden als zusätzliche Übersetzungsdateien angelegt — Deutsch ist immer die primäre Quelle.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">&lt;html lang="de"&gt;</span>
+<span class="c-cmt">&lt;!-- Alle Basis-Texte in Deutsch verfasst --&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Namespace = Name der HTML-Seite ohne Extension</div>
+            <div class="gl-rule-desc">
+              Die JSON-Übersetzungsdatei trägt denselben Namen wie die HTML-Seite die sie verwendet.
+              Kein zentrales <code style="font-family:var(--font-mono);font-size:12px;">translations.json</code> für alle Seiten.
+            </div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>HTML-Seite</th><th>Locale-Datei</th><th>Namespace</th></tr></thead>
+              <tbody>
+                <tr><td>student.html</td><td class="ok">locales/student.json</td><td><code style="font-family:var(--font-mono);">student</code></td></tr>
+                <tr><td>skiing-catalog.html</td><td class="ok">locales/skiing-catalog.json</td><td><code style="font-family:var(--font-mono);">skiing-catalog</code></td></tr>
+                <tr><td>wallet.html</td><td class="ok">locales/wallet.json</td><td><code style="font-family:var(--font-mono);">wallet</code></td></tr>
+                <tr><td>landing.html</td><td class="ok">locales/landing.json</td><td><code style="font-family:var(--font-mono);">landing</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialoge und Overlays: Namespace der <em>aufrufenden</em> Seite</div>
+            <div class="gl-rule-desc">
+              Ein Dialog der von <code style="font-family:var(--font-mono);font-size:12px;">student.html</code> geöffnet wird, nutzt den Namespace <code style="font-family:var(--font-mono);font-size:12px;">student</code> — auch wenn der Dialog eine eigene HTML-Datei in <code style="font-family:var(--font-mono);font-size:12px;">/dialogs/</code> ist.
+              Der Namespace-Kontext bleibt immer bei der aufrufenden Seite.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* student.html öffnet einen Dialog */</span>
+<span class="c-ok">✅  Namespace: "student"  → locales/student.json</span>
+<span class="c-bad">❌  Namespace: "dialog"   → locales/dialog.json   /* falsch */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. JSON-STRUKTUR ───────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-i18n-json">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-i18n-json">2. JSON-Struktur</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hierarchie so flach wie möglich — maximal eine Ebene</div>
+            <div class="gl-rule-desc">
+              Flat keys sind einfacher zu warten und schneller zu debuggen. Wenn eine zweite Ebene unvermeidbar ist, muss sie dokumentiert und begründet werden.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* ✅ Richtig: eine Ebene */</span>
+{
+  <span class="c-key">"pageTitle"</span>:             <span class="c-val">"Lehrerkatalog"</span>,
+  <span class="c-key">"filterBtn"</span>:             <span class="c-val">"Filter"</span>,
+  <span class="c-key">"filterGroupDiscipline"</span>: <span class="c-val">"Disziplin"</span>,
+  <span class="c-key">"disciplineSki"</span>:         <span class="c-val">"Ski"</span>,
+  <span class="c-key">"expandBtn"</span>:             <span class="c-val">"Details anzeigen"</span>,
+  <span class="c-key">"collapseBtn"</span>:           <span class="c-val">"Schließen"</span>,
+  <span class="c-key">"errorNoResults"</span>:        <span class="c-val">"Keine Lehrer gefunden"</span>
+}
+
+<span class="c-bad">/* ❌ Falsch: tief verschachtelt */</span>
+{
+  "filter": {
+    "group": {
+      "discipline": "Disziplin"   /* zu tief */
+    }
+  }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Key-Naming: camelCase, beschreibend, kontextuell</div>
+            <div class="gl-rule-desc">Keys beschreiben den Kontext (wo) + den Inhalt (was). Kein Mischen von Konventionen innerhalb einer Datei.</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Richtig</th><th>Falsch</th></tr></thead>
+              <tbody>
+                <tr><td class="ok">saveBtn</td><td class="bad">btn_save · save-button · SAVE</td></tr>
+                <tr><td class="ok">errorNoResults</td><td class="bad">err1 · error_no_results</td></tr>
+                <tr><td class="ok">filterGroupDiscipline</td><td class="bad">filter.group.discipline</td></tr>
+                <tr><td class="ok">dialogConfirmTitle</td><td class="bad">title (zu generisch)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fehlermeldungen sagen was passiert ist und was zu tun ist</div>
+            <div class="gl-rule-desc">Kein internes Fehlerdetail dem User zeigen. Klare, kurze Sprache. Aktive Formulierung.</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Richtig</th><th>Falsch</th></tr></thead>
+              <tbody>
+                <tr><td class="ok">Etwas ist schiefgelaufen – erneut versuchen</td><td class="bad">Error 500: Internal Server Error</td></tr>
+                <tr><td class="ok">Gespeichert</td><td class="bad">Erfolgreich gespeichert!</td></tr>
+                <tr><td class="ok">Anmelden</td><td class="bad">Bitte hier klicken um sich anzumelden</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Premium · Styling-Guide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. HTML-ATTRIBUTE ──────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-i18n-html">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-i18n-html">3. HTML-Attribute für i18n</h2>
+        <span class="gl-section-count">1 Regel</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">data-i18n-Attribute für alle Text-Typen</div>
+            <div class="gl-rule-desc">Vier verschiedene Attribute je nach Verwendungszweck. Der Default-Text im HTML bleibt als Fallback erhalten.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">&lt;!-- Text Content --&gt;</span>
+<span class="c-key">&lt;p</span> data-i18n=<span class="c-val">"hero.sub"</span><span class="c-key">&gt;</span>Fallback-Text auf Deutsch<span class="c-key">&lt;/p&gt;</span>
+
+<span class="c-cmt">&lt;!-- HTML Content (z.B. mit &lt;br&gt;, &lt;strong&gt;) --&gt;</span>
+<span class="c-key">&lt;h1</span> data-i18n-html=<span class="c-val">"hero.headline"</span><span class="c-key">&gt;</span>Überschrift<span class="c-key">&lt;/h1&gt;</span>
+
+<span class="c-cmt">&lt;!-- ARIA-Label (für Screen Reader, nicht sichtbar) --&gt;</span>
+<span class="c-key">&lt;button</span> aria-label=<span class="c-val">""</span> data-i18n-aria=<span class="c-val">"drawer.close"</span><span class="c-key">&gt;</span>✕<span class="c-key">&lt;/button&gt;</span>
+
+<span class="c-cmt">&lt;!-- Placeholder für Inputs --&gt;</span>
+<span class="c-key">&lt;input</span> placeholder=<span class="c-val">"Name"</span> data-i18n-placeholder=<span class="c-val">"field.namePlaceholder"</span><span class="c-key">&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 4. ORDNERSTRUKTUR ──────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-i18n-files">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-i18n-files">4. Dateistruktur</h2>
+      </div>
+
+      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-3);">
+        <div style="font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--sp-2);font-family:var(--font-mono);">Ordnerstruktur</div>
+        <div class="gl-code-block"><code>HTML/
+└── locales/
+    ├── <span class="c-ok">landing.json</span>          <span class="c-cmt">← für landing.html</span>
+    ├── <span class="c-ok">student.json</span>          <span class="c-cmt">← für student.html</span>
+    ├── <span class="c-ok">teacher.json</span>          <span class="c-cmt">← für teacher.html</span>
+    ├── <span class="c-ok">skiing-catalog.json</span>   <span class="c-cmt">← für skiing-catalog.html</span>
+    ├── <span class="c-ok">wallet.json</span>           <span class="c-cmt">← für wallet.html</span>
+    ├── <span class="c-ok">admin.json</span>            <span class="c-cmt">← für admin.html</span>
+    ├── <span class="c-ok">profile-edit.json</span>     <span class="c-cmt">← für profile-edit.html</span>
+    └── <span class="c-ok">profile-view.json</span>     <span class="c-cmt">← für profile-view.html</span>
+
+<span class="c-cmt">Hinweis: Jede neue HTML-Seite bekommt genau eine eigene .json-Datei.</span>
+<span class="c-cmt">Dialog-Texte leben in der .json der aufrufenden Seite.</span></code></div>
+      </div>
+
+    </section>
+
+    <!-- ── 5. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-i18n-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-i18n-forbidden">5. Verbotene Muster</h2>
+        <span class="gl-section-count">3 Einträge</span>
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hardcodierter Anzeigetext in HTML oder JS</div>
+            <div class="gl-rule-desc">Kein <code style="font-family:var(--font-mono);font-size:12px;">&lt;button&gt;Speichern&lt;/button&gt;</code> ohne data-i18n. Kein <code style="font-family:var(--font-mono);font-size:12px;">el.textContent = 'Gespeichert'</code> direkt in JS.</div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Zentrales translations.json für alle Seiten</div>
+            <div class="gl-rule-desc">Führt zu nicht zuordenbaren Keys und Wartbarkeitsproblemen. Jede Seite hat ihre eigene Locale-Datei.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Mehr als 2 JSON-Ebenen in Locale-Dateien</div>
+            <div class="gl-rule-desc">Tief verschachtelte Strukturen erhöhen die Fehleranfälligkeit und erschweren die Suche nach Keys.</div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_I18N.html · Stand: März 2026 · Konsolidiert aus: Guideline_Layout_and_Styling.txt (§6), GUIDELINES_JS.md (§11)</span>
+      <span class="gl-footer-text">→ <a href="GUIDELINE_NEW_DIALOGS.html">Weiter: Dialoge</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+</body>
+</html>

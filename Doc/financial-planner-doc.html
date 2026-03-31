@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teacher Financial Planner — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1100px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600} .new{color:var(--accent);font-weight:600}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+
+/* Live mockup */
+.mockup-page{background:#f1f5f9;border-radius:14px;padding:20px;margin:20px 0;display:flex;flex-direction:column;gap:12px;max-width:700px}
+.mockup-hero{background:#060f1c;border-radius:12px;padding:18px 20px;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.mh-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;opacity:.5;margin-bottom:4px}
+.mh-amt{font-size:28px;font-weight:700;letter-spacing:-1px}
+.mh-icon{font-size:32px;opacity:.15}
+.fin-demo{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:600px){.fin-demo{grid-template-columns:repeat(2,1fr)}}
+.fc{position:relative;border-radius:10px;padding:14px 14px 14px 16px;border:1px solid transparent;overflow:hidden;min-height:80px;display:flex;flex-direction:column;gap:2px}
+.fc-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;opacity:.65}
+.fc-val{font-size:18px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:2px}
+.fc-sub{font-size:10px;opacity:.55}
+.fc-ico{position:absolute;top:8px;right:10px;font-size:18px;opacity:.15;user-select:none}
+.fc1{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}
+.fc2{background:#fffbeb;border-color:#fde68a;color:#78350f}
+.fc3{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.fc4{background:#faf5ff;border-color:#e9d5ff;color:#4c1d95}
+.fc5{background:#fff1f2;border-color:#fecdd3;color:#881337}
+/* Chart mockup */
+.chart-row{display:flex;align-items:flex-end;gap:10px;height:100px;background:#fff;border-radius:10px;padding:12px 16px;overflow:hidden}
+.chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%}
+.chart-bars{flex:1;display:flex;align-items:flex-end;gap:2px;width:100%}
+.bar-c{border-radius:3px 3px 0 0}
+.bar-b{border-radius:3px 3px 0 0}
+.chart-lbl{font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<h1>Teacher Financial Planner</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<h2>1 — Live-Mockup</h2>
+
+<div class="mockup-page">
+  <!-- Wallet Hero -->
+  <div class="mockup-hero">
+    <div>
+      <div class="mh-label">Aktuelles Guthaben</div>
+      <div class="mh-amt">617,00 €</div>
+    </div>
+    <div class="mh-icon">💳</div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="fin-demo">
+    <div class="fc fc1"><div class="fc-lbl">Verdient & ausgezahlt</div><div class="fc-val">€1.890</div><div class="fc-sub">42 Stunden</div><div class="fc-ico">★</div></div>
+    <div class="fc fc2"><div class="fc-lbl">Deposit gehalten</div><div class="fc-val">€270</div><div class="fc-sub">30 Slots</div><div class="fc-ico">⏸</div></div>
+    <div class="fc fc3"><div class="fc-lbl">Fällig bei Bestätigung</div><div class="fc-val">€810</div><div class="fc-sub">30 Slots</div><div class="fc-ico">→</div></div>
+    <div class="fc fc4"><div class="fc-lbl">Geplanter Umsatz</div><div class="fc-val">€2.700</div><div class="fc-sub">60 Slots</div><div class="fc-ico">📅</div></div>
+    <div class="fc fc5"><div class="fc-lbl">Ausstehende Refunds</div><div class="fc-val">€45</div><div class="fc-sub">2 offen</div><div class="fc-ico">↩</div></div>
+  </div>
+
+  <!-- Chart -->
+  <div class="chart-row">
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:40%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:20%;background:#93c5fd"></div></div><div class="chart-lbl">Okt</div></div>
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:55%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:15%;background:#93c5fd"></div></div><div class="chart-lbl">Nov</div></div>
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:70%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:10%;background:#93c5fd"></div></div><div class="chart-lbl">Dez</div></div>
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:45%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:25%;background:#93c5fd"></div></div><div class="chart-lbl">Jan</div></div>
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:80%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:20%;background:#93c5fd"></div></div><div class="chart-lbl">Feb</div></div>
+    <div class="chart-col"><div class="chart-bars"><div class="bar-c" style="flex:1;height:60%;background:#22c55e"></div><div class="bar-b" style="flex:1;height:35%;background:#93c5fd"></div></div><div class="chart-lbl">Mär</div></div>
+  </div>
+</div>
+
+<h2>2 — Seitenstruktur</h2>
+<div class="tw"><table>
+<thead><tr><th>Sektion</th><th>Inhalt</th><th>Filter</th></tr></thead>
+<tbody>
+  <tr><td><strong>Wallet Hero</strong></td><td>Aktuelles Guthaben groß dargestellt, dunkler Hintergrund</td><td>—</td></tr>
+  <tr><td><strong>5 KPI Karten</strong></td><td>Verdient, Deposit gehalten, Fällig, Geplant, Refunds</td><td>—</td></tr>
+  <tr><td><strong>Monatlicher Balken-Chart</strong></td><td>Letzte 6 Monate, Bestätigt (grün) + Gebucht (blau) nebeneinander</td><td>—</td></tr>
+  <tr><td><strong>Top Schüler</strong></td><td>Ranking nach Umsatz, max 5, mit Slot-Anzahl + Betrag</td><td>—</td></tr>
+  <tr><td><strong>Buchungsliste</strong></td><td>Alle eigenen Buchungen mit Schüler, Datum, Preis, Status</td><td>Alle / Unbestätigt / Bestätigt / Zukünftig / Vergangen</td></tr>
+  <tr><td><strong>Transaktionshistorie</strong></td><td>Wallet-Bewegungen des Lehrers</td><td>Alle / Freigabe / Deposit / Einzahlung / Auszahlung</td></tr>
+</tbody>
+</table></div>
+
+<h2>3 — KPI Kennzahlen</h2>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Karte</th><th>Berechnung</th><th>Datenquelle</th></tr></thead>
+<tbody>
+  <tr><td>1</td><td>★ Verdient &amp; ausgezahlt</td><td><code>Σ slot.price</code> wo <code>status=confirmed AND teacherId=me</code></td><td><code>getSlotsByTeacher(uid)</code></td></tr>
+  <tr><td>2</td><td>⏸ Deposit gehalten</td><td><code>Σ escrow.depositAmount</code> wo <code>depositStatus=held AND teacherId=me</code></td><td><code>getEscrowsByTeacher(uid)</code></td></tr>
+  <tr><td>3</td><td>→ Fällig bei Bestätigung</td><td><code>Σ (fullAmount − depositAmount)</code> für gebuchte Slots mit <code>held</code> Escrow</td><td>Beide kombiniert</td></tr>
+  <tr><td>4</td><td>📅 Geplanter Umsatz</td><td><code>Σ slot.price</code> wo <code>status=booked|confirmed AND date ≥ heute</code></td><td><code>getSlotsByTeacher(uid)</code></td></tr>
+  <tr><td>5</td><td>↩ Ausstehende Refunds</td><td><code>Σ escrow.depositAmount</code> wo <code>depositStatus=refund_requested AND teacherId=me</code></td><td><code>getEscrowsByTeacher(uid)</code></td></tr>
+</tbody>
+</table></div>
+
+<h2>4 — Daten-Pipeline</h2>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><code>Navbar.init('financial')</code> → Auth-Guard: nur Lehrer. <code>Auth.require('teacher')</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>loadAll()</code> — 4 parallele Requests mit Callback-Barrier:<br>
+    <code>AppService.getSlotsByTeacher(uid, cb)</code> → <code>_slots</code><br>
+    <code>AppService.getEscrowsByTeacher(uid, cb)</code> → <code>_escrows</code><br>
+    <code>AppService.getTransactions(uid, cb)</code> → <code>_txs</code><br>
+    <code>AppService.getWallet(uid, cb)</code> → <code>_wallet</code>
+  </div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Wenn alle 4 geladen: <code>renderAll()</code> → 6 Render-Funktionen sequenziell</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Filter-Chips binden lokale Re-Render ohne neue API-Calls (alles gecacht)</div></div>
+</div>
+
+<h2>5 — Navigation</h2>
+<div class="box box-info">
+  <strong>URL:</strong> <code>financial.html?uid=t1</code><br>
+  <strong>Navbar-Eintrag:</strong> „Finanzplaner" — nur im Lehrer-Menü sichtbar<br>
+  <strong>Icon:</strong> SVG Wallet + Pfeile (neues <code>finance</code>-Icon in <code>navbar.js</code>)<br>
+  <strong>Auth:</strong> <code>Auth.require('teacher')</code> — Schüler/Admin sehen Fehlermeldung
+</div>
+
+<h2>6 — Unterschied Admin vs. Lehrer</h2>
+<div class="tw"><table>
+<thead><tr><th>Aspekt</th><th>Admin Panel</th><th>Lehrer Financial Planner</th></tr></thead>
+<tbody>
+  <tr><td>Scope</td><td>Alle Lehrer + Schüler</td><td>Nur eigene Daten (<code>teacherId=me</code>)</td></tr>
+  <tr><td>Wallet</td><td>Summe aller Wallets</td><td>Eigenes Wallet-Guthaben prominent</td></tr>
+  <tr><td>Chart</td><td>—</td><td>✓ Monatliche Balken letzter 6 Monate</td></tr>
+  <tr><td>Top Schüler</td><td>—</td><td>✓ Top 5 nach Umsatz</td></tr>
+  <tr><td>Buchungsliste</td><td>Alle User, filterbar</td><td>Eigene, filterbar (Alle/Unbestätigt/Bestätigt/Zukünftig/Vergangen)</td></tr>
+  <tr><td>Transaktionen</td><td>Alle User, alle Typen</td><td>Eigene TX mit Typ-Filter</td></tr>
+  <tr><td>Zugang</td><td>Admin-Menü</td><td>Navbar-Menü (Lehrer)</td></tr>
+</tbody>
+</table></div>
+
+<h2>7 — Neue Dateien</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Beschreibung</th></tr></thead>
+<tbody>
+  <tr><td><code>financial.html</code></td><td>v=1</td><td>Standalone-Seite: app-shell, navbar-root, alle Sektionen als HTML-Skelett</td></tr>
+  <tr><td><code>financial.js</code></td><td>v=1</td><td>Auth-Guard, loadAll() mit Barrier, renderWallet/KPIs/MonthChart/TopStudents/Bookings/TxHistory, Filter-Binding</td></tr>
+  <tr><td><code>financial.css</code></td><td>v=1</td><td>fin-page, fin-wallet-hero, fin-kpi-grid/card, fin-months-grid, fin-top-list, fin-filter-chip, fin-section</td></tr>
+</tbody>
+</table></div>
+
+<h2>8 — Geänderte Dateien</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>navbar.js</code></td><td>v=14</td><td>Lehrer-Menü: neuer Eintrag „Finanzplaner" → financial.html?uid=. Neues SVG-Icon <code>finance</code></td></tr>
+  <tr><td><code>teacher.html</code></td><td>navbar v=14</td><td>navbar.js Version bump</td></tr>
+  <tr><td><code>student.html</code></td><td>navbar v=14</td><td>navbar.js Version bump</td></tr>
+</tbody>
+</table></div>
+</body>
+</html>

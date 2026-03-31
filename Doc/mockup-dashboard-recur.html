@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Stunde Dialog + Regelmäßig buchen</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:'Figtree',sans-serif;
+  --c400:#4d7aa0;--c500:#2a5fa8;--c900:#060f1c;
+  --n0:#fff;--n50:#f8f9fa;--n100:#f1f3f5;--n200:#e9ecef;--n300:#dee2e6;
+  --n400:#ced4da;--n500:#adb5bd;--n700:#495057;--n900:#212529;
+  --sp1:4px;--sp2:8px;--sp3:16px;--sp4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --ok-bg:#f0fdf4;--ok-tx:#14532d;
+  --warn-bg:#fef9ec;--warn-tx:#7a5c00;
+  --bad-bg:#fee2e2;--bad-tx:#991b1b;
+  --pending-bg:#fef3cd;--pending-tx:#7a5c00;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e5e8ec;padding:20px;display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+
+/* ── Labels ── */
+.scenario-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7685;text-align:center;margin-bottom:8px;}
+
+/* ── Modal shell ── */
+.modal{background:var(--n0);border-radius:var(--radius-lg);padding:var(--sp4);width:300px;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--sp4);}
+.modal-title{font-size:17px;font-weight:600;color:var(--c900);}
+.modal-close{background:none;border:none;font-size:18px;color:var(--n500);cursor:pointer;padding:4px;line-height:1;}
+
+/* ── Party card ── */
+.party{display:flex;align-items:center;gap:var(--sp3);background:var(--n50);border-radius:var(--radius-md);padding:var(--sp3);margin-bottom:var(--sp3);}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--n200);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--n700);flex-shrink:0;}
+.party-info{}
+.party-name{font-size:15px;font-weight:600;color:var(--c900);}
+.party-date{font-size:13px;color:var(--n700);margin-top:2px;}
+.party-time{font-size:12px;color:var(--n500);margin-top:2px;}
+
+/* ── Status badge ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:var(--radius-sm);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp3);}
+.badge--pending{background:var(--pending-bg);color:var(--pending-tx);border:1px solid #f5d56a;}
+.badge--confirmed{background:var(--ok-bg);color:var(--ok-tx);}
+
+/* ── Action buttons ── */
+.actions{display:flex;flex-direction:column;gap:var(--sp2);}
+.btn{display:flex;align-items:center;gap:var(--sp2);width:100%;padding:var(--sp2) var(--sp3);border-radius:var(--radius-md);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--n200);background:var(--n0);color:var(--n700);touch-action:manipulation;}
+.btn:hover{background:var(--n50);}
+.btn-primary{background:var(--c400);color:#fff;border-color:var(--c400);}
+.btn-primary:hover{background:var(--c500);}
+.btn-danger{color:var(--bad-tx);border-color:var(--n200);}
+.btn-recur{color:var(--c400);border-color:var(--c400);background:var(--n0);}
+.btn-recur:hover{background:#eef3f9;}
+.modal-footer{margin-top:var(--sp3);text-align:right;}
+.btn-ghost{background:none;border:none;color:var(--n500);font-family:var(--font);font-size:13px;cursor:pointer;padding:var(--sp1) var(--sp2);}
+
+/* ── Recur dialog ── */
+.recur-modal{background:var(--n0);border-radius:var(--radius-lg);padding:var(--sp4);width:300px;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+.recur-source{font-size:12px;color:var(--n500);margin-bottom:var(--sp3);}
+.recur-source strong{color:var(--n700);}
+.mode-row{display:flex;gap:var(--sp2);margin-bottom:var(--sp3);}
+.mode-btn{flex:1;padding:6px;border:1px solid var(--n200);border-radius:var(--radius-sm);background:var(--n0);font-family:var(--font);font-size:11px;font-weight:600;color:var(--n500);cursor:pointer;text-align:center;}
+.mode-btn.active{background:var(--c400);color:#fff;border-color:var(--c400);}
+.weeks-input{display:flex;align-items:center;gap:var(--sp2);margin-bottom:var(--sp3);}
+.weeks-input label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--n500);white-space:nowrap;}
+.weeks-input input{border:1px solid var(--n300);border-radius:var(--radius-sm);padding:6px 8px;font-family:var(--font);font-size:14px;width:64px;text-align:center;}
+.check-btn{width:100%;padding:var(--sp2) var(--sp3);background:var(--n100);border:1px solid var(--n200);border-radius:var(--radius-md);font-family:var(--font);font-size:13px;font-weight:600;color:var(--n700);cursor:pointer;margin-bottom:var(--sp3);}
+
+/* ── Recur results ── */
+.recur-result{margin-bottom:var(--sp3);}
+.recur-summary{font-size:12px;font-weight:600;margin-bottom:var(--sp2);}
+.recur-summary.ok{color:var(--ok-tx);}
+.recur-summary.warn{color:var(--warn-tx);}
+.recur-table{width:100%;border-collapse:collapse;font-size:11px;}
+.recur-table th{background:var(--n100);padding:4px 8px;text-align:left;font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:var(--n500);font-weight:600;}
+.recur-table th:last-child{text-align:center;}
+.recur-table td{padding:4px 8px;border-top:1px solid var(--n100);color:var(--n700);}
+.recur-table td:last-child{text-align:center;font-weight:600;}
+.ok-icon{color:var(--ok-tx);}
+.warn-icon{color:var(--warn-tx);}
+.bad-icon{color:var(--bad-tx);}
+.muted{color:var(--n500);}
+.recur-wallet{font-size:11px;padding:6px 8px;border-radius:var(--radius-sm);margin-top:var(--sp2);}
+.recur-wallet.ok{background:var(--ok-bg);color:var(--ok-tx);}
+.recur-wallet.warn{background:var(--warn-bg);color:var(--warn-tx);}
+.confirm-btn{width:100%;padding:var(--sp2) var(--sp3);background:var(--c400);color:#fff;border:none;border-radius:var(--radius-md);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;}
+.recur-footer{display:flex;justify-content:space-between;align-items:center;margin-top:var(--sp3);}
+</style>
+</head>
+<body>
+
+<!-- DIALOG 1: Existing dialog + new button -->
+<div>
+  <div class="scenario-label">Existing dialog + new button</div>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Stunde</span>
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="party">
+      <div class="avatar">S1</div>
+      <div class="party-info">
+        <div class="party-name">S1</div>
+        <div class="party-date">Mittwoch, 25. März 2026</div>
+        <div class="party-time">14:00 – 15:00 · 2 Slots</div>
+      </div>
+    </div>
+
+    <span class="badge badge--pending">⏳ Ausstehend</span>
+
+    <div class="actions">
+      <button class="btn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 2h12a1 1 0 011 1v8a1 1 0 01-1 1H4l-3 3V3a1 1 0 011-1z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        Kontaktieren
+      </button>
+      <button class="btn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="2" y="1" width="12" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M5 5h6M5 8h6M5 11h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Buchungsdetails
+      </button>
+      <button class="btn btn-primary">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Bestätigen
+      </button>
+      <!-- NEW BUTTON -->
+      <button class="btn btn-recur">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0111.46-2.46M14 8a6 6 0 01-11.46 2.46" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Regelmäßig buchen
+      </button>
+      <button class="btn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Verlegen
+      </button>
+      <button class="btn btn-danger">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Stornieren
+      </button>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG 2: Recurring opened — after check, all available -->
+<div>
+  <div class="scenario-label">↻ Regelmäßig — all OK</div>
+  <div class="recur-modal">
+    <div class="modal-header">
+      <span class="modal-title">Regelmäßig buchen</span>
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="recur-source">
+      <strong>S1</strong> · 14:00–15:00 (2 Slots) · Mi
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active">Anzahl Wochen</button>
+      <button class="mode-btn">Von–Bis Datum</button>
+    </div>
+
+    <div class="weeks-input">
+      <label>Wochen</label>
+      <input type="number" value="4">
+    </div>
+
+    <div class="recur-result">
+      <div class="recur-summary ok">↻ 4 von 4 Wochen buchbar · 2 Slots/Woche</div>
+      <table class="recur-table">
+        <thead><tr><th>Datum</th><th>Block</th><th>Dep.</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Mi 01.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td>Mi 08.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td>Mi 15.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td>Mi 22.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+        </tbody>
+      </table>
+      <div class="recur-wallet ok">✓ Guthaben €5050 · Deposit €144 gedeckt</div>
+    </div>
+
+    <button class="confirm-btn">↻ Buchen: 4 Wochen (8 Slots)</button>
+    <div class="recur-footer">
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG 3: Partial — week 3 unavailable -->
+<div>
+  <div class="scenario-label">↻ Regelmäßig — week 3 unavailable</div>
+  <div class="recur-modal">
+    <div class="modal-header">
+      <span class="modal-title">Regelmäßig buchen</span>
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="recur-source">
+      <strong>S1</strong> · 14:00–15:00 (2 Slots) · Mi
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active">Anzahl Wochen</button>
+      <button class="mode-btn">Von–Bis Datum</button>
+    </div>
+
+    <div class="weeks-input">
+      <label>Wochen</label>
+      <input type="number" value="4">
+    </div>
+
+    <div class="recur-result">
+      <div class="recur-summary warn">⚠ 3 von 4 Wochen buchbar · 2 Slots/Woche</div>
+      <table class="recur-table">
+        <thead><tr><th>Datum</th><th>Block</th><th>Dep.</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Mi 01.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td>Mi 08.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td class="muted">Mi 15.04.</td><td style="font-family:monospace" class="muted">14:00–15:00</td><td class="muted" style="font-size:9px">belegt</td><td class="bad-icon">✗</td></tr>
+          <tr><td>Mi 22.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+        </tbody>
+      </table>
+      <div class="recur-wallet ok">✓ Guthaben €5050 · Deposit €108 gedeckt</div>
+    </div>
+
+    <button class="confirm-btn">↻ Buchen: 3 verfügbare Wochen (6 Slots)</button>
+    <div class="recur-footer">
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- DIALOG 4: Insufficient funds -->
+<div>
+  <div class="scenario-label">↻ Regelmäßig — insufficient funds</div>
+  <div class="recur-modal">
+    <div class="modal-header">
+      <span class="modal-title">Regelmäßig buchen</span>
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="recur-source">
+      <strong>S1</strong> · 14:00–15:00 (2 Slots) · Mi
+    </div>
+
+    <div class="mode-row">
+      <button class="mode-btn active">Anzahl Wochen</button>
+      <button class="mode-btn">Von–Bis Datum</button>
+    </div>
+
+    <div class="weeks-input">
+      <label>Wochen</label>
+      <input type="number" value="4">
+    </div>
+
+    <div class="recur-result">
+      <div class="recur-summary warn">⚠ 2 von 4 Wochen buchbar (Guthaben reicht für 2)</div>
+      <table class="recur-table">
+        <thead><tr><th>Datum</th><th>Block</th><th>Dep.</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Mi 01.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td>Mi 08.04.</td><td style="font-family:monospace">14:00–15:00</td><td>€36</td><td class="ok-icon">✓</td></tr>
+          <tr><td class="muted">Mi 15.04.</td><td style="font-family:monospace" class="muted">14:00–15:00</td><td class="muted" style="font-size:9px">kein Guth.</td><td class="warn-icon">⚠</td></tr>
+          <tr><td class="muted">Mi 22.04.</td><td style="font-family:monospace" class="muted">14:00–15:00</td><td class="muted" style="font-size:9px">kein Guth.</td><td class="warn-icon">⚠</td></tr>
+        </tbody>
+      </table>
+      <div class="recur-wallet warn">⚠ Guthaben €72 · reicht für 2 Wochen</div>
+    </div>
+
+    <button class="confirm-btn">↻ Buchen: 2 von 4 Wochen (4 Slots)</button>
+    <div class="recur-footer">
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

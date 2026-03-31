@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day View — Teacher vs. Student Vergleich</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;
+  --color-600: #2b4d6b;
+  --color-700: #1a3249;
+  --color-900: #060f1c;
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-400: #9aa3af;
+  --neutral-500: #6b7685;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+  --pending-amber-bg: #fef3cd;
+  --pending-amber-tx: #7a5c00;
+  --slot-timeout-bg:  #fef9ec;
+  --slot-timeout-tx:  #7a5c00;
+  --status-confirmed-bg: #f0fdf4;
+  --status-confirmed-tx: #14532d;
+  --status-confirmed-bd: #bbf7d0;
+  --danger-fab-bg: #b91c1c;
+  --fab-save-bg:   #15803d;
+  --font: 'Figtree', sans-serif;
+  --text-heading:  24px;
+  --text-body:     16px;
+  --text-small:    14px;
+  --text-caption:  12px;
+  --weight-regular:  400;
+  --weight-semibold: 600;
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 16px;
+  --sp-4: 24px; --sp-5: 32px; --sp-6: 48px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(6,15,28,0.06);
+  --shadow:    0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg: 0 4px 16px rgba(6,15,28,0.12);
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+  --transition-fast: 120ms ease;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-900);
+  background: var(--neutral-50);
+  padding: var(--sp-4) var(--sp-3);
+}
+
+/* ── Page ─────────────────────────────────────────────── */
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto var(--sp-5);
+}
+.page-header h1 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--color-900);
+  margin-bottom: var(--sp-2);
+}
+.page-header p {
+  font-size: var(--text-small);
+  color: var(--neutral-500);
+}
+.page-header .badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  border: 1px solid;
+}
+.badge-arch  { background: var(--color-50);  border-color: var(--color-200);  color: var(--color-700); }
+.badge-style { background: var(--slot-timeout-bg); border-color: #f5d97e; color: var(--slot-timeout-tx); }
+.badge-mob   { background: var(--status-confirmed-bg); border-color: var(--status-confirmed-bd); color: var(--status-confirmed-tx); }
+
+/* ── Section wrapper ──────────────────────────────────── */
+.section {
+  max-width: 1100px;
+  margin: 0 auto var(--sp-5);
+}
+.section-title {
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+/* ── Split card ───────────────────────────────────────── */
+.split-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* Column headers */
+.split-header {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  background: var(--neutral-100);
+  border-bottom: 2px solid var(--neutral-200);
+}
+.split-header-cell {
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--neutral-500);
+  border-right: 1px solid var(--neutral-200);
+}
+.split-header-cell:first-child { color: var(--neutral-400); }
+.split-header-cell.teacher-col { color: var(--color-600); background: var(--color-50); }
+.split-header-cell.student-col { color: #065f46; background: #f0fdf4; }
+.split-header-cell:last-child  { border-right: none; }
+
+/* Row */
+.split-row {
+  display: grid;
+  grid-template-columns: 220px 1fr 1fr;
+  border-bottom: 1px solid var(--neutral-100);
+}
+.split-row:last-child { border-bottom: none; }
+.split-row:nth-child(even) .split-cell { background: var(--neutral-50); }
+
+/* Sub-group header (spans full width) */
+.split-row.group-header {
+  grid-template-columns: 1fr;
+  background: var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-200);
+}
+.split-row.group-header .split-cell {
+  background: transparent !important;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--neutral-500);
+  padding: var(--sp-1) var(--sp-3);
+}
+
+.split-cell {
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--text-small);
+  color: var(--neutral-700);
+  border-right: 1px solid var(--neutral-100);
+  vertical-align: top;
+  line-height: 1.5;
+}
+.split-cell:first-child {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  font-size: var(--text-caption);
+  background: var(--neutral-50) !important;
+  border-right: 1px solid var(--neutral-200);
+}
+.split-cell:last-child { border-right: none; }
+
+/* Content helpers */
+.cell-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  margin: 1px 0;
+  border: 1px solid;
+  white-space: nowrap;
+}
+.tag-yes   { background: var(--status-confirmed-bg); border-color: var(--status-confirmed-bd); color: var(--status-confirmed-tx); }
+.tag-no    { background: var(--neutral-100); border-color: var(--neutral-200); color: var(--neutral-400); }
+.tag-diff  { background: var(--pending-amber-bg); border-color: #f5d97e; color: var(--pending-amber-tx); }
+.tag-navy  { background: var(--color-50); border-color: var(--color-200); color: var(--color-700); }
+.tag-danger { background: #fee2e2; border-color: #fecaca; color: #991b1b; }
+
+.pill-row { display: flex; flex-wrap: wrap; gap: var(--sp-1); }
+
+.check { color: var(--status-confirmed-tx); font-weight: var(--weight-semibold); }
+.cross { color: var(--neutral-400); }
+.dot   { color: var(--pending-amber-tx); font-weight: var(--weight-semibold); }
+
+.cell-note {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  margin-top: 3px;
+  font-style: italic;
+}
+
+ul.cell-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+ul.cell-list li {
+  font-size: var(--text-small);
+  color: var(--neutral-700);
+  padding-left: var(--sp-3);
+  position: relative;
+}
+ul.cell-list li::before {
+  content: '·';
+  position: absolute;
+  left: var(--sp-1);
+  color: var(--neutral-400);
+}
+
+/* ── Legend ───────────────────────────────────────────── */
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-3);
+}
+.legend-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-top: 3px;
+  border-width: 1px;
+  border-style: solid;
+}
+.legend-dot-available { background: var(--color-100); border-color: var(--color-300); }
+.legend-dot-booked    { background: var(--color-900); border-color: var(--color-900); }
+.legend-dot-timeout   { background: var(--slot-timeout-bg); border-color: #f5d97e; }
+.legend-dot-empty     { background: var(--neutral-100); border-color: var(--neutral-200); }
+.legend-dot-mine      { background: var(--color-900); border-color: var(--color-900); }
+.legend-dot-other     { background: #fce7f3; border-color: #ec4899; }
+.legend-dot-recurring {
+  background: var(--color-50);
+  border-color: var(--color-400);
+  outline: 1.5px solid var(--color-400);
+  outline-offset: -1px;
+}
+
+.legend-text strong {
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  display: block;
+}
+.legend-text span {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+
+@media (max-width: 768px) {
+  .split-header,
+  .split-row:not(.group-header) { grid-template-columns: 1fr; }
+  .split-cell:first-child { border-right: none; border-bottom: 1px solid var(--neutral-200); }
+  .split-header-cell { border-right: none; border-bottom: 1px solid var(--neutral-200); }
+  .split-cell:last-child { border-top: 1px solid var(--neutral-100); }
+}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Day View — Teacher vs. Student</h1>
+  <p>Vergleich aller Features, Slot-Zustände, Actions und Styling-Unterschiede für die Implementierung der Tagesansicht in beiden Interfaces.</p>
+  <div class="badge-row">
+    <span class="badge badge-arch">✅ GUIDELINE_NEW_ARCHITECTURE</span>
+    <span class="badge badge-style">✅ GUIDELINE_NEW_STYLING</span>
+    <span class="badge badge-mob">✅ GUIDELINE_NEW_MOBILE</span>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     1. TOPBAR
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">1 · Topbar</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Merkmal</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student</div>
+    </div>
+
+    <div class="split-row">
+      <div class="split-cell">Hintergrund</div>
+      <div class="split-cell"><span class="cell-tag tag-navy">--color-900 (navy)</span></div>
+      <div class="split-cell"><span class="cell-tag tag-navy">--color-900 (navy)</span><div class="cell-note">Identisch — konsistente Signalfarbe für Overlays</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Layout</div>
+      <div class="split-cell">Einzeilig: [←] · Wochentag+Datum (zentriert) · [···]</div>
+      <div class="split-cell">
+        <strong>Zweizeilig:</strong><br>
+        Row 1: [←] · Lehrername (zentriert) · [···]<br>
+        Row 2: Wochentag+Datum (zentriert, kleiner)
+        <div class="cell-note">Lehrer muss immer sichtbar sein — Student bucht bei einem spezifischen Lehrer</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Zurück-Button</div>
+      <div class="split-cell">← schließt Overlay, kehrt zu Kalender</div>
+      <div class="split-cell">← schließt Overlay, kehrt zu Kalender / Tagesansicht</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Lehrername</div>
+      <div class="split-cell"><span class="cross">— nicht nötig</span><div class="cell-note">Teacher ist der eigene Kalender</div></div>
+      <div class="split-cell"><span class="check">✓ Sichtbar</span> in Row 1, Body-Größe, semibold, --neutral-0<div class="cell-note">Welcher Lehrer wird gerade angezeigt?</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Overflow-Menü [···]</div>
+      <div class="split-cell"><span class="dot">◎ Optional</span> (Phase 2: Slot-Batch-Aktionen)</div>
+      <div class="split-cell"><span class="dot">◎ Optional</span> (Phase 2: Chat öffnen, Profil anzeigen)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Modus-Indikator</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— keiner</span></div>
+      <div class="split-cell"><span class="cell-tag tag-yes">Leseansicht</span> (kein Edit-Modus — Student kann nur buchen/stornieren)</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     2. SLOT-ZUSTÄNDE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">2 · Slot-Zustände (Visuelle Darstellung)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Status</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student</div>
+    </div>
+
+    <div class="split-row group-header"><div class="split-cell">Freie / Verfügbare Slots</div></div>
+
+    <div class="split-row">
+      <div class="split-cell">available</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-50 BG · --color-400 Rand</span><br>
+        Pill: "Verfügbar"<br>
+        Aktion: —
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-50 BG · --color-400 Rand</span><br>
+        Pill: "Verfügbar"<br>
+        Aktion: [Buchen]-Button <span class="cell-tag tag-yes">NEU</span>
+        <div class="cell-note">Student kann diesen Slot mit einem Tap buchen</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">recurring</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-50 BG · gestrichelter Rand</span><br>
+        Pill: "Wiederkehrend"<br>
+        Aktion: —
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-50 BG · gestrichelter Rand</span><br>
+        Pill: "Verfügbar"  <span class="cell-tag tag-diff">KEIN "Wiederkehrend"</span><br>
+        Aktion: [Buchen]-Button
+        <div class="cell-note">Für Student irrelevant ob recurring — er bucht einfach</div>
+      </div>
+    </div>
+
+    <div class="split-row group-header"><div class="split-cell">Gebuchte Slots</div></div>
+
+    <div class="split-row">
+      <div class="split-cell">booked (eigene Buchung)</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-900 BG, weiß</span><br>
+        Schülername + E-Mail<br>
+        Aktion: [→] Details-Button (öffnet Buchungsdetails)
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-900 BG, weiß</span><br>
+        "Meine Buchung" + Lehrername<br>
+        Aktion: [✕] Stornieren-Button <span class="cell-tag tag-diff">UNTERSCHIED</span>
+        <div class="cell-note">Kein Schülername — der Student ist ja selbst der Schüler</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">booked (anderer Schüler)</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-navy">--color-900 BG, weiß</span><br>
+        Schülername + E-Mail des gebuchten Schülers<br>
+        Aktion: [→] Details
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">gc-empty (grau)</span> oder <span class="cell-tag" style="background:#fce7f3;border-color:#ec4899;color:#9d174d">gc-other (pink)</span><br>
+        "Belegt" — kein Name sichtbar <span class="cell-tag tag-diff">UNTERSCHIED</span><br>
+        Aktion: — (nicht klickbar)
+        <div class="cell-note">Datenschutz: Student sieht keine anderen Schülernamen</div>
+      </div>
+    </div>
+
+    <div class="split-row group-header"><div class="split-cell">Gesperrte / Inaktive Slots</div></div>
+
+    <div class="split-row">
+      <div class="split-cell">timeout</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-diff">--slot-timeout-bg, amber</span><br>
+        Pill: "Gesperrt"<br>
+        Aktion: [🔓] Sperre aufheben
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">gc-empty (grau)</span> oder ausgeblendet <span class="cell-tag tag-diff">UNTERSCHIED</span><br>
+        Aktion: — (nicht klickbar, nicht buchbar)
+        <div class="cell-note">Student muss nicht wissen warum ein Slot gesperrt ist</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">disabled</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">--neutral-100, ausgegraut</span><br>
+        Pill: "Deaktiviert"<br>
+        Aktion: [Aktivieren]-Button
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">Ausgeblendet / nicht gerendert</span>
+        <div class="cell-note">Deaktivierte Slots existieren für den Student nicht</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">empty (kein Slot)</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">--neutral-0, grau</span><br>
+        "Kein Slot angelegt"<br>
+        Aktion: [+] Slot anlegen
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">Ausgeblendet / nicht gerendert</span>
+        <div class="cell-note">Student sieht nur was buchbar ist</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">vergangener Slot</div>
+      <div class="split-cell">
+        Normal gerendert (ausgegraut)<br>
+        Aktion: [→] Buchungsdetails lesbar
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">Nur eigene vergangene Buchungen</span><br>
+        "Meine vergangene Buchung" — grau, nicht klickbar
+        <div class="cell-note">Vergangene fremde Slots werden nicht angezeigt</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">pending (staged)</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht vorgesehen</span><div class="cell-note">Teacher-Änderungen werden sofort gespeichert</div></div>
+      <div class="split-cell">
+        <span class="cell-tag tag-diff">Amber-Highlight, outline</span><br>
+        Pill: "Vorgemerkt" · Aktion: [✕] Rückgängig
+        <div class="cell-note">Student staged Buchungen — erst nach Speichern aktiv</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     3. INFO-BEREICH PRO SLOT
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">3 · Info-Inhalt pro Slot (Zeile Mitte)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Slot-Status</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher sieht</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student sieht</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">available / recurring</div>
+      <div class="split-cell">Pill "Verfügbar" oder "Wiederkehrend"</div>
+      <div class="split-cell">Pill "Verfügbar" + Preis des Lehrers (z.B. "25 €")<div class="cell-note">Preis aus ProfileStore.getPrice(teacherId)</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">booked (eigene Buchung / mine)</div>
+      <div class="split-cell">
+        <ul class="cell-list">
+          <li>Schülername (fett)</li>
+          <li>E-Mail des Schülers</li>
+          <li>Confirmed-Badge wenn bestätigt</li>
+        </ul>
+      </div>
+      <div class="split-cell">
+        <ul class="cell-list">
+          <li>"Meine Buchung" Label</li>
+          <li>Lehrername</li>
+          <li>Confirmed-Badge wenn bestätigt</li>
+        </ul>
+        <div class="cell-note">Perspektive invertiert — kein fremder Name</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">booked (fremder Schüler)</div>
+      <div class="split-cell">Name + E-Mail des fremden Schülers</div>
+      <div class="split-cell">"Belegt" — anonym<div class="cell-note">Datenschutz: Keine Preisgabe anderer Schülerdaten</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">timeout / disabled</div>
+      <div class="split-cell">Pill "Gesperrt" / "Deaktiviert" + Grund (Phase 2)</div>
+      <div class="split-cell">Nicht sichtbar</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">empty</div>
+      <div class="split-cell">Italic "Kein Slot angelegt"</div>
+      <div class="split-cell">Nicht sichtbar</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">pending (staged)</div>
+      <div class="split-cell">—</div>
+      <div class="split-cell">Pill "Vorgemerkt" (amber) + "Buchen" oder "Stornieren"</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     4. ACTION-BUTTONS PRO SLOT
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">4 · Action-Buttons pro Slot-Zeile</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Slot-Status</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher Action</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student Action</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">available</div>
+      <div class="split-cell">— (kein Button, Slot existiert bereits)</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">[Buchen] Button</span> → Staging (pending)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">recurring</div>
+      <div class="split-cell">— (kein Button)</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">[Buchen] Button</span> → Staging</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">booked (eigene Buchung)</div>
+      <div class="split-cell"><span class="cell-tag tag-navy">[→] Details</span> öffnet Buchungsdetail-Modal<br>(Name, E-Mail, Confirmed-Status, Stornieren)</div>
+      <div class="split-cell"><span class="cell-tag tag-danger">[✕] Stornieren</span> → Staging (pending cancel)<br><span class="cell-tag tag-no">kein Details-Modal nötig</span></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">booked (fremder Schüler)</div>
+      <div class="split-cell"><span class="cell-tag tag-navy">[→] Details</span> öffnet Buchungsdetail-Modal</div>
+      <div class="split-cell">— (nicht klickbar, grau/pink)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">timeout</div>
+      <div class="split-cell"><span class="cell-tag tag-diff">[🔓] Aufheben</span> → Slot reaktivieren</div>
+      <div class="split-cell">— (Slot nicht sichtbar)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">disabled</div>
+      <div class="split-cell"><span class="cell-tag tag-navy">[Aktivieren]</span> → Slot reaktivieren</div>
+      <div class="split-cell">— (Slot nicht sichtbar)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">empty</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">[+] Anlegen</span> → öffnet Slot-Editor</div>
+      <div class="split-cell">— (Slot nicht sichtbar)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">pending (staged)</div>
+      <div class="split-cell">—</div>
+      <div class="split-cell"><span class="cell-tag tag-diff">[↩] Rückgängig</span> → de-staged</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">vergangen + gebucht</div>
+      <div class="split-cell"><span class="cell-tag tag-navy">[→] Details</span> (Lesemodus)</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— keine Aktion</span> (nicht stornierbar)</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     5. TOPBAR-AKTIONEN (FAB / Save)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">5 · Globale Aktionen (Topbar / FAB)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Element</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Save-Mechanismus</div>
+      <div class="split-cell">
+        <span class="cell-tag tag-no">Sofort-Save</span><br>
+        Aktionen werden sofort gespeichert (kein Staging)
+      </div>
+      <div class="split-cell">
+        <span class="cell-tag tag-diff">Staged Save</span><br>
+        Buchungen/Stornierungen werden vorgemerkt,<br>dann per FAB bestätigt
+        <div class="cell-note">Analog zu bestehendem student.js pendingDayChanges</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Save-FAB</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht nötig</span></div>
+      <div class="split-cell">
+        <span class="cell-tag tag-yes">[✓ Speichern (n)]</span> FAB, grün<br>
+        <span class="cell-tag tag-danger">[✕ Verwerfen]</span> FAB, rot<br>
+        Badge zeigt Anzahl pending Änderungen
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Tagnavigation (← →)</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">✓ In Topbar</span> Prev/Next Day</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">✓ In Topbar</span> Prev/Next Day<div class="cell-note">Gleiche Logik, selbe Daten — anderer Lehrer wenn gewechselt</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Wochenansicht-Button</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">✓</span> öffnet slot-grid-overlay</div>
+      <div class="split-cell"><span class="cell-tag tag-yes">✓</span> öffnet student-grid-overlay</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Slot-Batch-Aktionen</div>
+      <div class="split-cell"><span class="dot">◎ Phase 2:</span> "Alle Slots anlegen", "Alle deaktivieren"</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht vorgesehen</span></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     6. SICHTBARKEIT / FILTERUNG
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">6 · Welche Slots werden angezeigt?</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Slot-Typ</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher sieht</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student sieht</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Alle 06:00–22:00 Slots</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — vollständige Übersicht</div>
+      <div class="split-cell"><span class="cross">✗</span> Nein — nur Slots des gewählten Lehrers</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Leere Zeitfenster (kein Slot)</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — grau, mit [+] Button</div>
+      <div class="split-cell"><span class="cross">✗</span> Nein — werden nicht gerendert</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">disabled / timeout Slots</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — mit Management-Aktionen</div>
+      <div class="split-cell"><span class="cross">✗</span> Nein — für Student unsichtbar</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Buchungen anderer Schüler</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — mit Namen + E-Mail</div>
+      <div class="split-cell"><span class="dot">◎</span> Ja, aber anonym ("Belegt") — kein Name</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Eigene Buchungen</div>
+      <div class="split-cell"><span class="check">✓</span> Ja (als Teacher: alle Buchungen)</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — hervorgehoben als "Meine Buchung"</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Vergangene Slots</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — ausgegraut, Lesemodus</div>
+      <div class="split-cell"><span class="dot">◎</span> Nur eigene vergangene Buchungen</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Recurring-Status</div>
+      <div class="split-cell"><span class="check">✓</span> Ja — gestrichelter Rand, eigene Pill</div>
+      <div class="split-cell"><span class="cross">✗</span> Nein — als "Verfügbar" dargestellt</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     7. DATENZUGRIFF (Architektur)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">7 · Datenzugriff (AppService — Architektur-Regel)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Funktion</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 Teacher</div>
+      <div class="split-header-cell student-col">👩‍🎓 Student</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Slots laden</div>
+      <div class="split-cell"><code>AppService.getSlotsByTeacherDate(teacherUid, dateStr, cb)</code></div>
+      <div class="split-cell"><code>AppService.getSlotsByTeacherDate(activeTeacherId, dateStr, cb)</code></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Recurring laden</div>
+      <div class="split-cell"><code>AppService.getRecurringByTeacher(teacherUid, cb)</code></div>
+      <div class="split-cell">— (nicht nötig, recurring → available)</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Slot buchen</div>
+      <div class="split-cell"><code>AppService.bookSlot(slotId, studentId, cb)</code><div class="cell-note">Teacher kann für Schüler buchen</div></div>
+      <div class="split-cell"><code>AppService.bookSlot(slotId, currentUser.uid, cb)</code><div class="cell-note">Student bucht für sich selbst</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Buchung stornieren</div>
+      <div class="split-cell"><code>AppService.cancelSlotBooking(slotId, cb)</code></div>
+      <div class="split-cell"><code>AppService.cancelSlotBooking(slotId, cb)</code><div class="cell-note">Nur wenn slot.studentId === currentUser.uid</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Slot-Status ändern</div>
+      <div class="split-cell"><code>AppService.setSlotAvailability(slotId, status, cb)</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht erlaubt</span></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Profil-Daten</div>
+      <div class="split-cell"><code>ProfileStore.getDisplayName(studentId)</code></div>
+      <div class="split-cell"><code>ProfileStore.getDisplayName(teacherId)</code><br><code>ProfileStore.getPrice(teacherId)</code></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Teacher-Liste</div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht nötig</span></div>
+      <div class="split-cell"><code>AppService.getSelectionsByStudent(studentUid, cb)</code><div class="cell-note">Für Lehrer-Dropdown / Navigation</div></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     8. CSS-KLASSEN (dv-* Namespace)
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">8 · CSS-Klassen — dv-* Namespace (teacher.css / student.css)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Klasse</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 teacher.css</div>
+      <div class="split-header-cell student-col">👩‍🎓 student.css Override</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Basis-Klassen<br><code>dv-topbar, dv-slot-list, dv-slot-row…</code></div>
+      <div class="split-cell">In <code>teacher.css</code> definiert — alle <code>dv-*</code> Basis-Styles</div>
+      <div class="split-cell">
+        Geerbt aus <code>teacher.css</code> (via shared import)<br>
+        <span class="cell-tag tag-diff">ODER</span> in <code>student.css</code> kopiert/überschrieben
+        <div class="cell-note">Zu entscheiden: shared base oder separate Definition</div>
+      </div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell"><code>#teacher-day-view-overlay</code></div>
+      <div class="split-cell">Overlay-Container in <code>teacher.html</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">—</span></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell"><code>#student-day-view-overlay</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">—</span></div>
+      <div class="split-cell">Eigener Overlay-Container in <code>student.html</code></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell"><code>dv-s-mine</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht definiert</span><div class="cell-note">Teacher hat kein "mine" Konzept</div></div>
+      <div class="split-cell"><span class="cell-tag tag-yes">Definiert in student.css</span><br>--color-900 BG, weißer Text</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell"><code>dv-s-other</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht definiert</span></div>
+      <div class="split-cell"><span class="cell-tag tag-yes">Definiert in student.css</span><br>pink (#fce7f3), nicht klickbar</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell"><code>dv-s-pending</code></div>
+      <div class="split-cell"><span class="cell-tag tag-no">— nicht definiert</span></div>
+      <div class="split-cell"><span class="cell-tag tag-yes">Definiert in student.css</span><br>amber, outline 2px</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Topbar zweizeilig</div>
+      <div class="split-cell">Einzeilig — Standard</div>
+      <div class="split-cell"><code>#student-day-view-overlay .dv-topbar</code> → <code>flex-direction: column</code></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     9. JS-MODUL
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">9 · JavaScript-Modul-Struktur (IIFE — ES5)</div>
+  <div class="split-card">
+    <div class="split-header">
+      <div class="split-header-cell">Funktion</div>
+      <div class="split-header-cell teacher-col">👨‍🏫 teacher.js</div>
+      <div class="split-header-cell student-col">👩‍🎓 student.js</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Overlay öffnen</div>
+      <div class="split-cell"><code>openTeacherDayView(dateStr)</code></div>
+      <div class="split-cell"><code>openStudentDayView(dateStr, teacherId)</code><div class="cell-note">teacherId Parameter nötig!</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Overlay schließen</div>
+      <div class="split-cell"><code>closeTeacherDayView()</code></div>
+      <div class="split-cell"><code>closeStudentDayView()</code><div class="cell-note">Pending prüfen — ggf. Discard-Dialog</div></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Grid rendern</div>
+      <div class="split-cell"><code>renderTeacherDayView()</code></div>
+      <div class="split-cell"><code>renderStudentDayView()</code></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Slot-Click Handler</div>
+      <div class="split-cell"><code>onTeacherDvSlotClick(e)</code><br>Sofort-Aktionen: slot-status ändern, löschen</div>
+      <div class="split-cell"><code>onStudentDvSlotClick(e)</code><br>Staging: buchen/stornieren → pending</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Pending-State</div>
+      <div class="split-cell">—</div>
+      <div class="split-cell"><code>var dvPendingChanges = {};</code><br>Key: slotId → action</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Save/Discard</div>
+      <div class="split-cell">—</div>
+      <div class="split-cell"><code>saveDvPendingChanges()</code><br><code>discardDvPendingChanges()</code></div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Tag-Navigation</div>
+      <div class="split-cell"><code>dvPrevDay() / dvNextDay()</code><br>gemeinsame Hilfsfunktion</div>
+      <div class="split-cell"><code>dvPrevDay() / dvNextDay()</code><br>Pending prüfen vor Tagwechsel</div>
+    </div>
+    <div class="split-row">
+      <div class="split-cell">Zustand-Variable</div>
+      <div class="split-cell"><code>var dvSelectedDate = null;</code></div>
+      <div class="split-cell"><code>var dvSelectedDate = null;</code><br><code>var dvActiveTeacherId = null;</code></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════
+     SLOT-STATUS LEGENDE
+══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Status-Legende (Farb-Referenz)</div>
+  <div class="legend-grid">
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-available"></div>
+      <div class="legend-text">
+        <strong>available / recurring</strong>
+        <span>Buchbar — --color-50 BG, --color-400 Rand<br>Teacher: Verwaltung · Student: Buchen</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-booked"></div>
+      <div class="legend-text">
+        <strong>booked (Teacher-Sicht)</strong>
+        <span>--color-900 BG, weiß — Schülername sichtbar</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-mine"></div>
+      <div class="legend-text">
+        <strong>mine (Student-Sicht)</strong>
+        <span>--color-900 BG, weiß — "Meine Buchung"</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-other"></div>
+      <div class="legend-text">
+        <strong>other (Student-Sicht)</strong>
+        <span>Pink — anderer Schüler hat gebucht — anonym "Belegt"</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-timeout"></div>
+      <div class="legend-text">
+        <strong>timeout (nur Teacher)</strong>
+        <span>--slot-timeout-bg, amber — Student sieht diesen Status nicht</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-empty"></div>
+      <div class="legend-text">
+        <strong>empty (nur Teacher)</strong>
+        <span>--neutral-0 / neutral-100 — kein Slot angelegt<br>Student sieht leere Zeitfenster nicht</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background:#fef3cd;border-color:#f5d97e;outline:1.5px solid #f5a623;outline-offset:-1px;"></div>
+      <div class="legend-text">
+        <strong>pending (nur Student)</strong>
+        <span>Amber-outline — Buchung/Stornierung vorgemerkt, noch nicht gespeichert</span>
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot legend-dot-recurring"></div>
+      <div class="legend-text">
+        <strong>recurring (nur Teacher)</strong>
+        <span>--color-50 BG, gestrichelter Rand — Student sieht es als "Verfügbar"</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

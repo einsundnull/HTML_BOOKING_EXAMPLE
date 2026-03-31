@@ -1,0 +1,229 @@
+<!--
+  MOCKUP: _tdvBuildRowV2 — unified layout, booked adds + and chevron
+  STRUCTURE: Zeit | Sep | Info | [⚙] [+] [›]
+  - Available/empty: Zeit | Sep | Info | ⚙(ghost or active)
+  - Booked:          Zeit | Sep | Info | ⚙(active) | + | ›
+  Only colors change per status. Same DOM structure always.
+  DATE: 2026-03-25 12:05
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — V2 Final Layout</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-100:#dde4ed;--color-200:#bccada;--color-300:#8fa9c0;
+  --color-400:#4d7aa0;--color-500:#3a6285;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --font:'Figtree',sans-serif;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--radius-sm:4px;
+  --vis-new:#8b5cf6;--vis-new-bg:#ede9fe;--vis-new-tx:#5b21b6;
+  --vis-group:#10b981;--vis-group-bg:#dcfce7;--vis-group-tx:#14532d;
+  --vis-white:#0ea5e9;--vis-white-bg:#e0f2fe;--vis-white-tx:#0c4a6e;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;padding:0 0 60px;}
+.app{max-width:480px;margin:0 auto;background:var(--neutral-0);}
+.topbar{background:var(--color-900);color:#fff;padding:12px 16px;font-size:13px;font-weight:var(--weight-semibold);}
+.divider{font-size:10px;color:var(--neutral-400);font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:10px 16px 4px;}
+
+/* ── Base row ── */
+.row {
+  display:flex;align-items:stretch;
+  border-bottom:1px solid var(--neutral-100);
+  position:relative;min-height:68px;
+}
+.row::before{
+  content:'';position:absolute;left:0;top:8px;bottom:8px;
+  width:3px;border-radius:0 2px 2px 0;
+}
+
+/* ── Time col ── */
+.t{
+  width:64px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:8px;gap:2px;text-align:center;
+}
+.t1{font-family:'Courier New',monospace;font-size:14px;font-weight:700;line-height:1;}
+.t2{font-family:'Courier New',monospace;font-size:11px;line-height:1;}
+
+/* ── Sep ── */
+.sep{width:1px;flex-shrink:0;align-self:stretch;}
+
+/* ── Info ── */
+.info{
+  flex:1;display:flex;flex-direction:column;
+  align-items:flex-start;justify-content:center;
+  gap:5px;padding:8px 6px 8px 12px;
+  min-width:0;overflow:hidden;
+}
+.info-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+
+/* ── Actions ── */
+.act{padding:0 12px 0 4px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+
+/* ── Buttons ── */
+.gear{
+  width:30px;height:30px;border-radius:var(--radius-sm);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;
+}
+.gear-active{background:var(--color-900);border:1px solid var(--color-900);color:#fff;}
+.gear-ghost{background:transparent;border:1px solid transparent;color:var(--neutral-300);opacity:.4;}
+.gear-ghost-avail{background:transparent;border:1px solid transparent;color:var(--color-300);opacity:.4;}
+
+.add-btn{
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;
+}
+.chev-btn{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;cursor:pointer;
+}
+
+/* Avatars */
+.av-stack{display:flex;align-items:center;}
+.av{
+  width:26px;height:26px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:700;color:#fff;
+  flex-shrink:0;margin-left:-8px;
+}
+.av:first-child{margin-left:0;}
+
+/* Vis badge */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.bsq{width:7px;height:7px;border-radius:2px;flex-shrink:0;display:inline-block;}
+
+/* ══ STATUS COLORS ══ */
+
+/* Booked — navy */
+.booked{background:var(--color-900);}
+.booked::before{background:var(--color-400);}
+.booked .t{background:rgba(255,255,255,.05);}
+.booked .t1{color:var(--color-300);}
+.booked .t2{color:rgba(255,255,255,.3);}
+.booked .sep{background:rgba(255,255,255,.1);}
+.booked .av{background:var(--color-700);border:2px solid #0f2a3f;}
+.booked .add-btn{border:1.5px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.6);}
+.booked .chev-btn{border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);}
+
+/* Available — light blue */
+.avail{background:var(--color-100);}
+.avail::before{background:var(--color-500);}
+.avail .t{background:var(--color-100);}
+.avail .t1{color:var(--color-700);}
+.avail .t2{color:var(--color-400);}
+.avail .sep{background:var(--color-300);}
+
+/* Empty — neutral */
+.empty{background:var(--neutral-50);}
+.empty::before{background:transparent;}
+.empty .t{background:var(--neutral-100);}
+.empty .t1{color:var(--neutral-400);}
+.empty .t2{color:var(--neutral-300);}
+.empty .sep{background:var(--neutral-200);}
+
+/* SVG icon size */
+svg.ic{width:13px;height:13px;}
+svg.ic-sm{width:12px;height:12px;}
+svg.ic-xs{width:10px;height:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">Verfügbarkeit 2 — Mi., 25. März 2026</div>
+  <div class="divider">Nacht</div>
+
+  <!-- BOOKED — 2 students, badge, + chevron -->
+  <div class="row booked">
+    <div class="t"><span class="t1">00:00</span><span class="t2">–00:30</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <div class="info-row">
+        <div class="av-stack">
+          <div class="av">S</div>
+          <div class="av">A</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="badge" style="background:rgba(139,92,246,.2);color:#c4b5fd;">
+          <span class="bsq" style="background:#8b5cf6;"></span>Nur neue Schüler
+        </span>
+      </div>
+    </div>
+    <div class="act">
+      <button class="gear gear-active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add-btn"><svg class="ic-sm" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="chev-btn"><svg class="ic-xs" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <!-- BOOKED — group 2/3, no vis config -->
+  <div class="row booked">
+    <div class="t"><span class="t1">00:30</span><span class="t2">–01:00</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <div class="info-row">
+        <div class="av-stack">
+          <div class="av">S</div>
+          <div class="av" style="background:#2b4d6b;">B</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <span class="badge" style="background:rgba(16,185,129,.2);color:#6ee7b7;">
+          <span class="bsq" style="background:#10b981;"></span>Gruppe 2/3
+        </span>
+      </div>
+    </div>
+    <div class="act">
+      <button class="gear gear-active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add-btn"><svg class="ic-sm" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="chev-btn"><svg class="ic-xs" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <!-- AVAILABLE — no config, ghost gear only -->
+  <div class="row avail">
+    <div class="t"><span class="t1">01:00</span><span class="t2">–01:30</span></div>
+    <div class="sep"></div>
+    <div class="info"></div>
+    <div class="act">
+      <button class="gear gear-ghost-avail"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- AVAILABLE — with badge, active gear -->
+  <div class="row avail">
+    <div class="t"><span class="t1">01:30</span><span class="t2">–02:00</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <span class="badge" style="background:var(--vis-new-bg);color:var(--vis-new-tx);">
+        <span class="bsq" style="background:var(--vis-new);"></span>Nur neue Schüler
+      </span>
+    </div>
+    <div class="act">
+      <button class="gear gear-active"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    </div>
+  </div>
+
+  <!-- EMPTY — ghost gear -->
+  <div class="row empty">
+    <div class="t"><span class="t1">02:00</span><span class="t2">–02:30</span></div>
+    <div class="sep"></div>
+    <div class="info"></div>
+    <div class="act">
+      <button class="gear gear-ghost"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="BUGFIX">
+  <meta name="doc-subject"  content="Navbar zeigt Profil-Inhaber als Session-User auf profile-view.html">
+  <title>BUGFIX — Navbar Identity Leak Profile View 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.sev { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug  { background: #fff8f8; }
+    tbody tr.r-fix  { background: #f8fff8; }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+    .pipe { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .pipe-step { display: grid; grid-template-columns: 170px 1fr;
+                 border: 1px solid var(--n200); border-bottom: none; background: var(--n0); }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .pipe-step.bug  { background: #fff8f8; }
+    .pipe-step.fix  { background: #f8fff8; }
+    .pipe-step.ctx  { background: var(--n50); }
+    .pipe-left { padding: 10px 14px; border-right: 1px solid var(--n200);
+                 display: flex; flex-direction: column; gap: 3px; }
+    .pipe-file { font-family: var(--mono); font-size: 10px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; color: var(--n400); }
+    .pipe-fn   { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy); }
+    .pipe-right { padding: 10px 14px; font-size: 12px; color: var(--n500); line-height: 1.6; }
+    .pipe-arrow { text-align: center; padding: 3px 0; font-size: 14px; color: var(--n400); }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+    .sev-crit { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .sev-ok   { background: var(--ok-bg);  color: var(--ok-tx);  border: 1px solid var(--ok-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .col-card { border: 1px solid var(--n200); border-radius: 8px; overflow: hidden; }
+    .col-title { padding: 8px 12px; font-size: 11px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; }
+    .col-title.bug { background: var(--err-bg); color: var(--err-tx);
+                     border-bottom: 1px solid var(--err-bd); }
+    .col-title.fix { background: var(--ok-bg); color: var(--ok-tx);
+                     border-bottom: 1px solid var(--ok-bd); }
+    .col-body { padding: 12px; font-size: 12px; color: var(--n700); line-height: 1.7; }
+    .col-body li { margin-left: 16px; }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">BUGFIX · Security · BookingSystem</div>
+  <div class="ph-title">Navbar Identity Leak — Profile View</div>
+  <div class="ph-sub">
+    Beim Öffnen eines Lehrerprofils aus dem Katalog zeigte die Navbar den
+    Kontostand und das vollständige Menü des Profil-Inhabers — nicht das des
+    eingeloggten Betrachters. Root Cause: <code>Navbar.init</code> rief
+    <code>Auth.current()</code> auf, das auf <code>profile-view.html</code>
+    den falschen <code>?uid=</code>-Parameter las.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge sev">🔴 Security · Kritisch</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">2 Dateien geändert · navbar.js · profile-view.html</span>
+    <span class="ph-badge ok">✅ Behoben · APP_VERSION 2026-03-21-6</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — ROOT CAUSE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-root">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-root">Root Cause</h2>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Kern des Problems:</strong> <code>Navbar.init</code> ruft intern immer
+      <code>Auth.current()</code> auf. <code>Auth.current()</code> liest
+      <code>?uid=</code> aus der URL. Auf <code>profile-view.html</code> ist
+      <code>?uid=</code> jedoch der Profilinhaber (der Lehrer) — nicht der Besucher.
+      Die Navbar renderte dadurch das vollständige Lehrer-Interface: Kontostand,
+      Wallet-Badge, Hamburger-Menü mit Kalender, Finanzplaner etc. —
+      für jeden Besucher des Profils.
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Verwandter Bug (bereits behoben, BUGFIX #1):</strong>
+      Derselbe <code>Auth.current()</code>-Fehler führte dazu, dass auch
+      <code>ProfileView</code> den Profilinhaber als <code>_viewer</code>
+      setzte und den Edit-Button für alle sichtbar machte. Beide Bugs haben
+      dieselbe Root Cause — unterschiedliche Manifestationen.
+    </div>
+
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title bug">❌ Vorher — Was angezeigt wurde</div>
+        <div class="col-body">
+          <ul>
+            <li>Wallet-Badge mit dem <strong>Kontostand des Lehrers</strong></li>
+            <li>Hamburger-Menü mit <strong>Lehrer-Links</strong> (Kalender, Wallet, Finanzplaner)</li>
+            <li>Avatar des Lehrers in der Navbar</li>
+            <li>Alle Navbar-Links mit <code>?uid=t1</code> des Lehrers</li>
+            <li>Edit-FAB und „Profil bearbeiten"-Button sichtbar</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-title fix">✅ Nachher — Was angezeigt wird</div>
+        <div class="col-body">
+          <ul>
+            <li>Eingeloggt als Schüler: <strong>Schüler-Wallet</strong>, Schüler-Menü</li>
+            <li>Eingeloggt als Lehrer (eigenes Profil): eigenes Wallet, eigenes Menü</li>
+            <li>Nicht eingeloggt / öffentlich: <strong>nur „Anmelden"-Button</strong>, kein Wallet, kein Hamburger</li>
+            <li>Edit-FAB nur für Profilinhaber sichtbar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — EXPLOIT-PFAD
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-exploit">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-exploit">Exploit-Pfad — Schritt für Schritt</h2>
+    </div>
+
+    <div class="pipe">
+      <div class="pipe-step ctx">
+        <div class="pipe-left">
+          <span class="pipe-file">Browser</span>
+          <span class="pipe-fn">Katalog → Profil</span>
+        </div>
+        <div class="pipe-right">
+          Besucher navigiert von <code>skiing-catalog.html</code> (ohne <code>?uid=</code>)
+          zum Lehrerprofil. Link: <code>profile-view.html?uid=t1&amp;viewer=</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">profile-view.html</span>
+          <span class="pipe-fn">window.load → _init()</span>
+        </div>
+        <div class="pipe-right">
+          <code>Navbar.init('profile')</code> wird ohne weitere Options aufgerufen.
+          Kein <code>viewerUid</code> übergeben.
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">navbar.js</span>
+          <span class="pipe-fn">Navbar.init()</span>
+        </div>
+        <div class="pipe-right">
+          <code>var user = Auth.current()</code> aufgerufen — kein viewerUid-Override vorhanden.
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">auth.js</span>
+          <span class="pipe-fn">Auth.current()</span>
+        </div>
+        <div class="pipe-right">
+          Liest <code>?uid=</code> aus <code>window.location.search</code>.
+          Aktuelle URL: <code>profile-view.html?uid=t1&amp;viewer=</code>
+          → gibt <code>User { uid: 't1', role: 'teacher' }</code> zurück — <strong>den Profilinhaber</strong>.
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">navbar.js</span>
+          <span class="pipe-fn">_build()</span>
+        </div>
+        <div class="pipe-right">
+          <code>user = Teacher T1</code> → Navbar rendert:<br>
+          Wallet-Badge mit Kontostand von T1 · Hamburger mit Lehrer-Menü ·
+          Avatar von T1 · Alle Links mit <code>?uid=t1</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">navbar.js</span>
+          <span class="pipe-fn">AppService.getWallet()</span>
+        </div>
+        <div class="pipe-right">
+          Wallet von T1 wird geladen und im Badge angezeigt.
+          Besucher sieht <strong>Kontostand des Lehrers</strong>.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — VERGLEICHSTABELLE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-compare">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-compare">Vergleichstabelle — alle Szenarien</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Szenario</th>
+            <th>URL</th>
+            <th>Navbar vorher (buggy)</th>
+            <th>Navbar nachher (fix)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><strong>Öffentlich / nicht eingeloggt</strong></td>
+            <td><code>?uid=t1&amp;viewer=</code></td>
+            <td><span class="sev sev-crit">🔴 Lehrer-Kontext</span> — T1 Wallet, T1 Menü</td>
+            <td><span class="sev sev-ok">✅ Anmelden-Button</span> — kein Wallet, kein Menü</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>Schüler betrachtet Lehrerprofil</strong></td>
+            <td><code>?uid=t1&amp;viewer=s1</code></td>
+            <td><span class="sev sev-crit">🔴 Lehrer-Kontext</span> — T1 Wallet, T1 Menü</td>
+            <td><span class="sev sev-ok">✅ Schüler-Kontext</span> — S1 Wallet, Schüler-Menü</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Lehrer betrachtet eigenes Profil</strong></td>
+            <td><code>?uid=t1&amp;viewer=t1</code></td>
+            <td>Zufällig korrekt — T1 Wallet, T1 Menü</td>
+            <td><span class="sev sev-ok">✅ Korrekt</span> — T1 Wallet, T1 Menü</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Admin betrachtet Lehrerprofil</strong></td>
+            <td><code>?uid=t1&amp;viewer=admin</code></td>
+            <td><span class="sev sev-crit">🔴 Lehrer-Kontext</span> — T1 Wallet, T1 Menü</td>
+            <td><span class="sev sev-ok">✅ Admin-Kontext</span> — Admin Wallet, Admin-Menü</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — IMPLEMENTIERTER FIX
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-fix">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-fix">Implementierter Fix</h2>
+      <span class="sec-sub">2 Dateien · navbar.js · profile-view.html</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Fix-Strategie:</strong> <code>Navbar.init</code> erhält eine neue Option
+      <code>viewerUid</code>. Wenn gesetzt, wird dieser Wert für die Session-User-Auflösung
+      verwendet statt <code>Auth.current()</code>. Alle bestehenden Aufrufer ohne
+      <code>viewerUid</code> sind vollständig abwärtskompatibel — sie verhalten sich
+      exakt wie bisher. Nur <code>profile-view.html</code> übergibt die neue Option.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Stelle</th>
+            <th>Änderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/navbar.js</code></td>
+            <td><code>Navbar.init()</code> — Zeile 67</td>
+            <td>
+              Neue Option <code>options.viewerUid</code>. Wenn gesetzt:
+              <code>user = AppService.getUserSync(viewerUid)</code>.
+              Wenn nicht gesetzt: <code>user = Auth.current()</code> (unverändertes Verhalten).
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>profile-view.html</code></td>
+            <td>Inline-Script <code>_init()</code></td>
+            <td>
+              <code>Navbar.init('profile', navOptions)</code> mit rollengerechtem
+              <code>navOptions</code>:
+              <code>viewerUid</code> wenn eingeloggt, sonst <code>loginBtn</code>
+              für öffentliche Ansicht.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>'2026-03-21-5'</code> → <code>'2026-03-21-6'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">navbar.js — Navbar.init() — neue viewerUid Option</div>
+    <div class="code-block"><code><span class="cm">/* options (optional): {
+     loginBtn:   { label, onClick },
+     signupBtn:  { label, onClick },
+     viewerUid:  string  — explicit session-user uid. Use on pages where ?uid=
+                          identifies the content being viewed (not the session owner).
+                          When omitted, Auth.current() (reads ?uid= from URL) is used.
+ } */</span>
+<span class="ck">init</span>: function(activePage, options) {
+  var self = this;
+  self._options = options || {};
+
+  <span class="cm">/* Resolve session user:
+     If options.viewerUid is supplied use that — prevents profile-view.html
+     from mistakenly treating the profile owner as the logged-in user. */</span>
+  var user;
+  if (self._options.viewerUid) {
+    user = AppService.getUserSync(decodeURIComponent(self._options.viewerUid)) || null;
+  } else {
+    user = Auth.current();
+  }
+  self._user = user;
+  <span class="cm">// ... rest unchanged</span></code></div>
+
+    <div class="code-label">profile-view.html — _init() — viewerUid übergeben</div>
+    <div class="code-block"><code>function _init() {
+  <span class="cm">/* Build Navbar with correct session context:
+     - viewerUid present  → viewer is logged in → show their wallet + menu
+     - viewerUid absent   → public / unauthenticated → show login button only
+     Never pass Auth.current() here — on profile-view.html ?uid= identifies
+     the PROFILE being viewed, not the session owner. */</span>
+  var navOptions = viewerUid
+    ? <span class="cs">{ viewerUid: viewerUid }</span>
+    : <span class="cn">{ loginBtn: { label: 'Anmelden', onClick: function() {
+        window.location.href = './landing.html';
+      }}}</span>;
+  Navbar.init('profile', navOptions);
+  ProfileView.init();
+  if (viewerUid && profileUid && viewerUid !== profileUid) {
+    ChatPanel.init({ uid: viewerUid });
+  }
+}</code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5 — ABWÄRTSKOMPATIBILITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-compat">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-compat">Abwärtskompatibilität — alle Navbar.init Aufrufer</h2>
+    </div>
+
+    <div class="callout c-ok">
+      <strong>Kein bestehender Aufrufer muss geändert werden.</strong>
+      Die <code>viewerUid</code>-Option ist additiv — kein bestehender Code übergibt sie,
+      alle fallen in den unveränderten <code>Auth.current()</code>-Pfad.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Navbar.init Aufruf</th>
+            <th>viewerUid?</th>
+            <th>Verhalten</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><code>teacher.js</code></td>
+            <td><code>Navbar.init('teacher')</code></td>
+            <td>—</td>
+            <td>Auth.current() → Lehrer ✓ unverändert</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>student.js</code></td>
+            <td><code>Navbar.init('catalog')</code></td>
+            <td>—</td>
+            <td>Auth.current() → Schüler ✓ unverändert</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>dashboard.js</code></td>
+            <td><code>Navbar.init('dashboard')</code></td>
+            <td>—</td>
+            <td>Auth.current() → eingeloggter User ✓ unverändert</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>Navbar.init('catalog', { loginBtn })</code></td>
+            <td>—</td>
+            <td>Auth.current() → null wenn öffentlich → loginBtn ✓ unverändert</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>landing.js</code></td>
+            <td><code>Navbar.init('landing', { loginBtn, signupBtn })</code></td>
+            <td>—</td>
+            <td>Auth.current() → null → Auth-Buttons ✓ unverändert</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>admin.js</code></td>
+            <td><code>Navbar.init('admin')</code></td>
+            <td>—</td>
+            <td>Auth.current() → Admin ✓ unverändert</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>profile-view.html</code></td>
+            <td><code>Navbar.init('profile', { viewerUid })</code></td>
+            <td>✅ Neu</td>
+            <td>viewerUid → viewer als Session-User · öffentlich → loginBtn</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität des Fixes</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Guideline</th>
+            <th>Anforderung</th>
+            <th>Eingehalten?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>Auth-Guideline §4</code></td>
+            <td>Auth-Methoden nur für ihren definierten Zweck verwenden</td>
+            <td>✅ <code>Auth.current()</code> nicht mehr auf falscher Seite aufgerufen</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §3</code></td>
+            <td>Codebase-Check: keine Redundanz, alle Aufrufer geprüft</td>
+            <td>✅ Alle 11 <code>Navbar.init</code>-Aufrufer geprüft — keiner betroffen</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §8</code></td>
+            <td>Kein Inline-CSS, kein <code>element.style.*</code></td>
+            <td>✅ Keine CSS-Änderungen</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §8</code></td>
+            <td>Asset Versioning — <code>APP_VERSION</code> erhöhen</td>
+            <td>✅ <code>2026-03-21-5</code> → <code>2026-03-21-6</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §7 — Templates</code></td>
+            <td>Wiederverwendung vor Neuerstellung</td>
+            <td>✅ Bestehender <code>loginBtn</code>-Options-Mechanismus wiederverwendet — kein neues Pattern</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>BUGFIX_NAVBAR_IDENTITY_LEAK_PROFILE_VIEW_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-6 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

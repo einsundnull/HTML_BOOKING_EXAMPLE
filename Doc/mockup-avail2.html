@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Verfügbarkeit 2 — Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root {
+  --font:'Figtree',sans-serif;
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --pending-amber:#f5a623;--pending-amber-bg:#fffbec;
+  --pending-amber-tx:#7a5c00;--pending-amber-bd:#f5d97e;
+  /* Only new thing: booked background */
+  --booked-bg:#0f2a3f;
+  --booked-bar:#4d7aa0;
+  --transition:150ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e5e8ec;display:flex;justify-content:center;padding:16px;gap:20px;flex-wrap:wrap;align-items:flex-start;}
+.device-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7685;text-align:center;margin-bottom:8px;}
+.device{width:340px;background:var(--neutral-0);border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.18);}
+
+.dv-topbar{display:flex;align-items:center;gap:4px;padding:0 8px;background:var(--color-900);min-height:48px;}
+.dv-topbar-center{flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;}
+.dv-topbar-weekday{font-size:10px;font-weight:600;color:var(--color-300);text-transform:uppercase;letter-spacing:.08em;}
+.dv-topbar-date{font-size:14px;font-weight:600;color:#fff;}
+.dv-topbar-btn{width:32px;height:32px;border-radius:6px;border:none;background:transparent;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;}
+
+.day-tab-nav{display:flex;border-bottom:1px solid var(--neutral-200);background:var(--neutral-0);}
+.day-tab-btn{font-family:var(--font);font-size:11px;font-weight:600;padding:9px 11px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--neutral-500);cursor:pointer;margin-bottom:-1px;white-space:nowrap;}
+.day-tab-btn.active{color:var(--neutral-900);border-bottom-color:var(--color-400);}
+
+.dv-section-label{background:var(--neutral-50);border-top:1px solid var(--neutral-100);border-bottom:1px solid var(--neutral-100);padding:3px 16px;font-size:10px;font-weight:600;color:var(--neutral-400);text-transform:uppercase;letter-spacing:.06em;}
+
+/* Base row — identical to Verfügbarkeit 1 */
+.dv-slot-row{display:flex;align-items:stretch;min-height:56px;border-bottom:1px solid var(--neutral-100);position:relative;}
+.dv-slot-row:last-child{border-bottom:none;}
+.dv-slot-row::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--neutral-200);}
+
+/* Status — identical to V1 */
+.dv-s-available{background:var(--color-50);}
+.dv-s-available::before{background:var(--color-400);}
+.dv-s-timeout{background:var(--pending-amber-bg);}
+.dv-s-timeout::before{background:var(--pending-amber);}
+.dv-s-disabled{background:var(--neutral-50);}
+.dv-s-disabled::before{background:var(--neutral-300);}
+
+/* ONLY CHANGE: booked gets new background */
+.dv-s-booked{background:var(--booked-bg);cursor:pointer;}
+.dv-s-booked::before{background:var(--booked-bar);}
+
+/* Time col — identical */
+.dv-slot-time{width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:8px 8px 8px 12px;gap:2px;}
+.dv-time-start{font-family:'Courier New',monospace;font-size:14px;font-weight:600;line-height:1;color:var(--neutral-700);}
+.dv-time-end{font-family:'Courier New',monospace;font-size:12px;font-weight:400;line-height:1;color:var(--neutral-400);}
+.dv-s-booked .dv-time-start{color:var(--color-300);}
+.dv-s-booked .dv-time-end{color:rgba(255,255,255,.25);}
+.dv-s-timeout .dv-time-start{color:var(--pending-amber-tx);}
+.dv-s-disabled .dv-time-start{color:var(--neutral-400);}
+
+.dv-slot-sep{width:1px;margin:8px 0;flex-shrink:0;background:var(--neutral-200);}
+.dv-s-booked .dv-slot-sep{background:rgba(255,255,255,.10);}
+.dv-s-timeout .dv-slot-sep{background:rgba(245,166,35,.3);}
+
+/* Info + action — identical to V1 */
+.dv-slot-info{flex:1;display:flex;align-items:center;padding:8px 8px 8px 12px;gap:6px;min-width:0;}
+.dv-slot-action{display:flex;align-items:center;justify-content:flex-end;gap:6px;padding:0 12px 0 6px;flex-shrink:0;}
+.dv-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;white-space:nowrap;}
+.dv-pill-dot{width:6px;height:6px;border-radius:50%;display:inline-block;flex-shrink:0;}
+.dv-pill-available{background:var(--color-100);border-color:var(--color-200);color:var(--color-700);}
+.dv-pill-available .dv-pill-dot{background:var(--color-400);}
+.dv-pill-timeout{background:var(--pending-amber-bg);border-color:var(--pending-amber-bd);color:var(--pending-amber-tx);}
+.dv-pill-timeout .dv-pill-dot{background:var(--pending-amber);}
+.dv-pill-disabled{background:var(--neutral-100);border-color:var(--neutral-200);color:var(--neutral-500);}
+.dv-pill-disabled .dv-pill-dot{background:var(--neutral-300);}
+.dv-inline-btn{font-family:var(--font);font-size:11px;font-weight:600;background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:4px;color:var(--neutral-700);cursor:pointer;padding:4px 8px;white-space:nowrap;min-height:26px;}
+
+/* Chevron — only on booked */
+.dv-chevron{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:transform var(--transition);}
+.expanded > .dv-row-top .dv-chevron{transform:rotate(90deg);}
+
+/* Expandable wrapper for booked */
+.dv-row-top{display:flex;align-items:stretch;min-height:56px;}
+.dv-student-list{display:none;border-top:1px solid rgba(255,255,255,.07);}
+.expanded .dv-student-list{display:block;}
+.dv-student-item{display:flex;align-items:center;gap:10px;padding:8px 14px 8px 20px;border-bottom:1px solid rgba(255,255,255,.05);}
+.dv-student-item:last-child{border-bottom:none;}
+.dv-avatar{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;}
+.av1{background:#1a3a54;} .av2{background:#2b4d6b;}
+.dv-student-name-list{font-size:13px;font-weight:600;color:var(--color-300);}
+</style>
+</head>
+<body>
+
+<!-- COLLAPSED -->
+<div>
+<div class="device-label">Collapsed</div>
+<div class="device">
+  <div class="dv-topbar">
+    <button class="dv-topbar-btn">«</button><button class="dv-topbar-btn">‹</button>
+    <div class="dv-topbar-center"><span class="dv-topbar-weekday">Montag</span><span class="dv-topbar-date">Mo., 23. März 2026</span></div>
+    <button class="dv-topbar-btn">›</button><button class="dv-topbar-btn">»</button>
+  </div>
+  <div class="day-tab-nav">
+    <button class="day-tab-btn">Verfügbarkeit</button>
+    <button class="day-tab-btn active">Verfügbarkeit 2</button>
+    <button class="day-tab-btn">Buchungen</button>
+  </div>
+  <div class="dv-section-label">Nacht</div>
+
+  <!-- Available — 100% identical to V1 -->
+  <div class="dv-slot-row dv-s-available">
+    <div class="dv-slot-time"><span class="dv-time-start">00:00</span><span class="dv-time-end">00:30</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button></div>
+  </div>
+
+  <!-- Booked collapsed — only bg color different + chevron -->
+  <div class="dv-s-booked dv-slot-row">
+    <div class="dv-row-top" style="flex:1;display:flex;align-items:stretch;">
+      <div class="dv-slot-time"><span class="dv-time-start">00:30</span><span class="dv-time-end">01:00</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+      <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button><div class="dv-chevron"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+    </div>
+  </div>
+
+  <!-- Booked collapsed -->
+  <div class="dv-s-booked dv-slot-row">
+    <div class="dv-row-top" style="flex:1;display:flex;align-items:stretch;">
+      <div class="dv-slot-time"><span class="dv-time-start">01:00</span><span class="dv-time-end">01:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+      <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button><div class="dv-chevron"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+    </div>
+  </div>
+
+  <!-- Available -->
+  <div class="dv-slot-row dv-s-available">
+    <div class="dv-slot-time"><span class="dv-time-start">01:30</span><span class="dv-time-end">02:00</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button></div>
+  </div>
+
+  <!-- Timeout — identical to V1 -->
+  <div class="dv-slot-row dv-s-timeout">
+    <div class="dv-slot-time"><span class="dv-time-start" style="color:var(--pending-amber-tx)">02:00</span><span class="dv-time-end" style="color:var(--pending-amber)">02:30</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-timeout"><span class="dv-pill-dot"></span>Timeout</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Freigeben</button></div>
+  </div>
+
+</div>
+</div>
+
+<!-- EXPANDED -->
+<div>
+<div class="device-label">Expanded (tapped booked slot)</div>
+<div class="device">
+  <div class="dv-topbar">
+    <button class="dv-topbar-btn">«</button><button class="dv-topbar-btn">‹</button>
+    <div class="dv-topbar-center"><span class="dv-topbar-weekday">Montag</span><span class="dv-topbar-date">Mo., 23. März 2026</span></div>
+    <button class="dv-topbar-btn">›</button><button class="dv-topbar-btn">»</button>
+  </div>
+  <div class="day-tab-nav">
+    <button class="day-tab-btn">Verfügbarkeit</button>
+    <button class="day-tab-btn active">Verfügbarkeit 2</button>
+    <button class="day-tab-btn">Buchungen</button>
+  </div>
+  <div class="dv-section-label">Nacht</div>
+
+  <!-- Available -->
+  <div class="dv-slot-row dv-s-available">
+    <div class="dv-slot-time"><span class="dv-time-start">00:00</span><span class="dv-time-end">00:30</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button></div>
+  </div>
+
+  <!-- Booked collapsed -->
+  <div class="dv-s-booked dv-slot-row">
+    <div class="dv-row-top" style="flex:1;display:flex;align-items:stretch;">
+      <div class="dv-slot-time"><span class="dv-time-start">00:30</span><span class="dv-time-end">01:00</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+      <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button><div class="dv-chevron"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+    </div>
+  </div>
+
+  <!-- Booked EXPANDED -->
+  <div class="dv-s-booked expanded" style="border-bottom:1px solid var(--neutral-100);">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">01:00</span><span class="dv-time-end">01:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+      <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button><div class="dv-chevron" style="transform:rotate(90deg)"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+    </div>
+    <div class="dv-student-list" style="display:block;">
+      <div class="dv-student-item">
+        <div class="dv-avatar av1">S1</div>
+        <span class="dv-student-name-list">s1</span>
+      </div>
+      <div class="dv-student-item">
+        <div class="dv-avatar av2">S2</div>
+        <span class="dv-student-name-list">s2</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available -->
+  <div class="dv-slot-row dv-s-available">
+    <div class="dv-slot-time"><span class="dv-time-start">01:30</span><span class="dv-time-end">02:00</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Deaktivieren</button><button class="dv-inline-btn">Timeout</button></div>
+  </div>
+
+  <!-- Timeout -->
+  <div class="dv-slot-row dv-s-timeout">
+    <div class="dv-slot-time"><span class="dv-time-start" style="color:var(--pending-amber-tx)">02:00</span><span class="dv-time-end" style="color:var(--pending-amber)">02:30</span></div>
+    <div class="dv-slot-sep"></div>
+    <div class="dv-slot-info"><span class="dv-pill dv-pill-timeout"><span class="dv-pill-dot"></span>Timeout</span></div>
+    <div class="dv-slot-action"><button class="dv-inline-btn">Freigeben</button></div>
+  </div>
+
+</div>
+</div>
+
+</body>
+</html>

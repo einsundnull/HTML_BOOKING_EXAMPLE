@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-19T10:40">
+  <meta name="doc-type"     content="AUDIT">
+  <meta name="doc-subject"  content="Styling-Guideline-Verletzungen HTML/CSS/JS">
+  <title>AUDIT — Styling-Guideline-Verletzungen 2026-03-19</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.55;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035; --color-400: #4d7aa0;
+      --neutral-0: #fff; --neutral-50: #f8f9fb; --neutral-100: #f0f2f5;
+      --neutral-200: #e2e6eb; --neutral-500: #6b7685; --neutral-700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --r-crit-bg: #fff0f0; --r-crit-bd: #e5a5a5; --r-crit-tx: #8b1a1a; --r-crit-badge: #c0392b;
+      --r-high-bg: #fff8f0; --r-high-bd: #e5c0a5; --r-high-tx: #7b3500; --r-high-badge: #d97706;
+      --r-med-bg:  #fffdf0; --r-med-bd:  #e5e0a5; --r-med-tx:  #5c4a00; --r-med-badge: #ca8a04;
+      --r-low-bg:  #f0f8ff; --r-low-bd:  #a5c0e5; --r-low-tx:  #1a3a6b; --r-low-badge: #2563eb;
+    }
+
+    /* ── Page header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+               text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 680px; }
+    .ph-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 12px; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                 border-radius: 999px; font-size: 11px; font-weight: 600;
+                 background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); border: 1px solid rgba(255,255,255,.15); }
+
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1360px; margin: 0 auto; }
+
+    /* ── Summary grid ── */
+    .sg { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 28px; }
+    .sc { background: var(--neutral-0); border: 1px solid var(--neutral-200);
+           border-radius: 8px; padding: 14px 16px; border-top: 3px solid; }
+    .sc--crit { border-top-color: var(--r-crit-badge); }
+    .sc--high { border-top-color: var(--r-high-badge); }
+    .sc--med  { border-top-color: var(--r-med-badge);  }
+    .sc--low  { border-top-color: var(--r-low-badge);  }
+    .sc--info { border-top-color: var(--neutral-500);  }
+    .sc-val { font-size: 30px; font-weight: 700; line-height: 1; margin-bottom: 3px; }
+    .sc--crit .sc-val { color: var(--r-crit-badge); }
+    .sc--high .sc-val { color: var(--r-high-badge); }
+    .sc--med  .sc-val { color: var(--r-med-badge);  }
+    .sc--low  .sc-val { color: var(--r-low-badge);  }
+    .sc--info .sc-val { color: var(--neutral-500);  }
+    .sc-lbl { font-size: 11px; color: var(--neutral-500); }
+
+    /* ── Section ── */
+    .sec { margin-bottom: 36px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;
+                padding-bottom: 8px; border-bottom: 1px solid var(--neutral-200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--neutral-500); margin-left: auto; }
+
+    /* ── Callout ── */
+    .callout { padding: 10px 14px; border-radius: 8px; border-left: 3px solid;
+                font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+    .callout--warn  { background: var(--r-high-bg); border-color: var(--r-high-badge); color: var(--r-high-tx); }
+    .callout--info  { background: var(--r-low-bg);  border-color: var(--r-low-badge);  color: var(--r-low-tx);  }
+    .callout--ok    { background: #f0fff4; border-color: #16a34a; color: #14532d; }
+    .callout strong { font-weight: 700; }
+
+    /* ── Table ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--neutral-200); margin-top: 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { text-align: left; padding: 9px 13px; background: var(--navy-800);
+                color: rgba(255,255,255,.82); font-size: 10.5px; font-weight: 700;
+                letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--neutral-200); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr.crit { background: #fff8f8; }
+    tbody tr.high { background: #fffdf5; }
+    tbody tr.med  { background: #fffff5; }
+    tbody tr.low  { background: #f8faff; }
+    tbody tr:hover td { filter: brightness(.97); }
+    tbody td { padding: 9px 13px; vertical-align: top; line-height: 1.45; color: var(--neutral-700); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.06);
+            padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .file-col { font-family: var(--mono); font-size: 11.5px; white-space: nowrap; }
+    .line-col { font-family: var(--mono); font-size: 11px; color: var(--neutral-500); white-space: nowrap; }
+    .ctx-col  { font-family: var(--mono); font-size: 11px; word-break: break-word; color: #2d3540; }
+
+    /* ── Severity badge ── */
+    .sev { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px;
+            font-size: 10.5px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+    .sev-crit { background: var(--r-crit-bg); color: var(--r-crit-tx); border: 1px solid var(--r-crit-bd); }
+    .sev-high { background: var(--r-high-bg); color: var(--r-high-tx); border: 1px solid var(--r-high-bd); }
+    .sev-med  { background: var(--r-med-bg);  color: var(--r-med-tx);  border: 1px solid var(--r-med-bd);  }
+    .sev-low  { background: var(--r-low-bg);  color: var(--r-low-tx);  border: 1px solid var(--r-low-bd);  }
+
+    /* ── Count chip ── */
+    .chip { display: inline-block; padding: 2px 7px; border-radius: 999px;
+             font-size: 10px; font-weight: 700; background: rgba(0,0,0,.06); color: var(--neutral-700); }
+
+    /* ── File heatmap ── */
+    .heatmap { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 8px; margin-bottom: 14px; }
+    .hm-cell { padding: 10px 12px; border-radius: 6px; border: 1px solid rgba(0,0,0,.08); }
+    .hm-name { font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .hm-count { font-size: 22px; font-weight: 700; }
+    .hm-lbl { font-size: 10px; color: #888; }
+    .hm-0   { background: #f0fff4; } .hm-0  .hm-count { color: #16a34a; }
+    .hm-low { background: #fffbeb; } .hm-low .hm-count { color: #ca8a04; }
+    .hm-med { background: #fff7ed; } .hm-med .hm-count { color: #d97706; }
+    .hm-hi  { background: #fff0f0; } .hm-hi  .hm-count { color: #c0392b; }
+
+    /* ── Fix block ── */
+    .fix { background: var(--navy); border-radius: 6px; padding: 10px 12px; margin-top: 6px; }
+    .fix-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+                color: rgba(255,255,255,.3); margin-bottom: 3px; }
+    .fix code { background: transparent; color: #a8d8a8; }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .ph, .page { padding: 16px; }
+      .sg { grid-template-columns: repeat(2, 1fr); }
+      .ph-title { font-size: 18px; }
+    }
+
+    footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--neutral-200);
+              display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--neutral-500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">AUDIT · Styling Guidelines · BookingSystem</div>
+  <div class="ph-title">Styling-Guideline-Verletzungen</div>
+  <div class="ph-sub">
+    Systematische Prüfung aller HTML-, CSS- und JavaScript-Dateien in <code style="background:rgba(255,255,255,.1);color:#fff;padding:1px 5px;border-radius:3px;">HTML/</code>,
+    <code style="background:rgba(255,255,255,.1);color:#fff;padding:1px 5px;border-radius:3px;">HTML/css/</code> und
+    <code style="background:rgba(255,255,255,.1);color:#fff;padding:1px 5px;border-radius:3px;">HTML/js/</code>
+    gegen <strong style="color:#fff;">GUIDELINE_NEW_STYLING</strong> und <strong style="color:#fff;">GUIDELINE_NEW_MOBILE</strong>.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 Erstellt: <time datetime="2026-03-19T10:40">19. März 2026, 10:40</time></span>
+    <span class="ph-badge">📁 17 CSS · 18 HTML · 27 JS geprüft</span>
+    <span class="ph-badge">⚠️ 6 Kategorien · 357 Einzelfunde</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- Summary -->
+  <div class="sg" role="list">
+    <div class="sc sc--crit" role="listitem">
+      <div class="sc-val">214</div>
+      <div class="sc-lbl">🔴 Hardcoded Hex-Werte in CSS</div>
+    </div>
+    <div class="sc sc--high" role="listitem">
+      <div class="sc-val">57</div>
+      <div class="sc-lbl">🟠 :hover ohne hover-Media-Query</div>
+    </div>
+    <div class="sc sc--high" role="listitem">
+      <div class="sc-val">33</div>
+      <div class="sc-lbl">🟠 style.display = in JS</div>
+    </div>
+    <div class="sc sc--med" role="listitem">
+      <div class="sc-val">49</div>
+      <div class="sc-lbl">🟡 !important Missbrauch CSS</div>
+    </div>
+    <div class="sc sc--med" role="listitem">
+      <div class="sc-val">20+</div>
+      <div class="sc-lbl">🟡 font-weight 700 / Off-Grid px</div>
+    </div>
+  </div>
+
+  <div class="callout callout--info">
+    <strong>Methodik:</strong> Automatisierte Auswertung via Python-Skript. Geprüft wurden:
+    Hardcoded Hex-Farbwerte außerhalb von <code>:root</code>, Spacing-Werte nicht durch 4/8 teilbar,
+    font-weight abweichend von 400/600, :hover-Regeln ohne Touch-Guard,
+    <code>element.style.*</code> in JS, Inline-<code>style=""</code> in HTML,
+    fehlende Viewport-Meta-Tags sowie sonstige Formatting-Regeln gemäß GUIDELINE_NEW_STYLING.
+    Kein Urteil über Architektur- oder i18n-Regeln — diese sind Gegenstand separater Audits.
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 — HARDCODED FARBEN
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-hex">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-hex">1. Hardcoded Hex-Farbwerte in CSS</h2>
+      <span class="sec-sub">214 Funde · Kritisch</span>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>Regel (GUIDELINE_NEW_STYLING §2):</strong>
+      Alle Farben außerhalb von <code>:root</code> müssen über CSS-Custom-Properties referenziert werden.
+      Hardcoded Hex-Werte wie <code>#f5d97e</code> oder <code>#065f46</code> verhindern konsistentes Theming
+      und sind die größte Einzelkategorie an Verletzungen in der gesamten Codebase.
+    </div>
+
+    <div class="callout callout--info">
+      <strong>Sonderfall Status-/Semantik-Farben:</strong>
+      Ein großer Teil der Funde betrifft Farben für Status-Badges (grün/gelb/rot für Buchungszustände,
+      Escrow-Zustände, Transaktionstypen). Diese Farben existieren derzeit nicht als Tokens in <code>tokens.css</code>.
+      Die korrekte Lösung ist, diese als <code>--status-confirmed-bg</code>, <code>--status-pending-bg</code> etc.
+      in <code>tokens.css</code> zu ergänzen — nicht einfach alle Hex-Werte zu löschen.
+    </div>
+
+    <!-- Heatmap by file -->
+    <div class="heatmap" aria-label="Funde pro CSS-Datei">
+      <div class="hm-cell hm-hi">  <div class="hm-name">teacher.css</div>   <div class="hm-count">48</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-hi">  <div class="hm-name">wallet.css</div>    <div class="hm-count">39</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-hi">  <div class="hm-name">financial.css</div> <div class="hm-count">24</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-hi">  <div class="hm-name">student.css</div>   <div class="hm-count">21</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-med"> <div class="hm-name">admin.css</div>     <div class="hm-count">18</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-med"> <div class="hm-name">user-detail.css</div><div class="hm-count">16</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-med"> <div class="hm-name">chat.css</div>      <div class="hm-count">14</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-med"> <div class="hm-name">components.css</div><div class="hm-count">11</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-low"> <div class="hm-name">base.css</div>      <div class="hm-count">12</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-low"> <div class="hm-name">catalog-filter.css</div><div class="hm-count">5</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-low"> <div class="hm-name">navbar.css</div>    <div class="hm-count">3</div><div class="hm-lbl">Funde</div></div>
+      <div class="hm-cell hm-low"> <div class="hm-name">profile.css</div>   <div class="hm-count">2</div><div class="hm-lbl">Funde</div></div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="width:130px">Datei</th>
+          <th style="width:60px">Zeile(n)</th>
+          <th style="width:110px">Wert</th>
+          <th>Kontext</th>
+          <th style="width:100px">Schwere</th>
+          <th>Empfehlung</th>
+        </tr></thead>
+        <tbody>
+          <tr class="crit"><td class="file-col">components.css</td><td class="line-col">64–67</td><td class="ctx-col"><code>#c0392b<br>#fdf0ee<br>#fae0db</code></td><td>btn-danger Hover/Active States</td><td><span class="sev sev-crit">Kritisch</span></td><td>Als <code>--danger-*</code>-Tokens in tokens.css ergänzen</td></tr>
+          <tr class="crit"><td class="file-col">components.css</td><td class="line-col">213–214</td><td class="ctx-col"><code>#d1fae5<br>#fef3c7</code></td><td>.badge-confirmed / .badge-released</td><td><span class="sev sev-crit">Kritisch</span></td><td><code>--status-confirmed-bg</code>, <code>--status-pending-bg</code> als Tokens anlegen</td></tr>
+          <tr class="crit"><td class="file-col">wallet.css</td><td class="line-col">201–244</td><td class="ctx-col">~15 Hex-Werte</td><td>TX-Icon-Farben nach Transaktionstyp (deposit/withdrawal/refund…)</td><td><span class="sev sev-crit">Kritisch</span></td><td>Semantische Tx-Farb-Tokens: <code>--tx-deposit-bg</code>, <code>--tx-refund-bg</code> etc.</td></tr>
+          <tr class="crit"><td class="file-col">financial.css</td><td class="line-col">123–127</td><td class="ctx-col"><code>#f0fdf4<br>#fffbeb<br>#eff6ff<br>#faf5ff<br>#fff1f2</code></td><td>KPI-Karten-Farben nach Status (confirmed/held/pending/future/refund)</td><td><span class="sev sev-crit">Kritisch</span></td><td>Dieselben Status-Tokens wie wallet.css verwenden</td></tr>
+          <tr class="crit"><td class="file-col">teacher.css</td><td class="line-col">49–327</td><td class="ctx-col">~20 Hex-Werte</td><td>Timeout/Pending-Slot-Zustände (#fef9ec, #f5d97e, #7a5c00…)</td><td><span class="sev sev-crit">Kritisch</span></td><td><code>--slot-timeout-bg</code>, <code>--slot-pending-bg</code> als Tokens</td></tr>
+          <tr class="crit"><td class="file-col">student.css</td><td class="line-col">25–186</td><td class="ctx-col">~14 Hex-Werte</td><td>Pending/Mine/Other Grid-Zellen; save-summary Farben</td><td><span class="sev sev-crit">Kritisch</span></td><td>Dieselben Slot-Status-Tokens wie teacher.css</td></tr>
+          <tr class="high"><td class="file-col">admin.css</td><td class="line-col">270–297</td><td class="ctx-col">~18 Hex-Werte</td><td>Typ-Badge-Farben (booking/cancel/escrow) — je 3 Farben pro Typ</td><td><span class="sev sev-high">Hoch</span></td><td>Tx-Badge-Farb-Tokens in tokens.css. Gleiche Tokens wie wallet.css nutzen.</td></tr>
+          <tr class="high"><td class="file-col">user-detail.css</td><td class="line-col">42–135</td><td class="ctx-col">~16 Hex-Werte</td><td>Rollen-Badges (teacher/student/admin) + Escrow-Status-Farben</td><td><span class="sev sev-high">Hoch</span></td><td>Rollen-Farb-Tokens und Escrow-Status-Tokens anlegen</td></tr>
+          <tr class="high"><td class="file-col">chat.css</td><td class="line-col">408–455</td><td class="ctx-col">~8 Hex-Werte</td><td>Booking-confirmed / Booking-declined Message-Bubbles + Danger-Button</td><td><span class="sev sev-high">Hoch</span></td><td>Danger-Tokens + Confirmed-Tokens — gleiche wie components.css</td></tr>
+          <tr class="high"><td class="file-col">base.css</td><td class="line-col">160, 215–220, 388–392</td><td class="ctx-col"><code>#3d1515 #1a2a3a #b91c1c #15803d</code></td><td>Toast-Farben (error/info) + Slot-Pending-States + Action-Buttons</td><td><span class="sev sev-high">Hoch</span></td><td>Toast-Farb-Tokens: <code>--toast-error-bg</code>, <code>--toast-info-bg</code></td></tr>
+          <tr class="med"><td class="file-col">navbar.css</td><td class="line-col">269–270</td><td class="ctx-col"><code>#fdf0ee #c0392b</code></td><td>Danger-Link hover in Navbar-Dropdown</td><td><span class="sev sev-med">Mittel</span></td><td><code>var(--danger-bg)</code> + <code>var(--danger-text)</code> aus components.css verwenden</td></tr>
+          <tr class="med"><td class="file-col">catalog-filter-drawer.css</td><td class="line-col">628–654</td><td class="ctx-col"><code>#1a0a0a #7f2020 #e05a5a</code></td><td>Error-Dialog-Farben im Drawer</td><td><span class="sev sev-med">Mittel</span></td><td>Dialog-Error nutzt <code>--danger-*</code>-Tokens</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fix" style="margin-top:12px;">
+      <div class="fix-lbl">Empfohlene Token-Ergänzungen in tokens.css</div>
+      <code style="font-family:var(--mono);font-size:12px;color:#a8d8a8;display:block;white-space:pre-line;">/* ── Status-Farben (Buchung/Escrow/Transaktion) ────────────── */
+--status-confirmed-bg:  #f0fdf4;  --status-confirmed-bd: #bbf7d0;  --status-confirmed-tx: #14532d;
+--status-pending-bg:    #fffbeb;  --status-pending-bd:   #fde68a;  --status-pending-tx:   #78350f;
+--status-held-bg:       #fef9ec;  --status-held-bd:      #f5d97e;  --status-held-tx:      #7a5c00;
+--status-failed-bg:     #fff0f0;  --status-failed-bd:    #fecaca;  --status-failed-tx:    #991b1b;
+
+/* ── Danger (Löschen, Fehler, Stornierung) ──────────────────── */
+--danger-bg:            #fdf0ee;
+--danger-border:        #e8b4ae;
+--danger-text:          #c0392b;
+--danger-strong:        #b91c1c;
+
+/* ── Toast-Hintergründe ─────────────────────────────────────── */
+--toast-error-bg:       #3d1515;
+--toast-info-bg:        #1a2a3a;</code>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2 — HOVER OHNE TOUCH-GUARD
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-hover">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-hover">2. :hover-Regeln ohne Touch-Guard</h2>
+      <span class="sec-sub">57 Funde · Hoch</span>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>Regel (GUIDELINE_NEW_MOBILE §2 + GUIDELINE_NEW_STYLING §5):</strong>
+      Alle <code>:hover</code>-Regeln müssen in <code>@media (hover: hover) and (pointer: fine)</code>
+      eingeschlossen sein. Ohne diesen Guard "klebt" der Hover-State nach dem Tap auf iOS/Android-Geräten
+      dauerhaft. <code>:active</code> übernimmt Touch-Feedback und braucht keinen Guard.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="width:130px">Datei</th>
+          <th style="width:60px">Funde</th>
+          <th>Beispiele (erste 3 Regeln)</th>
+          <th style="width:100px">Schwere</th>
+        </tr></thead>
+        <tbody>
+          <tr class="high"><td class="file-col">components.css</td><td><span class="chip">13</span></td><td class="ctx-col"><code>.btn-primary:hover</code> · <code>.btn-secondary:hover</code> · <code>.btn-ghost:hover</code> · <code>.form-input:hover</code></td><td><span class="sev sev-high">Hoch</span></td></tr>
+          <tr class="high"><td class="file-col">student.css</td><td><span class="chip">13</span></td><td class="ctx-col"><code>.view-nav-btn:hover</code> · <code>.grid-cell.gc-mine:hover</code> · <code>.gc-pending:hover</code></td><td><span class="sev sev-high">Hoch</span></td></tr>
+          <tr class="high"><td class="file-col">teacher.css</td><td><span class="chip">13</span></td><td class="ctx-col"><code>.cal-btn:hover</code> · <code>.slot-action-btn:hover</code> · <code>.grid-round-btn:hover</code></td><td><span class="sev sev-high">Hoch</span></td></tr>
+          <tr class="med"><td class="file-col">login.css</td><td><span class="chip">4</span></td><td class="ctx-col"><code>.auth-tab-btn:hover</code> · <code>.auth-google-btn:hover</code></td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="med"><td class="file-col">wallet.css</td><td><span class="chip">4</span></td><td class="ctx-col"><code>.wallet-nav-btn:hover</code> · <code>.wallet-tx-item:hover</code></td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="med"><td class="file-col">financial.css</td><td><span class="chip">3</span></td><td class="ctx-col"><code>.fin-booking-row:hover</code> · <code>.fin-tx-row:hover</code></td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="med"><td class="file-col">admin.css</td><td><span class="chip">3</span></td><td class="ctx-col"><code>.admin-subtab-btn:hover</code> · <code>.admin-tx-row:hover</code> · <code>.filter-chip:hover</code></td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="low"><td class="file-col">chat.css + user-detail.css + catalog-filter + skiing-catalog</td><td><span class="chip">7</span></td><td class="ctx-col">Weitere Einzelfunde</td><td><span class="sev sev-low">Niedrig</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fix">
+      <div class="fix-lbl">Fix-Pattern für alle betroffenen Dateien</div>
+      <code style="font-family:var(--mono);font-size:12px;color:#a8d8a8;display:block;white-space:pre-line;">/* ❌ Aktuell (klebt auf Touch): */
+.btn-primary:hover { background: var(--color-500); }
+
+/* ✅ Korrekt (nur auf echten Zeigegeräten): */
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: var(--color-500); }
+}
+
+/* :active bleibt ohne Guard — funktioniert auf Touch */
+.btn-primary:active { background: var(--color-600); }</code>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3 — STYLE.DISPLAY IN JS
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-styledisplay">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-styledisplay">3. <code>element.style.display</code> in JavaScript</h2>
+      <span class="sec-sub">33 Funde · Hoch</span>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>Regel (GUIDELINE_NEW_STYLING §4 + Layout §8):</strong>
+      <code>element.style.display = 'none'</code> ist verboten.
+      Sichtbarkeit wird ausschließlich über CSS-Klassen gesteuert:
+      <code>classList.add('is-hidden')</code> / <code>classList.remove('is-hidden')</code>.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="width:130px">Datei</th>
+          <th style="width:60px">Funde</th>
+          <th>Kontext</th>
+          <th style="width:100px">Schwere</th>
+        </tr></thead>
+        <tbody>
+          <tr class="high"><td class="file-col">admin.js</td><td><span class="chip">22</span></td><td>Tab-Wechsel (Zeilen 30–32, 80–82), Reset-Button Visibility (721, 756, 893), Escrow-/TX-Leerzustand (900–903, 1031–1034), Audit-Summary (1375–1380), Tabellenzeile toggle (1461)</td><td><span class="sev sev-high">Hoch</span></td></tr>
+          <tr class="high"><td class="file-col">financial.js</td><td><span class="chip">4</span></td><td>fin-error/fin-content ein-/ausblenden (L61, L69), Leerzeilen-State (L422, L425, L527, L530)</td><td><span class="sev sev-high">Hoch</span></td></tr>
+          <tr class="med"><td class="file-col">skiing-catalog.js</td><td><span class="chip">2</span></td><td>Scroll-Buttons ein-/ausblenden (L904–905)</td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="med"><td class="file-col">profile.js</td><td><span class="chip">3</span></td><td>Deposit-Conditional-Toggles (L1096, L1104–1105) · FAB-Position (L1402–1403 — hier ist style.bottom akzeptabel, da dynamischer Pixel-Wert)</td><td><span class="sev sev-med">Mittel</span></td></tr>
+          <tr class="low"><td class="file-col">chat.js</td><td><span class="chip">2</span></td><td>Textarea auto-height (L730, L1833) — hier ist style.height für auto-resize akzeptabel; Context-Menu-Position (L1726–1727) — style.left/top für dynamische Positionierung akzeptabel</td><td><span class="sev sev-low">Niedrig (Ausnahme)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fix">
+      <div class="fix-lbl">Fix-Pattern</div>
+      <code style="font-family:var(--mono);font-size:12px;color:#a8d8a8;display:block;white-space:pre-line;">/* ❌ Aktuell: */
+el.style.display = 'none';
+el.style.display = '';
+
+/* ✅ Korrekt: */
+el.classList.add('is-hidden');     /* ausblenden */
+el.classList.remove('is-hidden');  /* einblenden */
+
+/* In CSS (base.css): */
+.is-hidden { display: none; }
+
+/* Ausnahmen die style.* erlaubt sind (dynamische Werte): */
+contextMenu.style.left = left + 'px';  /* Positionierung */
+textarea.style.height = 'auto';         /* auto-resize   */
+fab.style.bottom = offset + 'px';      /* dynamischer Wert */</code>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 4 — !IMPORTANT MISSBRAUCH
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-important">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-important">4. <code>!important</code> — Überverwendung</h2>
+      <span class="sec-sub">49 Funde · Mittel</span>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>Regel (GUIDELINE_NEW_STYLING):</strong>
+      <code>!important</code> ist nur für Utility-Klassen erlaubt (z.B. <code>.is-hidden</code>).
+      In Component-CSS signalisiert häufiges <code>!important</code> Spezifitäts-Konflikte
+      die durch saubere Selektoren oder CSS-Kaskade gelöst werden sollten.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Anzahl</th><th>Bewertung</th></tr></thead>
+        <tbody>
+          <tr class="high"><td class="file-col">teacher.css</td><td><span class="chip">32</span></td><td>Slot-Pending/Block-Pending-Overrides, Grid-Zellen. Symptom von Spezifitätskonflikten mit base.css und components.css.</td></tr>
+          <tr class="high"><td class="file-col">student.css</td><td><span class="chip">17</span></td><td>Dieselbe Ursache wie teacher.css — Pending/Booking-States überschreiben generische Grid-Regeln.</td></tr>
+          <tr class="low"><td class="file-col">base.css</td><td><span class="chip">8</span></td><td>5× in Utility-Klassen (.is-hidden, .view-hidden) — akzeptabel. 3× in Slot-Pending-States — refactorn.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 5 — TYPOGRAPHY VERSTÖSSE
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-typo">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-typo">5. Typografie-Verstöße</h2>
+      <span class="sec-sub">font-weight 700 · Off-Scale font-size · Mittel</span>
+    </div>
+
+    <div class="callout callout--warn">
+      <strong>Regel (GUIDELINE_NEW_STYLING §1):</strong>
+      Nur 2 Gewichte erlaubt: 400 (Regular) und 600 (Semibold). <code>font-weight: 700</code> ist verboten.
+      Nur 4 Schriftgrößen: 48 / 24 / 16 / 12px. Zwischenwerte wie 15px, 18px, 36px verletzen das 4-2-Prinzip.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th style="width:130px">Datei</th><th style="width:60px">Zeile</th><th>Verstoß</th><th style="width:100px">Schwere</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr class="high"><td class="file-col">financial.css</td><td class="line-col">25,51,59,98,105…</td><td><code>font-weight: 700</code> — KPI-Werte, Chart-Labels, Summary-Zahlen (14 Vorkommen)</td><td><span class="sev sev-high">Hoch</span></td><td>→ <code>var(--weight-semibold)</code> (600)</td></tr>
+          <tr class="med"><td class="file-col">financial.css</td><td class="line-col">58, 64</td><td><code>font-size: 36px</code> (KPI-Zahl) · <code>font-size: 18px</code> — beide außerhalb der 4er-Skala</td><td><span class="sev sev-med">Mittel</span></td><td>36px → <code>var(--text-display)</code> (48px) oder <code>var(--text-heading)</code> (24px). 18px → 16px oder 24px.</td></tr>
+          <tr class="med"><td class="file-col">teacher.css</td><td class="line-col">305, 927</td><td><code>font-size: 9px</code> (grid-day-name) · <code>font-size: 8px</code> (icon-badge)</td><td><span class="sev sev-med">Mittel</span></td><td>Minimum: 12px (<code>var(--text-caption)</code>)</td></tr>
+          <tr class="med"><td class="file-col">admin.css</td><td class="line-col">207</td><td><code>font-size: 15px</code></td><td><span class="sev sev-med">Mittel</span></td><td>→ <code>var(--text-body)</code> (16px)</td></tr>
+          <tr class="med"><td class="file-col">wallet.css</td><td class="line-col">198, 400, 441</td><td><code>font-size: 15px</code> · <code>font-size: 18px</code> (2×)</td><td><span class="sev sev-med">Mittel</span></td><td>15px → 16px · 18px → 16px oder 24px</td></tr>
+          <tr class="med"><td class="file-col">base.css, student.css, profile.css</td><td class="line-col">diverse</td><td><code>font-weight: 700</code> in Badge-/Label-Elementen</td><td><span class="sev sev-med">Mittel</span></td><td>→ <code>var(--weight-semibold)</code> überall</td></tr>
+          <tr class="low"><td class="file-col">profile.css</td><td class="line-col">455</td><td><code>font-size: 28px</code></td><td><span class="sev sev-low">Niedrig</span></td><td>→ <code>var(--text-display)</code> (48px) — oder 24px wenn Unter-Heading gewünscht</td></tr>
+          <tr class="low"><td class="file-col">landing.css, login.css</td><td class="line-col">diverse</td><td><code>font-size: 18px</code> · <code>font-size: 15px</code></td><td><span class="sev sev-low">Niedrig</span></td><td>→ 16px oder 24px Token</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 6 — INLINE STYLES IN HTML & MOBILE
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-inline">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-inline">6. Inline-Styles in HTML &amp; Mobile-Meta-Tags</h2>
+      <span class="sec-sub">27 Inline-Styles · 8 fehlende viewport-fit · Mittel</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th style="width:160px">Datei</th><th>Verstoß</th><th style="width:100px">Schwere</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr class="high"><td class="file-col">admin.html</td><td>~20× <code>style="..."</code> — Tab-Panels initial versteckt (<code>display:none</code>), Audit-Filter-Inputs mit fixen Breiten (<code>width:200px</code>), Tabellen-Spaltenbreiten, Filter-Wrapper mit <code>gap:8px</code></td><td><span class="sev sev-high">Hoch</span></td><td>Tab-Panels: <code>.is-hidden</code>-Klasse. Filter-Widths: CSS-Klasse <code>.audit-filter-input</code>. Spaltenbreiten in admin.css.</td></tr>
+          <tr class="med"><td class="file-col">financial.html</td><td>3× <code>style="display:none"</code> (fin-page, fin-error) · 2× hardcoded Farbwerte in Legend-Dots (<code>background:#22c55e</code>, <code>background:#93c5fd</code>)</td><td><span class="sev sev-med">Mittel</span></td><td>→ <code>.is-hidden</code>-Klasse. Legend-Dots: CSS-Klassen <code>.fin-legend-dot--confirmed</code>, <code>.fin-legend-dot--booked</code>.</td></tr>
+          <tr class="low"><td class="file-col">index.html</td><td><code>style="display:none"</code> auf <code>#uid-error</code></td><td><span class="sev sev-low">Niedrig</span></td><td>→ <code>class="form-error-msg is-hidden"</code></td></tr>
+          <tr class="med"><td class="file-col">student.html · teacher.html</td><td>Fehlendes <code>viewport-fit=cover</code> im meta viewport-Tag</td><td><span class="sev sev-med">Mittel</span></td><td>→ <code>content="width=device-width, initial-scale=1.0, viewport-fit=cover"</code></td></tr>
+          <tr class="med"><td class="file-col">wallet-standalone.html · catalog-filter-drawer.html</td><td>Fehlendes <code>viewport-fit=cover</code></td><td><span class="sev sev-med">Mittel</span></td><td>Gleicher Fix wie oben</td></tr>
+          <tr class="low"><td class="file-col">catalog-filter-drawer.html · navbar.html</td><td>Fehlendes <code>lang="de"</code>-Attribut auf <code>&lt;html&gt;</code></td><td><span class="sev sev-low">Niedrig</span></td><td>→ <code>&lt;html lang="de"&gt;</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 7 — POSITIV-BEFUNDE
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-ok">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-ok">7. Positiv-Befunde — Was gut ist</h2>
+    </div>
+
+    <div class="callout callout--ok">
+      Trotz der vielen Einzelfunde hält die Codebase die fundamentalen Struktur-Regeln gut ein.
+      Die Probleme sind konzentriert und behebbar — kein systemisches Versagen.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Bereich</th><th>Befund</th></tr></thead>
+        <tbody>
+          <tr><td>ES5-Syntax (JS)</td><td>✅ Kein einziges Arrow-Function, kein Template-Literal, kein let/const, kein Optional Chaining in Production-Code gefunden. Die No-Build-Regel wird vollständig eingehalten.</td></tr>
+          <tr><td>Gradients</td><td>✅ Keine Gradients in CSS gefunden. Das Flat-Color-Prinzip wird durchgängig eingehalten.</td></tr>
+          <tr><td>CSS-Ladereihenfolge</td><td>✅ Alle HTML-Seiten laden tokens.css als erste CSS-Datei. Die Tokenreihenfolge (tokens → base → components → navbar → page-specific) ist korrekt.</td></tr>
+          <tr><td>window.alert/confirm</td><td>✅ Keine Browser-Dialoge in JavaScript oder HTML-Dateien gefunden.</td></tr>
+          <tr><td>Dateistruktur (HTML/CSS/JS getrennt)</td><td>✅ Keine inline <code>&lt;script&gt;</code>-Blöcke in HTML-Body. Keine inline <code>&lt;style&gt;</code>-Tags in HTML-Body. Strikte Trennung eingehalten.</td></tr>
+          <tr><td>Font-Family</td><td>✅ Ausschließlich Figtree überall. Kein zweiter Font. Google Fonts korrekt eingebunden mit preconnect.</td></tr>
+          <tr><td>Design-Tokens (Spacing)</td><td>✅ Der größte Teil des Spacings verwendet <code>var(--sp-*)</code>-Tokens korrekt. Off-Grid-Werte sind die Ausnahme, nicht die Regel.</td></tr>
+          <tr><td>lang="de"</td><td>✅ 16 von 18 HTML-Seiten haben das korrekte lang-Attribut.</td></tr>
+          <tr><td>XSS-Schutz</td><td>✅ _esc()-Funktion wird in allen Consumer-Dateien konsequent auf User-Daten in innerHTML angewendet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 8 — PRIORISIERTER MASSNAHMENPLAN
+       ══════════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-plan">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="sec-plan">8. Priorisierter Maßnahmenplan</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr>
+          <th style="width:50px">Prio</th>
+          <th style="width:160px">Maßnahme</th>
+          <th>Scope</th>
+          <th style="width:90px">Aufwand</th>
+          <th style="width:80px">Funde behoben</th>
+        </tr></thead>
+        <tbody>
+          <tr class="crit">
+            <td><span class="sev sev-crit">P1</span></td>
+            <td>Status-Farb-Tokens anlegen</td>
+            <td>In <code>tokens.css</code>: <code>--status-confirmed-*</code>, <code>--status-pending-*</code>, <code>--status-held-*</code>, <code>--status-failed-*</code>, <code>--danger-*</code>, <code>--toast-error-bg</code> etc. ergänzen — dann alle CSS-Dateien auf Tokens umstellen.</td>
+            <td>Groß (tokens.css + 9 CSS-Dateien)</td>
+            <td>~180 Funde</td>
+          </tr>
+          <tr class="high">
+            <td><span class="sev sev-high">P2</span></td>
+            <td>:hover in hover-Media-Query einschließen</td>
+            <td>Alle 57 :hover-Regeln in components.css, student.css, teacher.css, login.css, wallet.css, financial.css, admin.css in <code>@media (hover: hover) and (pointer: fine)</code> einschließen.</td>
+            <td>Mittel</td>
+            <td>57 Funde</td>
+          </tr>
+          <tr class="high">
+            <td><span class="sev sev-high">P2</span></td>
+            <td><code>style.display</code> → <code>classList</code></td>
+            <td>In admin.js (22 Stellen) und financial.js (4 Stellen) alle <code>.style.display</code>-Zuweisungen durch <code>classList.add/remove('is-hidden')</code> ersetzen.</td>
+            <td>Mittel</td>
+            <td>26 Funde</td>
+          </tr>
+          <tr class="med">
+            <td><span class="sev sev-med">P3</span></td>
+            <td>font-weight 700 → 600</td>
+            <td>In financial.css (14×), base.css (3×), student.css (2×), admin.css (1×) alle <code>font-weight: 700</code> durch <code>var(--weight-semibold)</code> ersetzen.</td>
+            <td>Klein</td>
+            <td>20 Funde</td>
+          </tr>
+          <tr class="med">
+            <td><span class="sev sev-med">P3</span></td>
+            <td>Off-Scale font-size normalisieren</td>
+            <td>financial.css (36px→48px, 18px→24px), wallet.css (15px→16px, 18px→16px/24px), teacher.css (9px→12px, 8px→12px), admin.css (15px→16px).</td>
+            <td>Klein</td>
+            <td>12 Funde</td>
+          </tr>
+          <tr class="med">
+            <td><span class="sev sev-med">P3</span></td>
+            <td>Inline-Styles aus admin.html entfernen</td>
+            <td>Tab-Panel-Sichtbarkeit via <code>.is-hidden</code>, Filter-Input-Breiten in admin.css, Spaltenbreiten in admin.css.</td>
+            <td>Mittel</td>
+            <td>20 Funde</td>
+          </tr>
+          <tr class="low">
+            <td><span class="sev sev-low">P4</span></td>
+            <td>viewport-fit=cover + lang="de" ergänzen</td>
+            <td>student.html, teacher.html, wallet-standalone.html, catalog-filter-drawer.html, navbar.html.</td>
+            <td>Sehr klein (1 Zeile pro Datei)</td>
+            <td>10 Funde</td>
+          </tr>
+          <tr class="low">
+            <td><span class="sev sev-low">P4</span></td>
+            <td>!important-Cascade in teacher/student.css bereinigen</td>
+            <td>Spezifitätskonflikte durch klarere Selektoren lösen, dann !important entfernen.</td>
+            <td>Groß (erfordert CSS-Refactoring)</td>
+            <td>~45 Funde</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    <span>AUDIT_STYLE_GUIDELINES_20260319_1040.html · BookingSystem · Geprüft: HTML/ + HTML/css/ + HTML/js/</span>
+    <span>Grundlage: GUIDELINE_NEW_STYLING.html · GUIDELINE_NEW_MOBILE.html · Stand 19. März 2026</span>
+  </footer>
+
+</main>
+</body>
+</html>

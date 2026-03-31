@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fix-Plan — Code Quality Audit</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2330;
+    --border:#30363d; --border-hi:#444c56;
+    --text:#e6edf3; --muted:#8b949e; --dim:#484f58;
+    --accent:#58a6ff; --green:#3fb950; --red:#f85149;
+    --amber:#d29922; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:14px;line-height:1.6;padding:36px 28px 80px;max-width:1380px;margin:0 auto;}
+
+  .ph{border-bottom:1px solid var(--border);padding-bottom:22px;margin-bottom:36px;}
+  .ph h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;}
+  .ph p{color:var(--muted);margin-top:5px;font-size:12.5px;}
+
+  /* ── Phase headers ── */
+  .phase{margin-bottom:44px;}
+  .phase-header{display:flex;align-items:center;gap:14px;margin-bottom:20px;
+    padding-bottom:14px;border-bottom:1px solid var(--border);}
+  .phase-num{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    padding:3px 10px;border-radius:20px;white-space:nowrap;}
+  .p1-num{background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3);}
+  .p2-num{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3);}
+  .p3-num{background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.25);}
+  .phase-title{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;}
+  .phase-meta{color:var(--muted);font-size:12.5px;margin-left:auto;}
+
+  /* ── Fix cards ── */
+  .fix-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    margin-bottom:16px;overflow:hidden;}
+  .fix-card-header{display:flex;align-items:flex-start;gap:12px;padding:14px 18px;
+    border-bottom:1px solid var(--border);cursor:pointer;}
+  .fix-id{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;
+    padding:2px 8px;border-radius:4px;background:var(--surface2);color:var(--muted);
+    white-space:nowrap;align-self:center;flex-shrink:0;}
+  .fix-title{font-weight:600;font-size:14px;flex:1;}
+  .fix-title small{display:block;font-weight:400;font-size:12px;color:var(--muted);margin-top:2px;}
+  .fix-effort{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    white-space:nowrap;align-self:center;flex-shrink:0;}
+
+  .fix-body{padding:18px;}
+  .fix-section{margin-bottom:16px;}
+  .fix-section:last-child{margin-bottom:0;}
+  .fix-section h4{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;}
+
+  pre{font-family:'IBM Plex Mono',monospace;font-size:12px;line-height:1.75;
+    background:var(--surface2);border:1px solid var(--border);border-radius:6px;
+    padding:14px 16px;overflow-x:auto;color:var(--muted);}
+  pre .add{color:var(--green);}
+  pre .del{color:var(--red);text-decoration:line-through;opacity:.6;}
+  pre .hi {color:var(--text);}
+  pre .cm {color:var(--dim);}
+  pre .fn {color:var(--accent);}
+  pre .kw {color:var(--purple);}
+
+  code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    background:rgba(255,255,255,.06);padding:1px 5px;border-radius:4px;color:var(--purple);}
+  .file{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:12px;}
+
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;white-space:nowrap;}
+  .b-red   {background:rgba(248,81,73,.15);color:var(--red);border:1px solid rgba(248,81,73,.3);}
+  .b-amber {background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3);}
+  .b-green {background:rgba(63,185,80,.15);color:var(--green);border:1px solid rgba(63,185,80,.3);}
+  .b-blue  {background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.25);}
+  .b-dim   {background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);}
+
+  .warn-box{background:rgba(248,81,73,.07);border:1px solid rgba(248,81,73,.25);
+    border-radius:6px;padding:12px 14px;font-size:13px;color:#f09090;margin-bottom:14px;}
+  .note-box{background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.2);
+    border-radius:6px;padding:12px 14px;font-size:13px;color:var(--accent);margin-bottom:14px;}
+
+  /* ── Summary table ── */
+  .tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:32px;overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+    text-transform:uppercase;letter-spacing:.6px;color:var(--muted);text-align:left;
+    padding:9px 14px;background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:8px 14px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.02);}
+
+  @media(max-width:800px){body{padding:18px 14px 60px;}}
+</style>
+</head>
+<body>
+
+<div class="ph">
+  <h1>Fix-Plan — Code Quality Audit</h1>
+  <p>10 Fixes · 3 Phasen · Reihenfolge nach Risiko und Abhängigkeit · 17. März 2026</p>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     SUMMARY TABLE
+════════════════════════════════════════════════════════ -->
+<div class="tbl-wrap" style="margin-bottom:44px;">
+  <table>
+    <thead>
+      <tr><th>Fix</th><th>Befund</th><th>Datei(en)</th><th>Aufwand</th><th>Phase</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>F1</code></td><td><b>D1</b> — 6 Snapshot-Dateien löschen (window.* Overwrite-Risiko)</td><td><span class="file">js/*_1772799460*.js</span></td><td><span class="b b-green">rm 6 Dateien</span></td><td><span class="b b-red">Phase 1</span></td></tr>
+      <tr><td><code>F2</code></td><td><b>P1</b> — <code>Store.Slots.confirm()</code> in ui.js durch AppService ersetzen</td><td><span class="file">ui.js</span> ~221</td><td><span class="b b-green">~5 Zeilen</span></td><td><span class="b b-red">Phase 1</span></td></tr>
+      <tr><td><code>F3</code></td><td><b>R2</b> — Double-Save Busy-Guard in student + teacher</td><td><span class="file">student.js</span> ~229, <span class="file">teacher.js</span> ~1044</td><td><span class="b b-green">~8 Zeilen</span></td><td><span class="b b-red">Phase 1</span></td></tr>
+      <tr><td><code>F4</code></td><td><b>R3</b> — Redundanten getWallet-Call im teacher Cancel-Callback entfernen</td><td><span class="file">teacher.js</span> ~1083</td><td><span class="b b-green">~7 Zeilen löschen</span></td><td><span class="b b-red">Phase 1</span></td></tr>
+      <tr><td><code>F5</code></td><td><b>R1</b> — Callback-Barrier für parallele Async-Ops (student)</td><td><span class="file">student.js</span> ~236</td><td><span class="b b-amber">~25 Zeilen</span></td><td><span class="b b-amber">Phase 2</span></td></tr>
+      <tr><td><code>F6</code></td><td><b>R1</b> — Callback-Barrier für parallele Async-Ops (teacher)</td><td><span class="file">teacher.js</span> ~1044</td><td><span class="b b-amber">~25 Zeilen</span></td><td><span class="b b-amber">Phase 2</span></td></tr>
+      <tr><td><code>F7</code></td><td><b>P2/P3/P4</b> — Store.*-Direktzugriffe in ui.js + teacher.js durch AppService ersetzen</td><td><span class="file">ui.js</span> ~119,281,315,349,358,362,437,440,510 · <span class="file">teacher.js</span> ~1209</td><td><span class="b b-amber">~10 Einzelzeilen</span></td><td><span class="b b-amber">Phase 2</span></td></tr>
+      <tr><td><code>F8</code></td><td><b>D2/D3</b> — loop.html + wallet-standalone.html löschen</td><td><span class="file">loop.html</span>, <span class="file">wallet-standalone.html</span></td><td><span class="b b-green">rm 2 Dateien</span></td><td><span class="b b-amber">Phase 2</span></td></tr>
+      <tr><td><code>F9</code></td><td><b>N1</b> — renderBookingsPanel delegiert an renderAllBookingsList</td><td><span class="file">teacher.js</span> ~675</td><td><span class="b b-amber">~30 Zeilen</span></td><td><span class="b b-blue">Phase 3</span></td></tr>
+      <tr><td><code>F10</code></td><td><b>N2/N3/N4</b> — Merge + Zeitfilter + BlockCount in ui.js zentralisieren</td><td><span class="file">ui.js</span>, <span class="file">student.js</span>, <span class="file">teacher.js</span></td><td><span class="b b-red">~60 Zeilen Refactor</span></td><td><span class="b b-blue">Phase 3</span></td></tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHASE 1 — SOFORT (Sicherheit + Korrektheit)
+════════════════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-num p1-num">Phase 1</span>
+    <span class="phase-title">Sofort — Sicherheit &amp; Korrektheit</span>
+    <span class="phase-meta">F1–F4 · Gesamtaufwand ~30 min · keine Refactoring-Risiken</span>
+  </div>
+
+  <!-- F1 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F1</span>
+      <div class="fix-title">
+        6 Snapshot-Dateien löschen
+        <small>D1 · <span class="file">js/*_1772799460*.js</span> · Risiko: window.* Overwrite</small>
+      </div>
+      <span class="fix-effort">rm 6 Dateien</span>
+    </div>
+    <div class="fix-body">
+      <div class="warn-box">
+        ⚠ <strong>Destruktiv wenn eingebunden:</strong> <code>store_1772799460462.js</code> setzt <code>window.Store</code> mit einem veralteten Schema (kein <code>Slots</code>, kein <code>Escrow</code>) — würde bei versehentlichem <code>&lt;script&gt;</code>-Tag alle Slot-Zugriffe im System brechen. <code>ui_1772799460339.js</code> überschreibt <code>window.Toast</code> + <code>window.Modal</code> mit alten ES6-Versionen.
+      </div>
+      <div class="fix-section">
+        <h4>Aktion</h4>
+        <pre><span class="hi">cd HTML/js</span>
+<span class="fn">rm</span> student_1772799460115.js
+<span class="fn">rm</span> teacher_1772799460201.js
+<span class="fn">rm</span> store_1772799460462.js
+<span class="fn">rm</span> admin_1772799460283.js
+<span class="fn">rm</span> ui_1772799460339.js
+<span class="fn">rm</span> auth_1772799460397.js</pre>
+      </div>
+      <div class="fix-section">
+        <h4>Verification</h4>
+        <pre><span class="cm"># Keine HTML-Datei darf diese Namen referenzieren</span>
+<span class="fn">grep</span> -r <span class="hi">"1772799460"</span> ../  <span class="cm"># → kein Ergebnis erwartet</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F2 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F2</span>
+      <div class="fix-title">
+        <code>Store.Slots.confirm()</code> in ui.js durch <code>AppService.confirmSlot()</code> ersetzen
+        <small>P1 · <span class="file">ui.js</span> ~221 · Escrow-Bypass bei Bestätigungen</small>
+      </div>
+      <span class="fix-effort">~5 Zeilen</span>
+    </div>
+    <div class="fix-body">
+      <div class="warn-box">
+        ⚠ Bestätigungen über diesen Pfad haben kein Escrow-Settlement und kein Error-Handling. Der korrekte Pfad (AppService.confirmSlot) wird in teacher.js ~1769 und student.js ~1583 bereits genutzt — nur dieser eine Pfad in ui.js ist noch falsch.
+      </div>
+      <div class="fix-section">
+        <h4>Vorher (ui.js ~218–228)</h4>
+        <pre>document.getElementById(<span class="hi">'modal-confirm'</span>).addEventListener(<span class="hi">'click'</span>, <span class="kw">function</span>() {
+  <span class="kw">for</span> (<span class="kw">var</span> ci = 0; ci &lt; block.bookedSlots.length; ci++) {
+    <span class="del">Store.Slots.confirm(block.bookedSlots[ci].slotId);</span>
+  }
+  <span class="kw">if</span> (opts.onConfirmBlock) opts.onConfirmBlock();
+  warn.close();
+});</pre>
+      </div>
+      <div class="fix-section">
+        <h4>Nachher</h4>
+        <pre>document.getElementById(<span class="hi">'modal-confirm'</span>).addEventListener(<span class="hi">'click'</span>, <span class="kw">function</span>() {
+  <span class="add">var done = 0; var total = block.bookedSlots.length;</span>
+  <span class="kw">for</span> (<span class="kw">var</span> ci = 0; ci &lt; block.bookedSlots.length; ci++) {
+    <span class="add">(function(slotId) {</span>
+      <span class="add">AppService.confirmSlot(slotId, function(e) {</span>
+        <span class="add">if (e) Toast.error(e.message || e);</span>
+        <span class="add">if (++done === total) {</span>
+          <span class="add">if (opts.onConfirmBlock) opts.onConfirmBlock();</span>
+          <span class="add">warn.close();</span>
+        <span class="add">}</span>
+      <span class="add">});</span>
+    <span class="add">})(block.bookedSlots[ci].slotId);</span>
+  }
+});</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F3 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F3</span>
+      <div class="fix-title">
+        Double-Save Busy-Guard — student.js + teacher.js
+        <small>R2 · Doppelklick kann denselben Slot zweimal buchen und zweimal Deposit abziehen</small>
+      </div>
+      <span class="fix-effort">~8 Zeilen</span>
+    </div>
+    <div class="fix-body">
+      <div class="fix-section">
+        <h4>student.js — confirmAndCommit() Confirm-Button deaktivieren</h4>
+        <pre><span class="cm">// modal-confirm-commit Button wird nach Klick sofort disabled</span>
+document.getElementById(<span class="hi">'modal-confirm-commit'</span>).addEventListener(<span class="hi">'click'</span>, <span class="kw">function</span>() {
+  <span class="add">var btn = document.getElementById('modal-confirm-commit');</span>
+  <span class="add">if (btn) btn.disabled = true;</span>
+  modal.close();
+  commitDayChanges();
+  <span class="cm">// commitDayChanges re-rendert alles → Button ist nach close() ohnehin weg</span>
+});</pre>
+      </div>
+      <div class="fix-section">
+        <h4>teacher.js — saveBookingChanges() Save-Button deaktivieren</h4>
+        <pre><span class="kw">function</span> <span class="fn">saveBookingChanges</span>() {
+  <span class="add">/* Guard: disable save button for duration of async operations */</span>
+  <span class="add">var fabGroup = document.getElementById('booking-fab-group');</span>
+  <span class="add">if (fabGroup) fabGroup.style.pointerEvents = 'none';</span>
+
+  <span class="kw">var</span> ids = Object.keys(pendingBookings);
+  <span class="cm">// ... existing loop ...</span>
+
+  <span class="cm">// At the end, after all sync setup:</span>
+  pendingBookings = {};
+  updateBookingSaveBtn();   <span class="cm">// hides the FAB — natural re-enable</span>
+  <span class="add">if (fabGroup) fabGroup.style.pointerEvents = '';</span>
+  <span class="cm">// ... rest of renders ...</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F4 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F4</span>
+      <div class="fix-title">
+        Redundanten <code>getWallet</code>-Call im teacher.js Cancel-Callback entfernen
+        <small>R3 · teacher.js ~1083 · 2 parallele async Calls auf dasselbe DOM-Element</small>
+      </div>
+      <span class="fix-effort">7 Zeilen löschen</span>
+    </div>
+    <div class="fix-body">
+      <div class="fix-section">
+        <h4>Vorher (teacher.js ~1080–1093)</h4>
+        <pre>AppService.cancelSlotWithPolicy(sid, <span class="hi">'teacher'</span>, <span class="kw">function</span>(e) {
+  <span class="kw">if</span> (e) Toast.error(e.message || e);
+  <span class="kw">else</span> {
+    <span class="del">/* Refresh navbar — teacher wallet may have received forfeited deposit */</span>
+    <span class="del">var walletEl = document.getElementById('navbar-wallet-amount');</span>
+    <span class="del">if (walletEl) {</span>
+      <span class="del">AppService.getWallet(currentUser.uid, function(err, wallet) {</span>
+        <span class="del">if (!err && wallet) walletEl.textContent = (...</span>
+      <span class="del">});</span>
+    <span class="del">}</span>
+  }
+});</pre>
+      </div>
+      <div class="fix-section">
+        <h4>Nachher</h4>
+        <pre>AppService.cancelSlotWithPolicy(sid, <span class="hi">'teacher'</span>, <span class="kw">function</span>(e) {
+  <span class="kw">if</span> (e) Toast.error(e.message || e);
+  <span class="cm">/* WalletPanel.refresh() at end of saveBookingChanges covers navbar update */</span>
+});</pre>
+      </div>
+      <div class="note-box">
+        <code>WalletPanel.refresh()</code> am Ende von <code>saveBookingChanges()</code> (bereits implementiert) ruft <code>_onBalanceUpdate</code> auf, das das Navbar-Badge setzt. Der Inline-Call ist daher vollständig redundant.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHASE 2 — DIESE WOCHE (Stabilität + Architektur)
+════════════════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-num p2-num">Phase 2</span>
+    <span class="phase-title">Diese Woche — Stabilität &amp; Architektur</span>
+    <span class="phase-meta">F5–F8 · Gesamtaufwand ~2–3h · abhängig von Phase 1</span>
+  </div>
+
+  <!-- F5 + F6 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F5 / F6</span>
+      <div class="fix-title">
+        Callback-Barrier für parallele Async-Ops — student.js + teacher.js
+        <small>R1 · Flackernde UI + Race Condition bei Mehrfach-Buchung / Mehrfach-Storno</small>
+      </div>
+      <span class="fix-effort">~25 Zeilen je Datei</span>
+    </div>
+    <div class="fix-body">
+      <div class="note-box">
+        <strong>Prinzip:</strong> Alle Async-Calls feuern weiterhin parallel (kein sequenzielles Warten). Ein Counter <code>pending</code> zählt herunter. Erst wenn alle Callbacks zurück sind, wird <em>einmal</em> re-gerendert. Errors werden gesammelt und nach dem Barrier als Toast ausgegeben.
+      </div>
+      <div class="fix-section">
+        <h4>Muster (gilt für beide Dateien)</h4>
+        <pre><span class="kw">function</span> <span class="fn">commitDayChanges</span>() {
+  <span class="kw">var</span> ids    = Object.keys(pendingDayChanges);
+  <span class="kw">var</span> saved  = {};
+  <span class="add">var pending = ids.length;</span>
+  <span class="add">var errors  = [];</span>
+
+  <span class="add">function onAllDone() {</span>
+    <span class="add">if (errors.length) Toast.error(errors[0]);</span>
+    <span class="add">pendingDayChanges = {};</span>
+    <span class="add">updateDaySaveBtn();</span>
+    <span class="add">renderStats();</span>
+    <span class="add">_updateMyBookingsBadges();</span>
+    <span class="add">renderMyBookingsList();</span>
+    <span class="add">renderCalendar();</span>
+    <span class="add">renderDaySlots();</span>
+    <span class="add">_refreshNavbarWallet(currentUser.uid);</span>
+    <span class="add">if (typeof WalletPanel !== 'undefined') WalletPanel.refresh(currentUser.uid);</span>
+    <span class="add">if (!errors.length) Toast.success('Gespeichert.');</span>
+  <span class="add">}</span>
+
+  <span class="add">if (!pending) { onAllDone(); return; }  /* nothing to do */</span>
+
+  <span class="kw">for</span> (<span class="kw">var</span> i = 0; i &lt; ids.length; i++) {
+    <span class="kw">var</span> p = pendingDayChanges[ids[i]];
+    saved[ids[i]] = p;
+    <span class="kw">if</span> (p.action === <span class="hi">'book'</span>) {
+      (<span class="kw">function</span>(sid, stuId, tid) {
+        AppService.bookSlotWithEscrow(sid, stuId, tid, <span class="kw">function</span>(e) {
+          <span class="add">if (e) errors.push(e.message || e);</span>
+          <span class="del">/* individual re-renders removed — onAllDone handles it */</span>
+          <span class="add">if (--pending === 0) onAllDone();</span>
+        });
+      })(ids[i], p.newStudentId || currentUser.uid, p.originalSlot.teacherId);
+    } <span class="kw">else</span> {
+      (<span class="kw">function</span>(sid) {
+        <span class="kw">var</span> slot = AppService.getAllSlotsSync().filter(<span class="kw">function</span>(s){ <span class="kw">return</span> s.slotId === sid; })[0];
+        <span class="kw">if</span> (!slot || slot.status !== <span class="hi">'booked'</span>) {
+          <span class="add">if (--pending === 0) onAllDone();</span>
+          <span class="kw">return</span>;
+        }
+        AppService.cancelSlotWithPolicy(sid, <span class="hi">'student'</span>, <span class="kw">function</span>(e) {
+          <span class="add">if (e) errors.push(e.message || e);</span>
+          <span class="add">if (--pending === 0) onAllDone();</span>
+        });
+      })(ids[i]);
+    }
+  }
+  <span class="cm">/* Email notifications fire independently — no barrier needed */</span>
+  <span class="cm">/* ... email loop unchanged ... */</span>
+  <span class="del">/* Remove the old synchronous render block that was here */</span>
+}</pre>
+      </div>
+      <div class="fix-section">
+        <h4>teacher.js — gleiches Muster für saveBookingChanges()</h4>
+        <pre><span class="cm">/* Same pattern: pending counter, errors[], onAllDone() */</span>
+<span class="cm">/* onAllDone calls: renderDayPanel, renderCalendar, renderStudentList,</span>
+<span class="cm">   renderAllBookingsList, WalletPanel.refresh, Toast.success */</span>
+<span class="cm">/* Each bookSlotWithEscrow + cancelSlotWithPolicy callback: errors.push + --pending check */</span>
+<span class="cm">/* Extra student createSlot calls also count toward pending */</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F7 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F7</span>
+      <div class="fix-title">
+        Store.*-Direktzugriffe in ui.js + teacher.js durch AppService ersetzen
+        <small>P2/P3/P4 · 10 Stellen · Bricht bei Firestore-Adapter-Swap</small>
+      </div>
+      <span class="fix-effort">10 Einzelzeilen</span>
+    </div>
+    <div class="fix-body">
+      <div class="fix-section">
+        <h4>Ersetzungstabelle</h4>
+        <div class="tbl-wrap" style="margin-bottom:0;">
+          <table>
+            <thead><tr><th>Datei</th><th>Zeile</th><th>Vorher</th><th>Nachher</th></tr></thead>
+            <tbody>
+              <tr><td><span class="file">ui.js</span></td><td>~119</td><td><code>Store.Slots.all().filter(x.slotId)</code></td><td><code>AppService.getAllSlotsSync().filter(...)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~281</td><td><code>Store.Slots.byTeacherDate(tid, date)</code></td><td><code>AppService.getSlotsByTeacherDateSync(tid, date)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~293</td><td><code>Store.slotEndTime(free[i].time)</code></td><td><code>AppService.slotEndTime(free[i].time)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~315</td><td><code>Store.Slots.byTeacherDate(tid, date)</code></td><td><code>AppService.getSlotsByTeacherDateSync(tid, date)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~349</td><td><code>Store.Slots.byTeacherDate(tid, date)</code></td><td><code>AppService.getSlotsByTeacherDateSync(tid, date)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~358</td><td><code>Store.Slots.all().filter(x.slotId)</code></td><td><code>AppService.getAllSlotsSync().filter(...)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~362</td><td><code>Store.Slots.all().filter(x.slotId)</code></td><td><code>AppService.getAllSlotsSync().filter(...)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~437</td><td><code>Store.Recurring.materialiseWeek(tid, dates)</code></td><td><code>AppService.materialiseWeek(tid, dates, function(){})</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~440</td><td><code>Store.Slots.byTeacherDate(tid, date)</code></td><td><code>AppService.getSlotsByTeacherDateSync(tid, date)</code></td></tr>
+              <tr><td><span class="file">ui.js</span></td><td>~510</td><td><code>Store.Slots.all().filter(x.slotId)</code></td><td><code>AppService.getAllSlotsSync().filter(...)</code></td></tr>
+              <tr><td><span class="file">teacher.js</span></td><td>~1209</td><td><code>Store.slotTimesInRange(START, END)</code></td><td><code>AppService.slotTimesInRange(START, END)</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="fix-section">
+        <h4>Hinweis zu materialiseWeek (ui.js ~437)</h4>
+        <pre><span class="cm">/* materialiseWeek ist async in AppService — der nachfolgende byTeacherDate-Read</span>
+<span class="cm">   auf Zeile ~440 muss in den Callback verschoben werden: */</span>
+AppService.materialiseWeek(teacherId, weekDates, <span class="kw">function</span>() {
+  <span class="kw">var</span> allDay = AppService.getSlotsByTeacherDateSync(teacherId, targetDateStr)
+    .sort(<span class="kw">function</span>(a, b) { <span class="kw">return</span> a.time.localeCompare(b.time); });
+  <span class="cm">// ... rest of the move-dialog logic ...</span>
+});</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F8 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F8</span>
+      <div class="fix-title">
+        loop.html + wallet-standalone.html löschen
+        <small>D2/D3 · Tote Artefakte, wallet-standalone.html ist verwaiste Kopie von wallet.html</small>
+      </div>
+      <span class="fix-effort">rm 2 Dateien</span>
+    </div>
+    <div class="fix-body">
+      <pre><span class="kw">cd</span> HTML
+<span class="fn">rm</span> loop.html
+<span class="fn">rm</span> wallet-standalone.html
+<span class="cm"># Verify: keine interne Links zu diesen Seiten</span>
+<span class="fn">grep</span> -r <span class="hi">"loop.html\|wallet-standalone"</span> .  <span class="cm"># → kein Ergebnis erwartet</span></pre>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════
+     PHASE 3 — REFACTORING (Wartbarkeit)
+════════════════════════════════════════════════════════ -->
+<div class="phase">
+  <div class="phase-header">
+    <span class="phase-num p3-num">Phase 3</span>
+    <span class="phase-title">Refactoring — Wartbarkeit</span>
+    <span class="phase-meta">F9–F10 · Gesamtaufwand ~4–6h · nur nach stabiler Phase 2</span>
+  </div>
+
+  <!-- F9 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F9</span>
+      <div class="fix-title">
+        renderBookingsPanel delegiert an renderAllBookingsList
+        <small>N1 · teacher.js ~675 · ~130 Zeilen duplizierter Pipeline-Code</small>
+      </div>
+      <span class="fix-effort">~30 Zeilen Umbau</span>
+    </div>
+    <div class="fix-body">
+      <div class="note-box">
+        <code>renderAllBookingsList()</code> kennt keinen Datumsfilter — sie rendert alle Tage. Der Plan: <code>renderAllBookingsList</code> akzeptiert ein optionales <code>opts.dateFilter</code>-Argument. Wenn gesetzt, rendert sie nur dieses Datum. <code>renderBookingsPanel</code> wird dann ein einzeiliger Delegator.
+      </div>
+      <div class="fix-section">
+        <h4>Strategie</h4>
+        <pre><span class="cm">/* 1. renderAllBookingsList(opts) — neues optionales Argument */</span>
+<span class="kw">function</span> <span class="fn">renderAllBookingsList</span>(opts) {
+  opts = opts || {};
+  <span class="add">var dateFilter = opts.dateFilter || null;  /* null = alle Tage */</span>
+
+  <span class="kw">var</span> allSlots = AppService.getSlotsByTeacherSync(currentUser.uid)
+    .filter(<span class="kw">function</span>(s) { <span class="kw">return</span> s.status === <span class="hi">'booked'</span> &amp;&amp; s.studentId; });
+
+  <span class="add">if (dateFilter) allSlots = allSlots.filter(function(s) { return s.date === dateFilter; });</span>
+
+  <span class="cm">// ... rest of pipeline unchanged ...</span>
+}
+
+<span class="cm">/* 2. renderBookingsPanel wird zum einzeiligen Delegator */</span>
+<span class="kw">function</span> <span class="fn">renderBookingsPanel</span>(panel, slots, dateStr) {
+  panel.innerHTML = <span class="hi">''</span>;
+  <span class="add">renderAllBookingsList({ dateFilter: dateStr, container: panel });</span>
+}
+
+<span class="cm">/* 3. renderAllBookingsList akzeptiert opts.container für Injection-Punkt */</span>
+<span class="cm">/* Falls kein container: nutzt das default all-bookings-list Element */</span></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- F10 -->
+  <div class="fix-card">
+    <div class="fix-card-header">
+      <span class="fix-id">F10</span>
+      <div class="fix-title">
+        Merge + Zeitfilter + BlockCount in ui.js zentralisieren
+        <small>N2/N3/N4 · student.js + teacher.js · duplizierte Logik in 3 Funktionen</small>
+      </div>
+      <span class="fix-effort">~60 Zeilen Refactor</span>
+    </div>
+    <div class="fix-body">
+      <div class="fix-section">
+        <h4>3 Konsolidierungen</h4>
+        <pre><span class="cm">/* ── In ui.js hinzufügen (global verfügbar) ── */</span>
+
+<span class="cm">/* N3: Zeitfilter — ersetzt Inline-Filter in student.js ~1443 */</span>
+<span class="kw">function</span> <span class="fn">applyTimeFilter</span>(slots, timeFilter, today) {
+  <span class="kw">if</span> (timeFilter === <span class="hi">'past'</span>)     <span class="kw">return</span> slots.filter(<span class="kw">function</span>(s){ <span class="kw">return</span> s.date &lt; today; });
+  <span class="kw">if</span> (timeFilter === <span class="hi">'upcoming'</span>) <span class="kw">return</span> slots.filter(<span class="kw">function</span>(s){ <span class="kw">return</span> s.date &gt;= today; });
+  <span class="kw">return</span> slots;
+}
+window.applyTimeFilter = applyTimeFilter;
+
+<span class="cm">/* N2: Merge-Funktion mit groupBy-Parameter */</span>
+<span class="cm">/* teacher.js mergeAllBookingBlocks und student.js _mergeStudentBookingBlocks</span>
+<span class="cm">   unterscheiden sich nur im Gruppierungsfeld: 'studentId' vs 'teacherId' */</span>
+<span class="kw">function</span> <span class="fn">mergeBookingBlocks</span>(dateStr, slots, today, groupField) {
+  <span class="cm">/* ... gemeinsame Logik ... */</span>
+  <span class="cm">/* groupField: 'studentId' (teacher-Sicht) oder 'teacherId' (student-Sicht) */</span>
+}
+window.mergeBookingBlocks = mergeBookingBlocks;
+
+<span class="cm">/* N4: BlockCount mit einheitlicher Signatur */</span>
+<span class="kw">function</span> <span class="fn">calcBookingBlockCounts</span>(slots, today, mergeFn) {
+  <span class="cm">/* ... aus teacher.js _calcBlockCounts extrahiert ... */</span>
+}
+window.calcBookingBlockCounts = calcBookingBlockCounts;</pre>
+      </div>
+      <div class="fix-section">
+        <h4>Reihenfolge</h4>
+        <pre><span class="hi">1.</span> applyTimeFilter in ui.js → student.js inline-Filter ersetzen  <span class="cm">(~3 Zeilen)</span>
+<span class="hi">2.</span> mergeBookingBlocks in ui.js → teacher + student Wrapper anpassen <span class="cm">(~20 Zeilen)</span>
+<span class="hi">3.</span> calcBookingBlockCounts in ui.js → teacher + student nutzen es  <span class="cm">(~10 Zeilen)</span>
+<span class="hi">4.</span> Originale nach Migration als deprecated markieren, in Folge-PR löschen</pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

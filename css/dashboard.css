@@ -1,0 +1,304 @@
+/* ── dashboard.css ─────────────────────────────────────────
+   Dashboard — Schedule ListView
+   No inline styles. All values via design tokens.
+   ──────────────────────────────────────────────────────── */
+
+/* ── Month section header ──────────────────────────────── */
+.dash-month-header {
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--sp-4) 0 var(--sp-2);
+  border-bottom: 1px solid var(--neutral-200);
+  margin-bottom: var(--sp-3);
+}
+
+/* ── Day group ─────────────────────────────────────────── */
+.dash-day {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  gap: 0 var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+
+.dash-day-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.dash-day-weekday {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.dash-day-num {
+  font-size: var(--text-large);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1;
+}
+
+.dash-day-num--today {
+  color: var(--color-400);
+}
+
+.dash-day-slots {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+/* ── Lesson card ───────────────────────────────────────── */
+.dash-lesson {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--color-400);
+  padding: var(--sp-2) var(--sp-3);
+  min-width: 0;
+  cursor: pointer;
+  transition: box-shadow var(--transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dash-lesson:hover {
+    box-shadow: var(--shadow);
+  }
+}
+
+/* Left border colour states */
+.dash-lesson--confirmed {
+  border-left-color: var(--status-confirmed-icon);
+}
+
+.dash-lesson--pending {
+  border-left-color: var(--pending-amber);
+}
+
+.dash-lesson--past {
+  border-left-color: var(--neutral-300);
+  opacity: 0.65;
+}
+
+/* ── Lesson body ───────────────────────────────────────── */
+.dash-lesson-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-lesson-name {
+  font-size: var(--text-small);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.dash-lesson-time {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  white-space: nowrap;
+}
+
+/* ── Avatar wrapper ────────────────────────────────────── */
+.dash-lesson-avatar {
+  flex-shrink: 0;
+}
+
+/* ── Empty state ───────────────────────────────────────── */
+.dash-empty {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--neutral-400);
+  font-size: var(--text-small);
+}
+
+/* ── Loading state ─────────────────────────────────────── */
+.dash-loading {
+  text-align: center;
+  padding: var(--sp-5);
+  color: var(--neutral-400);
+  font-size: var(--text-small);
+}
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .dash-day {
+    grid-template-columns: 40px 1fr;
+    gap: 0 var(--sp-2);
+  }
+
+  .dash-day-num {
+    font-size: var(--text-body);
+  }
+}
+
+/* ── Lesson slot count badge ───────────────────────────── */
+.dash-lesson-count {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+}
+
+/* ── Status icon badge ─────────────────────────────────── */
+.dash-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+  /* tooltip via title attribute */
+}
+
+/* Bestätigt — Zukunft: grüner Akzent */
+.dash-badge--confirmed {
+  color: var(--status-confirmed-icon);
+  background: var(--status-confirmed-bg);
+  border: 1px solid var(--status-confirmed-bd);
+}
+
+/* Ausstehend — Zukunft, unbestätigt: Amber */
+.dash-badge--pending {
+  color: var(--pending-amber);
+  background: var(--pending-amber-bg);
+  border: 1px solid var(--pending-amber-bd, var(--pending-amber));
+}
+
+/* Abgeschlossen — Vergangenheit, bestätigt: gedämpft grau */
+.dash-badge--done {
+  color: var(--neutral-400);
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+}
+
+/* Nicht bestätigt — Vergangenheit, unbestätigt: grau */
+.dash-badge--overdue {
+  color: var(--neutral-400);
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+}
+
+/* Dialog: badge mit Text */
+.dash-badge--confirmed.dash-badge--label,
+.dash-badge--pending.dash-badge--label,
+.dash-badge--done.dash-badge--label,
+.dash-badge--overdue.dash-badge--label {
+  width: auto;
+  gap: 5px;
+  padding: 2px var(--sp-2);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ── Block action dialog body ──────────────────────────── */
+.dash-dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.dash-dialog-party {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+}
+
+.dash-dialog-avatar { flex-shrink: 0; }
+
+.dash-dialog-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+
+.dash-dialog-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+
+.dash-dialog-date {
+  font-size: var(--text-small);
+  color: var(--neutral-600);
+}
+
+.dash-dialog-time {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+
+.dash-dialog-status { display: flex; }
+
+.dash-dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.dash-dialog-btn {
+  width: 100%;
+  justify-content: flex-start;
+  gap: var(--sp-2);
+  text-align: left;
+}
+
+/* ── Badges (reused across dashboard) ──────────────────── */
+.badge-past {
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px 8px;
+}
+
+/* ── Now Line ──────────────────────────────────────────── */
+.dash-now-line {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.dash-now-line-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ok, #16a34a);
+  flex-shrink: 0;
+}
+
+.dash-now-line-bar {
+  flex: 1;
+  height: 2px;
+  background: var(--ok, #16a34a);
+  border-radius: 1px;
+}
+
+.dash-now-line-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--ok, #16a34a);
+  white-space: nowrap;
+  flex-shrink: 0;
+}

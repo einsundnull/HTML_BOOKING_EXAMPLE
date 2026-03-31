@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="doc-created" content="2026-03-24">
+  <meta name="doc-type" content="IMPL">
+  <meta name="doc-subject" content="Individueller Schülerpreis — vollständige Implementierungstabelle">
+  <title>IMPL — Individueller Schülerpreis 2026-03-24</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 820px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.ok { background: rgba(22,163,74,.3); border-color: rgba(22,163,74,.5); }
+    .ph-badge.warn { background: rgba(220,38,38,.3); border-color: rgba(220,38,38,.5); }
+    .page { padding: 28px 40px; max-width: 1200px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid; font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px; background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left; padding: 9px 13px; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200); vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-critical { background: #fff0f0; }
+    tbody tr.r-display  { background: var(--info-bg); }
+    tbody tr.r-ok       { background: var(--ok-bg); }
+    tbody tr.r-calc     { background: #fefce8; }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07); padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .sev { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; white-space: nowrap; }
+    .sev-critical { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+    .sev-display  { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    .sev-ok       { background: var(--ok-bg); color: var(--ok-tx); border: 1px solid var(--ok-bd); }
+    .sev-calc     { background: #fefce8; color: #713f12; border: 1px solid #fef08a; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px; padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0; white-space: pre; display: block; line-height: 1.75; background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; } .cs { color: #86efac; } .cn { color: #fca5a5; }
+    .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--n500); }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem</div>
+  <div class="ph-title">Individueller Schülerpreis — Vollständige Implementierungstabelle</div>
+  <div class="ph-sub">
+    Alle Stellen im Code, an denen Preise angezeigt, berechnet oder in Escrow / Stornierungslogik
+    verwendet werden. Kategorisiert nach Kritikalität. Basiert auf
+    <code style="color:rgba(255,255,255,.8)">getStudentPriceForTeacherSync(studentId, teacherId)</code>
+    als Ersatz für <code style="color:rgba(255,255,255,.8)">getTeacherPriceSync(teacherId)</code>.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge warn">⚠ 2× Kritisch — Escrow/Refund falsch</span>
+    <span class="ph-badge">📅 24. März 2026</span>
+    <span class="ph-badge">student.js · teacher.js · ui.js · adapter-localstorage.js · app-service.js · skiing-catalog.js</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ══ Kausalkette ══════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">0</span>
+      <span class="sec-title">Kausalkette — warum Escrow/Refund betroffen sind</span>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Kritischer Fehler:</strong> <code>createEscrow()</code> in
+      <code>adapter-localstorage.js</code> Zeile 1171 liest <code>profile.pricePerHalfHour</code>
+      direkt aus dem Lehrerprofil — ignoriert <code>Selection.priceOverride</code> vollständig.
+      Dadurch ist <code>escrow.fullAmount</code> und <code>escrow.depositAmount</code> für Schüler
+      mit individuellem Preis falsch. Da <code>calcCancellationPolicy()</code> diese Werte aus dem
+      Escrow liest, sind <strong>alle Rückerstattungs- und Einbehaltungsbeträge ebenfalls falsch</strong>.
+    </div>
+
+    <div class="code-label">Kausalkette</div>
+    <div class="code-block"><code><span class="cn">createEscrow(slotId, studentId, teacherId)</span>
+  → liest <span class="cn">profile.pricePerHalfHour</span>          <span class="cm">← FALSCH (ignoriert priceOverride)</span>
+  → setzt <span class="cn">escrow.fullAmount</span>                  <span class="cm">← zu hoch / zu niedrig</span>
+  → _calcDeposit(profile, fullAmount)
+  → setzt <span class="cn">escrow.depositAmount</span>               <span class="cm">← falsch (% vom falschen fullAmount)</span>
+         ↓
+<span class="cn">calcCancellationPolicy(slotId)</span>
+  → liest <span class="cn">escrow.depositAmount</span>                <span class="cm">← bereits falsch</span>
+  → berechnet <span class="cn">refundAmount</span>                    <span class="cm">← falsch</span>
+  → berechnet <span class="cn">forfeitAmount</span>                   <span class="cm">← falsch</span>
+         ↓
+<span class="cn">writeBlockCancellationRecord()</span>
+  → überweist falschen Betrag an Student/Lehrer  <span class="cm">← Geldbewegung falsch</span></code></div>
+  </div>
+
+  <!-- ══ Vollständige Tabelle ══════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Alle Implementierungen</span>
+      <span class="sec-sub">14 Punkte · 6 Dateien</span>
+    </div>
+
+    <div class="legend">
+      <span class="legend-item"><span class="sev sev-critical">KRITISCH</span> Falsche Geldbewegung / Escrow-Berechnung</span>
+      <span class="legend-item"><span class="sev sev-calc">RECHNUNG</span> Falsche Kostenberechnung / Affordability</span>
+      <span class="legend-item"><span class="sev sev-display">ANZEIGE</span> Falscher Preis in der UI</span>
+      <span class="legend-item"><span class="sev sev-ok">OK</span> Bereits korrekt — kein Fix nötig</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Schwere</th>
+            <th>Datei</th>
+            <th>Zeile / Funktion</th>
+            <th>Problem</th>
+            <th>Fix</th>
+            <th>Kontext</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- KRITISCH -->
+          <tr class="r-critical">
+            <td><strong>1</strong></td>
+            <td><span class="sev sev-critical">KRITISCH</span></td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td>Zeile 1171<br><code>createEscrow()</code></td>
+            <td><code>profile.pricePerHalfHour</code> direkt gelesen — ignoriert <code>priceOverride</code></td>
+            <td>Selection lesen, <code>priceOverride</code> als Priorität 1 verwenden:<br>
+              <code>var sel = Store.Selections.all().filter(s.studentId===studentId && s.teacherId===teacherId)[0]</code><br>
+              <code>var fullAmount = sel?.priceOverride ?? profile.pricePerHalfHour</code></td>
+            <td>Escrow wird bei <code>bookSlotWithEscrow</code> direkt nach <code>bookSlot()</code> erstellt. <code>escrow.fullAmount</code> ist SSOT für alle späteren Berechnungen.</td>
+          </tr>
+
+          <tr class="r-critical">
+            <td><strong>2</strong></td>
+            <td><span class="sev sev-critical">KRITISCH</span></td>
+            <td><code>app-service.js</code></td>
+            <td>Zeile 651<br><code>createEscrowForStudent()</code></td>
+            <td><code>getTeacherPriceSync(teacherId)</code> — ignoriert studentId bei Multi-Schüler-Buchung</td>
+            <td><code>getStudentPriceForTeacherSync(studentId, teacherId)</code></td>
+            <td>Wird bei Multi-Schüler-Buchungen durch Lehrer aufgerufen. Jeder Schüler kann einen anderen Preis haben.</td>
+          </tr>
+
+          <!-- RECHNUNG -->
+          <tr class="r-calc">
+            <td><strong>3</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~89<br>Pending affordability — <code>_updateSaveSummary()</code></td>
+            <td><code>getTeacherPriceSync(s.teacherId)</code> als Fallback wenn <code>s.price</code> nicht gesetzt</td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, s.teacherId)</code></td>
+            <td>Fallback tritt nur auf wenn Slot noch nicht gebucht (kein <code>slot.price</code> gesetzt). Zeigt falsche Gesamtkosten im Save-Button-Banner.</td>
+          </tr>
+
+          <tr class="r-calc">
+            <td><strong>4</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~319<br>Confirm-Dialog pending slots</td>
+            <td>Gleicher Fallback: <code>getTeacherPriceSync(s.teacherId)</code></td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, s.teacherId)</code></td>
+            <td>Kostenübersicht im Bestätigungs-Dialog vor dem Buchen zeigt falschen Gesamtpreis.</td>
+          </tr>
+
+          <tr class="r-calc">
+            <td><strong>5</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>teacher.js</code></td>
+            <td>Zeile 1302<br>Booking form <code>pricePerSlot</code></td>
+            <td><code>getTeacherPriceSync(teacherUid)</code> — eine Preis-Zeile für alle Schüler</td>
+            <td>Pro selektierten Schüler separat <code>getStudentPriceForTeacherSync(uid2, teacherUid)</code> aufrufen. Gesamtkosten und Deposit pro Schüler berechnen.</td>
+            <td>Lehrer-Buchungsformular (Block buchen) zeigt Prüfung pro Schüler — bei verschiedenen Preisen muss jeder Schüler seinen eigenen Betrag sehen.</td>
+          </tr>
+
+          <tr class="r-calc">
+            <td><strong>6</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>ui.js</code></td>
+            <td>Zeile 591<br><code>_pricePerSlot()</code> in <code>_openRecurringBookingDialog()</code></td>
+            <td><code>getTeacherPriceSync(teacherId)</code> — kein studentId bekannt</td>
+            <td><code>stuId</code> ist in <code>opts.stuId</code> verfügbar → <code>getStudentPriceForTeacherSync(stuId, teacherId)</code></td>
+            <td>Regelmäßig-Buchen-Dialog zeigt Kosten pro Woche / gesamt. Wird sowohl von Student als auch von Lehrer aufgerufen.</td>
+          </tr>
+
+          <tr class="r-calc">
+            <td><strong>7</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile 574<br>Notification-Snapshot <code>pricePerSlot</code></td>
+            <td><code>getTeacherPriceSync(tKey)</code></td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, tKey)</code></td>
+            <td>Buchungsbenachrichtigung im Chat und E-Mail enthält falschen Betrag. <code>amount</code> und <code>totalAmount</code> im Snapshot falsch.</td>
+          </tr>
+
+          <tr class="r-calc">
+            <td><strong>8</strong></td>
+            <td><span class="sev sev-calc">RECHNUNG</span></td>
+            <td><code>teacher.js</code></td>
+            <td>Zeile 1634<br>Notification-Snapshot (Lehrer bucht für Schüler)</td>
+            <td><code>getTeacherPriceSync(currentUser.uid)</code> — eine Preis für alle Schüler in der Schleife</td>
+            <td>Innerhalb der <code>Object.keys(notifByStu).forEach</code>-Schleife: <code>getStudentPriceForTeacherSync(sUid, currentUser.uid)</code></td>
+            <td>Wenn Lehrer mehrere Schüler mit unterschiedlichen Preisen bucht, erhält jeder die gleiche (falsche) Benachrichtigung.</td>
+          </tr>
+
+          <!-- ANZEIGE -->
+          <tr class="r-display">
+            <td><strong>9</strong></td>
+            <td><span class="sev sev-display">ANZEIGE</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile 946<br><code>buildTeacherCard()</code></td>
+            <td><code>getTeacherPriceSync(teacher.uid)</code> — immer Standardpreis</td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, teacher.uid)</code> + Badge „Ihr Preis" wenn Override aktiv</td>
+            <td>Lehrer-Karte im My-Teachers-Katalog. Student sieht immer Standardpreis obwohl sein Preis abweicht.</td>
+          </tr>
+
+          <tr class="r-display">
+            <td><strong>10</strong></td>
+            <td><span class="sev sev-display">ANZEIGE</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile 1854<br>„Slot buchen?"-Modal <code>_slotPrice</code></td>
+            <td><code>getTeacherPriceSync(activeTeacherId)</code></td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, activeTeacherId)</code></td>
+            <td>Vor-Buchungs-Dialog zeigt „X € / Termin" — bei individuellem Preis falsch.</td>
+          </tr>
+
+          <tr class="r-display">
+            <td><strong>11</strong></td>
+            <td><span class="sev sev-display">ANZEIGE</span></td>
+            <td><code>student.js</code></td>
+            <td>Zeile 2724<br>Day-View Slot-Info <code>sdv-price</code></td>
+            <td><code>getTeacherPriceSync(_sdvTeacherId)</code></td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, _sdvTeacherId)</code></td>
+            <td>Tages-Slot-Ansicht des Schülers zeigt falschen Preis neben dem Slot.</td>
+          </tr>
+
+          <tr class="r-display">
+            <td><strong>12</strong></td>
+            <td><span class="sev sev-display">ANZEIGE</span></td>
+            <td><code>ui.js</code></td>
+            <td>Zeile 1111<br><code>showProfileSheet()</code></td>
+            <td><code>p.pricePerHalfHour</code> direkt — kein studentId vorhanden</td>
+            <td><code>showProfileSheet</code> bekommt optional <code>viewerUid</code>: wenn gesetzt → <code>getStudentPriceForTeacherSync(viewerUid, uid)</code></td>
+            <td>Profil-Sheet (aufgeklappt per Avatar-Klick) zeigt immer Standardpreis. Lohnt sich besonders wenn Student das Lehrerprofil aus der Buchungsliste öffnet.</td>
+          </tr>
+
+          <tr class="r-display">
+            <td><strong>13</strong></td>
+            <td><span class="sev sev-display">ANZEIGE</span></td>
+            <td><code>skiing-catalog.js</code></td>
+            <td>Zeile 648<br><code>_buildCard()</code></td>
+            <td><code>p.pricePerHalfHour</code> direkt aus Profil-Objekt</td>
+            <td><code>_currentUser</code> prüfen → <code>getStudentPriceForTeacherSync(_currentUser.uid, uid)</code>, Fallback auf <code>p.pricePerHalfHour</code> für Gäste</td>
+            <td>Skiing-Katalog-Karte zeigt immer Standardpreis. Katalog ist auch ohne Login sichtbar — Fallback nötig.</td>
+          </tr>
+
+          <!-- OK -->
+          <tr class="r-ok">
+            <td>✓</td>
+            <td><span class="sev sev-ok">OK</span></td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td>Zeile 412<br><code>bookSlot()</code></td>
+            <td>—</td>
+            <td>Bereits korrekt seit Commit 2026-03-24-118</td>
+            <td><code>slot.price</code> wird korrekt mit priceOverride als Prio 1 gesetzt. Alle bereits gebuchten Slots haben den richtigen eingefrierenen Preis.</td>
+          </tr>
+
+          <tr class="r-ok">
+            <td>✓</td>
+            <td><span class="sev sev-ok">OK</span></td>
+            <td><code>student.js</code> / <code>teacher.js</code></td>
+            <td>Buchungslisten <code>priceFn</code></td>
+            <td>—</td>
+            <td>Bereits korrekt — liest <code>s.price</code></td>
+            <td>Alle Buchungslisten lesen <code>slot.price</code> (eingefroren bei Buchung). Sobald #1 gefixt ist, sind auch Neu-Buchungen korrekt.</td>
+          </tr>
+
+          <tr class="r-ok">
+            <td>✓</td>
+            <td><span class="sev sev-ok">OK</span></td>
+            <td><code>app-service.js</code></td>
+            <td><code>calcCancellationPolicy()</code></td>
+            <td>—</td>
+            <td>Kein Fix nötig — liest <code>escrow.depositAmount</code></td>
+            <td>Sobald #1 (<code>createEscrow</code>) gefixt ist, rechnet <code>calcCancellationPolicy</code> automatisch korrekt.</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ Implementierungsreihenfolge ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Empfohlene Implementierungsreihenfolge</span>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Zuerst #1 und #2 (Kritisch)</strong> — alle anderen Fixes sind wertlos solange
+      das Escrow falsch angelegt wird. Ein Student mit individuellem Preis zahlt sonst das
+      falsche Deposit und bekommt beim Stornieren den falschen Betrag zurück.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Schritt</th><th>Punkte</th><th>Dateien</th><th>Grund</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-critical">
+            <td><strong>1. Zuerst</strong></td>
+            <td>#1, #2</td>
+            <td><code>adapter-localstorage.js</code>, <code>app-service.js</code></td>
+            <td>Escrow-Basis — alle Finanzoperationen hängen davon ab</td>
+          </tr>
+          <tr class="r-calc">
+            <td><strong>2. Dann</strong></td>
+            <td>#3, #4, #5, #6, #7, #8</td>
+            <td><code>student.js</code>, <code>teacher.js</code>, <code>ui.js</code></td>
+            <td>Berechnungen — Affordability, Dialoge, Notifications</td>
+          </tr>
+          <tr class="r-display">
+            <td><strong>3. Danach</strong></td>
+            <td>#9–#13</td>
+            <td><code>student.js</code>, <code>ui.js</code>, <code>skiing-catalog.js</code>, <code>student.css</code></td>
+            <td>Anzeige — rein visuell, kein finanzieller Fehler</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ Konkreter Code für kritische Fixes ═══════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Kritische Fixes — Code</span>
+    </div>
+
+    <div class="code-label">Fix #1 — adapter-localstorage.js : createEscrow() : Zeile 1171</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+<span class="ck">var</span> fullAmount = parseFloat(profile.pricePerHalfHour) || 0;
+
+<span class="cm">/* Nachher — priceOverride aus Selection hat Priorität */</span>
+<span class="ck">var</span> _sel = Store.Selections.all().filter(<span class="ck">function</span>(s) {
+  <span class="ck">return</span> s.studentId === studentId && s.teacherId === teacherId;
+})[0];
+<span class="ck">var</span> fullAmount =
+  (_sel && _sel.priceOverride !== undefined &&
+   _sel.priceOverride !== null && _sel.priceOverride !== <span class="cs">''</span>)
+    ? parseFloat(_sel.priceOverride) || 0
+    : parseFloat(profile.pricePerHalfHour) || 0;</code></div>
+
+    <div class="code-label">Fix #2 — app-service.js : createEscrowForStudent() : Zeile 651</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+calcDepositInfo(teacherId, _call(<span class="cs">'getTeacherPriceSync'</span>, [teacherId]) || 0, <span class="ck">function</span>(depErr, dep) {
+
+<span class="cm">/* Nachher */</span>
+<span class="ck">var</span> _stuPrice = getStudentPriceForTeacherSync(studentId, teacherId) || 0;
+calcDepositInfo(teacherId, _stuPrice, <span class="ck">function</span>(depErr, dep) {</code></div>
+
+    <div class="code-label">Fix #5 — teacher.js : Booking form : Zeile 1302 (pro Schüler)</div>
+    <div class="code-block"><code><span class="cm">/* Vorher — ein Preis für alle Schüler */</span>
+<span class="ck">var</span> pricePerSlot = AppService.getTeacherPriceSync(teacherUid);
+<span class="ck">var</span> totalCost    = Math.round(pricePerSlot * slotCount * 100) / 100;
+AppService.calcDepositInfo(teacherUid, totalCost, <span class="ck">function</span>(err, dep) { ... });
+
+<span class="cm">/* Nachher — Prüfung pro selektiertem Schüler */</span>
+<span class="cm">/* Im Bestätigungs-Loop über selectedUids: */</span>
+<span class="ck">var</span> pricePerSlot = AppService.getStudentPriceForTeacherSync(uid2, teacherUid);
+<span class="ck">var</span> stuTotal     = Math.round(pricePerSlot * slotCount * 100) / 100;
+AppService.calcDepositInfo(teacherUid, stuTotal, <span class="ck">function</span>(err, dep) { ... });</code></div>
+
+    <div class="code-label">Fix #6 — ui.js : _pricePerSlot() : Zeile 591</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+<span class="ck">function</span> _pricePerSlot() {
+  <span class="ck">return</span> AppService.getTeacherPriceSync(teacherId) || 0;
+}
+
+<span class="cm">/* Nachher — stuIds[0] ist im Closure verfügbar */</span>
+<span class="ck">function</span> _pricePerSlot() {
+  <span class="ck">var</span> sid = stuIds && stuIds.length ? stuIds[0] : null;
+  <span class="ck">if</span> (sid && typeof AppService.getStudentPriceForTeacherSync === <span class="cs">'function'</span>) {
+    <span class="ck">return</span> AppService.getStudentPriceForTeacherSync(sid, teacherId) || 0;
+  }
+  <span class="ck">return</span> AppService.getTeacherPriceSync(teacherId) || 0;
+}</code></div>
+  </div>
+
+  <footer>
+    <span>IMPL_INDIVIDUAL_PRICE_FULL_20260324.html</span>
+    <span>Stand: 2026-03-24</span>
+  </footer>
+</div>
+</body>
+</html>

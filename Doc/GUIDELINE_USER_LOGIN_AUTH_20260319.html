@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Guidelines — User Handling, Login &amp; Auth</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.7}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;--navy-600:#1a3249;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--ok-bd:#bbf7d0;
+      --err:#c0392b;--err-bg:#fff5f5;--err-bd:#fecaca;
+      --info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+    }
+    .ph{background:var(--navy);padding:32px 40px 28px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.35);margin-bottom:8px}
+    .ph-title{font-size:28px;font-weight:700;color:#fff;margin-bottom:6px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.45);max-width:820px;margin-bottom:16px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .toc{background:var(--navy-800);padding:20px 40px}
+    .toc-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:10px}
+    .toc-list{display:flex;flex-wrap:wrap;gap:6px 20px}
+    .toc-item{font-size:12px;color:rgba(255,255,255,.6);text-decoration:none}
+    .toc-item:hover{color:#fff}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.toc,.page{padding:16px}}
+    .sec{margin-bottom:52px}
+    .sec-hdr{display:flex;align-items:center;gap:12px;margin-bottom:18px;padding-bottom:10px;border-bottom:2px solid var(--n200)}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--navy);color:#fff;font-size:12px;font-weight:700;flex-shrink:0}
+    .sec-title{font-size:18px;font-weight:700}
+    .rule{border-radius:8px;margin-bottom:12px;border:1px solid}
+    .rule-ok{background:var(--ok-bg);border-color:var(--ok-bd)}
+    .rule-err{background:var(--err-bg);border-color:var(--err-bd)}
+    .rule-hdr{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid;font-weight:700;font-size:13px}
+    .rule-ok .rule-hdr{border-color:var(--ok-bd);color:#14532d}
+    .rule-err .rule-hdr{border-color:var(--err-bd);color:#7f1d1d}
+    .rule-body{padding:10px 14px;font-size:13px;line-height:1.6}
+    .rule-ok .rule-body{color:#14532d}
+    .rule-err .rule-body{color:#7f1d1d}
+    .rule code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+    .code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0}
+    .code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:14px}
+    .code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0}
+    .cm{color:#64748b}.ck{color:#93c5fd}.cs{color:#86efac}.cv{color:#fde68a}
+    p{margin-bottom:10px;font-size:13px;color:var(--n700)}
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">BookingSystem — Architecture Guidelines</div>
+  <div class="ph-title">User Handling, Login &amp; Auth</div>
+  <div class="ph-sub">Verbindliche Regeln für alle Implementierungen rund um User-Objekte, Authentifizierung, Username und den Zugriff auf Benutzerdaten.</div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">Version 1.0</span>
+    <span class="ph-badge">Ergänzt Guideline_Layout_and_Styling.txt § 8</span>
+  </div>
+</div>
+
+<div class="toc">
+  <div class="toc-title">Inhalt</div>
+  <div class="toc-list">
+    <a class="toc-item" href="#s1">1. Schichten-Architektur</a>
+    <a class="toc-item" href="#s2">2. User-Objekt Schema</a>
+    <a class="toc-item" href="#s3">3. Username-Regeln</a>
+    <a class="toc-item" href="#s4">4. Auth-Regeln</a>
+    <a class="toc-item" href="#s5">5. Verbotene Muster</a>
+    <a class="toc-item" href="#s6">6. Öffentliche AppService API</a>
+    <a class="toc-item" href="#s7">7. Checkliste neue Features</a>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- 1. SCHICHTEN -->
+  <div class="sec" id="s1">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">Schichten-Architektur</div></div>
+
+    <p>Jeder Datenzugriff läuft durch genau 4 Schichten in dieser Reihenfolge. Keine Schicht darf eine höhere direkt aufrufen, keine Schicht darf eine tiefere überspringen.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Schicht</th><th>Datei(en)</th><th>Darf aufrufen</th><th>Darf NICHT aufrufen</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Consumer</strong></td><td><code>landing.js</code>, <code>teacher.js</code>, <code>student.js</code>, <code>admin.js</code>, <code>dashboard.js</code>, …</td><td><code>AppService.*</code>, <code>Auth.*</code>, <code>ProfileStore.*</code> (nur für Display-Namen)</td><td><code>Store.*</code>, <code>localStorage.*</code>, Adapter direkt</td></tr>
+          <tr><td>2</td><td><strong>Service</strong></td><td><code>app-service.js</code></td><td>Adapter via <code>_call()</code></td><td><code>Store.*</code> direkt, <code>localStorage.*</code></td></tr>
+          <tr><td>3</td><td><strong>Adapter</strong></td><td><code>adapter-localstorage.js</code>, <code>adapter-firestore.js</code></td><td><code>Store.*</code>, <code>ProfileStore.*</code>, <code>localStorage.*</code></td><td>Consumer-Code, AppService</td></tr>
+          <tr><td>4</td><td><strong>Store</strong></td><td><code>store.js</code></td><td><code>localStorage</code> intern</td><td>Alle anderen Schichten</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule rule-ok">
+      <div class="rule-hdr">✅ Korrekt — Consumer nutzt AppService</div>
+      <div class="rule-body"><code>AppService.getUserByEmailOrUsername(query, function(err, user) { … });</code></div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Verboten — Consumer greift auf Store zu</div>
+      <div class="rule-body"><code>var user = Store.Users.byUsername(query); // NIEMALS in Consumer-Code!</code></div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Verboten — Consumer greift auf localStorage zu</div>
+      <div class="rule-body"><code>var raw = JSON.parse(localStorage.getItem('app_users')); // NIEMALS!</code></div>
+    </div>
+  </div>
+
+  <!-- 2. USER SCHEMA -->
+  <div class="sec" id="s2">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">User-Objekt Schema</div></div>
+
+    <div class="code-label">store.js — User-Objekt (vollständig)</div>
+    <div class="code-block"><code>{
+  <span class="ck">uid</span>:         <span class="cs">"u_t_1742123456789"</span>,   <span class="cm">// intern, unveränderlich, URL-Parameter</span>
+  <span class="ck">name</span>:        <span class="cs">"Matthias Heinold"</span>,    <span class="cm">// Anzeigename, NICHT eindeutig</span>
+  <span class="ck">username</span>:    <span class="cs">"matthias.heinold"</span>,    <span class="cm">// Login-Handle, eindeutig, lowercase, kein @</span>
+  <span class="ck">role</span>:        <span class="cs">"teacher"</span>,             <span class="cm">// "teacher" | "student" | "admin"</span>
+  <span class="ck">email</span>:       <span class="cs">"m@example.com"</span>,       <span class="cm">// Login-Identifier (alternativ zu username)</span>
+  <span class="ck">password</span>:    <span class="cs">"geheim"</span>,              <span class="cm">// Klartext — nur für Mock/Demo</span>
+  <span class="ck">discipline</span>:  <span class="cs">"ski"</span>                  <span class="cm">// nur für role=teacher</span>
+}</code></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Feld</th><th>Typ</th><th>Eindeutig</th><th>Änderbar</th><th>Wer setzt es</th></tr></thead>
+        <tbody>
+          <tr><td><code>uid</code></td><td>String</td><td>✅</td><td>❌ Nie</td><td>Admin manuell (<code>t1</code>) oder Auto-Generate beim Signup (<code>u_t_[timestamp]</code>)</td></tr>
+          <tr><td><code>name</code></td><td>String</td><td>❌</td><td>✅</td><td>User (Signup, Profil-Edit), Admin</td></tr>
+          <tr><td><code>username</code></td><td>String (lowercase)</td><td>✅</td><td>✅</td><td>User (Signup auto-generiert oder manuell), Profil-Edit, Admin</td></tr>
+          <tr><td><code>role</code></td><td>Enum</td><td>n/a</td><td>❌</td><td>Admin bei Erstellung</td></tr>
+          <tr><td><code>email</code></td><td>String</td><td>✅ (de facto)</td><td>✅</td><td>Admin, User bei Signup</td></tr>
+          <tr><td><code>password</code></td><td>String</td><td>n/a</td><td>✅</td><td>Admin, User bei Signup</td></tr>
+          <tr><td><code>discipline</code></td><td>Enum|''</td><td>❌</td><td>✅</td><td>Admin, Lehrer bei Signup/Profil-Edit</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. USERNAME -->
+  <div class="sec" id="s3">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Username-Regeln</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Regel</th><th>Wert/Format</th></tr></thead>
+        <tbody>
+          <tr><td>Erlaubte Zeichen</td><td><code>[a-z0-9._]</code> — Kleinbuchstaben, Zahlen, Punkt, Unterstrich</td></tr>
+          <tr><td>Länge</td><td>3–30 Zeichen</td></tr>
+          <tr><td>Gross-/Kleinschreibung</td><td>Immer lowercase gespeichert. Eingabe case-insensitive.</td></tr>
+          <tr><td><code>@</code>-Prefix</td><td>Nur im UI angezeigt (<code>@matthias.h</code>). Im Objekt ohne <code>@</code>: <code>matthias.h</code>.</td></tr>
+          <tr><td>Auto-Generierung</td><td>Aus <code>name</code>: Leerzeichen → Punkt, Non-ASCII entfernt. Kollision → Suffix <code>2</code>, <code>3</code>, …</td></tr>
+          <tr><td>Eindeutigkeit</td><td>Systemweit unique. Check in <code>Store.Users.byUsername()</code> und <code>AppService.isUsernameAvailable()</code>.</td></tr>
+          <tr><td>Änderung</td><td>Erlaubt via <code>AppService.updateUser(uid, {username}, cb)</code>. Uniqueness wird geprüft.</td></tr>
+          <tr><td>Bestehende User</td><td><code>username: ''</code> — kein Username. Login nur per E-Mail oder UID.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule rule-ok">
+      <div class="rule-hdr">✅ Gültige Benutzernamen</div>
+      <div class="rule-body"><code>matthias.h</code> · <code>max_mueller</code> · <code>ski.pro2</code> · <code>anna123</code></div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Ungültige Benutzernamen</div>
+      <div class="rule-body"><code>ab</code> (zu kurz) · <code>Matthias H</code> (Leerzeichen, Großbuchstabe) · <code>max@ski</code> (@ im Handle) · <code>test!</code> (Sonderzeichen)</div>
+    </div>
+  </div>
+
+  <!-- 4. AUTH -->
+  <div class="sec" id="s4">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Auth-Regeln</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Methode</th><th>Wann verwenden</th><th>Synchron?</th></tr></thead>
+        <tbody>
+          <tr><td><code>Auth.current()</code></td><td>Auf geschützten Seiten: Wer ist eingeloggt? Liest <code>?uid=</code> aus URL.</td><td>✅ Sync</td></tr>
+          <tr><td><code>Auth.require(role)</code></td><td>Guard am Seitenanfang. Redirectet wenn falsche Rolle oder nicht eingeloggt.</td><td>✅ Sync</td></tr>
+          <tr><td><code>Auth.login(uid)</code></td><td>Interner Redirect nach bekannter uid. Nur von Auth-Methoden aufrufen.</td><td>✅ Sync</td></tr>
+          <tr><td><code>Auth.loginByEmailOrUsername()</code></td><td>Sign-In Formular auf Landing-Page. E-Mail oder @Handle.</td><td>❌ Async (Callback)</td></tr>
+          <tr><td><code>Auth.loginByEmail()</code></td><td>Veraltet für neue Features. Nur noch intern/legacy. Bevorzuge loginByEmailOrUsername.</td><td>✅ Sync (throw)</td></tr>
+          <tr><td><code>Auth.logout()</code></td><td>Abmelden. Redirectet zu <code>landing.html</code>.</td><td>✅ Sync</td></tr>
+          <tr><td><code>Auth.loginByGoogle(uid)</code></td><td>Google-Mock. Ruft <code>Auth.login(uid)</code> auf.</td><td>✅ Sync</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="rule rule-ok">
+      <div class="rule-hdr">✅ Korrekt — Async Error-Handling bei loginByEmailOrUsername</div>
+      <div class="rule-body">
+        <code>Auth.loginByEmailOrUsername(query, pw,</code><br>
+        <code>&nbsp;&nbsp;function() { /* Redirect erfolgt intern */ },</code><br>
+        <code>&nbsp;&nbsp;function(msg) { self._showSigninError(msg); }</code><br>
+        <code>);</code>
+      </div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Falsch — try/catch mit async Auth-Methode</div>
+      <div class="rule-body"><code>try { Auth.loginByEmailOrUsername(…); } catch(e) { … } // funktioniert NICHT — async!</code></div>
+    </div>
+
+    <p style="margin-top:14px"><strong>Login-Erkennung (E-Mail vs. Username):</strong> Enthält die Eingabe <code>@</code> gefolgt von einer Domain (Regex <code>/^[^@]+@[^@]+\.[^@]+$/</code>) → E-Mail-Suche. Alles andere → Username-Suche. Führendes <code>@</code> im Handle wird automatisch entfernt.</p>
+  </div>
+
+  <!-- 5. VERBOTENE MUSTER -->
+  <div class="sec" id="s5">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Verbotene Muster</div></div>
+
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Store.* in Consumer-Code</div>
+      <div class="rule-body"><code>Store.Users.all()</code>, <code>Store.Users.byUid()</code>, <code>Store.Users.byUsername()</code> etc. sind ausschließlich dem Adapter erlaubt.</div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ ProfileStore.* für Auth-Lookup</div>
+      <div class="rule-body"><code>ProfileStore</code> nur für Anzeige-Namen und Profil-Daten. Niemals für Login-Identifikatoren.</div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ uid als Login-Handle verwenden</div>
+      <div class="rule-body">Der interne <code>uid</code> (<code>t1</code>, <code>u_t_123</code>) darf nicht als Login-Identifier im UI exponiert werden. Nur <code>username</code> und <code>email</code> sind Login-Identifier.</div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Realname als eindeutigen Identifier behandeln</div>
+      <div class="rule-body"><code>name</code> ist NICHT eindeutig. Zwei User können „Max Müller" heißen. Für Uniqueness immer <code>username</code> oder <code>email</code> verwenden.</div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Username mit @ im Objekt speichern</div>
+      <div class="rule-body">Im User-Objekt wird <code>username</code> ohne <code>@</code>-Prefix gespeichert. Das <code>@</code> ist nur ein UI-Indikator. Beim Speichern immer <code>.replace(/^@/, '')</code> aufrufen.</div>
+    </div>
+    <div class="rule rule-err">
+      <div class="rule-hdr">❌ Synchronen try/catch bei async Auth-Methoden</div>
+      <div class="rule-body"><code>loginByEmailOrUsername()</code> ist async. Fehler kommen über den <code>onError</code>-Callback, nicht über exceptions.</div>
+    </div>
+  </div>
+
+  <!-- 6. APPSERVICE API -->
+  <div class="sec" id="s6">
+    <div class="sec-hdr"><span class="sec-num">6</span><div class="sec-title">Öffentliche AppService User-API (vollständig)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Methode</th><th>Signatur</th><th>Wann</th></tr></thead>
+        <tbody>
+          <tr><td><code>getUser</code></td><td><code>(uid, cb(err, user))</code></td><td>Einzelnen User async laden</td></tr>
+          <tr><td><code>getUserSync</code></td><td><code>(uid) → user|null</code></td><td>Sync — nur wenn Daten garantiert vorhanden</td></tr>
+          <tr><td><code>getAllUsers</code></td><td><code>(cb(err, users[]))</code></td><td>Alle User async</td></tr>
+          <tr><td><code>getUsersByRole</code></td><td><code>(role, cb(err, users[]))</code></td><td>Async nach Rolle filtern</td></tr>
+          <tr><td><code>getUsersByRoleSync</code></td><td><code>(role) → users[]</code></td><td>Sync nach Rolle</td></tr>
+          <tr><td><code>createUser</code></td><td><code>({uid,name,username,role,email,password,discipline}, cb(err,user))</code></td><td>Neuen User anlegen</td></tr>
+          <tr><td><code>updateUser</code></td><td><code>(uid, {name?,email?,username?,password?,discipline?}, cb(err))</code></td><td>User-Felder ändern</td></tr>
+          <tr><td><code>deleteUser</code></td><td><code>(uid, cb(err))</code></td><td>User löschen</td></tr>
+          <tr><td><code>isUsernameAvailable</code></td><td><code>(username, cb(err, bool))</code></td><td>Vor Erstellen/Ändern prüfen</td></tr>
+          <tr><td><code>generateUsername</code></td><td><code>(name, cb(err, string))</code></td><td>Auto-Vorschlag aus Anzeigename</td></tr>
+          <tr><td><code>getUserByEmailOrUsername</code></td><td><code>(query, cb(err, user|null))</code></td><td>Login-Lookup (E-Mail oder Handle)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 7. CHECKLISTE -->
+  <div class="sec" id="s7">
+    <div class="sec-hdr"><span class="sec-num">7</span><div class="sec-title">Checkliste — Neues Feature mit User-Daten</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>✓</th><th>Prüfpunkt</th></tr></thead>
+        <tbody>
+          <tr><td>☐</td><td>Greife ich auf User-Daten nur via <code>AppService.*</code> zu?</td></tr>
+          <tr><td>☐</td><td>Kein <code>Store.*</code>-Aufruf im Consumer-Code?</td></tr>
+          <tr><td>☐</td><td>Neue Methode in allen 3 Schichten ergänzt (Adapter → AppService-Export → Consumer)?</td></tr>
+          <tr><td>☐</td><td>Username-Format validiert vor dem Speichern (<code>isUsernameAvailable()</code>)?</td></tr>
+          <tr><td>☐</td><td><code>@</code>-Prefix aus Username-Eingabe entfernt vor dem Speichern?</td></tr>
+          <tr><td>☐</td><td>Login-Methode async → <code>onError</code>-Callback statt try/catch?</td></tr>
+          <tr><td>☐</td><td><code>name</code> nicht als eindeutigen Identifier verwendet?</td></tr>
+          <tr><td>☐</td><td>Neues User-Feld in <code>Store.Users.create()</code> UND <code>Store.Users.update()</code> ergänzt?</td></tr>
+          <tr><td>☐</td><td>CSS-Klassen für Username-Input in <code>components.css</code> (nicht seitenspezifisch)?</td></tr>
+          <tr><td>☐</td><td>Dokumentation und diese Guidelines aktualisiert?</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>GUIDELINE_USER_LOGIN_AUTH_20260319.html · BookingSystem</span>
+    <span>Version 1.0 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

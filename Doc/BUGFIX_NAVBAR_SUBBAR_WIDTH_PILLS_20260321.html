@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="BUGFIX">
+  <meta name="doc-subject"  content="Sub-Bar kollabiert auf Mobile (width:100% fehlt) + Desktop-Pills stacken vertikal (display:flex fehlt)">
+  <title>BUGFIX — Navbar Sub-Bar Width + Desktop Pills Stack 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+           font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.sev { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug { background: #fff8f8; }
+    tbody tr.r-fix { background: #f8fff8; }
+    tbody tr.r-ctx { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+    .sev-crit { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .sev-ok   { background: var(--ok-bg);  color: var(--ok-tx);  border: 1px solid var(--ok-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+
+    /* Comparison grid */
+    .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+               border: 1px solid var(--n200); border-radius: 8px; overflow: hidden; margin-bottom: 20px; }
+    .compare-cell { padding: 14px 16px; }
+    .compare-cell.hdr { font-size: 11px; font-weight: 700; text-transform: uppercase;
+                        letter-spacing: .05em; padding: 9px 16px; }
+    .compare-cell.hdr.bug { background: var(--err-bg); color: var(--err-tx); border-bottom: 1px solid var(--err-bd); }
+    .compare-cell.hdr.fix { background: var(--ok-bg);  color: var(--ok-tx);  border-bottom: 1px solid var(--ok-bd); }
+    .compare-cell.body { font-size: 12px; color: var(--n700); line-height: 1.7; background: var(--n0); }
+    .compare-cell.body li { margin-left: 16px; margin-bottom: 4px; }
+    .compare-cell:nth-child(odd) { border-right: 1px solid var(--n200); }
+    @media (max-width: 700px) { .compare { grid-template-columns: 1fr; }
+      .compare-cell:nth-child(odd) { border-right: none; border-bottom: 1px solid var(--n200); } }
+
+    /* Visual mockup */
+    .mock { border-radius: 8px; overflow: hidden; margin-bottom: 20px;
+            border: 1px solid var(--n200); font-family: var(--mono); font-size: 12px; }
+    .mock-label { background: var(--n100); padding: 6px 12px; font-size: 11px;
+                  font-weight: 700; color: var(--n500); text-transform: uppercase;
+                  letter-spacing: .05em; border-bottom: 1px solid var(--n200); }
+    .mock-body { background: var(--navy); padding: 12px 16px; }
+    .mock-body code { white-space: pre; display: block; line-height: 1.8;
+                      font-size: 12px; background: none; padding: 0;
+                      color: #e2e8f0; border-radius: 0; }
+    .mock-row-bug { color: #fca5a5; }
+    .mock-row-ok  { color: #86efac; }
+    .mock-row-dim { color: #64748b; }
+    .mock-row-hi  { color: #fde68a; }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">BUGFIX · CSS · Navbar · BookingSystem</div>
+  <div class="ph-title">Sub-Bar kollabiert auf Mobile &amp; Desktop-Pills stacken</div>
+  <div class="ph-sub">
+    Zwei unabhängige CSS-Fehler im gleichen Render-Pfad.
+    (1) <code>.navbar-subbar</code> fehlte <code>width: 100%</code> — als Kind von
+    <code>&lt;body&gt;</code> (kein Flex-/Grid-Container) kollabierte der Sub-Bar auf
+    0px Breite: weißer Streifen, keine Buttons sichtbar.
+    (2) <code>.navbar-selects-desktop</code> hatte kein <code>display: flex</code> —
+    die beiden Pill-Buttons (Währung + Sprache) stackten vertikal statt nebeneinander.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge sev">🟡 Visual · Mittel</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">2 Dateien geändert · navbar.css · app-config.js</span>
+    <span class="ph-badge ok">✅ Behoben · APP_VERSION 2026-03-21-31</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — VERGLEICHSTABELLE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-compare">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-compare">Vergleichstabelle — Vorher / Nachher</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Bereich</th>
+            <th>Breakpoint</th>
+            <th>Symptom vorher</th>
+            <th>Root Cause</th>
+            <th>Fix</th>
+            <th>Status nachher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><strong>Sub-Bar</strong><br><code>.navbar-subbar</code></td>
+            <td>≤768px (Mobile)</td>
+            <td>
+              <span class="sev sev-crit">🔴 Weißer Streifen</span><br>
+              Dunkler Hintergrund fehlt. Buttons (<code>€ EUR</code>, <code>DE</code>)
+              unsichtbar. Sub-Bar hat 0px effektive Breite.
+            </td>
+            <td>
+              <code>display: flex</code> ohne <code>width: 100%</code> auf einem Kind
+              von <code>&lt;body&gt;</code> (kein Flex-Container) → kollabiert auf
+              Inhaltsbreite 0px, da keine Buttons gerendert werden konnten.
+              Auch <code>.navbar-subbar-inner</code> ohne <code>width: 100%</code>.
+            </td>
+            <td>
+              <code>width: 100%</code> zu <code>.navbar-subbar</code> und
+              <code>.navbar-subbar-inner</code> hinzugefügt.
+            </td>
+            <td><span class="sev sev-ok">✅ Sub-Bar dunkel, Buttons sichtbar</span></td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>Desktop Pills</strong><br><code>.navbar-selects-desktop</code></td>
+            <td>≥769px (Desktop)</td>
+            <td>
+              <span class="sev sev-crit">🔴 Pills übereinander</span><br>
+              Währungs-Pill (<code>Kč ˅</code>) und Sprach-Pill (<code>DE ˅</code>)
+              stackten vertikal statt nebeneinander in der Navbar.
+            </td>
+            <td>
+              <code>.navbar-selects-desktop</code> hatte <strong>keine CSS-Regel</strong> —
+              weder <code>display: flex</code> noch <code>display: block</code> explizit gesetzt.
+              Als <code>&lt;div&gt;</code> defaultet es zu <code>display: block</code>,
+              was die Kind-Elemente (<code>.navbar-select-wrap</code>) vertikal stackt.
+            </td>
+            <td>
+              Neue Regel:<br>
+              <code>.navbar-selects-desktop { display: flex; align-items: center; gap: var(--sp-2); }</code>
+            </td>
+            <td><span class="sev sev-ok">✅ Pills nebeneinander in Navbar-Zeile 1</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Sub-Bar</strong></td>
+            <td>≥769px (Desktop)</td>
+            <td><span class="sev sev-ok">✅ Korrekt — nicht sichtbar</span></td>
+            <td><code>@media (min-width: 769px) { .navbar-subbar { display: none } }</code> greift.</td>
+            <td>Keine Änderung nötig.</td>
+            <td><span class="sev sev-ok">✅ Unverändert versteckt</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Desktop Pills</strong></td>
+            <td>≤768px (Mobile)</td>
+            <td><span class="sev sev-ok">✅ Korrekt — nicht sichtbar</span></td>
+            <td><code>@media (max-width: 768px) { .navbar-selects-desktop { display: none } }</code> überschreibt jetzt die neue Regel korrekt.</td>
+            <td>Keine Änderung nötig. Media-Query überschreibt den neuen <code>display: flex</code>.</td>
+            <td><span class="sev sev-ok">✅ Weiterhin versteckt auf Mobile</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — VISUELLER VORHER/NACHHER
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-visual">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-visual">Visuelles Layout — Vorher / Nachher</h2>
+    </div>
+
+    <p style="font-size:13px;color:var(--n500);margin-bottom:12px;">Mobile (≤768px) — Sub-Bar:</p>
+
+    <div class="compare">
+      <div class="compare-cell hdr bug">❌ Vorher</div>
+      <div class="compare-cell hdr fix">✅ Nachher</div>
+      <div class="compare-cell body">
+        <div class="mock">
+          <div class="mock-label">Mobile Render</div>
+          <div class="mock-body">
+            <code><span class="mock-row-dim">┌─────────────────────────────┐
+│  Navbar (fixed, dark)       │
+├─────────────────────────────┤</span>
+<span class="mock-row-bug">│  [white strip, 36px]        │ ← sub-bar, width=0, collapsed
+│  (no buttons visible)       │</span>
+<span class="mock-row-dim">├─────────────────────────────┤
+│  Hero section (overlaps)    │
+└─────────────────────────────┘</span></code>
+          </div>
+        </div>
+      </div>
+      <div class="compare-cell body">
+        <div class="mock">
+          <div class="mock-label">Mobile Render</div>
+          <div class="mock-body">
+            <code><span class="mock-row-dim">┌─────────────────────────────┐
+│  Navbar (fixed, dark)       │
+├─────────────────────────────┤</span>
+<span class="mock-row-ok">│  € EUR ˅   DE ˅   (dark bg) │ ← sub-bar, width=100%</span>
+<span class="mock-row-dim">├─────────────────────────────┤
+│  Hero section (below 88px)  │
+└─────────────────────────────┘</span></code>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p style="font-size:13px;color:var(--n500);margin-bottom:12px;">Desktop (≥769px) — Navbar Pills:</p>
+
+    <div class="compare">
+      <div class="compare-cell hdr bug">❌ Vorher</div>
+      <div class="compare-cell hdr fix">✅ Nachher</div>
+      <div class="compare-cell body">
+        <div class="mock">
+          <div class="mock-label">Desktop Navbar</div>
+          <div class="mock-body">
+            <code><span class="mock-row-dim">BookingSystem    [links]    </span><span class="mock-row-bug">[Kč ˅]  ← stacked
+                                           [DE ˅]  ← stacked</span>
+<span class="mock-row-dim">                            [Anmelden] [Registrieren]</span></code>
+          </div>
+        </div>
+      </div>
+      <div class="compare-cell body">
+        <div class="mock">
+          <div class="mock-label">Desktop Navbar</div>
+          <div class="mock-body">
+            <code><span class="mock-row-dim">BookingSystem    [links]    </span><span class="mock-row-ok">[Kč ˅] [DE ˅]</span><span class="mock-row-dim"> [Anmelden] [Registrieren]</span></code>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — IMPLEMENTIERTER FIX
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-fix">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-fix">Implementierter Fix</h2>
+      <span class="sec-sub">1 Datei geändert · navbar.css</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Selector</th>
+            <th>Hinzugefügte Eigenschaft</th>
+            <th>Begründung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>css/navbar.css</code></td>
+            <td><code>.navbar-subbar</code></td>
+            <td><code>width: 100%</code></td>
+            <td>
+              Ohne explizite Breite kollabiert ein <code>display: flex</code> Element
+              als Kind von <code>&lt;body&gt;</code> auf seine Inhaltsbreite (0px bei
+              leerem/kollabiertem Inhalt). <code>width: 100%</code> streckt es auf
+              volle Viewport-Breite.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>css/navbar.css</code></td>
+            <td><code>.navbar-subbar-inner</code></td>
+            <td><code>width: 100%</code></td>
+            <td>
+              <code>margin: 0 auto</code> benötigt eine definierte Breite auf dem
+              Element selbst, damit der Auto-Margin zentrieren kann. Ohne
+              <code>width: 100%</code> kollabiert auch der innere Container.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>css/navbar.css</code></td>
+            <td><code>.navbar-selects-desktop</code></td>
+            <td><code>display: flex; align-items: center; gap: var(--sp-2)</code></td>
+            <td>
+              Der <code>&lt;div&gt;</code>-Wrapper hatte keine explizite
+              <code>display</code>-Regel. Browser-Default ist <code>block</code> →
+              Kind-Elemente (<code>.navbar-select-wrap</code>) stackten vertikal.
+              <code>display: flex</code> legt sie nebeneinander. Die bestehende
+              Media-Query <code>@media (max-width: 768px) { display: none }</code>
+              überschreibt dies korrekt auf Mobile.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>'2026-03-21-30' → '2026-03-21-31'</code></td>
+            <td>Cache-Buster für navbar.css.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">css/navbar.css — Bug 1: Sub-Bar width fix</div>
+    <div class="code-block"><code><span class="ck">.navbar-subbar</span> {
+  display: flex;
+  <span class="cs">width: 100%;</span>   <span class="cm">/* ← NEU: verhindert Kollaps als body-Kind */</span>
+  background: var(--color-800, #0f2035);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+<span class="ck">.navbar-subbar-inner</span> {
+  <span class="cs">width: 100%;</span>   <span class="cm">/* ← NEU: ermöglicht margin:0 auto korrekt zu zentrieren */</span>
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}</code></div>
+
+    <div class="code-label">css/navbar.css — Bug 2: Desktop pills display:flex</div>
+    <div class="code-block"><code><span class="cm">/* Desktop wrapper — keeps currency + lang pills in one row */</span>
+<span class="ck">.navbar-selects-desktop</span> {
+  <span class="cs">display: flex;</span>         <span class="cm">/* ← NEU: verhindert vertikales Stacking */</span>
+  <span class="cs">align-items: center;</span>
+  <span class="cs">gap: var(--sp-2);</span>
+}
+
+<span class="ck">@media (max-width: 768px)</span> {
+  <span class="ck">.navbar-selects-desktop</span> { display: none; }  <span class="cm">/* überschreibt display:flex auf Mobile */</span>
+}</code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Guideline</th>
+            <th>Anforderung</th>
+            <th>Eingehalten?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_STYLING</code></td>
+            <td>Kein Inline-Style, kein <code>element.style.*</code></td>
+            <td>✅ Ausschließlich CSS-Klassen geändert</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_MOBILE</code></td>
+            <td>Breakpoint 768px, mobile-first</td>
+            <td>✅ Breakpoints unverändert. Neue Regel wird von bestehender Mobile-Media-Query korrekt überschrieben.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_STYLING</code></td>
+            <td>Spacing-Tokens statt Magic Numbers</td>
+            <td>✅ <code>gap: var(--sp-2)</code> verwendet Token</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_ARCHITECTURE</code></td>
+            <td>Asset Versioning — <code>APP_VERSION</code> erhöhen</td>
+            <td>✅ <code>2026-03-21-30</code> → <code>2026-03-21-31</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_ARCHITECTURE</code></td>
+            <td>Kein JS für rein visuelle Fixes</td>
+            <td>✅ Reines CSS — kein JS angefasst</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>BUGFIX_NAVBAR_SUBBAR_WIDTH_PILLS_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-31 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

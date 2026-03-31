@@ -1,0 +1,61 @@
+Let me read all relevant code first.
+
+Now I have the complete picture. Here is the table and plan:
+
+---
+
+## Bereits vorhandene Funktionen — was nutzbar ist
+
+| Funktion | Wo | Was sie liefert | Nutzbar für Preis-Anzeige? |
+|---|---|---|---|
+| `ProfileStore.getPrice(uid)` | `profile.js` L309 | `pricePerHalfHour` als String oder `null` | ✅ Ja — direkt für Preis pro Slot |
+| `ProfileStore.getOrDefault(uid)` | `profile.js` | Vollständiges Profil inkl. `pricePerHalfHour` | ✅ Ja |
+| `AppService.getEscrowsByStudent(uid, cb)` | `app-service.js` L429 | Alle Escrows des Schülers inkl. `fullAmount`, `depositAmount` | ✅ Ja — enthält bereits berechneten Preis pro Slot |
+| `AppService.getEscrowsByTeacher(uid, cb)` | `app-service.js` L430 | Alle Escrows des Lehrers | ✅ Ja |
+| `getEscrowBySlot(slotId, cb)` | `adapter-localstorage.js` L690 | Escrow für genau einen Slot — `fullAmount`, `slotId`, `teacherId` | ✅ Ja — **aber nicht in AppService exponiert** |
+| `_formatAmount(amount)` | `wallet.js` L96 | Formatiert Zahl als `"12,50"` (DE-Format) | ⚠️ Privat in wallet.js — muss in `ui.js` oder `app-service.js` extrahiert werden |
+| `.tc-summary-price` | `skiing-catalog.css` | `€XX / 30min` Badge-Style | ✅ Wiederverwendbar |
+| `.pv-price-value` / `.pv-price-label` | `profile.css` | Preis-Anzeige im Profil | 🟡 Nur für Profil-Kontext |
+| `SLOT_DURATION = 30` | `store.js` / `app-service.js` | Konstante 30 Min. | ✅ Für Multi-Slot Berechnung |
+
+---
+
+## Was fehlt / neu gebraucht wird
+
+| Was | Wo anlegen | Warum |
+|---|---|---|
+| `getEscrowBySlot` in AppService exponieren | `app-service.js` | Aktuell nur im Adapter — Consumer darf Adapter nicht direkt aufrufen |
+| `fmtPrice(amount)` als shared Funktion | `ui.js` | `_formatAmount` ist privat in wallet.js, wird aber überall gebraucht |
+| `all-booking-slot-price` CSS-Klasse | `teacher.css` | Neue Span für Preis in Slot-Row |
+| `all-booking-block-total` CSS-Klasse | `teacher.css` | Summe im Block-Header (Row 2 neben Name) |
+
+---
+
+## Implementierungsplan
+
+```
+
+Phase 3 — Slot-Row (ui.js — populateBookingDetail)
+  → Preis-Span in jede gebuchte Row: "€12,50"
+  → Quelle: ProfileStore.getPrice(teacherId) × 1 Slot
+
+Phase 4 — Block-Header (ui.js — buildBookingBlock)
+  → Summen-Anzeige in Row 2 neben Name: "€62,50 total"
+  → Quelle: Anzahl Slots × pricePerHalfHour
+
+Phase 5 — CSS (teacher.css)
+  → .all-booking-slot-price  — klein, monospace, rechtsbündig
+  → .all-booking-block-total — im Header Row 2, Akzentfarbe
+```
+
+**Wie der Preis berechnet wird:**
+- Pro Slot: `parseFloat(ProfileStore.getPrice(teacherId)) || 0`
+- Gesamt-Block: `anzahlSlots × pricePerHalfHour`
+- Escrow-Weg (wenn Escrow existiert): `escrow.fullAmount` — bereits korrekt berechnet, kein float-Fehler
+
+**Reihenfolge Preis-Quelle (Priorität):**
+1. `escrow.fullAmount` falls Escrow für den Slot existiert (bereits gezahlt/berechnet)
+2. `ProfileStore.getPrice(teacherId)` × Anzahl Slots (falls kein Escrow)
+3. `—` falls Preis nicht gesetzt
+
+Soll ich implementieren?

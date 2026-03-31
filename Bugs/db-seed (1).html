@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DB Seed Tool</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:monospace;background:#0d1117;color:#e6edf3;padding:20px;font-size:13px}
+  h1{font-size:16px;font-weight:700;color:#58a6ff;margin-bottom:4px}
+  .sub{color:#8b949e;font-size:11px;margin-bottom:14px}
+  .origin-box{border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:12px;line-height:1.8}
+  .origin-ok  {background:#0d2818;border:1px solid #238636;color:#3fb950}
+  .origin-warn{background:#161200;border:1px solid #d29922;color:#d29922}
+  .plan{background:#161b22;border:1px solid #30363d;border-radius:6px;
+    padding:12px 16px;margin-bottom:14px;font-size:12px;line-height:2;color:#c9d1d9}
+  .plan b{color:#79c0ff}
+  #btn-run{display:block;width:100%;padding:12px;background:#238636;color:#fff;
+    font-family:monospace;font-size:14px;font-weight:700;border:none;border-radius:6px;
+    cursor:pointer;margin-bottom:14px}
+  #btn-run:hover:not(:disabled){background:#2ea043}
+  #btn-run:disabled{background:#21262d;color:#484f58;cursor:default}
+  #log{background:#010409;border:1px solid #21262d;border-radius:6px;
+    padding:14px;min-height:100px;overflow-y:auto;max-height:60vh;font-size:12px;line-height:1.75}
+  .ok  {color:#3fb950}
+  .skip{color:#8b949e}
+  .err {color:#f85149;font-weight:700}
+  .hdr {color:#58a6ff;font-weight:700}
+  .warn{color:#d29922}
+  .done{color:#79c0ff;font-weight:700;font-size:14px}
+  .sep {color:#21262d}
+</style>
+</head>
+<body>
+
+<h1>⚙ DB Seed Tool</h1>
+<p class="sub">Nutzt die echte App-Pipeline — muss auf <b>localhost:8081/db-seed.html</b> laufen.</p>
+
+<div id="origin-check" class="origin-box">Prüfe Origin…</div>
+
+<div class="plan">
+  <b>Löscht:</b> alle User (außer admin), Slots, Selections, Wallets, TXs, Escrows, Profile, Recurring<br>
+  <b>User:</b> t1/Matthias Heinold · t2/T2 · t3/T3 · s1/S1 · s2/S2 · s3/S3<br>
+  <b>Wallets:</b> ALLE User bekommen €500 (via AppService.deposit)<br>
+  <b>Selection:</b> nur s1 ↔ t1<br>
+  <b>Buchungen:</b> s1+s2 bei t1 · Heute+0/+1/+2/+3/+4 · 14:00/14:30/15:00<br>
+  <b>Pipeline:</b> createSlot → bookSlotWithEscrow (echte Zahlungen, echter Escrow)
+</div>
+
+<button id="btn-run" onclick="runSeed()">▶ Datenbank zurücksetzen &amp; Seed ausführen</button>
+<div id="log"><span class="skip">Warte auf Klick…</span></div>
+
+<!-- Load the full app stack so AppService / ProfileStore are available -->
+<script src="./js/store.js?v=4"></script>
+<script src="./js/profile.js?v=9"></script>
+<script src="./js/adapter-localstorage.js?v=10"></script>
+<script src="./js/adapter-firestore.js"></script>
+<script src="./js/app-config.js?v=4"></script>
+<script src="./js/app-service.js?v=11"></script>
+
+<script>
+/* ── Origin check ─────────────────────────────────────────── */
+(function checkOrigin() {
+  var box   = document.getElementById('origin-check');
+  var proto = location.protocol;
+  var host  = location.hostname;
+  var port  = location.port;
+  var currentOrigin = proto + '//' + host + (port ? ':' + port : '');
+  if (proto === 'file:') {
+    box.className = 'origin-box origin-warn';
+    box.textContent = '⚠ WARNUNG — Falsche Origin (file://). ' +
+      'Datei über den Dev-Server öffnen: http://localhost:8081/db-seed.html — ' +
+      'sonst greift das Tool auf einen anderen localStorage zu als die App.';
+  } else {
+    box.className = 'origin-box origin-ok';
+    box.textContent = '✓ Origin OK — ' + currentOrigin;
+  }
+})();
+
+/* ── Log helpers ───────────────────────────────────────────── */
+var logEl = document.getElementById('log');
+function log(cls, msg) {
+  var d = document.createElement('div');
+  d.className = cls;
+  d.textContent = msg;
+  logEl.appendChild(d);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function sep() { log('sep', '──────────────────────────────────────────────'); }
+function isoNow() { return new Date().toISOString(); }
+function fmtDate(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2, '0') + '-' +
+    String(d.getDate()).padStart(2, '0');
+}
+function addDays(base, n) {
+  var d = new Date(base);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+/* ── Sequential async helper ───────────────────────────────── */
+function serial(tasks, done) {
+  var i = 0;
+  function next(err) {
+    if (err) { done(err); return; }
+    if (i >= tasks.length) { done(null); return; }
+    tasks[i++](next);
+  }
+  next(null);
+}
+
+/* ── Main ──────────────────────────────────────────────────── */
+function runSeed() {
+  var btn = document.getElementById('btn-run');
+  btn.disabled = true;
+  logEl.innerHTML = '';
+
+  /* Shared date reference used by doAvailability and doBookings */
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  /* Verify AppService loaded correctly */
+  if (typeof AppService === 'undefined') {
+    log('err', '✗ AppService ist nicht definiert!');
+    log('err', '  Stelle sicher dass db-seed.html im HTML/-Ordner liegt und');
+    log('err', '  über localhost:8081/db-seed.html geöffnet wird.');
+    btn.disabled = false;
+    return;
+  }
+  if (typeof ProfileStore === 'undefined') {
+    log('err', '✗ ProfileStore ist nicht definiert!');
+    btn.disabled = false;
+    return;
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STEP 1 — WIPE  (direct localStorage — no AppService for wipe)
+  ══════════════════════════════════════════════════════ */
+  log('hdr', 'STEP 1 — Datenbank löschen');
+  sep();
+
+  /* Preserve admin user */
+  var adminUser = null;
+  try {
+    var existing = JSON.parse(localStorage.getItem('app_users') || '[]');
+    for (var ai = 0; ai < existing.length; ai++) {
+      if (existing[ai].role === 'admin') { adminUser = existing[ai]; break; }
+    }
+  } catch(e) {}
+
+  ['app_users','app_slots','app_selections','app_wallets','app_transactions',
+   'app_escrow','app_profiles','app_recurring','app_bookings'].forEach(function(k) {
+    localStorage.removeItem(k);
+    log('ok', '  ✓ gelöscht: ' + k);
+  });
+
+  /* Restore admin immediately so AppService.createUser doesn't collide */
+  var seedUsers = adminUser ? [adminUser] : [{ uid:'admin', name:'Administrator', role:'admin' }];
+  localStorage.setItem('app_users', JSON.stringify(seedUsers));
+  log('ok', '  ✓ admin wiederhergestellt');
+
+  /* ══════════════════════════════════════════════════════
+     STEP 2 — USERS  (via AppService)
+  ══════════════════════════════════════════════════════ */
+  sep(); log('hdr', 'STEP 2 — Benutzer erstellen (AppService)'); sep();
+
+  var USERS = [
+    { uid:'t1', name:'Matthias Heinold', role:'teacher', email:'t1@demo.local', discipline:'skiing', password:'demo123' },
+    { uid:'t2', name:'T2',               role:'teacher', email:'t2@demo.local', discipline:'skiing', password:'demo123' },
+    { uid:'t3', name:'T3',               role:'teacher', email:'t3@demo.local', discipline:'skiing', password:'demo123' },
+    { uid:'s1', name:'S1',               role:'student', email:'s1@demo.local', discipline:'',       password:'demo123' },
+    { uid:'s2', name:'S2',               role:'student', email:'s2@demo.local', discipline:'',       password:'demo123' },
+    { uid:'s3', name:'S3',               role:'student', email:'s3@demo.local', discipline:'',       password:'demo123' }
+  ];
+
+  var userTasks = USERS.map(function(u) {
+    return function(next) {
+      AppService.createUser(u, function(err) {
+        if (err) { log('err', '  ✗ createUser ' + u.uid + ': ' + err.message); next(err); return; }
+        log('ok', '  ✓ ' + u.role + '  ' + u.uid + ' / ' + u.name);
+        next(null);
+      });
+    };
+  });
+
+  /* ══════════════════════════════════════════════════════
+     STEP 3 — PROFILES  (via ProfileStore.save directly — AppService.saveProfile needs uid)
+  ══════════════════════════════════════════════════════ */
+  function doProfiles(next) {
+    sep(); log('hdr', 'STEP 3 — Profile (ProfileStore)'); sep();
+
+    var T1_PROFILE = {
+      uid: 't1', name: 'Matthias Heinold', discipline: 'skiing',
+      pricePerHalfHour: '45', bio: 'Demo-Lehrer',
+      requiresDeposit: true, depositMode: 'percent',
+      depositFixed: 20, depositPercent: 20,
+      paymentMode: 'instant', cancellationWindow: 48,
+      cancellationPartial: 50, cancellationStrict: false,
+      certifications: [
+        { org: 'isia', level: '3', year: '2018' },
+        { org: 'dsv',  level: '2', year: '2015' }
+      ],
+      specializations: ['freeride', 'freestyle', 'race'],
+      terrainLevels:   ['green', 'blue', 'red', 'black'],
+      updatedAt: isoNow()
+    };
+    var T_DEFAULT = {
+      pricePerHalfHour: '40', requiresDeposit: false,
+      depositMode: 'percent', depositFixed: 20, depositPercent: 20,
+      paymentMode: 'instant', cancellationWindow: 48,
+      cancellationPartial: 50, cancellationStrict: false,
+      certifications: [], specializations: [], terrainLevels: [],
+      updatedAt: isoNow()
+    };
+
+    ProfileStore.save('t1', T1_PROFILE);
+    log('ok', '  ✓ t1: €45/Slot, Deposit 20%, ISIA L3+DSV L2');
+    ProfileStore.save('t2', Object.assign({}, T_DEFAULT, { uid:'t2', name:'T2', discipline:'skiing' }));
+    log('ok', '  ✓ t2: €40/Slot, kein Deposit');
+    ProfileStore.save('t3', Object.assign({}, T_DEFAULT, { uid:'t3', name:'T3', discipline:'skiing' }));
+    log('ok', '  ✓ t3: €40/Slot, kein Deposit');
+    next(null);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STEP 4 — WALLETS  (via AppService.deposit — echte TX)
+  ══════════════════════════════════════════════════════ */
+  function doWallets(next) {
+    sep(); log('hdr', 'STEP 4 — Wallets: €500 für alle User (AppService.deposit)'); sep();
+
+    var ALL_UIDS = ['t1','t2','t3','s1','s2','s3'];
+    var walletTasks = ALL_UIDS.map(function(uid) {
+      return function(cb) {
+        AppService.deposit(uid, 500, 'Seed-Einzahlung', function(err) {
+          if (err) { log('err', '  ✗ deposit ' + uid + ': ' + err.message); cb(err); return; }
+          log('ok', '  ✓ ' + uid + ': +€500,00');
+          cb(null);
+        });
+      };
+    });
+    serial(walletTasks, next);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STEP 5 — SELECTION  (via AppService)
+  ══════════════════════════════════════════════════════ */
+  function doSelection(next) {
+    sep(); log('hdr', 'STEP 5 — Selection: s1 ↔ t1'); sep();
+
+    AppService.createSelection('s1', 't1', function(err) {
+      if (err) { log('err', '  ✗ createSelection: ' + err.message); next(err); return; }
+      log('ok',   '  ✓ s1 ↔ t1');
+      log('skip', '  – s2, s3 nicht verbunden');
+      next(null);
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STEP 6 — SLOTS + BOOKINGS  (via AppService full pipeline)
+  ══════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════
+     STEP 6b — AVAILABILITY  (12:30–20:00, alle 3 Lehrer, 7 Tage)
+     Uses createSlotRange — skips slots that already exist (booked ones)
+  ══════════════════════════════════════════════════════ */
+  function doAvailability(next) {
+    sep(); log('hdr', 'STEP 6b — Verfügbarkeit: 12:30–20:00 · 7 Tage · t1/t2/t3'); sep();
+
+    var TEACHERS = ['t1', 't2', 't3'];
+    var DAYS_AV  = [0, 1, 2, 3, 4, 5, 6];
+    var avTasks  = [];
+
+    TEACHERS.forEach(function(tid) {
+      DAYS_AV.forEach(function(d) {
+        avTasks.push(function(cb) {
+          var dateStr = fmtDate(addDays(today, d));
+          /* createSlotRange skips times where a slot already exists */
+          AppService.createSlotRange(tid, dateStr, '12:30', '20:00', 'available', function(err, count) {
+            if (err) { log('err', '  ✗ ' + tid + ' ' + dateStr + ': ' + err.message); cb(err); return; }
+            log('ok', '  ✓ ' + tid + '  ' + dateStr + '  12:30–20:00  (' + count + ' neue Slots)');
+            cb(null);
+          });
+        });
+      });
+    });
+
+    serial(avTasks, next);
+  }
+
+  function doBookings(next) {
+    sep(); log('hdr', 'STEP 6 — Slots erstellen + buchen (echte Pipeline)'); sep();
+
+    var DAYS  = [0, 1, 2, 3, 4];
+    var TIMES = ['14:00', '14:30', '15:00'];
+    var STUS  = ['s1', 's2'];
+
+    /* Build flat list of all booking tasks */
+    var bookingTasks = [];
+
+    STUS.forEach(function(stuId) {
+      DAYS.forEach(function(d) {
+        var dateStr = fmtDate(addDays(today, d));
+        TIMES.forEach(function(time) {
+          bookingTasks.push(function(cb) {
+            /* 1. Create available slot for t1 */
+            AppService.createSlot({
+              teacherId:  't1',
+              studentId:  null,
+              date:       dateStr,
+              time:       time,
+              status:     'available',
+              baseStatus: 'available'
+            }, function(err, slot) {
+              if (err || !slot) {
+                log('err', '  ✗ createSlot ' + stuId + ' ' + dateStr + ' ' + time + ': ' + (err ? err.message : 'no slot'));
+                cb(err || new Error('no slot'));
+                return;
+              }
+              /* 2. Book via full escrow pipeline */
+              AppService.bookSlotWithEscrow(slot.slotId, stuId, 't1', function(err2, result) {
+                if (err2) {
+                  log('err', '  ✗ bookSlotWithEscrow ' + stuId + ' ' + dateStr + ' ' + time + ': ' + err2.message);
+                  cb(err2);
+                  return;
+                }
+                var dep = result && result.escrow ? result.escrow.depositAmount : '?';
+                /* Get updated wallet balance */
+                AppService.getWallet(stuId, function(we, w) {
+                  var bal = w ? w.balance.toFixed(2).replace('.', ',') : '?';
+                  log('ok', '  ✓ ' + stuId + '  ' + dateStr + '  ' + time +
+                    '  deposit: €' + (typeof dep === 'number' ? dep.toFixed(2).replace('.', ',') : dep) +
+                    '  wallet: €' + bal);
+                  cb(null);
+                });
+              });
+            });
+          });
+        });
+      });
+    });
+
+    serial(bookingTasks, next);
+  }
+
+  /* ══════════════════════════════════════════════════════
+     STEP 7 — VERIFY
+  ══════════════════════════════════════════════════════ */
+  function doVerify(next) {
+    sep(); log('hdr', 'STEP 7 — Verifikation'); sep();
+
+    var slots = AppService.getAllSlotsSync();
+    var booked = slots.filter(function(s) { return s.status === 'booked'; }).length;
+
+    AppService.getWallet('s1', function(e1, ws1) {
+    AppService.getWallet('s2', function(e2, ws2) {
+    AppService.getWallet('t1', function(e3, wt1) {
+    AppService.getAllTransactions({}, function(e4, txs) {
+      var txCount = txs ? txs.length : 0;
+      var bookTx  = txs ? txs.filter(function(t){ return t.type==='booking'; }).length : 0;
+      var holdTx  = txs ? txs.filter(function(t){ return t.type==='escrow_hold'; }).length : 0;
+
+      log('ok', '  Slots total: ' + slots.length + ' (' + booked + ' gebucht)');
+      log('ok', '  s1 wallet:   €' + (ws1 ? ws1.balance.toFixed(2).replace('.', ',') : '?'));
+      log('ok', '  s2 wallet:   €' + (ws2 ? ws2.balance.toFixed(2).replace('.', ',') : '?'));
+      log('ok', '  t1 wallet:   €' + (wt1 ? wt1.balance.toFixed(2).replace('.', ',') : '?'));
+      log('ok', '  TX total:    ' + txCount);
+      log('ok', '  booking TXs: ' + bookTx + '  escrow_hold TXs: ' + holdTx);
+      sep();
+      log('done', '✅ SEED ABGESCHLOSSEN');
+      log('warn', '\n⚠  Bitte Seite neu laden: Strg+R  /  ⌘R\n');
+      next(null);
+    });
+    });
+    });
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════
+     RUN ALL STEPS
+  ══════════════════════════════════════════════════════ */
+  serial(userTasks, function(err) {
+    if (err) { btn.disabled = false; return; }
+    serial([doProfiles, doWallets, doSelection, doAvailability, doBookings, doVerify], function(err2) {
+      if (err2) log('err', '✗ Abgebrochen: ' + err2.message);
+      btn.disabled = false;
+    });
+  });
+}
+</script>
+</body>
+</html>

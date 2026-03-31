@@ -1,0 +1,745 @@
+/* ── Reset ──────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { font-size: 16px; -webkit-text-size-adjust: 100%; }
+html, body { max-width: 100%; overflow-x: hidden; }
+
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-700);
+  background: var(--neutral-50);
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ── Typography ─────────────────────────────────────────── */
+h1 {
+  font-size: var(--text-hero);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.1;
+}
+h2 {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.3;
+}
+p { line-height: 1.6; }
+
+/* ── Utility ────────────────────────────────────────────── */
+.text-muted   { color: var(--neutral-500); font-size: var(--text-caption); }
+.text-caption { font-size: var(--text-caption); color: var(--neutral-600); }
+.text-body    { font-size: var(--text-body); }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+}
+.is-hidden { display: none !important; }
+
+/* ── App Shell ──────────────────────────────────────────── */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: 52px; /* compensate fixed navbar height */
+}
+
+/* ── Topbar ─────────────────────────────────────────────── */
+.topbar {
+  height: 56px;
+  border-bottom: 1px solid var(--neutral-200);
+  background: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--container-pad);
+  gap: var(--sp-5);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-brand {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-brand svg { color: var(--color-400); }
+.topbar-spacer { flex: 1; }
+.topbar-meta {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.topbar-role-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-50);
+  color: var(--color-600);
+  border: 1px solid var(--color-100);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.topbar-role-badge.role-admin   { background: var(--color-900); color: var(--neutral-0); border-color: var(--color-900); }
+.topbar-role-badge.role-teacher { background: var(--color-700); color: var(--neutral-0); border-color: var(--color-700); }
+.topbar-role-badge.role-student { background: var(--color-50);  color: var(--color-700); border-color: var(--color-200); }
+
+/* ── Page Content ───────────────────────────────────────── */
+.page {
+  flex: 1;
+  padding: var(--sp-6) var(--container-pad);
+  padding-bottom: 25vh;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ── Page Header ────────────────────────────────────────── */
+.page-header {
+  margin-bottom: var(--sp-6);
+}
+.page-header h2 {
+  margin-bottom: var(--sp-1);
+}
+.page-header p {
+  color: var(--neutral-500);
+  font-size: var(--text-body);
+}
+
+/* ── Divider ────────────────────────────────────────────── */
+hr.divider {
+  border: none;
+  border-top: 1px solid var(--neutral-200);
+  margin: var(--sp-4) 0;
+}
+
+/* ── Toast ──────────────────────────────────────────────── */
+.toast-container {
+  position: fixed;
+  top: var(--sp-5);
+  right: var(--sp-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  z-index: 1000;
+  pointer-events: none;
+}
+.toast {
+  background: var(--neutral-900);
+  color: var(--neutral-0);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  max-width: 300px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  box-shadow: var(--shadow);
+  animation: toast-in 200ms ease forwards;
+}
+.toast.toast-exit { animation: toast-out 200ms ease forwards; }
+.toast.toast-error { background: var(--toast-error-bg); }
+.toast.toast-info  { background: var(--toast-info-bg); }
+.toast-icon { flex-shrink: 0; margin-top: 1px; }
+.toast strong { display: block; font-weight: var(--weight-semibold); margin-bottom: 2px; }
+@keyframes toast-in {
+  from { transform: translateY(12px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+@keyframes toast-out {
+  from { transform: translateY(0);    opacity: 1; }
+  to   { transform: translateY(12px); opacity: 0; }
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root { --container-pad: 16px; }
+  h1 { font-size: 32px; }
+  .page { padding: var(--sp-4) var(--container-pad); padding-bottom: 25vh; }
+}
+@media (max-width: 480px) {
+  :root { --container-pad: 12px; }
+}
+@media (max-width: 380px) {
+  :root { --container-pad: 8px; }
+}
+
+/* ── Overlay open state ─────────────────────────────────── */
+body.overlay-open { overflow: hidden; }
+
+/* ── Student row (teacher sidebar) ─────────────────────── */
+.student-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) 0;
+  border-bottom: 1px solid var(--neutral-100);
+}
+.student-name  { font-weight: var(--weight-semibold); color: var(--neutral-900); font-size: var(--text-caption); }
+.student-count { font-size: var(--text-caption); }
+
+/* ── UID badge ──────────────────────────────────────────── */
+.uid-badge {
+  font-size: var(--text-caption);
+  background: var(--neutral-100);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--neutral-600);
+  font-family: monospace;
+}
+
+/* ── Day panel empty state ──────────────────────────────── */
+.day-panel-empty { text-align: center; padding: var(--sp-6) 0; }
+
+/* ── Pending slot visual ────────────────────────────────── */
+.slot-card-pending,
+.slot-pending       { background: var(--slot-timeout-bg) !important; border: 2px solid var(--pending-amber) !important; }
+.slot-card-pending *,
+.slot-pending *     { color: var(--pending-amber-tx) !important; }
+.block-pending      { background: var(--slot-timeout-bg) !important; border-left: 3px solid var(--pending-amber) !important; opacity: 1; }
+.block-pending *    { color: var(--pending-amber-tx) !important; }
+.gc-pending         { background: var(--pending-amber-bg) !important; outline: 2px solid var(--pending-amber); outline-offset: -2px; opacity: 1; }
+
+/* ── Save button badge ──────────────────────────────────── */
+.save-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--neutral-0);
+  color: var(--color-900);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* ── Sticky day navigation bar ─────────────────────────── */
+.day-nav-bar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-900);
+  color: var(--neutral-0);
+  padding: var(--sp-2) var(--container-pad);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  gap: var(--sp-3);
+  box-sizing: border-box;
+  width: 100%;
+}
+.day-nav-bar.is-visible {
+  display: flex;
+}
+/* is-sticky now handled by .day-sticky-header — kept for JS compat */
+.day-nav-bar.is-sticky { border-radius: 0; }
+
+#day-nav-sentinel {
+  height: 0;
+}
+
+/* ── day-sticky-header: nav bar + tabs as one sticky unit ──
+   mockup-dayTabNav-sticky-2026-03-24_09-49
+   Wraps #day-nav-bar + .day-tab-nav so both stick together.
+   When sentinel scrolls out of view JS adds .is-sticky to this wrapper. */
+.day-sticky-header {
+  background: var(--neutral-50);
+}
+.day-sticky-header.is-sticky {
+  position: fixed;
+  top: 52px;   /* navbar height — overridden when navbar hidden */
+  left: 0;
+  right: 0;
+  z-index: 90;
+  box-shadow: 0 2px 8px rgba(6,15,28,.12);
+  transition: top 200ms ease;
+}
+/* When navbar is hidden (slides up), sticky header moves to top:0 — mockup-dayTabNav-navbarHide-2026-03-24_09-59 */
+body.navbar-is-hidden .day-sticky-header.is-sticky {
+  top: 0;
+}
+/* Spacer injected by JS to prevent content jump when header goes fixed */
+#day-sticky-spacer {
+  display: none;
+}
+#day-sticky-spacer.is-active {
+  display: block;
+}
+.day-nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--neutral-0);
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .day-nav-btn:hover { background: rgba(255,255,255,0.18); }
+}
+.day-nav-label {
+  flex: 1;
+  text-align: center;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ── Section jump buttons ───────────────────────────────── */
+.section-jumper {
+  position: fixed;
+  bottom: calc(var(--sp-5) + 34px + 10px); /* above chat-fab: sp-5 + fab-height + gap */
+  right: 8px;
+  z-index: 95;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  opacity: 1;
+  pointer-events: none;
+  width: 34px; /* fixed width, never grows */
+  max-width: 34px;
+}
+.section-jumper.is-visible {
+  pointer-events: auto;
+}
+.section-jump-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: var(--color-900);
+  color: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  opacity: 0;
+  pointer-events: none;
+  transition: background 0.15s ease, opacity 0.2s ease;
+}
+.section-jumper.is-visible .section-jump-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (hover: hover) and (pointer: fine) {
+  .section-jump-btn:hover { background: var(--color-700); }
+}
+.section-jump-btn.is-dimmed { opacity: 0.25; pointer-events: none; }
+
+/* Top button — always 3rd in jumper, only visible when scrolled */
+.section-jump-btn.jump-top {
+  border-top: 1px solid rgba(255,255,255,0.18);
+  margin-top: 2px;
+}
+.section-jump-btn.jump-top.is-hidden-top {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Shared booking FAB pill (teacher + student) ───────── */
+.booking-fab-group {
+  position: fixed;
+  bottom: var(--sp-5);
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  width: fit-content;
+  max-width: calc(100vw - 32px);
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.booking-fab-group.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+.booking-fab {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  border: none;
+  padding: var(--sp-2) var(--sp-4);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  color: var(--neutral-0);
+  transition: filter 0.15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .booking-fab:hover { filter: brightness(1.15); }
+}
+.booking-fab-dismiss {
+  background: var(--fab-discard-bg);
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+.booking-fab-save {
+  background: var(--fab-save-bg);
+}
+
+/* ── Chat FAB ───────────────────────────────────────────── */
+.chat-fab-anchor {
+  position: fixed;
+  bottom: var(--sp-5);
+  right: 8px;
+  z-index: 95;
+}
+.chat-fab {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transition: background 0.15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .chat-fab:hover { background: var(--neutral-100); }
+}
+
+/* ── Safe Area Insets (iPhone Notch / Dynamic Island) ───── */
+/* Requires viewport-fit=cover in the HTML meta tag          */
+:root {
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+}
+
+.topbar {
+  padding-top: var(--safe-top);
+  height: calc(56px + var(--safe-top));
+}
+
+.toast-container {
+  padding-bottom: var(--safe-bottom);
+}
+
+/* ── Touch & Tap fixes ───────────────────────────────────── */
+/* Prevent blue/grey tap highlight on iOS & Android          */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Remove 300ms tap delay on iOS; enable :active touch feedback */
+.btn,
+button,
+[role="button"],
+a,
+summary {
+  touch-action: manipulation;
+}
+
+/* ── Shared Avatar ────────────────────────────────────────── */
+.avatar-img   { border-radius: 50%; object-fit: cover; border: 2px solid var(--color-100); flex-shrink: 0; }
+.avatar-initials {
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: var(--weight-semibold);
+  flex-shrink: 0;
+  background: var(--neutral-200);
+  color: var(--neutral-600);
+}
+.avatar-sm  { width: 32px;  height: 32px;  font-size: 11px; }
+.avatar-md  { width: 44px;  height: 44px;  font-size: var(--text-caption); }
+.avatar-lg  { width: 64px;  height: 64px;  font-size: 20px; }
+.avatar-role-teacher { background: var(--color-100); color: var(--color-700); }
+.avatar-role-student { background: var(--neutral-100); color: var(--neutral-700); }
+
+/* ── Profile Sheet ────────────────────────────────────────── */
+.profile-sheet-backdrop {
+  position: fixed; inset: 0; z-index: 10100;
+  background: rgba(0,0,0,0);
+  display: flex; align-items: flex-end;
+  transition: background .25s ease;
+}
+.profile-sheet-backdrop.is-open { background: rgba(0,0,0,.5); }
+.profile-sheet-panel {
+  background: var(--white, #fff);
+  width: 100%; max-width: 640px; margin: 0 auto;
+  border-radius: 20px 20px 0 0;
+  max-height: 82vh;
+  display: flex; flex-direction: column;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.32,1,.23,1);
+  overflow: hidden;
+}
+.profile-sheet-backdrop.is-open .profile-sheet-panel { transform: translateY(0); }
+.profile-sheet-header {
+  display: flex; align-items: center; gap: var(--sp-3, 12px);
+  padding: var(--sp-4, 16px);
+  border-bottom: 1px solid var(--neutral-100, #f3f4f6);
+  flex-shrink: 0;
+}
+.profile-sheet-avatar-col { flex-shrink: 0; }
+.profile-sheet-info-col   { flex: 1; min-width: 0; }
+.profile-sheet-name {
+  font-size: var(--text-large, 16px);
+  font-weight: var(--weight-semibold, 600);
+  color: var(--neutral-900, #111);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin-bottom: var(--sp-1);
+}
+.profile-sheet-role-badge {
+  display: inline-block;
+  font-size: 10px; font-weight: var(--weight-semibold);
+  text-transform: uppercase; letter-spacing: .5px;
+  padding: 2px 7px; border-radius: 20px;
+  background: var(--color-100, #dbeafe);
+  color: var(--color-700, #1d4ed8);
+  margin-bottom: 4px;
+}
+.profile-sheet-location {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 11px; color: var(--neutral-500, #6b7280);
+  margin-bottom: var(--sp-1);
+}
+.profile-sheet-stats {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 4px;
+}
+.profile-sheet-stat {
+  font-size: 11px; color: var(--neutral-500, #6b7280);
+}
+.profile-sheet-langs { margin-top: 4px; }
+.profile-sheet-body {
+  overflow-y: auto; flex: 1;
+  -webkit-overflow-scrolling: touch;
+}
+.profile-sheet-section {
+  padding: var(--sp-4, 16px);
+  border-top: 1px solid var(--neutral-100, #f3f4f6);
+}
+.profile-sheet-bio {
+  font-size: var(--text-body, 14px);
+  color: var(--neutral-700, #374151);
+  line-height: 1.6;
+}
+.profile-sheet-footer {
+  padding: var(--sp-3, 12px) var(--sp-4, 16px) var(--sp-4, 16px);
+  border-top: 1px solid var(--neutral-100, #f3f4f6);
+  flex-shrink: 0;
+}
+.profile-sheet-link {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--sp-2, 8px);
+}
+
+.profile-sheet-skill {
+  font-weight: var(--weight-semibold);
+  color: var(--color-600, #2563eb);
+}
+
+/* ── Hide FABs and summary panel behind modals ── */
+body.modal-open .booking-fab-group,
+body.modal-open .day-save-summary,
+body.modal-open .dv-fab-group {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════════════════════════
+   PAGE LOADER — full-viewport overlay shown on initial load.
+   Sits above everything. Dismissed by PageLoader.done().
+══════════════════════════════════════════════════════════ */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  background: var(--neutral-0, #ffffff);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+/* Fade out */
+.page-loader.is-hiding {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 280ms ease;
+}
+.page-loader.is-gone { display: none; }
+
+/* ── Navbar skeleton ── */
+.pl-navbar-skel {
+  height: 56px;           /* exact height of real navbar */
+  background: var(--color-900, #060f1c);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+.pl-skel {
+  background: rgba(255,255,255,0.09);
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.pl-skel--logo  { width: 130px; height: 18px; }
+.pl-skel--badge { width: 84px;  height: 28px; border-radius: 14px; margin-left: auto; }
+.pl-skel--menu  { width: 32px;  height: 32px; border-radius: 4px; }
+
+/* ── 2px progress bar ── */
+.pl-progress {
+  height: 2px;
+  background: var(--color-400, #4d7aa0);
+  width: 0%;
+  transition: width 180ms ease;
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+
+/* ── Spinner + label area ── */
+.pl-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 16px;
+}
+
+/* ── Arc spinner ── */
+@keyframes pl-spin { to { transform: rotate(360deg); } }
+.pl-spinner {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color:   var(--color-400, #4d7aa0);
+  border-right-color: rgba(77,122,160,0.18);
+  animation: pl-spin 700ms linear infinite;
+  flex-shrink: 0;
+}
+
+/* ── Status label ── */
+.pl-label {
+  font-family: var(--font, 'Figtree', sans-serif);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--neutral-400, #9aa3af);
+  letter-spacing: 0.04em;
+}
+
+/* ── Skeleton content ── */
+.pl-skeleton {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Skeleton base element */
+.sk {
+  background: var(--neutral-100, #f0f2f5);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shimmer sweep */
+@keyframes pl-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+.sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255,255,255,0.60) 50%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: pl-shimmer 1.5s ease infinite;
+}
+
+/* Calendar skeleton */
+.sk-cal-header { height: 28px; width: 55%; }
+.sk-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.sk-cal-cell { height: 30px; }
+
+/* Day panel row skeletons */
+.sk-row      { height: 48px; margin-bottom: 2px; }
+.sk-row--dark {
+  background: var(--color-800, #0f2035);
+  opacity: 0.18;
+}
+
+/* ── Slot availability FAB — distinct from booking FAB, uses navy ── */
+.slot-fab-group {
+  /* Sits at same bottom position as booking-fab.
+     When both are visible they stack — booking-fab slides up. */
+  bottom: var(--sp-5);
+}
+/* When booking-fab is also visible, push slot-fab above it */
+.booking-fab-group.is-visible ~ .slot-fab-group.is-visible,
+.booking-fab-group.is-visible + .slot-fab-group.is-visible {
+  bottom: calc(var(--sp-5) + 56px + var(--sp-2));
+}
+.slot-fab-save {
+  background: var(--color-600, #2b4d6b);
+}
+.slot-fab-save:hover { filter: brightness(1.15); }
+
+/* ── Pending availability row state ── */
+.dv-slot-row.dv-s-avail-pending {
+  opacity: 0.75;
+  position: relative;
+}
+.dv-slot-row.dv-s-avail-pending::after {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--color-400, #4d7aa0);
+  opacity: 0.8;
+}

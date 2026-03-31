@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="IMPL">
+  <meta name="doc-subject"  content="Live-Währungswechsel — vollständige Implementierung">
+  <title>IMPL — Live Currency Switch 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+           font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-new  { background: var(--info-bg); }
+    tbody tr.r-fix  { background: var(--ok-bg); }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; } .cs { color: #86efac; }
+    .ce { color: #fca5a5; } .cn { color: #fde68a; } .cp { color: #c4b5fd; }
+    .pipe { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .pipe-step { display: grid; grid-template-columns: 200px 1fr;
+                 border: 1px solid var(--n200); border-bottom: none; background: var(--n0); }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .pipe-step.hi { background: var(--info-bg); }
+    .pipe-step.ok { background: var(--ok-bg); }
+    .pipe-left { padding: 10px 14px; border-right: 1px solid var(--n200);
+                 display: flex; flex-direction: column; gap: 3px; }
+    .pipe-file { font-family: var(--mono); font-size: 10px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; color: var(--n400); }
+    .pipe-fn   { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy); }
+    .pipe-right { padding: 10px 14px; font-size: 12px; color: var(--n500); line-height: 1.6; }
+    .pipe-arrow { text-align: center; padding: 2px 0; font-size: 13px; color: var(--n400); }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-ok   { background: var(--ok-bg);   color: var(--ok-tx);   border: 1px solid var(--ok-bd); }
+    .sev-info { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .col-card { border: 1px solid var(--n200); border-radius: 8px; overflow: hidden; }
+    .col-title { padding: 8px 12px; font-size: 11px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; }
+    .col-title.info { background: var(--info-bg); color: var(--info-tx); border-bottom: 1px solid var(--info-bd); }
+    .col-title.ok   { background: var(--ok-bg);   color: var(--ok-tx);   border-bottom: 1px solid var(--ok-bd); }
+    .col-body { padding: 12px; font-size: 12px; color: var(--n700); line-height: 1.7; }
+    footer { margin-top: 48px; padding: 14px 40px; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">IMPL · Währungssystem · BookingSystem</div>
+  <h1 class="ph-title">Live-Währungswechsel — vollständige Implementierung</h1>
+  <p class="ph-sub">
+    Vollständige Dokumentation des Live-Währungswechsels über das Navbar-Dropdown.
+    Umfasst Persistenz (GuestSettings), Preis-Refresh auf allen Seiten
+    (Katalog, Student-Dashboard, Profil) sowie Wallet-Badge und Wallet-Panel.
+    Kein Seiten-Reload für eingeloggte User.
+  </p>
+  <div class="ph-meta">
+    <span class="ph-badge inf">🔵 IMPL</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">7 Dateien</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-24</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1 — SYSTEMÜBERSICHT
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Systemübersicht</span>
+      <span class="sec-sub">Alle beteiligten Komponenten</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Ziel:</strong> Wenn der User im Navbar-Dropdown eine andere Währung wählt,
+      werden alle sichtbaren Geldbeträge auf der Seite sofort neu berechnet und angezeigt —
+      ohne Seiten-Reload. Die Währungswahl wird persistent gespeichert und gilt
+      sowohl für Gäste (GuestSettings) als auch für eingeloggte User (Profil).
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Komponente</th><th>Datei</th><th>Rolle im System</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx"><td><strong>Navbar-Dropdown</strong></td><td><code>navbar.js</code></td><td>Auslöser. Nimmt User-Auswahl entgegen, ruft CurrencyService und alle Refresh-Hooks auf.</td></tr>
+          <tr class="r-ctx"><td><strong>CurrencyService</strong></td><td><code>currency-service.js</code></td><td>Zentrale Währungslogik. <code>setGuestCurrency()</code> persistiert die Wahl. <code>getUserCurrency(uid)</code> liest sie zurück.</td></tr>
+          <tr class="r-ctx"><td><strong>GuestSettings</strong></td><td><code>store.js</code></td><td>Persistenz-Layer für Gäste. Key: <code>app_guest_settings</code>. Schema: <code>{ currency: 'EUR' }</code>.</td></tr>
+          <tr class="r-ctx"><td><strong>AppService</strong></td><td><code>app-service.js</code></td><td>API-Layer. Exponiert <code>getGuestCurrency()</code> und <code>setGuestCurrency()</code> für Consumer.</td></tr>
+          <tr class="r-ctx"><td><strong>LocalStorageAdapter</strong></td><td><code>adapter-localstorage.js</code></td><td>Implementierung des Adapters. Liest/schreibt GuestSettings via Store.</td></tr>
+          <tr class="r-ctx"><td><strong>SkiingCatalog</strong></td><td><code>skiing-catalog.js</code></td><td>Refresh-Hook für den Lehrerkatalog. <code>SkiingCatalog.refreshPrices()</code> re-rendert alle Karten.</td></tr>
+          <tr class="r-ctx"><td><strong>StudentView</strong></td><td><code>student.js</code></td><td>Refresh-Hook für das Student-Dashboard. <code>StudentView.refreshPrices()</code> re-rendert den Katalog-Tab.</td></tr>
+          <tr class="r-ctx"><td><strong>ProfileView</strong></td><td><code>profile.js</code></td><td>Refresh-Hook für die Profilseite. <code>ProfileView.refreshPrices()</code> re-rendert den Hero-Preis.</td></tr>
+          <tr class="r-ctx"><td><strong>WalletPanel</strong></td><td><code>wallet-panel.js</code></td><td>Refresh-Hook für Wallet-Badge + Panel. <code>WalletPanel.refresh(uid)</code> aktualisiert Kontostand und Transaktionsliste.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2 — VOLLSTÄNDIGER DATENFLUSS
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Vollständiger Datenfluss — User wählt Währung</span>
+      <span class="sec-sub">navbar.js → alle Consumer</span>
+    </div>
+
+    <div class="pipe">
+      <div class="pipe-step hi">
+        <div class="pipe-left"><span class="pipe-file">navbar.js</span><span class="pipe-fn">_bindCurrencyDropdown()</span></div>
+        <div class="pipe-right">User wählt z.B. USD im Dropdown. <code>code = 'USD'</code> wird extrahiert.</div>
+      </div>
+      <div class="pipe-arrow">↓ Schritt 1 — Persistenz</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><span class="pipe-file">currency-service.js</span><span class="pipe-fn">setGuestCurrency(code, uid)</span></div>
+        <div class="pipe-right">
+          Zwei Aktionen parallel:<br>
+          1) <code>AppService.setGuestCurrency('USD', cb)</code> → persistiert in <code>app_guest_settings</code> (Gäste + eingeloggte)<br>
+          2) Wenn <code>uid</code> vorhanden: <code>AppService.saveProfile(uid, profile)</code> mit <code>profile.displayCurrency = 'USD'</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓ Schritt 2 — Navbar-Symbol aktualisieren</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><span class="pipe-file">navbar.js</span><span class="pipe-fn">_bindCurrencyDropdown()</span></div>
+        <div class="pipe-right"><code>navbar-currency-symbol</code> wird auf <code>$</code> gesetzt. Dropdown-Option erhält <code>.is-selected</code>.</div>
+      </div>
+      <div class="pipe-arrow">↓ Schritt 3 — Seitenpreise neu berechnen (exklusiv: nur erste passende)</div>
+      <div class="pipe-step ok">
+        <div class="pipe-left"><span class="pipe-file">skiing-catalog.js</span><span class="pipe-fn">SkiingCatalog.refreshPrices()</span></div>
+        <div class="pipe-right">Auf <code>skiing-catalog.html</code>: <code>_applyFilters() → _render() → _bindCards()</code>. Alle Lehrerkarten werden neu gebaut. Jede Karte liest frisch <code>getUserCurrency(null)</code>.</div>
+      </div>
+      <div class="pipe-step ok" style="border-top: 1px solid var(--n200);">
+        <div class="pipe-left"><span class="pipe-file">student.js</span><span class="pipe-fn">StudentView.refreshPrices()</span></div>
+        <div class="pipe-right">Auf <code>student.html</code>: <code>renderCatalog()</code> wird aufgerufen. Teacher-Visitenkarten im Dashboard werden neu gerendert mit aktueller Währung.</div>
+      </div>
+      <div class="pipe-step ok" style="border-top: 1px solid var(--n200);">
+        <div class="pipe-left"><span class="pipe-file">profile.js</span><span class="pipe-fn">ProfileView.refreshPrices()</span></div>
+        <div class="pipe-right">Auf <code>profile-view.html</code>: Hero-Preis-Block wird neu gerendert. Kein Reload der gesamten Seite.</div>
+      </div>
+      <div class="pipe-arrow">↓ Schritt 4 — Wallet immer aktualisieren (unabhängig von Seite)</div>
+      <div class="pipe-step ok">
+        <div class="pipe-left"><span class="pipe-file">wallet-panel.js</span><span class="pipe-fn">WalletPanel.refresh(uid)</span></div>
+        <div class="pipe-right">
+          Lädt Wallet-Balance via <code>AppService.getWallet(uid)</code> neu.<br>
+          → <code>_onBalanceUpdate(wallet)</code>: Konvertiert Balance in neue Währung, aktualisiert <code>#navbar-wallet-amount</code>.<br>
+          → Wenn Panel bereits gemountet: <code>_core.loadData()</code> re-rendert Transaktionsliste und Balancekarte.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3 — WÄHRUNGS-PRIORITÄTSKETTE
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Währungs-Prioritätskette — getUserCurrency(uid)</span>
+      <span class="sec-sub">currency-service.js · SSOT</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Eine Funktion für alle Stellen:</strong> <code>CurrencyService.getUserCurrency(uid)</code>
+      ist der einzige erlaubte Einstiegspunkt um die aktuelle Anzeigewährung zu ermitteln.
+      Sie deckt alle drei Fälle ab: eingeloggt, Gast, erster Aufruf.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Priorität</th><th>Bedingung</th><th>Quelle</th><th>Beispiel</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>1</strong></td><td><code>uid</code> vorhanden + Profil hat <code>displayCurrency</code></td><td><code>ProfileStore.get(uid).displayCurrency</code></td><td>Eingeloggter Student hat USD gespeichert → USD</td></tr>
+          <tr><td><strong>2</strong></td><td><code>uid</code> = null oder kein Profil</td><td><code>Store.GuestSettings.getCurrency()</code> (<code>app_guest_settings</code>)</td><td>Gast hat im Dropdown GEL gewählt → GEL</td></tr>
+          <tr><td><strong>3</strong></td><td>Weder Profil noch localStorage-Eintrag</td><td>Hardcoded <code>'EUR'</code></td><td>Erster Seitenaufruf ohne jede Einstellung → EUR</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 4 — PERSISTENZ-ARCHITEKTUR
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <span class="sec-title">Persistenz-Architektur — GuestSettings</span>
+      <span class="sec-sub">store.js → adapter → app-service</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Warum GuestSettings?</strong> Alle anderen localStorage-Collections (Slots, Users, etc.)
+      sind ausschließlich via AppService-Layer zugänglich. GuestSettings folgt demselben Muster —
+      die Währungswahl eines Gastes ist eine eigene Collection, kein Anhang an eine andere Entität.
+    </div>
+
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title info">Schema</div>
+        <div class="col-body">
+          Key: <code>app_guest_settings</code><br>
+          Wert: <code>{ currency: 'USD' }</code><br><br>
+          Flaches Objekt. Kein Array. Firestore-kompatibel
+          als einzelnes Document in einer <code>settings</code>-Collection.
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-title ok">Schicht-Stack</div>
+        <div class="col-body">
+          <code>Store.GuestSettings.setCurrency(code)</code><br>
+          ↑ <code>LocalStorageAdapter.setGuestCurrency(code, cb)</code><br>
+          ↑ <code>AppService.setGuestCurrency(code, cb)</code><br>
+          ↑ <code>CurrencyService.setGuestCurrency(code, uid)</code><br>
+          ↑ <code>Navbar._bindCurrencyDropdown()</code>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Sync-Lesepfad (dokumentierte Ausnahme):</strong>
+      <code>getUserCurrency(uid)</code> liest <code>Store.GuestSettings</code> direkt (synchron),
+      weil alle Render-Funktionen (<code>_buildCard</code>, etc.) synchron arbeiten.
+      Dies ist die einzige Stelle im Consumer-nahen Code, die den Store direkt liest.
+      Beim Wechsel auf Firestore wird dieser Sync-Read durch einen warm gecachten Wert ersetzt.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 5 — REFRESH-HOOKS PRO SEITE
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <span class="sec-title">Refresh-Hooks — alle Seiten</span>
+      <span class="sec-sub">navbar.js · Dispatch-Logik</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Zwei Kategorien:</strong> Seitenspezifische Hooks (exklusiv — nur der erste passende
+      wird ausgeführt) und der Wallet-Hook (immer — auf jeder Seite, da der Badge
+      in jeder Navbar sichtbar ist).
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Hook</th><th>Seite</th><th>Funktion</th><th>Was wird aktualisiert</th><th>Kategorie</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx"><td><code>SkiingCatalog.refreshPrices()</code></td><td><code>skiing-catalog.html</code></td><td><code>_applyFilters() + _render()</code></td><td>Alle Lehrerkarten im Katalog</td><td>Seitenspezifisch</td></tr>
+          <tr class="r-ctx"><td><code>StudentView.refreshPrices()</code></td><td><code>student.html</code></td><td><code>renderCatalog()</code></td><td>Teacher-Visitenkarten im Dashboard-Katalog-Tab</td><td>Seitenspezifisch</td></tr>
+          <tr class="r-ctx"><td><code>ProfileView.refreshPrices()</code></td><td><code>profile-view.html</code></td><td>Hero-Block re-render</td><td>Lehrerpreis im Profil-Hero</td><td>Seitenspezifisch</td></tr>
+          <tr class="r-ctx"><td><code>window.location.reload()</code></td><td>Alle anderen</td><td>Seiten-Reload</td><td>Alles (Fallback)</td><td>Seitenspezifisch (Fallback)</td></tr>
+          <tr class="r-fix"><td><code>WalletPanel.refresh(uid)</code></td><td>Alle Seiten</td><td><code>_onBalanceUpdate() + _core.loadData()</code></td><td>Navbar-Badge + Wallet-Panel (wenn gemountet)</td><td><strong>Immer</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <span class="code-label">navbar.js — vollständige Dispatch-Logik</span>
+    <div class="code-block"><code><span class="cm">/* Schritt 3: Seitenspezifischer Preis-Refresh (exklusiv) */</span>
+<span class="ck">if</span> (typeof SkiingCatalog !== <span class="cs">'undefined'</span> && typeof SkiingCatalog.refreshPrices === <span class="cs">'function'</span>) {
+  SkiingCatalog.refreshPrices();
+} <span class="ck">else if</span> (typeof StudentView !== <span class="cs">'undefined'</span> && typeof StudentView.refreshPrices === <span class="cs">'function'</span>) {
+  StudentView.refreshPrices();
+} <span class="ck">else if</span> (typeof ProfileView !== <span class="cs">'undefined'</span> && typeof ProfileView.refreshPrices === <span class="cs">'function'</span>) {
+  ProfileView.refreshPrices();
+} <span class="ck">else</span> {
+  window.location.reload();
+}
+
+<span class="cm">/* Schritt 4: Wallet immer aktualisieren — unabhängig von der Seite */</span>
+<span class="ck">if</span> (typeof WalletPanel !== <span class="cs">'undefined'</span> && typeof WalletPanel.refresh === <span class="cs">'function'</span>) {
+  WalletPanel.refresh(self._uid || <span class="ck">null</span>);
+}</code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 6 — PREIS-KONVERTIERUNGSLOGIK
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <span class="sec-title">Preis-Konvertierungslogik — zwei Betragstypen</span>
+      <span class="sec-sub">currency-service.js · SSOT</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Betragstyp</th><th>Gespeichert in</th><th>Konvertierungsfunktion</th><th>Einsatz</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><strong>Wallet / Transaktionen / Deposits</strong></td>
+            <td>Immer EUR (Systemwährung)</td>
+            <td><code>_fmtForUser(amountEUR, uid)</code></td>
+            <td><code>wallet-panel.js</code>, <code>wallet-core.js</code>, Buchungsdialoge in <code>ui.js</code></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Lehrerpreis (pricePerHalfHour)</strong></td>
+            <td>Beliebige Währung (<code>priceCurrency</code>)</td>
+            <td><code>convertSync(price, priceCurrency, viewerCurrency)</code></td>
+            <td><code>skiing-catalog.js</code>, <code>profile.js</code>, <code>ui.js</code> (Profile-Sheet), <code>student.js</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Nicht redundant:</strong> Die beiden Konvertierungspfade sind bewusst getrennt.
+      <code>_fmtForUser()</code> erwartet EUR als Input und konvertiert in die Viewer-Währung.
+      <code>convertSync()</code> konvertiert von einer beliebigen Quellwährung.
+      Ein Lehrer kann seinen Preis z.B. in CHF eingeben — <code>_fmtForUser()</code>
+      würde hier falsch rechnen.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 7 — ALLE GEÄNDERTEN DATEIEN
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">7</span>
+      <span class="sec-title">Alle geänderten Dateien — vollständige Liste</span>
+      <span class="sec-sub">7 Dateien · APP_VERSION 2026-03-21-22 bis 24</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Datei</th><th>Was wurde geändert</th><th>Version</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-new">
+            <td><code>js/store.js</code></td>
+            <td>
+              <code>KEYS.GUEST_SETTINGS = 'app_guest_settings'</code> hinzugefügt.<br>
+              <code>GuestSettings</code>-Objekt mit <code>getCurrency()</code> / <code>setCurrency(code)</code> implementiert.<br>
+              In <code>window.Store</code> exportiert.
+            </td>
+            <td>v22</td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td>
+              <code>getGuestCurrency(callback)</code> und <code>setGuestCurrency(code, callback)</code> implementiert.<br>
+              Beide delegieren an <code>Store.GuestSettings</code> mit try/catch und Standard-Callback-Pattern.<br>
+              Beide im Return-Objekt exportiert.
+            </td>
+            <td>v22</td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/app-service.js</code></td>
+            <td>
+              <code>getGuestCurrency(callback)</code> und <code>setGuestCurrency(code, callback)</code> als public API via <code>_call()</code>.<br>
+              Beide im Return-Objekt exportiert.
+            </td>
+            <td>v22</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/currency-service.js</code></td>
+            <td>
+              <code>setGuestCurrency()</code>: Direktzugriff <code>Store.GuestSettings.setCurrency()</code> ersetzt durch <code>AppService.setGuestCurrency()</code>.<br>
+              <code>getUserCurrency()</code>: Sync-Lesezugriff bleibt — dokumentiert als einzige erlaubte Ausnahme im Render-Pfad.
+            </td>
+            <td>v22</td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/student.js</code></td>
+            <td>
+              <code>window.StudentView.refreshPrices()</code> als public API exportiert.<br>
+              Ruft <code>renderCatalog()</code> auf — re-rendert Teacher-Visitenkarten mit aktueller Währung.
+            </td>
+            <td>v23</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/navbar.js</code></td>
+            <td>
+              Currency-Change-Handler: <code>StudentView.refreshPrices()</code> als zweite Option in der Dispatch-Kette ergänzt.<br>
+              <code>WalletPanel.refresh(uid)</code> nach der Dispatch-Kette immer aufgerufen — aktualisiert Badge und Panel auf jeder Seite.
+            </td>
+            <td>v23 + v24</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/app-config.js</code></td>
+            <td>APP_VERSION inkrementell erhöht: <code>21</code> → <code>22</code> → <code>23</code> → <code>24</code>.</td>
+            <td>v22–24</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 8 — VOLLSTÄNDIGE PREIS-ABDECKUNG
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">8</span>
+      <span class="sec-title">Vollständige Preis-Abdeckung — alle Anzeige-Stellen</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Seite / Komponente</th><th>Datei</th><th>Viewer-Währung?</th><th>Gast-Support?</th><th>Live-Update bei Währungswechsel?</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Lehrerkatalog — Karten</td><td><code>skiing-catalog.js</code></td><td>✅</td><td>✅ <code>getUserCurrency(null)</code></td><td>✅ <code>SkiingCatalog.refreshPrices()</code></td></tr>
+          <tr><td>Lehrerprofil — Hero-Preis</td><td><code>profile.js</code></td><td>✅</td><td>✅ Gäste via GuestSettings</td><td>✅ <code>ProfileView.refreshPrices()</code></td></tr>
+          <tr><td>Profile-Sheet (Bottom-Sheet)</td><td><code>ui.js</code></td><td>✅</td><td>✅</td><td>✅ Teil von <code>SkiingCatalog.refreshPrices()</code></td></tr>
+          <tr><td>Teacher-Visitenkarte (Dashboard)</td><td><code>student.js</code></td><td>✅</td><td>— (nur eingeloggt)</td><td>✅ <code>StudentView.refreshPrices()</code></td></tr>
+          <tr><td>Navbar-Wallet-Badge</td><td><code>wallet-panel.js</code></td><td>✅</td><td>— (nur eingeloggt)</td><td>✅ <code>WalletPanel.refresh(uid)</code></td></tr>
+          <tr><td>Wallet-Panel — Balance</td><td><code>wallet-panel.js</code> / <code>wallet-core.js</code></td><td>✅</td><td>— (nur eingeloggt)</td><td>✅ <code>WalletPanel.refresh(uid)</code> → <code>_core.loadData()</code></td></tr>
+          <tr><td>Wallet-Panel — Transaktionsliste</td><td><code>wallet-core.js</code></td><td>✅</td><td>— (nur eingeloggt)</td><td>✅ <code>_core.loadData()</code> wenn Panel gemountet</td></tr>
+          <tr><td>Buchungsdialog — Preiszeilen</td><td><code>ui.js</code></td><td>✅</td><td>— (nur eingeloggt buchbar)</td><td>— Dialog wird bei Öffnung frisch gebaut</td></tr>
+          <tr><td>Filter-Drawer — Preis-Slider</td><td><code>catalog-filter-drawer.js</code></td><td>✅</td><td>✅</td><td>✅ Teil von <code>SkiingCatalog.refreshPrices()</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 9 — GUIDELINE-KONFORMITÄT
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">9</span>
+      <span class="sec-title">Guideline-Konformität</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Guideline</th><th>Anforderung</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Architektur §2 — Adapter-Pattern</td><td>Consumer greift nie direkt auf Store.* zu</td><td>✅ Write-Pfad vollständig über AppService. Einzige Ausnahme: synchroner Lesepfad in CurrencyService, dokumentiert.</td></tr>
+          <tr><td>Architektur §2 — Async</td><td>Alles ist async, <code>function(err, result)</code></td><td>✅ Alle neuen Adapter- und AppService-Methoden verwenden Callback-Pattern.</td></tr>
+          <tr><td>Architektur §2 — Fehlerbehandlung</td><td>Kein stiller Fail</td><td>✅ Adapter wrapp try/catch, Fehler werden via Callback weitergegeben.</td></tr>
+          <tr><td>Architektur §3 — Schema</td><td>Flache Collections, Firestore-kompatibel</td><td>✅ <code>{ currency: 'EUR' }</code> — flachstes mögliches Objekt.</td></tr>
+          <tr><td>Architektur §3 — Adapter-Swap</td><td>Eine Zeile in app-config.js für Migration</td><td>✅ FirestoreAdapter muss nur <code>getGuestCurrency</code> / <code>setGuestCurrency</code> mit identischer Signatur implementieren.</td></tr>
+          <tr><td>No-Build §1 — ES5</td><td>var, function(){}, keine Arrow-Functions</td><td>✅ Alle neuen Funktionen in ES5.</td></tr>
+          <tr><td>Layout §4 — Sichtbarkeit via CSS</td><td>Kein <code>element.style.*</code></td><td>✅ Alle Refresh-Funktionen manipulieren nur Daten/Text, kein inline CSS.</td></tr>
+          <tr><td>Architektur §4 — APP_VERSION</td><td>Bei jeder Änderung erhöhen</td><td>✅ <code>21 → 22 → 23 → 24</code> pro Commit.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>IMPL_LIVE_CURRENCY_SWITCH_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-24 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

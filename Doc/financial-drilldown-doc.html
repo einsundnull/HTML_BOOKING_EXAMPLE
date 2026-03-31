@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Financial Planner KPI Drill-Down — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1100px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600} .new{color:var(--accent);font-weight:600}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+
+/* Live KPI demo */
+.kpi-demo { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:20px 0; max-width:700px; }
+.kc { position:relative; border-radius:10px; padding:14px 14px 14px 16px; border:1.5px solid transparent; overflow:hidden; min-height:80px; display:flex; flex-direction:column; gap:3px; cursor:pointer; transition:transform .15s,box-shadow .15s; }
+.kc:hover { transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,0,0,.1); }
+.kc.active { outline:3px solid currentColor; outline-offset:2px; transform:translateY(-1px); box-shadow:0 0 0 4px rgba(0,0,0,.06); }
+.kc-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;opacity:.65}
+.kc-val{font-size:18px;font-weight:700;letter-spacing:-.4px;line-height:1.1;margin-top:2px}
+.kc-sub{font-size:10px;opacity:.55}
+.kc-ico{position:absolute;top:8px;right:10px;font-size:18px;opacity:.15;user-select:none}
+.kc1{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}
+.kc2{background:#fffbeb;border-color:#fde68a;color:#78350f}
+.kc3{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.kc4{background:#faf5ff;border-color:#e9d5ff;color:#4c1d95}
+.kc5{background:#fff1f2;border-color:#fecdd3;color:#881337}
+
+/* Chip strip */
+.chip-row { display:flex; flex-wrap:wrap; gap:6px; margin:10px 0; }
+.chip { font-size:11px; font-weight:700; padding:3px 10px; border-radius:20px; border:1px solid #e2e8f0; background:#f8fafc; color:#64748b; cursor:pointer; }
+.chip.active { background:#0f1117; color:#fff; border-color:#0f1117; }
+
+/* Day view mock */
+.day-list { border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; max-width:500px; margin:14px 0; }
+.day-divider { display:flex; justify-content:space-between; padding:7px 14px; background:#f8fafc; border-bottom:1px solid #f1f5f9; font-size:11px; font-weight:700; color:#64748b; text-transform:uppercase; letter-spacing:.5px; }
+.day-row { display:flex; align-items:center; gap:10px; padding:8px 14px; border-bottom:1px solid #f9fafb; font-size:13px; }
+.day-icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+.ic-green{background:#d1fae5;color:#065f46} .ic-amber{background:#fef3c7;color:#92400e}
+.day-info{flex:1} .day-name{font-weight:600} .day-time{font-size:11px;color:#9ca3af}
+.day-price{font-weight:700;color:#065f46} .day-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.badge-confirmed{background:#dcfce7;color:#166534} .badge-pending{background:#fef3c7;color:#92400e}
+.extra-info{font-size:11px;color:#2563eb;font-weight:600;margin-top:2px}
+</style>
+</head>
+<body>
+
+<h1>Financial Planner — KPI Drill-Down</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Interaktives Mockup</h2>
+<p>Klick auf eine KPI-Karte → aktiv (Outline), Buchungsliste filtert sich, Seite scrollt zur Liste.</p>
+
+<div class="kpi-demo">
+  <div class="kc kc1" onclick="setActive(this,'★ Verdient & ausgezahlt','confirmed')">
+    <div class="kc-lbl">Verdient & ausgezahlt</div><div class="kc-val">€1.890</div><div class="kc-sub">42 Stunden</div><div class="kc-ico">★</div>
+  </div>
+  <div class="kc kc2" onclick="setActive(this,'⏸ Deposit gehalten','held')">
+    <div class="kc-lbl">Deposit gehalten</div><div class="kc-val">€270</div><div class="kc-sub">30 Slots</div><div class="kc-ico">⏸</div>
+  </div>
+  <div class="kc kc3" onclick="setActive(this,'→ Fällig bei Bestätigung','pending')">
+    <div class="kc-lbl">Fällig bei Bestätigung</div><div class="kc-val">€810</div><div class="kc-sub">30 Slots</div><div class="kc-ico">→</div>
+  </div>
+  <div class="kc kc4" onclick="setActive(this,'📅 Geplanter Umsatz','future')">
+    <div class="kc-lbl">Geplanter Umsatz</div><div class="kc-val">€2.700</div><div class="kc-sub">60 Slots</div><div class="kc-ico">📅</div>
+  </div>
+  <div class="kc kc5" onclick="setActive(this,'↩ Ausstehende Refunds','refund')">
+    <div class="kc-lbl">Ausstehende Refunds</div><div class="kc-val">€45</div><div class="kc-sub">2 offen</div><div class="kc-ico">↩</div>
+  </div>
+</div>
+
+<div id="chip-strip">
+  <div class="chip-row" id="chips">
+    <span class="chip active" data-f="all">Alle</span>
+    <span class="chip" data-f="booked">Unbestätigt</span>
+    <span class="chip" data-f="confirmed">Bestätigt ✓</span>
+    <span class="chip" data-f="future">Zukünftig</span>
+    <span class="chip" data-f="past">Vergangen</span>
+    <span class="chip" data-f="held">⏸ Deposit</span>
+    <span class="chip" data-f="pending">→ Fällig</span>
+    <span class="chip" data-f="refund">↩ Refund</span>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748b;margin-bottom:8px">
+    <span id="active-lbl" style="color:#2563eb;font-weight:700"></span>
+    <span id="active-count">6 Buchungen</span>
+  </div>
+</div>
+
+<div class="day-list" id="day-list">
+  <div class="day-divider"><span>Mi., 19. März 2026</span><span>€90,00</span></div>
+  <div class="day-row"><div class="day-icon ic-green">★</div><div class="day-info"><div class="day-name">S1</div><div class="day-time">14:00–14:30</div></div><div><div class="day-price">€45,00</div><span class="day-badge badge-confirmed">✓ Bestätigt</span></div></div>
+  <div class="day-row"><div class="day-icon ic-amber">✓</div><div class="day-info"><div class="day-name">S2</div><div class="day-time">15:00–15:30</div></div><div><div class="day-price">€45,00</div><span class="day-badge badge-pending">⏳ Unbestätigt</span></div></div>
+  <div class="day-divider"><span>Do., 20. März 2026</span><span>€90,00</span></div>
+  <div class="day-row"><div class="day-icon ic-amber">✓</div><div class="day-info"><div class="day-name">S1</div><div class="day-time">14:00–14:30</div></div><div><div class="day-price">€45,00</div><span class="day-badge badge-pending">⏳ Unbestätigt</span></div></div>
+  <div class="day-row"><div class="day-icon ic-green">★</div><div class="day-info"><div class="day-name">S2</div><div class="day-time">15:00–15:30</div></div><div><div class="day-price">€45,00</div><span class="day-badge badge-confirmed">✓ Bestätigt</span></div></div>
+</div>
+<script>
+var _cards=document.querySelectorAll('.kc');
+var _chips=document.querySelectorAll('[data-f]');
+function setActive(card,label,filter){
+  _cards.forEach(function(c){c.classList.remove('active');});
+  _chips.forEach(function(c){c.classList.remove('active');});
+  card.classList.add('active');
+  var chip=document.querySelector('[data-f="'+filter+'"]');
+  if(chip)chip.classList.add('active');
+  document.getElementById('active-lbl').textContent=label;
+}
+_chips.forEach(function(c){
+  c.addEventListener('click',function(){
+    _chips.forEach(function(x){x.classList.remove('active');});
+    _cards.forEach(function(x){x.classList.remove('active');});
+    c.classList.add('active');
+    document.getElementById('active-lbl').textContent='';
+  });
+});
+</script>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — KPI → Filter Mapping</h2>
+<div class="tw"><table>
+<thead><tr><th>KPI Karte</th><th>data-kpi</th><th>Filter-Logik</th><th>Chip aktiviert</th><th>Extra-Info Zeile</th></tr></thead>
+<tbody>
+  <tr><td>★ Verdient &amp; ausgezahlt</td><td><code>confirmed</code></td><td><code>slot.status === 'confirmed'</code></td><td>Bestätigt ✓</td><td>—</td></tr>
+  <tr><td>⏸ Deposit gehalten</td><td><code>held</code></td><td><code>status=booked AND escrow.depositStatus=held</code></td><td>⏸ Deposit</td><td>„Deposit: €9,00"</td></tr>
+  <tr><td>→ Fällig bei Bestätigung</td><td><code>pending</code></td><td><code>status=booked AND held AND fullAmount &gt; depositAmount</code></td><td>→ Fällig</td><td>„Noch fällig: €36,00 (Deposit bezahlt: €9,00)"</td></tr>
+  <tr><td>📅 Geplanter Umsatz</td><td><code>future</code></td><td><code>slot.date &gt;= today</code></td><td>Zukünftig</td><td>—</td></tr>
+  <tr><td>↩ Ausstehende Refunds</td><td><code>refund</code></td><td><code>escrow.depositStatus=refund_requested</code></td><td>↩ Refund</td><td>„Refund ausstehend: €9,00"</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Klick-Pipeline</h2>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">User klickt KPI-Karte (<code>data-kpi="future"</code>)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Alle Karten: <code>classList.remove('is-active')</code> → geklickte Karte: <code>classList.add('is-active')</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>_activeKpi = 'future'</code> · <code>_setKpiChip('future')</code> → setzt passenden Chip aktiv</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><code>renderBookings()</code> → filtert <code>_slots</code> nach KPI-Logik, gruppiert nach Datum</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Active Label: „📅 Geplanter Umsatz" + Zähler „N Buchungen" erscheinen</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">6</div><div class="flow-text"><code>bkSection.scrollIntoView({ behavior:'smooth' })</code> → Seite scrollt zur Liste</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num" style="background:#16a34a">7</div><div class="flow-text">Toggle: Klick auf aktive Karte → reset auf „Alle", alle Karten deaktiviert</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Day-View Gruppierung</h2>
+<p>Die Buchungsliste gruppiert Einträge nach Datum — identisch zum „My Bookings"-Layout. Innerhalb eines Tages sind Slots nach Uhrzeit sortiert (aufsteigend). Jede Tages-Gruppe hat einen Sticky-Divider mit Datum + Tages-Gesamtbetrag.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Element</th><th>Inhalt</th><th>CSS Klasse</th></tr></thead>
+<tbody>
+  <tr><td>Tag-Divider</td><td>„Mi., 19. März 2026" + „€90,00"</td><td><code>.fin-day-divider</code> (sticky)</td></tr>
+  <tr><td>Slot-Zeile</td><td>Schüler · Zeit · Preis · Status-Badge</td><td><code>.fin-bk-row .wallet-tx-item</code></td></tr>
+  <tr><td>Extra-Info</td><td>Nur bei Drill-Down: Deposit-Details, Restbetrag</td><td><code>.fin-extra-info</code> (blau)</td></tr>
+  <tr><td>Active Label</td><td>„★ Verdient &amp; ausgezahlt" (Name der aktiven Karte)</td><td><code>#fin-bk-active-label</code></td></tr>
+  <tr><td>Zähler</td><td>„42 Buchungen"</td><td><code>#fin-bk-count</code></td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Neue Filter-Chips</h2>
+<div class="tw"><table>
+<thead><tr><th>Chip</th><th>data-fin-bk</th><th>Wann sichtbar / nützlich</th></tr></thead>
+<tbody>
+  <tr><td>Alle</td><td><code>all</code></td><td>Default</td></tr>
+  <tr><td>Unbestätigt</td><td><code>booked</code></td><td>Offene Buchungen</td></tr>
+  <tr><td>Bestätigt ✓</td><td><code>confirmed</code></td><td>Abgeschlossene Stunden</td></tr>
+  <tr><td>Zukünftig</td><td><code>future</code></td><td>Kommende Termine</td></tr>
+  <tr><td>Vergangen</td><td><code>past</code></td><td>Vergangene Termine</td></tr>
+  <tr><td>⏸ Deposit <span class="new">NEU</span></td><td><code>held</code></td><td>KPI-Drill: Deposit gehalten</td></tr>
+  <tr><td>→ Fällig <span class="new">NEU</span></td><td><code>pending</code></td><td>KPI-Drill: Fällig bei Bestätigung</td></tr>
+  <tr><td>↩ Refund <span class="new">NEU</span></td><td><code>refund</code></td><td>KPI-Drill: Ausstehende Refunds</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — Geänderte Dateien</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>financial.js</code></td><td>v=2</td><td><code>_bindKpiCards()</code>, <code>_kpiToFilter()</code>, <code>_setKpiChip()</code>, <code>_activeKpi</code> State, <code>_escrowMap</code>, erweiterter Booking-Filter, Day-View Gruppierung, Active Label</td></tr>
+  <tr><td><code>financial.html</code></td><td>v=2</td><td><code>data-kpi</code> auf allen Karten, <code>id="fin-bk-section"</code>, neue Chips (held/pending/refund), Active-Label + Count Span</td></tr>
+  <tr><td><code>financial.css</code></td><td>v=2</td><td><code>.fin-kpi-card[data-kpi]</code> hover/active, <code>.fin-day-divider</code>, <code>.fin-bk-header-row</code>, <code>.fin-extra-info</code></td></tr>
+</tbody>
+</table></div>
+</body>
+</html>

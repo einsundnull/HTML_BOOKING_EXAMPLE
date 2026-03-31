@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Transaktionsübersicht — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;overflow-x:auto;margin:14px 0}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1} pre .cm{color:#6c7086;font-style:italic}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.ok{color:var(--green);font-weight:600} .no{color:var(--red)} .new{color:var(--accent);font-weight:600}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill-new{background:#eff6ff;color:var(--accent)} .pill-ok{background:#dcfce7;color:var(--green)}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+.chip{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;margin:2px}
+.chip.active{background:#0f1117;color:#fff;border-color:#0f1117}
+.mockup{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0}
+.mockup-tabs{display:flex;border-bottom:2px solid var(--border)}
+.mockup-tab{padding:10px 18px;font-size:13px;font-weight:600;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;cursor:default}
+.mockup-tab.active{color:var(--ink);border-bottom-color:var(--ink)}
+.mockup-body{padding:16px}
+.mockup-filter{display:flex;flex-wrap:wrap;gap:6px;padding:10px 0;border-bottom:1px solid #f1f5f9;margin-bottom:10px}
+.mockup-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f8fafc;font-size:13px}
+.mockup-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ic-green{background:#d1fae5;color:#065f46} .ic-amber{background:#fef3c7;color:#92400e}
+.ic-blue{background:#dbeafe;color:#1e40af} .ic-red{background:#fee2e2;color:#991b1b}
+.mockup-info{flex:1;min-width:0}
+.mockup-type{font-weight:700;font-size:13px}
+.mockup-sub{font-size:11px;color:#9ca3af}
+.mockup-amt.pos{color:#065f46;font-weight:700}
+.mockup-amt.neg{color:#991b1b;font-weight:700}
+</style>
+</head>
+<body>
+
+<h1>Admin Transaktionsübersicht</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Vorher / Nachher</h2>
+<div class="tw"><table>
+<thead><tr><th>Feature</th><th>Vorher</th><th>Nachher</th></tr></thead>
+<tbody>
+  <tr><td>Zahlungen-Tab</td><td>Nur Escrow-Transfers</td><td class="ok new">2 Sub-Tabs: Escrows + Alle Transaktionen</td></tr>
+  <tr><td>TX-Typen sichtbar</td><td>Nur escrow_hold/release</td><td class="ok new">Alle 11 Typen</td></tr>
+  <tr><td>Filter nach Typ</td><td>✗</td><td class="ok new">✓ Chips: Alle / Einzahlung / Auszahlung / Deposit / Freigabe / Refund / Storno / Bestätigt</td></tr>
+  <tr><td>Filter nach Lehrer</td><td>✗</td><td class="ok new">✓ Dropdown aus allen Lehrern</td></tr>
+  <tr><td>Filter nach Schüler</td><td>✗</td><td class="ok new">✓ Dropdown aus allen Schülern</td></tr>
+  <tr><td>Filter nach Datum</td><td>✗</td><td class="ok new">✓ Von / Bis</td></tr>
+  <tr><td>Gesamtvolumen</td><td>✗</td><td class="ok new">✓ Summe aller |Beträge| der gefilterten TX</td></tr>
+  <tr><td>TX-Anzahl</td><td>✗</td><td class="ok new">✓ „42 Transaktionen" Badge</td></tr>
+  <tr><td>Reset-Filter</td><td>✗</td><td class="ok new">✓ Erscheint nur wenn Filter aktiv</td></tr>
+  <tr><td>TX-Detail</td><td>✗</td><td class="ok new">✓ Klick → Modal mit allen TX-Feldern</td></tr>
+  <tr><td>Benutzer-Anzeige</td><td>Nur Student→Lehrer bei Escrow</td><td class="ok new">✓ Benutzer + Gegenseite pro TX</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — UI-Mockup</h2>
+
+<div class="mockup">
+  <div class="mockup-tabs">
+    <div class="mockup-tab">Escrow-Transfers</div>
+    <div class="mockup-tab active">Alle Transaktionen</div>
+  </div>
+  <div class="mockup-body">
+    <div class="mockup-filter">
+      <span class="chip active">Alle</span>
+      <span class="chip">↑ Einzahlung</span>
+      <span class="chip">↓ Auszahlung</span>
+      <span class="chip">⏸ Deposit</span>
+      <span class="chip">▶ Freigabe</span>
+      <span class="chip">↩ Refund</span>
+      <span class="chip">✕ Storno</span>
+      <span class="chip">★ Bestätigt</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:#64748b">
+      <span>Von</span><input type="date" style="border:1px solid #e2e8f0;border-radius:4px;padding:3px 6px;font-size:12px">
+      <span>Bis</span><input type="date" style="border:1px solid #e2e8f0;border-radius:4px;padding:3px 6px;font-size:12px">
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center;font-size:12px;color:#64748b">
+      <span>Lehrer:</span><select style="border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:12px"><option>Alle Lehrer</option><option>Matthias Heinold</option></select>
+      <span>Schüler:</span><select style="border:1px solid #e2e8f0;border-radius:4px;padding:3px 8px;font-size:12px"><option>Alle Schüler</option><option>S1</option><option>S2</option></select>
+    </div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:#9ca3af;margin-bottom:10px">
+      <span>42 Transaktionen</span><span>Volumen: 1.890,00 €</span>
+    </div>
+    <div class="mockup-row">
+      <div class="mockup-icon ic-green">▶</div>
+      <div class="mockup-info">
+        <div class="mockup-type">Zahlung freigegeben — <span style="color:#1d4ed8">Matthias Heinold</span></div>
+        <div class="mockup-sub">18.03.2026 16:02 · S1</div>
+      </div>
+      <span class="mockup-amt pos">+27,00 €</span>
+    </div>
+    <div class="mockup-row">
+      <div class="mockup-icon ic-amber">⏸</div>
+      <div class="mockup-info">
+        <div class="mockup-type">Deposit reserviert — <span style="color:#1d4ed8">S2</span></div>
+        <div class="mockup-sub">18.03.2026 15:34 · Matthias Heinold</div>
+      </div>
+      <span class="mockup-amt neg">-9,00 €</span>
+    </div>
+    <div class="mockup-row">
+      <div class="mockup-icon ic-blue">↩</div>
+      <div class="mockup-info">
+        <div class="mockup-type">Rückerstattung — <span style="color:#1d4ed8">S1</span></div>
+        <div class="mockup-sub">17.03.2026 14:00 · Matthias Heinold</div>
+      </div>
+      <span class="mockup-amt pos">+36,00 €</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — TX-Typen Referenz</h2>
+<div class="tw"><table>
+<thead><tr><th>type</th><th>Icon</th><th>Label</th><th>Wer bekommt</th></tr></thead>
+<tbody>
+  <tr><td><code>deposit</code></td><td>↑</td><td>Einzahlung</td><td>User lädt Wallet auf</td></tr>
+  <tr><td><code>withdrawal</code></td><td>↓</td><td>Auszahlung</td><td>User hebt ab</td></tr>
+  <tr><td><code>escrow_hold</code></td><td>⏸</td><td>Deposit reserviert</td><td>Schüler: Deposit abgezogen</td></tr>
+  <tr><td><code>escrow_release</code></td><td>▶</td><td>Zahlung freigegeben</td><td>Lehrer: Deposit erhalten</td></tr>
+  <tr><td><code>refund</code></td><td>↩</td><td>Rückerstattung</td><td>Schüler: Storno-Erstattung</td></tr>
+  <tr><td><code>cancellation</code></td><td>✕</td><td>Stornierung</td><td>Forfeit bei spätem Storno</td></tr>
+  <tr><td><code>teacher_cancel</code></td><td>✕</td><td>Lehrer-Stornierung</td><td>Lehrer storniert</td></tr>
+  <tr><td><code>booking</code></td><td>✓</td><td>Buchung</td><td>Block-Buchungs-Eintrag</td></tr>
+  <tr><td><code>lesson_confirmed</code></td><td>★</td><td>Stunde bestätigt</td><td>Schüler bestätigt → Zahlung frei</td></tr>
+  <tr><td><code>move</code></td><td>↔</td><td>Verschiebung</td><td>Umbuchungs-Audit-Eintrag</td></tr>
+  <tr><td><code>transfer</code></td><td>⇄</td><td>Überweisung</td><td>Direkttransfer</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Filter-Pipeline</h2>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Admin wechselt zu „Alle Transaktionen" Sub-Tab → <code>renderAllTx()</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>AppService.getAllTransactions(opts)</code> → Adapter filtert nach <code>types</code>, <code>dateFrom</code>, <code>dateTo</code> auf Serverseite</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Client-Filter: Lehrer-UID und Schüler-UID (prüft <code>tx.uid</code>, <code>tx.relatedUid</code>, <code>tx.meta.teacherId/studentId</code>)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Sort: neueste zuerst (<code>createdAt</code> DESC)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Render: Anzahl-Badge + Volumen-Summe + TX-Liste + Reset-Button (nur wenn Filter aktiv)</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — API-Funktionen</h2>
+<div class="tw"><table>
+<thead><tr><th>Funktion</th><th>Opts</th><th>Beschreibung</th></tr></thead>
+<tbody>
+  <tr><td><code>AppService.getAllTransactions(opts, cb)</code></td><td><code>uid, types[], dateFrom, dateTo, teacherId, studentId, counterpartId, slotDateFrom, slotDateTo</code></td><td>Alle TX aller User mit Server-Filterung</td></tr>
+  <tr><td><code>AppService.getTransactions(uid, cb)</code></td><td>—</td><td>Alle TX eines Users</td></tr>
+  <tr><td><code>AppService.getAllEscrows(cb)</code></td><td>—</td><td>Alle Escrow-Objekte</td></tr>
+  <tr><td><code>AppService.getAllUsers(cb)</code></td><td>—</td><td>Für Dropdown-Befüllung</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — TX-Detail-Modal</h2>
+<p>Klick auf eine TX-Zeile öffnet ein Modal mit allen verfügbaren Feldern:</p>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Quelle</th></tr></thead>
+<tbody>
+  <tr><td>Typ</td><td><code>tx.type</code> → Label</td></tr>
+  <tr><td>Benutzer</td><td><code>ProfileStore.getDisplayName(tx.uid)</code></td></tr>
+  <tr><td>Gegenseite</td><td><code>ProfileStore.getDisplayName(tx.relatedUid)</code></td></tr>
+  <tr><td>Betrag</td><td><code>tx.amount</code> (mit Vorzeichen)</td></tr>
+  <tr><td>Kontostand</td><td><code>tx.balance</code></td></tr>
+  <tr><td>Status</td><td><code>tx.status</code></td></tr>
+  <tr><td>Zeitpunkt</td><td><code>tx.createdAt</code></td></tr>
+  <tr><td>Beschreibung</td><td><code>tx.description</code></td></tr>
+  <tr><td>TX-ID</td><td><code>tx.txId</code></td></tr>
+  <tr><td>Slot-Datum/Zeit</td><td><code>tx.meta.slotDate</code> / <code>tx.meta.slotTime</code></td></tr>
+  <tr><td>Lehrer/Schüler UID</td><td><code>tx.meta.teacherId</code> / <code>tx.meta.studentId</code></td></tr>
+  <tr><td>Vollpreis / Deposit</td><td><code>tx.meta.fullAmount</code> / <code>tx.meta.depositAmount</code></td></tr>
+  <tr><td>Storno-Tier</td><td><code>tx.meta.cancellationTier</code></td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Geänderte Dateien</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>admin.html</code></td><td>v=16</td><td>Sub-Tab-Bar, Alle-Transaktionen-Section mit Filtern</td></tr>
+  <tr><td><code>admin.js</code></td><td>v=16</td><td><code>renderAllTx()</code>, <code>_populateAllTxDropdowns()</code>, <code>_showAdminTxDetail()</code>, Sub-Tab-Binding, Filter-Binding</td></tr>
+  <tr><td><code>admin.css</code></td><td>v=8</td><td><code>.admin-subtab-bar/btn</code>, <code>.alltx-filter-row</code>, <code>.alltx-select</code>, <code>.admin-tx-detail-table</code></td></tr>
+</tbody>
+</table></div>
+
+</body>
+</html>

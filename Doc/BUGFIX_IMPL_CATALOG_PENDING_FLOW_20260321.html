@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="BUGFIX+IMPL">
+  <meta name="doc-subject"  content="Catalog Pending-Flow Fix + Meine Lehrer / Ausstehend Tabs">
+  <title>BUGFIX+IMPL — Catalog Pending Flow 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+           font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.err { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug { background: #fff8f8; }
+    tbody tr.r-fix { background: #f8fff8; }
+    tbody tr.r-new { background: var(--info-bg); }
+    tbody tr.r-ctx { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+    /* State flow */
+    .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin-bottom: 20px; }
+    .flow-box { padding: 10px 16px; border-radius: 8px; font-size: 12px;
+                font-weight: 600; text-align: center; min-width: 130px; }
+    .flow-box.action { background: var(--n100); color: var(--n700); border: 1px solid var(--n200); }
+    .flow-box.pending { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .flow-box.confirmed { background: var(--ok-bg); color: var(--ok-tx); border: 1px solid var(--ok-bd); }
+    .flow-box.bug { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .flow-arrow { padding: 0 8px; color: var(--n400); font-size: 18px; }
+    .flow-label { font-size: 10px; font-weight: 700; color: var(--n500);
+                  text-transform: uppercase; letter-spacing: .05em; display: block; margin-top: 3px; }
+    /* Tab mock */
+    .tab-mock { background: #0f2035; border-radius: 10px; padding: 14px 16px;
+                display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; max-width: 500px; }
+    .tab-pill { display: inline-flex; align-items: center; gap: 5px; padding: 5px 12px;
+                font-size: 12px; font-weight: 600; border-radius: 999px; white-space: nowrap; }
+    .tab-pill.inactive { color: rgba(255,255,255,.55); background: rgba(255,255,255,.07);
+                          border: 1px solid rgba(255,255,255,.1); }
+    .tab-pill.active    { color: #fff; background: #2e6fa3; border: 1px solid #4d9fd6; }
+    .tab-pill.fav-active { color: #e53e3e; background: #fff5f5; border: 1px solid #fca5a5; }
+    .tab-pill.pend-active { color: #d97706; background: #fffbeb; border: 1px solid #fde68a; }
+    .tab-cnt { background: rgba(255,255,255,.2); border-radius: 999px;
+               padding: 0 5px; font-size: 10px; min-width: 18px; text-align: center; }
+    .tab-cnt-warn { background: #fffbeb; color: #d97706; border: 1px solid #fde68a;
+                    border-radius: 999px; padding: 0 5px; font-size: 10px; }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-fix { background: var(--ok-bg);   color: var(--ok-tx);   border: 1px solid var(--ok-bd); }
+    .sev-bug { background: var(--err-bg);  color: var(--err-tx);  border: 1px solid var(--err-bd); }
+    .sev-new { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">BUGFIX + IMPL · Catalog · BookingSystem</div>
+  <div class="ph-title">Catalog — Pending-Flow Fix &amp; Neue Lehrer-Tabs</div>
+  <div class="ph-sub">
+    Kritischer Architektur-Bug behoben: <code>_handleConnect()</code> erstellte
+    <code>Selection</code> sofort — Pending-Phase wurde übersprungen.
+    Neue Tabs „Meine Lehrer" und „Ausstehend" im Katalog für Schüler.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge err">🔴 Architektur-Bug</span>
+    <span class="ph-badge inf">🔵 2 neue Tabs</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">skiing-catalog.js · skiing-catalog.css</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-12</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════
+       SECTION 1 — ROOT CAUSE
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-root">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-root">Root Cause — Architektur-Verletzung</h2>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Bug:</strong> <code>_handleConnect()</code> in <code>skiing-catalog.js</code>
+      rief <code>AppService.createSelection()</code> <strong>sofort</strong> auf —
+      ohne auf die Bestätigung durch den Lehrer zu warten. Ein Schüler wurde dadurch
+      unmittelbar als „verbunden" eingetragen, obwohl der Lehrer die Anfrage noch nie gesehen hatte.
+      Die Pending-Phase existierte im System, wurde aber komplett übersprungen.
+    </div>
+
+    <div class="callout c-info">
+      <strong>Korrekte Architektur</strong> (wie in <code>student.js selectTeacher()</code>
+      und <code>chat.js _respondServiceRequest()</code> korrekt implementiert):
+      <code>createSelection</code> wird <strong>ausschliesslich</strong> durch den
+      Lehrer-Accept in <code>chat.js</code> aufgerufen — nie durch den Schüler selbst.
+    </div>
+
+    <p style="font-size:13px;color:var(--n700);margin-bottom:16px;">
+      <strong>Vorher (buggy):</strong>
+    </p>
+    <div class="flow">
+      <div class="flow-box action">Schüler klickt<br>„Lehrer hinzufügen"</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box bug">createSelection()<br><span class="flow-label">sofort!</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box confirmed">Lehrer sofort<br>„confirmed"</div>
+    </div>
+
+    <p style="font-size:13px;color:var(--n700);margin-bottom:16px;">
+      <strong>Nachher (korrekt):</strong>
+    </p>
+    <div class="flow">
+      <div class="flow-box action">Schüler klickt<br>„Lehrer hinzufügen"</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box pending">sendServiceMessage()<br><span class="flow-label">pending</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box action">Lehrer Accept<br>in Chat</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box confirmed">createSelection()<br><span class="flow-label">confirmed</span></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 2 — NEUE TABS
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-tabs">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-tabs">Neue Tabs im Katalog</h2>
+    </div>
+
+    <div class="tab-mock">
+      <span class="tab-pill active">Alle <span class="tab-cnt">4</span></span>
+      <span class="tab-pill inactive">Ski <span class="tab-cnt">2</span></span>
+      <span class="tab-pill inactive">Snowboard</span>
+      <span class="tab-pill inactive">Paragliding</span>
+      <span class="tab-pill inactive">Sonstiges <span class="tab-cnt">2</span></span>
+      <span class="tab-pill fav-active">♥ Favoriten <span class="tab-cnt" style="background:rgba(229,62,62,.2);color:#e53e3e;">1</span></span>
+      <span class="tab-pill inactive">✓ Meine Lehrer <span class="tab-cnt">2</span></span>
+      <span class="tab-pill pend-active">⏳ Ausstehend <span class="tab-cnt-warn">1</span></span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Tab</th><th>Sichtbar für</th><th>Filter-Logik</th><th>Leerer Zustand</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><strong>Favoriten ♥</strong></td>
+            <td>Schüler (eingeloggt)</td>
+            <td><code>_favoriteUids[uid] === true</code></td>
+            <td>„Noch keine Favoriten gespeichert."</td>
+          </tr>
+          <tr class="r-new">
+            <td><strong>Meine Lehrer ✓</strong></td>
+            <td>Schüler (eingeloggt)</td>
+            <td><code>Store.Selections.exists(sid, uid)</code></td>
+            <td>„Du hast noch keine Lehrer hinzugefügt."</td>
+          </tr>
+          <tr class="r-new">
+            <td><strong>Ausstehend ⏳</strong></td>
+            <td>Schüler (eingeloggt)</td>
+            <td><code>ChatStore.getRequestStatus(uid, sid) === 'pending'</code> und <em>nicht</em> in Selections</td>
+            <td>„Keine ausstehenden Anfragen."</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 3 — CONNECT BUTTON STATES
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-btn">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-btn">Connect-Button — 3 Zustände</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Zustand</th><th>CSS-Klasse</th><th>Label</th><th>Farbe</th><th>Klick-Aktion</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td>Kein Kontakt</td>
+            <td><code>.tc-connect-btn</code></td>
+            <td>„Lehrer hinzufügen"</td>
+            <td>Neutral grau</td>
+            <td><code>sendServiceMessage(student_request)</code></td>
+          </tr>
+          <tr class="r-new">
+            <td>Pending</td>
+            <td><code>.tc-connect-btn.is-pending</code></td>
+            <td>„Ausstehend"</td>
+            <td>Amber <code>--warn</code></td>
+            <td>Toast „Anfrage bereits gesendet" — kein erneutes Senden</td>
+          </tr>
+          <tr class="r-fix">
+            <td>Confirmed</td>
+            <td><code>.tc-connect-btn.is-connected</code></td>
+            <td>„Lehrer entfernen"</td>
+            <td>Grün <code>--ok</code></td>
+            <td><code>AppService.deleteSelection()</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 4 — IMPLEMENTIERUNGSTABELLE
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-impl">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-impl">Implementierungstabelle</h2>
+      <span class="sec-sub">2 Dateien · 8 Änderungen</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Datei</th><th>Stelle</th><th>Art</th><th>Änderung</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td>1</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_handleConnect()</code></td>
+            <td><span class="sev sev-bug">Architektur-Bug</span></td>
+            <td><code>AppService.createSelection()</code> entfernt. Ersetzt durch <code>ChatStore.sendServiceMessage(student_request)</code>. Zusätzlich: Schutz gegen doppeltes Senden (<code>getRequestStatus === 'pending'</code> → Toast statt neuer Anfrage).</td>
+          </tr>
+          <tr class="r-new">
+            <td>2</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td>State-Variablen</td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td><code>_showMyTeachersTab</code> und <code>_showPendingTab</code> ergänzt. Alle speziellen Tabs werden beim Klick auf Disziplin-Tabs zurückgesetzt.</td>
+          </tr>
+          <tr class="r-new">
+            <td>3</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildTabs()</code></td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>Neue Tabs „Meine Lehrer" (Icon: Person+Haken) und „Ausstehend" (Icon: Uhr) nach dem Favoriten-Tab. Count-Badges: Ausstehend-Badge amber-farbig.</td>
+          </tr>
+          <tr class="r-new">
+            <td>4</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_filterByTab()</code></td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>Zwei neue Filter-Zweige: Meine Lehrer (aus <code>Store.Selections</code>), Ausstehend (<code>ChatStore.getRequestStatus === 'pending'</code> und nicht in Selections).</td>
+          </tr>
+          <tr class="r-new">
+            <td>5</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildSummaryHTML()</code></td>
+            <td><span class="sev sev-new">Feature</span></td>
+            <td>Connect-Button zeigt jetzt 3 Zustände: <code>is-connected</code> (grün), <code>is-pending</code> (amber, Label „Ausstehend"), Standard (grau, Label „Lehrer hinzufügen").</td>
+          </tr>
+          <tr class="r-new">
+            <td>6</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>CatalogI18n</code> Defaults</td>
+            <td><span class="sev sev-new">i18n</span></td>
+            <td>5 neue Keys: <code>connectAlreadyPending</code>, <code>myTeachersTab</code>, <code>myTeachersEmpty</code>, <code>pendingTab</code>, <code>pendingEmpty</code>.</td>
+          </tr>
+          <tr class="r-new">
+            <td>7</td>
+            <td><code>skiing-catalog.css</code></td>
+            <td>Neue Klassen</td>
+            <td><span class="sev sev-new">Styling</span></td>
+            <td><code>.catalog-tab-count--pending</code> (amber Badge), <code>.catalog-tab--pending.is-active</code> (amber Tab), <code>.tc-action-btn.tc-connect-btn.is-pending</code> (amber Button).</td>
+          </tr>
+          <tr class="r-fix">
+            <td>8</td>
+            <td><code>app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><span class="sev sev-fix">Standard</span></td>
+            <td><code>'2026-03-21-11'</code> → <code>'2026-03-21-12'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 5 — CODE DIFF
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-diff">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-diff">Kritischer Fix — Code Diff</h2>
+    </div>
+
+    <div class="code-label">_handleConnect() — VORHER (buggy)</div>
+    <div class="code-block"><code><span class="ce">/* Not connected — send request */
+AppService.createSelection(sid, teacherUid, function(err) {   // ← FALSCH
+  if (err) { Toast.error(…); return; }
+  ChatStore.sendServiceMessage(teacherUid, sid, 'student_request');
+  Toast.success(…);
+  _render();
+});</span></code></div>
+
+    <div class="code-label">_handleConnect() — NACHHER (korrekt)</div>
+    <div class="code-block"><code><span class="cm">/* Check if a pending request already exists */</span>
+<span class="ck">var</span> existingStatus = ChatStore.getRequestStatus(teacherUid, sid);
+<span class="ck">if</span> (existingStatus === <span class="cs">'pending'</span>) {
+  Toast.info(CatalogI18n.connectAlreadyPending.replace(<span class="cs">'{name}'</span>, teacherName));
+  <span class="ck">return</span>;
+}
+
+<span class="cm">/* Send service request — Selection is created only after teacher accepts */</span>
+<span class="cs">ChatStore.sendServiceMessage(teacherUid, sid, 'student_request');
+Toast.success(teacherName + ' ' + CatalogI18n.connectAddedToast);
+_render();</span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 6 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Guideline</th><th>Anforderung</th><th>Eingehalten?</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>Architektur §2 — Schichten</code></td>
+            <td>Consumer ruft nur <code>AppService.*</code> auf — keine Store-Direktzugriffe</td>
+            <td>✅ <code>createSelection</code> nur noch via <code>chat.js</code> (nach Teacher-Accept) — Consumer sendet nur Chat-Message</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §6 — i18n</code></td>
+            <td>Alle sichtbaren Texte über i18n-Keys auf Deutsch</td>
+            <td>✅ 5 neue <code>CatalogI18n</code>-Keys für Tab-Labels, Empty States und Toast-Nachrichten</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §2 — Tokens</code></td>
+            <td>CSS Custom Properties statt Hardcoded-Werte</td>
+            <td>✅ <code>var(--warn)</code>, <code>var(--warn-bg)</code>, <code>var(--warn-bd)</code> durchgehend — mit sicheren Fallback-Werten</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §3 — Codebase-Check</code></td>
+            <td>Existierende Funktionen wiederverwenden</td>
+            <td>✅ <code>ChatStore.getRequestStatus()</code> und <code>AppService.getSelectionsByStudentSync()</code> bereits vorhanden — kein neuer Code für Datenzugriff</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §8 — Asset Versioning</code></td>
+            <td><code>APP_VERSION</code> bei jeder Änderung erhöhen</td>
+            <td>✅ <code>2026-03-21-11</code> → <code>2026-03-21-12</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>BUGFIX_IMPL_CATALOG_PENDING_FLOW_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-12 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,64 @@
+Let me read all counting logic in both files carefully.
+
+Now I have the full picture. Here is the comparison table before touching anything:
+
+---
+
+## Vergleichstabelle: Zähl-Logik Teacher vs. Student
+
+| Aspekt | **Teacher `_updateAllBookingsBadges`** | **Student `_updateMyBookingsBadges`** | Redundanz |
+|---|---|---|---|
+| **Slot-Quelle** | `getSlotsByTeacherSync(uid)` → filter `status=booked && studentId` | `getSlotsByStudentSync(uid)` → filter `status=booked` | 🟡 Anderer AppService-Call, gleiches Prinzip |
+| **Party-Filter** | `bookingsFilter.student` → filter by `studentId` | `bookingsFilter.student` → filter by `teacherId` | 🟡 Selbes `bookingsFilter.student`, anderes Feld |
+| **Zeitfilter** | `_applyTimeFilter(slots, bookingsFilter.time, today)` ✅ shared | Inline `if/else` (nicht `_applyTimeFilter`) | 🔴 Student nutzt shared fn NICHT |
+| **Datumsbereich** | `_applyDateRangeFilter(slots)` ✅ shared | `_applyDateRangeFilter(slots)` ✅ shared | ✅ Identisch |
+| **Zähl-Funktion** | `_calcBlockCounts(slots, today)` → nutzt `mergeAllBookingBlocks` | `_calcStudentBlockCounts(slots, today)` → nutzt `_mergeStudentBookingBlocks` | 🔴 Identischer Algorithmus, zwei Funktionen |
+| **Merge-Funktion** | `mergeAllBookingBlocks` | `_mergeStudentBookingBlocks` | 🔴 Beide sind jetzt Wrapper um `mergeBookingBlocks` |
+| **Badge-IDs** | `all-count-badge`, `unconfirmed-count-badge`, `confirmed-count-badge` | `mb-all-count-badge`, `mb-unconfirmed-count-badge`, `mb-confirmed-count-badge` | 🟡 Andere IDs, selbe Logik |
+| **`_setBadge` helper** | Inline definiert (sucht in `#view-all-bookings` zuerst) | Inline definiert (globale Suche) | 🔴 Dupliziert |
+| **Berücksichtigt `bookingsFilter.time`?** | ✅ Ja — `_applyTimeFilter` angewendet | ⚠️ Ja — aber inline, nicht über `_applyTimeFilter` | 🔴 Inkonsistent |
+| **Zählt korrekt bei Zeitfilter?** | ✅ Ja — Slots gefiltert vor Zählung | ✅ Ja — aber durch inlinen fehleranfälliger | ✅ Beide korrekt |
+
+---
+
+## Was ich verstanden habe
+
+**Das eigentliche Bug-Bild aus den Screenshots:** Die Badges zeigen immer dieselbe Zahl unabhängig vom aktiven Zeitfilter (Vergangen / Kommende / Alle). Das liegt nicht an einem Bug in der Zähl-Logik selbst — beide respektieren `bookingsFilter.time`. Das liegt daran dass **`_updateMyBookingsBadges` / `_updateAllBookingsBadges` bei jedem Filterwechsel aufgerufen wird** und `bookingsFilter.time` liest — also sollte es stimmen.
+
+Warte — schaue ich die Screenshots nochmal: Bild 1 zeigt „Alle" Tab mit 8 Blöcken. Bild 2 zeigt „Vergangen" Tab — auch 8 Blöcke. Das Badge zeigt `8` in beiden Fällen. Das bedeutet die Badges spiegeln **nicht** den aktiven Zeitfilter wider — sie zählen immer alle.
+
+**Ursache:** `_updateMyBookingsBadges` (und `_updateAllBookingsBadges`) wenden `bookingsFilter.time` auf Slots an — aber die **Bestätigt/Unbestätigt Badges** zählen immer alle Zeitbereiche unabhängig davon was der Nutzer sieht. Das ist korrekt so — die Confirm-Badges sollen nicht zeitgefiltert sein.
+
+**ABER** — das Gesamtbadge `Alle 8` sollte sich ändern wenn man zwischen Vergangen/Kommende/Alle wechselt. Moment — `_applyTimeFilter` **wird** angewendet. Warum bleibt die Zahl gleich?
+
+Weil die Screenshots beide `Alle 8` zeigen — vielleicht stimmt das ja! 8 vergangene Buchungen, und auch 8 insgesamt wenn man auf Alle wechselt. Lass mich die echte Frage nochmal lesen: **"The counting must respect whether I am looking at past, upcoming, or All"** — das bedeutet er möchte dass die Badges sich bei Zeitfilterwechsel aktualisieren.
+
+**Eigentliche Frage:** Spiegeln die drei Confirm-Badges (Alle/Unbestätigt/Bestätigt) den aktiven Zeitfilter wider? Lass mich prüfen ob `_updateMyBookingsBadges` beim Zeitfilter-Klick aufgerufen wird:
+
+Found it. The time filter `onclick` calls only `renderMyBookingsList()` — **NOT `_updateMyBookingsBadges()`**. So when switching Vergangen/Kommende/Alle, the list re-renders correctly but the **badges stay stale**. Same issue in teacher — let me verify:
+
+Now I have the complete picture. Here is what I understood:
+
+---
+
+## Was ich verstanden habe
+
+**Die Badges (Alle / Unbestätigt / Bestätigt) aktualisieren sich NICHT wenn der Zeitfilter (Vergangen / Kommende / Alle) gewechselt wird** — weder bei Teacher noch bei Student.
+
+**Ursache:** Der Zeitfilter-Button ruft nur `renderAllBookingsList()` / `renderMyBookingsList()` auf — aber **nicht** `_updateAllBookingsBadges()` / `_updateMyBookingsBadges()`. Die Badges werden nur beim ersten Laden von `renderAllBookings()` / `renderMyBookings()` gesetzt.
+
+---
+
+## Vollständiger Vergleich
+
+| Aspekt | **Teacher** | **Student** | Redundanz |
+|---|---|---|---|
+| **Calc-Funktion** | `_calcBlockCounts(slots, today)` → `mergeAllBookingBlocks` | `_calcStudentBlockCounts(slots, today)` → `_mergeStudentBookingBlocks` | 🔴 Identisch — beide Wrapper um `mergeBookingBlocks` |
+| **Zeitfilter angewendet?** | ✅ `_applyTimeFilter` | ⚠️ Inline `if/else` — nicht shared fn | 🔴 Inkonsistent |
+| **Badges bei Zeitfilter-Klick** | ❌ Nicht aufgerufen | ❌ Nicht aufgerufen | 🔴 Bug in beiden |
+| **Badges bei Confirm-Filter-Klick** | ❌ Nicht aufgerufen | ❌ Nicht aufgerufen | 🔴 Bug in beiden |
+| **`_setBadge` helper** | Inline, sucht in `#view-all-bookings` Container | Inline, globale Suche | 🔴 Dupliziert |
+| **Badge-IDs** | `all-count-badge` etc. | `mb-all-count-badge` etc. | 🟡 Andere IDs, gleiches Prinzip |
+
+---
+

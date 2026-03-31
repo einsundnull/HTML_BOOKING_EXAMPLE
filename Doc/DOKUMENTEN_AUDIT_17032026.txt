@@ -1,0 +1,462 @@
+================================================================================
+DOKUMENTEN-AUDIT — Was behalten, was löschen, was bereinigen
+Alle verbleibenden TXT/MD-Dateien nach individuellem Inhaltslesen
+Erstellt: 17.03.2026
+================================================================================
+
+LESEERGEBNIS-METHODIK
+──────────────────────
+Jede Datei wurde vollständig gelesen. Entscheidungskriterien:
+  LÖSCHEN    = Inhalt ist vollständig deployed, nur noch Bug-Fix-History
+  BEHALTEN   = Enthält noch offene Konzepte, Pipeline-Beschreibungen oder
+               Architektur-Wissen das nirgends sonst dokumentiert ist
+  BEREINIGEN = Enthält beides — konkrete Bereinigungsanweisung gegeben
+
+
+================================================================================
+DOC/ — ESCROW-DATEIEN
+================================================================================
+
+── Doc/Escrow implementation 1_260312_225552.txt ──────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Enthält: Schema-Definition, Status-Flow, Badge-Farbtabelle,
+  AppService-Methoden-Liste, Implementierungsreihenfolge.
+  ALLES davon ist im HANDOFF_17032026.txt vollständig und aktueller
+  dokumentiert. Die Badge-Farbtabelle (unpaid=grau, held=blau, etc.)
+  ist reines Implementierungsdetail das im Code liegt.
+  Kein Inhalt der über HANDOFF hinausgeht.
+
+── Doc/Implement Escrow 1_260316_154409.txt ────────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Analysiert den Zustand VOR bookSlotWithEscrow-Implementierung.
+  "createEscrow nicht in AppService exponiert", "nie aufgerufen" —
+  das ist alles gefixt. Enthält keine Architektur-Info die nicht
+  in HANDOFF steht.
+
+── Doc/Wallet implementation plan Notes_260312_213529.txt ──────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Phase-1/Phase-2-Plan. Phase 1 (Wallet) vollständig deployed.
+  Phase 2 (Escrow-Konto als uid='escrow', Stripe-Adapter) ist
+  eine Design-Idee für weit spätere Migration. Nichts davon ist
+  für den aktuellen Entwicklungsstand relevant.
+  Stripe-Adapter-Konzept ist genug im HANDOFF erwähnt.
+
+── Doc/Escrow refund fix_260316_211905.txt ─────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als ESCROW_STATE_MACHINE.txt
+WAS BEHALTEN:
+  Tabelle 1: Escrow-Zustandsmaschine (welche Transitionen möglich sind)
+  Tabelle 2: cancelSlotWithPolicy Tier-Mapping (welcher Tier löst welche
+             Escrow-Aktionen aus — full_refund/forfeit/partial/teacher_cancel)
+  Problem B: requestDepositRefund Fehler-Schlucken (noch offen!)
+  Problem C: Navbar-Wallet nach Cancel (gefixt)
+WAS ENTFERNEN:
+  Alles vor Tabelle 1 ("Let me trace...", "Now I have...")
+  Abschnitt "5. Fixes nötig" — alle außer Bug B sind deployed
+  Timing-Analyse zu vergangenen Slots
+
+── Doc/Escrow regund fix 3 Notes_260316_230419.txt ─────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als Ergänzung
+WAS BEHALTEN:
+  Schritt-für-Schritt-Tabelle (Schritte 1–11): zeigt exakt
+  welche Schritte beim Cancel-Flow passieren und wo Fehler auftreten.
+  Besonders wertvoll: "Warum Schritt 7 fehlschlägt" — erklärt den
+  requestDepositRefund-unpaid-Bug der noch OFFEN ist.
+  "Zweiter möglicher Grund: Escrow existiert nicht" — Altdaten-Problem
+WAS ENTFERNEN:
+  Abschnitt "Was fehlt — Fixes A/B/C/D" — A/C/D sind deployed, B offen
+  Intro-Text "Let me read...", "Now I have..."
+
+── Doc/Escrow refund fix 2_260316_223520.txt ────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als CANCEL_DIALOG_ARCHITECTURE.txt
+WAS BEHALTEN:
+  Vergleichstabelle: Slot-Level Cancel vs Block-Level Cancel
+  Zeigt die zwei Cancel-Pfade in populateBookingDetail vs openMoveBlockDialogShared
+  Erklärt opts.actorRole-Parameter und seine Bedeutung
+  Das ist aktive Architektur-Doku — zwei Pfade die jeder kennen muss
+WAS ENTFERNEN:
+  Implementierungsnotizen nach der Tabelle ("Now replace...", "Also update...")
+  Diese sind deployed.
+
+── Doc/Escrow refund fix 4_260316_230825.txt ────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als TX_SCHEMA_REFERENCE.txt
+WAS BEHALTEN:
+  Tabelle "Gewünschtes vs. Aktuelles Transaktions-Schema" — zeigt
+  exakt alle TX-Felder und was sie bedeuten. Aktuelle Referenz.
+  Tabelle "Vollständige Übersicht Transaktionserfassung" — zeigt
+  welche Funktion welche TX schreibt.
+  Bug-Tabelle: requestDepositRefund-Statusprüfung — NOCH OFFEN
+WAS ENTFERNEN:
+  Implementierungsplan (alles deployed)
+  Intro-Text
+
+── Doc/Escrow refund fix 5_260316_235249.txt ────────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Identischer Inhalt wie _235651.txt — Duplikat einer unsaved Session.
+  Kein einzigartiger Inhalt.
+
+── Doc/Escrow refund fix 5_260316_235651.txt ────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN
+WAS BEHALTEN:
+  Tabelle 1: Geforderte Ereignisse (was bei Buchung/Stornierung gespeichert werden muss)
+  Tabelle 2: Ist-Zustand aller relevanten Funktionen (nach Fixes korrekt, aber als Referenz)
+  Tabelle 3: Kernproblem-Analyse (depositFixed=50 → percent=20) — historisch wichtig
+  "Was noch fehlt A/B/C/D" — A/B/C/D alle deployed, aber Tabelle zeigt
+  den Denkweg dahinter
+WAS ENTFERNEN:
+  Alles nach "Soll ich alle 4 Punkte implementieren?" — reine
+  Implementierungsnotizen die im Code sind.
+
+── Doc/Escrow refund fix 6_260317_000644.txt ────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als ADMIN_ESCROW_UI.txt
+WAS BEHALTEN:
+  Die 5 Admin-Escrow-UI-Probleme und ihre Fixes — erklärt die
+  aktuelle Admin-Escrow-Anzeige (NEU-Badge, Status-Labels, Filter-Tabs)
+  Wer die Admin-UI anfassen will, braucht das.
+WAS ENTFERNEN:
+  "Let me read..." Intro, Implementierungsnotizen nach den Fixes
+
+
+================================================================================
+DOC/ — VERGLEICHS- UND ANALYSE-DATEIEN
+================================================================================
+
+── Doc/Comparison booking behavior buggy Notes_260316_081121.txt ───────────────
+ENTSCHEIDUNG: BEREINIGEN → dann BEHALTEN als FREESLOTS_PENDING_BEHAVIOR.txt
+WAS BEHALTEN:
+  Vergleichstabelle: Teacher freie Slots vs All Bookings vs Student Day Slots
+  Erklärt freeSlots-Filterung mit !s.studentId — pending-book hat noch
+  studentId=null → erscheint fälschlich als frei. Dieser Mechanismus
+  ist zentral für das Verständnis des Free-Slots-Accordions.
+  Root-Cause-Erklärung am Ende.
+WAS ENTFERNEN:
+  Intro "Let me read both implementations..."
+  "Soll ich das jetzt implementieren?"
+
+── Doc/Gegenüberstellung teacher student_260315_191046.txt ─────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als TEACHER_STUDENT_FEATURE_PARITY.txt
+WAS BEHALTEN:
+  Tabelle 1: Sticky Day-Nav-Bar Vergleich — zeigt welche Features
+  teacher hat die student NICHT hat (checkDayNavSticky, updateDayNavBar etc.)
+  → Das sind potenzielle noch offene Features
+  Tabelle 2: Filter-Dropdown — teacher hat "Alle Schüler", student hat keinen
+  → Offen: Student hat keinen Teacher-Filter-Dropdown
+WAS ENTFERNEN:
+  "Implementierungsplan" unten — diese Features wurden implementiert
+  aber es ist unklar ob alles vollständig ist. Den Plan entfernen,
+  die Featureliste behalten als "was implementiert sein sollte".
+
+── Doc/Staging comparison teacher student booking_260315_203609.txt ────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als STAGING_UX_REFERENCE.txt
+WAS BEHALTEN:
+  Vergleichstabelle Staging UX: Block-Detail offen nach Re-render,
+  Cancel→Undo, amber Highlighting, expandedStudentBlocks State.
+  Zeigt das Staging-Konzept (pendingMap → amber → Save/Dismiss).
+  Referenz für wer das Staging-System versteht/erweitert.
+WAS ENTFERNEN:
+  "Implementierungsplan" (deployed)
+  Status-Spalte kann angepasst werden (alles ✅ jetzt)
+
+── Doc/Teach studen lt logik booking comparison _260315_202526.txt ─────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Zeigt "Student vorher / Student jetzt" — also den Zustand VOR und NACH
+  der Implementierung. Alles in der "jetzt"-Spalte ist deployed.
+  Kein bleibender Dokumentationswert über HANDOFF hinaus.
+
+── Doc/Vergleich Book a lesson (renderDaySlots) vs My B_260315_210650.txt ───────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als RENDERSLOTS_PIPELINE.txt
+WAS BEHALTEN:
+  Vergleichstabelle: renderDaySlots vs renderMyBookingsList
+  Erklärt exakt warum beide Funktionen dieselbe Pipeline nutzen.
+  Enthält buildDaySlotRow-Hinweis (der entfernt wurde — als historische Note).
+  Das Konzept "renderDaySlots nutzt _mergeStudentBookingBlocks + _buildStudentBookingBlock"
+  ist aktive Architektur-Info.
+WAS ENTFERNEN:
+  "Lösung" unten (deployed), Intro
+
+── Doc/Vergleichstabelle Free Slots Accordion_260316_114915.txt ─────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als FREESLOTS_ACCORDION.txt
+WAS BEHALTEN:
+  Vergleichstabelle Teacher vs Student Free Slots Accordion
+  Bug 1: _freeSlotsBlockOpen State — noch relevant (Accordion-State-Handling)
+  Bug 2: Student-Accordion (implementiert, aber Referenz nützlich)
+  Erklärt _daySlotsFreeOpen Variable und ihre Funktion
+WAS ENTFERNEN:
+  Fix-Plan (deployed)
+
+── Doc/Vergleichstabelle Zähl-Logik Teacher vs Student_260316_105050.txt ────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als BADGE_COUNTING_LOGIC.txt
+WAS BEHALTEN:
+  Vollständiger Vergleich Badge-Logik Teacher vs Student.
+  Bug: Badges aktualisieren sich NICHT bei Zeitfilter-Klick
+  (nur renderAllBookingsList/renderMyBookingsList aufgerufen, nicht
+  _updateAllBookingsBadges — NOCH OFFEN oder deployed?)
+  _setBadge helper dupliziert — noch relevant für Wartung
+WAS ENTFERNEN:
+  "Fix-Plan" Abschnitt (einige deployed, einige offen)
+  Analyse-Intro vor der Tabelle
+
+── Doc/Teacher All Bookings vs Student My Bookings _260316_101629.txt ───────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als BOOKING_LISTS_ARCHITECTURE.txt
+WAS BEHALTEN:
+  Vollständige Redundanz-Analyse Teacher All Bookings vs Student My Bookings.
+  Das ist die wichtigste Architektur-Übersicht für diesen Bereich.
+  Zeigt exakt: worin sich die beiden Pipelines unterscheiden,
+  welche Funktionen geteilt sind (mergeBookingBlocks, buildBookingBlock),
+  welche noch dupliziert sind.
+  "Konsolidierungsplan" Tabelle: die 5 Konsolidierungspunkte — teilweise
+  deployed (1: mergeBookingBlocks hat groupByField ✅), Rest offen.
+WAS ENTFERNEN:
+  Nur Intro "Let me read both..."
+
+── Doc/My Students Filter vs All Bookings Filter_260316_130516.txt ──────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als FILTER_BAR_ARCHITECTURE.txt
+WAS BEHALTEN:
+  Vergleichstabelle My Students vs All Bookings Filter-Bar.
+  Zeigt welche Filter-Komponenten wo gebaut werden (JS vs HTML-statisch).
+  Fix-Plan Punkt 4: _buildConfirmFilterRow bereits in ui.js — aktive Referenz.
+  allBookingsSortAsc smart default — noch offen?
+WAS ENTFERNEN:
+  "Root Cause" Abschnitt (erklärt nur den Bug, der gefixt ist)
+
+── Doc/Implement prices _260316_120641.txt ──────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als PRICE_DISPLAY_ARCHITECTURE.txt
+WAS BEHALTEN:
+  Tabelle "Bereits vorhandene Funktionen": zeigt welche Preis-Quellen
+  existieren (ProfileStore.getPrice, getEscrowsByStudent, fmtPrice in ui.js).
+  fmtPrice(priceStr, slots)-Signatur und CSS-Klassen (all-booking-slot-price etc.)
+  Phase 3/4 Plan: Preis in Slot-Row und Block-Header — relevant für
+  wer die Preis-Anzeige erweitern will.
+WAS ENTFERNEN:
+  Phase 1 und 2 (deployed — getEscrowBySlot in AppService ist exponiert,
+  fmtPrice in ui.js existiert)
+
+── Doc/Implementierung prices 2_260316_123340.txt ───────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN (ergänzt prices 1)
+WAS BEHALTEN:
+  Tabelle 1: Ist-Zustand Preis-Lock — erklärt slot.price-Feld und warum
+  es wichtig ist dass der Preis beim Buchen eingefroren wird.
+  Tabelle 2: Preis-Summen in Filter-Badges — Format "Alle 8 / €2295,00".
+  Das ist aktives Feature-Konzept das noch nicht vollständig ist.
+WAS ENTFERNEN:
+  Implementierungsplan (deployed)
+
+── Doc/Implement prices 3_260316_125320.txt ─────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN (ergänzt prices 1+2)
+WAS BEHALTEN:
+  Issue 1: Overflow-Analyse der .all-booking-slot-row — erklärt
+  warum die Row auf mobil überläuft (flex-Berechnungen).
+  Issue 2: My Students Tab Preis-Summe pro Schüler fehlt.
+  Das "Resultat nach Fix" Mockup zeigt das Ziel-Layout.
+WAS ENTFERNEN:
+  Fix-Plan (deployed)
+
+── Doc/Upfront payment booking 1_260316_133042.txt ──────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als BOOKING_AFFORDABILITY_UI.txt
+WAS BEHALTEN:
+  Das Konzept: Summary-Panel über FAB (Buchungs-Übersicht + Kosten + ⚠ Wallet-Warnung)
+  Die zwei Warning-Trigger-Tabelle (wallet < cost = rot, deposit insufficient = gelb)
+  Das UI-Mockup (Slot-Zeilen + Gesamt + ⚠ Wallet: €80,00 — Nicht genug)
+  Das ist ein noch nicht vollständig implementiertes Feature.
+WAS ENTFERNEN:
+  "What data is available" Tabelle (deployed)
+  Implementierungsplan (checkPendingAffordability deployed)
+
+── Doc/Upfront payment booking 2_260316_133628.txt ──────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN (ergänzt Upfront 1)
+WAS BEHALTEN:
+  "Comparison Table: What exists, what's missing, what violates layering"
+  Besonders: ProfileStore.getPrice() direkt in UI — Architektur-Verletzung
+  (8 call sites). Zeigt wohin die Reise geht (alles über AppService).
+  checkPendingAffordability-Signatur als Referenz.
+WAS ENTFERNEN:
+  Implementation Plan (deployed)
+  "What I understand" Intro
+
+── Doc/Quality check 1.txt ──────────────────────────────────────────────────────
+ENTSCHEIDUNG: BEREINIGEN → BEHALTEN als DEAD_CODE_AND_MEMORY_LEAKS.txt
+WAS BEHALTEN:
+  Dead Code Liste: getEffectiveStudentSlot, bookDaySlot, cancelDaySlot,
+  _cancelBookingBlock, _cancelBookingFromList (student.js),
+  _getFilter, cancelBookingFromPanel, openMoveDialog (teacher.js)
+  → Diese Funktionen existieren evtl. noch im Code!
+  Memory Leak Analyse: addEventListener ohne removeEventListener,
+  Delta von 41 (student) und 74 (teacher). Aktives Problem.
+  Redundanzen-Liste: fmtDate, checkDayNavSticky, updateDayNavBar etc.
+  noch dupliziert — einige gefixt (F10), andere evtl. noch nicht.
+WAS ENTFERNEN:
+  Phantom Code Abschnitt (leer/minimal)
+  Intro "Now I have everything"
+
+
+================================================================================
+BUGS/ — DATEIEN
+================================================================================
+
+── Bugs/Accept Student Bug_260316_202746.txt ────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN als TEACHER_SELECTION_FLOW_BUG.txt
+BEGRÜNDUNG:
+  BUG IST NOCH OFFEN. Enthält:
+  Bug 1: selectTeacher() erstellt Selection sofort ohne Genehmigung
+  Bug 2: _respondServiceRequest erstellt Selection bei Annahme NICHT
+  Korrekte Flow-Logik als Diagramm (noch zu implementieren)
+  Wichtig: betrifft das Chat-basierte Lehrer-Anfrage-System.
+  NICHTS davon wurde in dieser Session deployed.
+
+── Bugs/Vollständiger Vergleich Schedule-Bookings vs All_260316_085357.txt ──────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Analysiert die renderBookingsPanel-Redundanz. Diese wurde durch F9
+  behoben (renderBookingsPanel delegiert jetzt an renderAllBookingsList).
+  Die Redundanz-Analyse ist damit obsolet. Was relevant bleibt
+  (Free-Slots-Accordion, pending-inject) ist in anderen Dateien besser
+  dokumentiert.
+
+── Bugs/Zahlen der bookings .txt ────────────────────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  Analysiert alte teacher.js mit separaten State-Variablen für
+  dayBookingsTimeFilter/allBookingsTimeFilter. Diese Trennung existiert
+  nicht mehr — teacher.js hat ein einheitliches bookingsFilter-Objekt.
+  Der mergeStudentBlocks-Hinweis ist irrelevant (durch F9 erledigt).
+  _applyTimeFilter-Extraktion ist durch F10 erledigt.
+
+── Bugs/Debug_260315_213623.txt ─────────────────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN (gekürzt)
+WAS BEHALTEN:
+  Store-Direktzugriff-Analyse (93× Store.* in Consumer-Code) —
+  ein Teil ist durch F7 gefixt, aber nicht alles. Die Aufzählung
+  von Store.Slots.release → AppService hinzufügen ist noch offen.
+  _setFilter, updateJumpBtns, jumpSection → ui.js — noch offen (F10 teilw.)
+WAS ENTFERNEN:
+  "Priorität" Spalten und reine Bewertungen, Intro
+
+── Bugs/Student add booking bug_260316_140613.txt ───────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG:
+  "+ Add Button geht über separaten Code-Pfad statt populateBookingDetail"
+  Dieser Bug wurde gefixt (onCancelSlot-Fix + renderDaySlots-Umbau).
+  Kein verbleibender Dokumentationswert.
+
+── Bugs/Style 1.txt ─────────────────────────────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN
+BEGRÜNDUNG:
+  Enthält mobile CSS-Bug-Liste (hover-sticky auf Touch, Safe Area,
+  tap-highlight, Logical Properties Fallback etc.) — diese Bugs sind
+  CSS-seitig und wurden in dieser Session nicht angetastet.
+  Viele davon sind noch offen. Wertvolle mobile-spezifische Referenz.
+
+
+================================================================================
+DOC/ — SONSTIGE DATEIEN
+================================================================================
+
+── Doc/Folder Hierarchie .txt ───────────────────────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG: Im HANDOFF_17032026.txt unter Abschnitt 5 vollständig ersetzt.
+
+── Doc/HORIZONTAL_SCROLL_BUG.md ─────────────────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN
+BEGRÜNDUNG: Bug noch offen. 3 Lösungsversuche dokumentiert (alle gescheitert).
+Nächster Versuch braucht andere Strategie. Wertvolle Diagnose.
+
+── Doc/BUGFIX_ProfileStore_NameResolution.md ────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN
+BEGRÜNDUNG: Dokumentiert Script-Ladereihenfolge (PFLICHT), ProfileStore vs
+Store.Users Regel, und QuotaExceededError beim Foto-Upload.
+Diese Regeln sind dauerhaft relevant, nicht nur einmalige Bugfixes.
+
+── Doc/JOURNAL.md + Doc/SUMMARY.md + Doc/INIT.md ────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN
+BEGRÜNDUNG: Durch HANDOFF_17032026.txt ersetzt.
+
+── Doc/Read before changed edit-profile .txt ────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN (kurz prüfen ob noch relevant)
+Enthält Hinweise zu profile-edit.html — noch aktive Seite.
+
+── Doc/Schema availability rules.txt ────────────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN
+Recurring + Slot-Schema-Regeln. Aktiv.
+
+── Doc/Mockup teacher to student booking form.txt ────────────────────────────────
+ENTSCHEIDUNG: PRÜFEN → wahrscheinlich LÖSCHEN
+Mockup-Phase. Wenn der Buchungsform-Fluss implementiert ist, löschen.
+
+── Doc/wallet-debug.txt ─────────────────────────────────────────────────────────
+ENTSCHEIDUNG: BEHALTEN (noch 3–6 Monate)
+Debug-Anleitung für Wallet-Probleme. Noch aktiv in der Entwicklungsphase.
+
+── Doc/CRUD_SERVICE_REFERENCE.md (v1) ────────────────────────────────────────────
+ENTSCHEIDUNG: LÖSCHEN → durch v2 ersetzt
+
+
+================================================================================
+ZUSAMMENFASSUNG — AKTIONSLISTE
+================================================================================
+
+SOFORT LÖSCHEN (kein Inhaltsverlust):
+  Doc/Escrow implementation 1_260312_225552.txt
+  Doc/Implement Escrow 1_260316_154409.txt
+  Doc/Wallet implementation plan Notes_260312_213529.txt
+  Doc/Escrow refund fix 5_260316_235249.txt    ← Duplikat
+  Doc/Teach studen lt logik booking comparison _260315_202526.txt
+  Bugs/Vollständiger Vergleich Schedule-Bookings vs All_260316_085357.txt
+  Bugs/Zahlen der bookings .txt
+  Bugs/Student add booking bug_260316_140613.txt
+  Doc/Folder Hierarchie .txt
+  Doc/JOURNAL.md
+  Doc/SUMMARY.md
+  Doc/INIT.md
+  Doc/CRUD_SERVICE_REFERENCE.md    ← v1, durch v2 ersetzt
+
+BEREINIGEN (Bugfix-Abschnitte entfernen, Architektur-Wissen behalten):
+  → Kann durch das nächste LLM mit "bereinige diese Datei" erledigt werden,
+    da die konkreten Anweisungen oben stehen.
+
+  Doc/Escrow refund fix_260316_211905.txt      → ESCROW_CANCEL_FLOW.txt
+  Doc/Escrow regund fix 3 Notes_260316_230419.txt → (zu ersterem zusammenführen)
+  Doc/Escrow refund fix 2_260316_223520.txt    → CANCEL_DIALOG_PATHS.txt
+  Doc/Escrow refund fix 4_260316_230825.txt    → TX_SCHEMA_REFERENCE.txt
+  Doc/Escrow refund fix 5_260316_235651.txt    → ESCROW_EVENTS_REQUIRED.txt
+  Doc/Escrow refund fix 6_260317_000644.txt    → ADMIN_ESCROW_UI.txt
+  Doc/Comparison booking behavior buggy Notes_260316_081121.txt → FREESLOTS_PENDING.txt
+  Doc/Gegenüberstellung teacher student_260315_191046.txt → FEATURE_PARITY.txt
+  Doc/Staging comparison teacher student booking_260315_203609.txt → STAGING_UX.txt
+  Doc/Vergleich Book a lesson (renderDaySlots) vs My B_260315_210650.txt → RENDER_PIPELINE.txt
+  Doc/Vergleichstabelle Free Slots Accordion_260316_114915.txt → FREESLOTS_ACCORDION.txt
+  Doc/Vergleichstabelle Zähl-Logik Teacher vs Student_260316_105050.txt → BADGE_LOGIC.txt
+  Doc/Teacher All Bookings vs Student My Bookings _260316_101629.txt → BOOKING_LISTS_ARCH.txt
+  Doc/My Students Filter vs All Bookings Filter_260316_130516.txt → FILTER_BAR_ARCH.txt
+  Doc/Implement prices _260316_120641.txt      → PRICE_DISPLAY.txt
+  Doc/Implementierung prices 2_260316_123340.txt → (zu ersterem zusammenführen)
+  Doc/Implement prices 3_260316_125320.txt     → (zu ersterem zusammenführen)
+  Doc/Upfront payment booking 1_260316_133042.txt → AFFORDABILITY_UI.txt
+  Doc/Upfront payment booking 2_260316_133628.txt → (zu ersterem zusammenführen)
+  Doc/Quality check 1.txt                      → DEAD_CODE_LEAKS.txt
+  Bugs/Debug_260315_213623.txt                 → ARCH_VIOLATIONS.txt
+
+UNVERÄNDERT BEHALTEN:
+  Guide Lines/ (alle 7 Dateien)
+  Doc/CRUD_SERVICE_REFERENCE_v2.md
+  Doc/BOOKING_CONFIRMATION_LOGIC.txt
+  Doc/BOOKING_FILTER_UI_SCHEME.txt
+  Doc/CANCELLATION_SYSTEM.txt
+  Doc/CATALOG_FILTER_DRAWER_SCHEME.txt
+  Doc/EMAIL_SYSTEM.md
+  Doc/GUIDELINES_JS.md
+  Doc/MOVE_DIALOG_UI_SCHEME.txt
+  Doc/TEACHER_SELECTION_FLOW.txt
+  Doc/TEACHER_VS_STUDENT_COMPARISON.md
+  Doc/Schema availability rules.txt
+  Doc/HORIZONTAL_SCROLL_BUG.md
+  Doc/BUGFIX_ProfileStore_NameResolution.md
+  Doc/wallet-debug.txt
+  Doc/Read before changed edit-profile .txt
+  Bugs/Accept Student Bug_260316_202746.txt    ← Bug noch offen!
+  Bugs/Style 1.txt                             ← CSS-Bugs noch offen
+
+================================================================================

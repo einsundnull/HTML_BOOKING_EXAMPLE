@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>mockup-buildBookingForm-2026-03-23_20-03</title>
+<!--
+  MOCKUP: buildBookingForm
+  FILE:   teacher.js : line 761 — function buildBookingForm(startSlot, dateStr, allSlots)
+  MODAL:  Modal.show({ title: 'Buchung erstellen', ... })  — teacher.js : ~line 817
+  CSS:    teacher.css — .booking-form-label, .booking-form-students,
+                        .booking-form-check-row, .booking-form-checkbox
+  CHANGE: Already-booked students greyed out with badge
+          New CSS class: .booking-form-check-row--booked
+          New CSS class: .booking-form-already-badge
+  DATE:   2026-03-23 20:03
+-->
+
+<!--
+  ═══════════════════════════════════════════════════════
+  CSS — copied 1:1 from teacher.css + components.css
+  Only additions: .booking-form-check-row--booked
+                  .booking-form-already-badge
+  ═══════════════════════════════════════════════════════
+-->
+<style>
+/* ── Tokens (from tokens.css) ── */
+:root {
+  --font: 'Figtree', sans-serif;
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-400: #4d7aa0;
+  --color-600: #2b4d6b;
+  --color-900: #060f1c;
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-400: #9aa3af;
+  --neutral-500: #6b7685;
+  --neutral-600: #505a68;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+  --status-confirmed-bg: #f0fdf4;
+  --status-confirmed-bd: #bbf7d0;
+  --status-confirmed-tx: #14532d;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 16px; --sp-4: 24px; --sp-5: 32px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px;
+  --text-caption: 12px; --text-body: 16px; --text-small: 14px;
+  --weight-regular: 400; --weight-semibold: 600;
+  --shadow: 0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg: 0 4px 16px rgba(6,15,28,0.12);
+  --transition: 150ms ease;
+  --focus-ring: 0 0 0 3px rgba(77,122,160,0.30);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  background: #e5e8ec;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* ── Modal (from components.css) ── */
+.modal-overlay {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  width: 100%;
+  max-width: 360px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.modal-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.modal-close {
+  width: 32px; height: 32px;
+  border: none; background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer; color: var(--neutral-500);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-footer {
+  display: flex; justify-content: flex-end;
+  flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+
+/* ── Buttons (from components.css) ── */
+.btn {
+  font-family: var(--font); font-size: var(--text-caption);
+  font-weight: var(--weight-semibold); border-radius: var(--radius-sm);
+  padding: 0 var(--sp-3); height: 36px; cursor: pointer;
+  border: none; display: inline-flex; align-items: center;
+  touch-action: manipulation; transition: background var(--transition);
+}
+.btn-ghost { background: transparent; color: var(--neutral-500); }
+.btn-secondary { background: var(--color-100); color: var(--color-600); }
+.btn-primary { background: var(--color-900); color: var(--neutral-0); }
+.btn-primary.is-hidden { display: none; }
+
+/* ── move-dialog wrapper (from components.css) ── */
+.move-dialog { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* ── Booking form (from teacher.css : line 820–824) ── */
+.booking-form-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.booking-form-students {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.booking-form-check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-caption);
+  cursor: pointer;
+  padding: var(--sp-1) 0;
+}
+.booking-form-checkbox {
+  width: 14px; height: 14px;
+  cursor: pointer;
+  accent-color: var(--color-900);
+  flex-shrink: 0;
+}
+
+/* ── NEW: Already-booked student row ── */
+/* teacher.css — append after .booking-form-check-row */
+.booking-form-check-row--booked {
+  opacity: 0.5;
+  cursor: default;
+  pointer-events: none;
+}
+.booking-form-check-row--booked .booking-form-checkbox {
+  accent-color: var(--neutral-300);
+}
+
+/* ── NEW: Already-booked badge ── */
+/* teacher.css — append after .booking-form-check-row--booked */
+.booking-form-already-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--status-confirmed-tx);
+  background: var(--status-confirmed-bg);
+  border: 1px solid var(--status-confirmed-bd);
+  border-radius: 10px;
+  padding: 1px var(--sp-2);
+  margin-left: var(--sp-1);
+}
+
+/* ── Divider with label ── */
+.booking-form-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin: var(--sp-1) 0;
+}
+.booking-form-divider-line {
+  flex: 1;
+  height: 1px;
+  background: var(--neutral-200);
+}
+.booking-form-divider-label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-400);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+/* ── Custom dropdown (from components.css) ── */
+.custom-dropdown { position: relative; width: 100%; }
+.custom-dropdown-trigger {
+  width: 100%; display: flex; align-items: center;
+  justify-content: space-between; padding: var(--sp-2) var(--sp-2);
+  background: var(--neutral-0); border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm); cursor: pointer; font-family: var(--font);
+  font-size: var(--text-caption); font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.booking-form-time-row { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.booking-form-time-col { display: flex; flex-direction: column; gap: var(--sp-1); flex: 1; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     STATE A: Slot has NO existing bookings
+     → all students selectable, all pre-checked
+     ═══════════════════════════════════════ -->
+<div>
+  <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7685;text-align:center;margin-bottom:8px;">A — Kein Schüler gebucht (bestehend)</p>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Buchung erstellen</span>
+      <button class="modal-close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="move-dialog">
+        <div class="booking-form-label">Schüler</div>
+        <div class="booking-form-students">
+          <label class="booking-form-check-row">
+            <input type="checkbox" class="booking-form-checkbox" checked>
+            <span>s1</span>
+          </label>
+          <label class="booking-form-check-row">
+            <input type="checkbox" class="booking-form-checkbox" checked>
+            <span>s2</span>
+          </label>
+          <label class="booking-form-check-row">
+            <input type="checkbox" class="booking-form-checkbox" checked>
+            <span>s3</span>
+          </label>
+        </div>
+
+        <div class="booking-form-time-row">
+          <div class="booking-form-time-col">
+            <div class="booking-form-label">Von</div>
+            <div class="custom-dropdown">
+              <button class="custom-dropdown-trigger">
+                01:30
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="booking-form-time-col">
+            <div class="booking-form-label">Bis</div>
+            <div class="custom-dropdown">
+              <button class="custom-dropdown-trigger">
+                02:00
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-secondary">Prüfen</button>
+      <button class="btn btn-primary is-hidden">Buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STATE B: Slot has s1 + s2 already booked
+     → s1, s2 greyed with badge — s3 selectable
+     ═══════════════════════════════════════ -->
+<div>
+  <p style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:#6b7685;text-align:center;margin-bottom:8px;">B — s1, s2 bereits gebucht (neu)</p>
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Buchung erstellen</span>
+      <button class="modal-close">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="move-dialog">
+        <div class="booking-form-label">Schüler</div>
+        <div class="booking-form-students">
+
+          <!-- Already booked — .booking-form-check-row--booked + .booking-form-already-badge -->
+          <label class="booking-form-check-row booking-form-check-row--booked">
+            <input type="checkbox" class="booking-form-checkbox" checked disabled>
+            <span>s1</span>
+            <span class="booking-form-already-badge">✓ Bereits gebucht</span>
+          </label>
+          <label class="booking-form-check-row booking-form-check-row--booked">
+            <input type="checkbox" class="booking-form-checkbox" checked disabled>
+            <span>s2</span>
+            <span class="booking-form-already-badge">✓ Bereits gebucht</span>
+          </label>
+
+          <!-- Divider -->
+          <div class="booking-form-divider">
+            <div class="booking-form-divider-line"></div>
+            <span class="booking-form-divider-label">Hinzufügen</span>
+            <div class="booking-form-divider-line"></div>
+          </div>
+
+          <!-- Available — selectable -->
+          <label class="booking-form-check-row">
+            <input type="checkbox" class="booking-form-checkbox" checked>
+            <span>s3</span>
+          </label>
+
+        </div>
+
+        <div class="booking-form-time-row">
+          <div class="booking-form-time-col">
+            <div class="booking-form-label">Von</div>
+            <div class="custom-dropdown">
+              <button class="custom-dropdown-trigger">
+                01:30
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="booking-form-time-col">
+            <div class="booking-form-label">Bis</div>
+            <div class="custom-dropdown">
+              <button class="custom-dropdown-trigger">
+                02:00
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-secondary">Prüfen</button>
+      <button class="btn btn-primary is-hidden">Buchen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

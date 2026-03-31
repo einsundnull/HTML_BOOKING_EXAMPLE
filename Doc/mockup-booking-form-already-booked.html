@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Buchung erstellen — bereits gebuchte Schüler</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:'Figtree',sans-serif;
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-400:#4d7aa0;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --ok-bg:#f0fdf4;--ok-bd:#bbf7d0;--ok-tx:#14532d;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow-lg:0 4px 24px rgba(6,15,28,.18);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e5e8ec;display:flex;justify-content:center;padding:20px;gap:24px;flex-wrap:wrap;align-items:flex-start;}
+.col{display:flex;flex-direction:column;gap:8px;align-items:center;width:300px;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7685;text-align:center;}
+
+/* Modal */
+.modal{background:var(--neutral-0);border-radius:var(--radius-lg);padding:20px;width:100%;box-shadow:var(--shadow-lg);}
+.modal-title{font-size:15px;font-weight:600;color:var(--neutral-900);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.modal-close{width:24px;height:24px;border:none;background:transparent;color:var(--neutral-400);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.section-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--neutral-500);margin-bottom:6px;}
+
+/* Student list */
+.student-list{display:flex;flex-direction:column;gap:4px;margin-bottom:14px;}
+
+/* Base student row */
+.stu-row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:var(--radius-md);border:1px solid var(--neutral-200);background:var(--neutral-0);cursor:pointer;transition:background 120ms,border-color 120ms;position:relative;}
+
+/* Available — selectable */
+.stu-row.available:hover{background:var(--color-50);border-color:var(--color-200);}
+.stu-row.available.selected{background:var(--color-50);border-color:var(--color-400);}
+
+/* Already booked — greyed out */
+.stu-row.already-booked{background:var(--neutral-50);border-color:var(--neutral-200);cursor:default;opacity:.65;}
+
+/* Avatar */
+.stu-avatar{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;}
+.av1{background:#1e4060;} .av2{background:#2b4d6b;} .av3{background:#1e5c45;} .av4{background:#5c2b6b;}
+
+/* Name + badge */
+.stu-info{flex:1;min-width:0;}
+.stu-name{font-size:13px;font-weight:600;color:var(--neutral-900);}
+.stu-row.already-booked .stu-name{color:var(--neutral-500);}
+
+/* Already booked badge */
+.already-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--ok-tx);background:var(--ok-bg);border:1px solid var(--ok-bd);border-radius:10px;padding:1px 6px;margin-top:2px;}
+
+/* Checkbox area */
+.stu-check{width:18px;height:18px;border-radius:4px;border:1.5px solid var(--neutral-300);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.stu-row.selected .stu-check{background:var(--color-900);border-color:var(--color-900);}
+.stu-row.already-booked .stu-check{background:var(--neutral-200);border-color:var(--neutral-200);}
+
+/* Time dropdowns */
+.time-row{display:flex;gap:10px;margin-bottom:14px;}
+.time-col{flex:1;display:flex;flex-direction:column;gap:4px;}
+.form-select{border:1px solid var(--neutral-200);border-radius:var(--radius-sm);padding:6px 10px;font-family:var(--font);font-size:13px;font-weight:600;background:var(--neutral-0);color:var(--neutral-900);width:100%;display:flex;align-items:center;justify-content:space-between;}
+
+/* Affordability block */
+.afford-block{background:var(--neutral-50);border:1px solid var(--neutral-200);border-radius:var(--radius-md);padding:10px 12px;margin-bottom:14px;display:flex;flex-direction:column;gap:4px;}
+.afford-row{display:flex;justify-content:space-between;font-size:11px;}
+.afford-label{color:var(--neutral-500);}
+.afford-value{font-weight:600;color:var(--neutral-900);}
+.afford-ok{color:var(--ok-tx);font-size:10px;font-weight:600;}
+
+/* Footer */
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;}
+.btn-ghost{font-family:var(--font);font-size:12px;font-weight:600;background:transparent;border:none;color:var(--neutral-500);cursor:pointer;padding:8px 12px;border-radius:var(--radius-sm);}
+.btn-primary{font-family:var(--font);font-size:12px;font-weight:600;background:var(--color-900);border:none;color:#fff;cursor:pointer;padding:8px 16px;border-radius:var(--radius-sm);}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+
+/* Divider */
+.divider{height:1px;background:var(--neutral-100);margin:10px 0;}
+.divider-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--neutral-400);text-align:center;margin:-5px auto;background:var(--neutral-0);padding:0 8px;width:fit-content;}
+.divider-wrap{position:relative;display:flex;align-items:center;justify-content:center;margin:12px 0;}
+.divider-wrap::before{content:'';position:absolute;left:0;right:0;height:1px;background:var(--neutral-100);}
+.divider-wrap span{position:relative;background:var(--neutral-0);padding:0 8px;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--neutral-400);}
+</style>
+</head>
+<body>
+
+<!-- OPTION A: Ausgegraut mit Badge (EMPFOHLEN) -->
+<div class="col">
+  <div class="lbl">✅ Empfehlung — Ausgegraut + Badge</div>
+  <div class="modal">
+    <div class="modal-title">
+      Buchung erstellen
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="section-label">Schüler</div>
+    <div class="student-list">
+
+      <!-- Already booked — greyed with badge -->
+      <div class="stu-row already-booked">
+        <div class="stu-avatar av1">S1</div>
+        <div class="stu-info">
+          <div class="stu-name">s1</div>
+          <div class="already-badge">✓ Bereits gebucht</div>
+        </div>
+        <div class="stu-check">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#9aa3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <!-- Already booked -->
+      <div class="stu-row already-booked">
+        <div class="stu-avatar av2">S2</div>
+        <div class="stu-info">
+          <div class="stu-name">s2</div>
+          <div class="already-badge">✓ Bereits gebucht</div>
+        </div>
+        <div class="stu-check">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="#9aa3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div class="divider-wrap"><span>Hinzufügen</span></div>
+
+      <!-- Available — selectable -->
+      <div class="stu-row available selected">
+        <div class="stu-avatar av3">S3</div>
+        <div class="stu-info"><div class="stu-name">s3</div></div>
+        <div class="stu-check">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <!-- Available — not selected -->
+      <div class="stu-row available">
+        <div class="stu-avatar av4">S4</div>
+        <div class="stu-info"><div class="stu-name">s4</div></div>
+        <div class="stu-check"></div>
+      </div>
+
+    </div>
+
+    <div class="section-label">Zeit</div>
+    <div class="time-row">
+      <div class="time-col">
+        <div class="section-label">Von</div>
+        <div class="form-select">01:30 <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="time-col">
+        <div class="section-label">Bis</div>
+        <div class="form-select">02:00 <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="afford-block">
+      <div class="afford-row"><span class="afford-label">Slots</span><span class="afford-value">1 × €45,00</span></div>
+      <div class="afford-row"><span class="afford-label">s3 Guthaben</span><span class="afford-value">€5.000,00</span></div>
+      <div class="afford-row"><span class="afford-ok">✓ Deposit €9,00 gedeckt</span></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost">Abbrechen</button>
+      <button class="btn-primary">Buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- OPTION B: Versteckt (Alternative) -->
+<div class="col">
+  <div class="lbl">Alternative — Versteckt</div>
+  <div class="modal">
+    <div class="modal-title">
+      Buchung erstellen
+      <button class="modal-close">✕</button>
+    </div>
+
+    <div class="section-label">Schüler — s1, s2 bereits gebucht</div>
+    <div class="student-list">
+
+      <!-- Only unbooked shown -->
+      <div class="stu-row available selected">
+        <div class="stu-avatar av3">S3</div>
+        <div class="stu-info"><div class="stu-name">s3</div></div>
+        <div class="stu-check">
+          <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+      </div>
+
+      <div class="stu-row available">
+        <div class="stu-avatar av4">S4</div>
+        <div class="stu-info"><div class="stu-name">s4</div></div>
+        <div class="stu-check"></div>
+      </div>
+
+    </div>
+
+    <div class="section-label">Zeit</div>
+    <div class="time-row">
+      <div class="time-col">
+        <div class="section-label">Von</div>
+        <div class="form-select">01:30 <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+      <div class="time-col">
+        <div class="section-label">Bis</div>
+        <div class="form-select">02:00 <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="afford-block">
+      <div class="afford-row"><span class="afford-label">Slots</span><span class="afford-value">1 × €45,00</span></div>
+      <div class="afford-row"><span class="afford-label">s3 Guthaben</span><span class="afford-value">€5.000,00</span></div>
+      <div class="afford-row"><span class="afford-ok">✓ Deposit €9,00 gedeckt</span></div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-ghost">Abbrechen</button>
+      <button class="btn-primary">Buchen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPL — Lesson Confirmation Payment Pipeline</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0:#fff; --n50:#f8f9fb; --n100:#f0f2f5; --n200:#e2e6eb;
+      --n400:#9aa3af; --n500:#6b7685; --n700:#2d3540; --n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a; --ok-bg:#f0fff4; --ok-bd:#bbf7d0;
+      --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+      --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+    }
+
+    /* ── Header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing:.1em;
+              text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:6px; }
+    .ph-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:5px; }
+    .ph-sub { font-size:13px; color:rgba(255,255,255,.5); max-width:760px; margin-bottom:14px; }
+    .ph-meta { display:flex; gap:8px; flex-wrap:wrap; }
+    .ph-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+                border-radius:999px; font-size:11px; font-weight:600;
+                background:rgba(255,255,255,.1); color:rgba(255,255,255,.75);
+                border:1px solid rgba(255,255,255,.15); }
+
+    /* ── Layout ── */
+    .page { padding:28px 40px; max-width:1120px; margin:0 auto; }
+    @media(max-width:700px) { .ph,.page { padding:16px; } }
+
+    /* ── Sections ── */
+    .sec { margin-bottom:44px; }
+    .sec-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px;
+               padding-bottom:9px; border-bottom:2px solid var(--n200); }
+    .sec-title { font-size:17px; font-weight:700; }
+    .sec-sub { font-size:12px; color:var(--n500); margin-left:auto; font-family:var(--mono); }
+
+    /* ── Callouts ── */
+    .callout { padding:11px 16px; border-radius:8px; border-left:3px solid;
+               font-size:13px; line-height:1.6; margin-bottom:14px; }
+    .c-ok   { background:var(--ok-bg);   border-color:var(--ok);   color:#14532d; }
+    .c-info { background:var(--info-bg); border-color:var(--info); color:#1a3a6b; }
+    .c-warn { background:var(--warn-bg); border-color:var(--warn); color:#7b3500; }
+    .callout strong { font-weight:700; }
+    .callout code { font-family:var(--mono); font-size:11.5px;
+                    background:rgba(0,0,0,.08); padding:1px 4px; border-radius:3px; }
+
+    /* ── Tables ── */
+    .tw { overflow-x:auto; border-radius:8px; border:1px solid var(--n200); margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--navy-800); color:rgba(255,255,255,.82); text-align:left;
+               padding:9px 13px; font-size:10px; font-weight:700;
+               letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    tbody td { padding:9px 13px; border-bottom:1px solid var(--n200);
+               vertical-align:top; color:var(--n700); line-height:1.5; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr.r-a { background:#f0fff4; }
+    tbody tr.r-b { background:var(--n50); }
+    code { font-family:var(--mono); font-size:11.5px; background:rgba(6,15,28,.07);
+           padding:1px 5px; border-radius:3px; color:#1a3249; }
+
+    /* ── Code ── */
+    .code-label { display:inline-block; background:rgba(255,255,255,.1);
+                  color:rgba(255,255,255,.6); font-family:var(--mono); font-size:10px;
+                  font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+                  padding:3px 10px; border-radius:4px 4px 0 0; }
+    .code-block { background:var(--navy); border-radius:0 8px 8px 8px;
+                  padding:14px 18px; overflow-x:auto; margin-bottom:14px; }
+    .code-block code { font-family:var(--mono); font-size:12px; color:#e2e8f0;
+                       white-space:pre; display:block; line-height:1.75;
+                       background:none; padding:0; border-radius:0; }
+    .cm{color:#64748b} .ck{color:#93c5fd} .cs{color:#86efac}
+    .cn{color:#fde68a} .cg{color:#6ee7b7} .ce{color:#fca5a5}
+
+    /* ── Call sequence diagram ── */
+    .seq { display:flex; flex-direction:column; gap:0; margin-bottom:14px; }
+    .seq-step { display:grid; grid-template-columns:32px 1fr; gap:0;
+                border:1px solid var(--n200); border-bottom:none; background:var(--n0); }
+    .seq-step:first-child { border-radius:8px 8px 0 0; }
+    .seq-step:last-child  { border-bottom:1px solid var(--n200); border-radius:0 0 8px 8px; }
+    .seq-step.s-async { background:#fffbf0; }
+    .seq-step.s-critical { background:#f0fff4; }
+    .seq-num { background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+               display:flex; align-items:flex-start; justify-content:center;
+               padding-top:13px; border-right:1px solid rgba(255,255,255,.1); }
+    .seq-body { padding:11px 14px; }
+    .seq-fn { font-family:var(--mono); font-size:12px; font-weight:700;
+              color:var(--navy); margin-bottom:4px; }
+    .seq-where { font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:.05em; color:var(--n400); margin-bottom:4px; }
+    .seq-desc { font-size:12px; color:var(--n500); line-height:1.5; }
+    .seq-effect { margin-top:6px; display:flex; flex-wrap:wrap; gap:5px; }
+    .tag { display:inline-flex; padding:2px 7px; border-radius:4px; font-size:10px;
+           font-weight:700; white-space:nowrap; }
+    .t-wallet { background:#f0fff4; color:#14532d; border:1px solid var(--ok-bd); }
+    .t-escrow { background:#fffbeb; color:#7b3500; border:1px solid var(--warn-bd); }
+    .t-tx     { background:var(--info-bg); color:#1e3a8a; border:1px solid var(--info-bd); }
+    .t-slot   { background:var(--n100); color:var(--n700); border:1px solid var(--n200); }
+    .t-none   { background:var(--n50); color:var(--n500); border:1px solid var(--n200); }
+    .seq-arrow { font-size:11px; color:var(--n400); padding:4px 0 0 0; }
+
+    /* ── Two column ── */
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-bottom:14px; }
+    @media(max-width:700px) { .two-col { grid-template-columns:1fr; } }
+
+    /* ── Money flow ── */
+    .mf { border:1px solid var(--n200); border-radius:8px; overflow:hidden; }
+    .mf-title { padding:8px 12px; font-size:11px; font-weight:700;
+                text-transform:uppercase; letter-spacing:.05em;
+                background:var(--navy); color:rgba(255,255,255,.8); }
+    .mf-body { padding:12px; display:flex; flex-direction:column; gap:6px; }
+    .mf-row { display:flex; align-items:center; gap:8px; padding:5px 8px;
+              border-radius:6px; font-size:12px; }
+    .mf-row.booking   { background:#eff6ff; }
+    .mf-row.confirm   { background:#f0fff4; }
+    .mf-row.info      { background:var(--n50); }
+    .mf-icon { width:26px; height:26px; border-radius:50%; display:flex;
+               align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+    .mf-icon.stu { background:#eff6ff; color:#2563eb; }
+    .mf-icon.tch { background:#f0fff4; color:#16a34a; }
+    .mf-icon.esc { background:#fffbeb; color:#d97706; }
+    .mf-label { flex:1; color:var(--n700); }
+    .mf-amt   { font-family:var(--mono); font-weight:700; font-size:12px;
+                white-space:nowrap; margin-left:auto; }
+    .mf-amt.neg { color:#c0392b; }
+    .mf-amt.pos { color:#16a34a; }
+    .mf-amt.neu { color:var(--n500); }
+    .mf-divider { height:1px; background:var(--n200); margin:2px 0; }
+    .mf-phase { font-size:10px; font-weight:700; color:var(--n400);
+                text-transform:uppercase; letter-spacing:.05em; margin-top:4px; }
+
+    /* ── Comparison table ── */
+    .cmp-good { color:#16a34a; font-weight:700; }
+    .cmp-bad  { color:#c0392b; font-weight:700; text-decoration:line-through; opacity:.7; }
+
+    footer { margin-top:48px; padding:14px 0; border-top:1px solid var(--n200);
+             display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    footer span { font-family:var(--mono); font-size:11px; color:var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Lesson Confirmation Pipeline</div>
+  <div class="ph-title">Stunden-Bestätigung — Zahlungs-Pipeline</div>
+  <div class="ph-sub">
+    Vollständige Dokumentation der Bestätigungs-Pipeline: Aufrufkette, Reihenfolge,
+    Verantwortlichkeiten jeder Funktion, Wallet-Effekte und Transaktionsaufzeichnungen.
+    Gilt für Einzelslot-Bestätigung und Block-Bestätigung.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">app-service.js &nbsp;·&nbsp; adapter-localstorage.js</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-14</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ── OVERVIEW ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Überblick — Zwei Bestätigungspfade</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Pfad</th><th>Entry Point</th><th>Ausgelöst durch</th><th>Kernfunktionen</th></tr></thead>
+        <tbody>
+          <tr class="r-a">
+            <td><strong>Block-Pfad</strong><br><em>(mehrere Slots)</em></td>
+            <td><code>AppService.confirmBlock(slots, cb)</code></td>
+            <td>Student oder Teacher klickt „Bestätigen" auf einem gebuchten Block</td>
+            <td><code>confirmSlot</code> × N → <code>getEscrowBySlot</code> × N → <code>confirmLessonSilent</code> × N → <code>writeBlockLessonConfirmed</code> × 1</td>
+          </tr>
+          <tr class="r-b">
+            <td><strong>Einzelslot-Pfad</strong><br><em>(ein Slot)</em></td>
+            <td><code>AppService.confirmSlot(slotId, cb)</code></td>
+            <td>Einzelner Slot schnell bestätigen</td>
+            <td><code>confirmSlot</code> (adapter) → <code>getEscrowBySlot</code> → <code>confirmLesson</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Wichtige Designentscheidung — Block-Pfad:</strong>
+      Wallet-Updates und Escrow-Zustandsänderungen passieren <em>pro Slot</em> in
+      <code>confirmLessonSilent</code> (kein TX). Danach schreibt <code>writeBlockLessonConfirmed</code>
+      genau <strong>einen aggregierten TX-Eintrag</strong> für den gesamten Block — nicht N einzelne.
+      Das hält die Transaktionshistorie lesbar.
+    </div>
+  </div>
+
+  <!-- ── BLOCK PATH CALL SEQUENCE ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Block-Pfad — vollständige Aufrufkette in Reihenfolge</div>
+      <span class="sec-sub">app-service.js → adapter-localstorage.js</span>
+    </div>
+
+    <div class="seq">
+
+      <div class="seq-step">
+        <div class="seq-num">1</div>
+        <div class="seq-body">
+          <div class="seq-where">app-service.js</div>
+          <div class="seq-fn">confirmBlock(slots, cb)</div>
+          <div class="seq-desc">
+            Einstiegspunkt. Empfängt <code>slots[]</code> — können Stubs <code>{slotId}</code> sein.
+            <strong>Schritt 0:</strong> Reichert Stubs mit vollständigen Slot-Objekten aus
+            <code>getAllSlotsSync()</code> an → <code>fullSlots[]</code> mit
+            <code>.price</code>, <code>.teacherId</code>, <code>.studentId</code>, <code>.date</code>, <code>.time</code>.
+            Startet dann Step 1.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-none">kein Wallet</span>
+            <span class="tag t-none">kein TX</span>
+            <span class="tag t-none">kein Escrow</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="seq-step s-async">
+        <div class="seq-num">2</div>
+        <div class="seq-body">
+          <div class="seq-where">adapter-localstorage.js — via _call('confirmSlot') × N</div>
+          <div class="seq-fn">confirmSlot(slotId) — pro Slot</div>
+          <div class="seq-desc">
+            Setzt <code>slot.status = 'confirmed'</code> im Store. Keine Wallet-Änderungen.
+            Alle N Aufrufe laufen, dann <code>afterConfirm()</code>.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-slot">slot.status = 'confirmed'</span>
+            <span class="tag t-none">kein Wallet</span>
+            <span class="tag t-none">kein TX</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="seq-step s-async">
+        <div class="seq-num">3</div>
+        <div class="seq-body">
+          <div class="seq-where">app-service.js — afterConfirm()</div>
+          <div class="seq-fn">getEscrowBySlot(slotId) × N</div>
+          <div class="seq-desc">
+            Lädt den Escrow für jeden Slot. Nur Escrows mit <code>depositStatus === 'held'</code>
+            werden in <code>confirmedEscrows[]</code> gesammelt. Slots ohne Escrow
+            (cash_on_site) werden ignoriert. Wenn alle fertig: <code>afterEscrows()</code>.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-none">nur Lesen</span>
+            <span class="tag t-escrow">confirmedEscrows[] befüllt</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="seq-step s-critical">
+        <div class="seq-num">4</div>
+        <div class="seq-body">
+          <div class="seq-where">adapter-localstorage.js — via _call('confirmLessonSilent') × N</div>
+          <div class="seq-fn">confirmLessonSilent(escrowId) — pro Escrow</div>
+          <div class="seq-desc">
+            <strong>Kernfunktion für Wallet-Updates.</strong> Pro Escrow:
+            <ol style="margin:6px 0 0 16px;font-size:12px;color:#2d3540;line-height:1.7">
+              <li>Berechnet <code>remainderAmt = fullAmount − depositAmount</code></li>
+              <li>Zieht <code>remainderAmt</code> vom Schüler-Wallet ab (der Deposit wurde bereits bei Buchung abgezogen)</li>
+              <li>Schreibt <code>fullAmount</code> dem Lehrer-Wallet gut (= Deposit + Restbetrag)</li>
+              <li>Setzt <code>escrow.depositStatus = 'released'</code></li>
+              <li>Setzt <code>escrow.fullPaymentStatus = 'verified'</code></li>
+              <li>Setzt <code>escrow.fullPaidAt</code> und <code>escrow.releasedAt</code></li>
+            </ol>
+            <strong>Schreibt keinen TX</strong> — das macht writeBlockLessonConfirmed aggregiert.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-wallet">student.balance -= remainder</span>
+            <span class="tag t-wallet">teacher.balance += fullAmount</span>
+            <span class="tag t-escrow">status = released</span>
+            <span class="tag t-escrow">fullPaidAt = now</span>
+            <span class="tag t-none">kein TX</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="seq-step s-critical">
+        <div class="seq-num">5</div>
+        <div class="seq-body">
+          <div class="seq-where">adapter-localstorage.js — via _call('writeBlockLessonConfirmed') × 1</div>
+          <div class="seq-fn">writeBlockLessonConfirmed(fullSlots, confirmedEscrows, cb)</div>
+          <div class="seq-desc">
+            <strong>Schreibt die TX-Aufzeichnungen.</strong> Wallet-Salden wurden bereits in Step 4 aktualisiert.
+            Diese Funktion liest nur die aktuellen Salden und erstellt zwei TX-Einträge:
+            <ul style="margin:6px 0 0 16px;font-size:12px;color:#2d3540;line-height:1.7">
+              <li><strong>Lehrer-TX</strong> (<code>escrow_release</code>): <code>amount = totalFull</code> (Summe aller Slot-Preise)</li>
+              <li><strong>Schüler-TX</strong> (<code>lesson_confirmed</code>): <code>amount = −totalRemainder</code></li>
+            </ul>
+            <code>totalFull</code> kommt aus <code>fullSlots[].price</code> (deshalb müssen fullSlots verwendet werden, nicht Stubs).<br>
+            <code>totalRemainder = totalFull − totalDep</code> (totalDep aus confirmedEscrows[].depositAmount).
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-none">kein Wallet (bereits done)</span>
+            <span class="tag t-tx">TX: escrow_release (Lehrer)</span>
+            <span class="tag t-tx">TX: lesson_confirmed (Schüler)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="seq-step">
+        <div class="seq-num">6</div>
+        <div class="seq-body">
+          <div class="seq-where">student.js / teacher.js</div>
+          <div class="seq-fn">cb() → UI-Update</div>
+          <div class="seq-desc">
+            Toast-Meldung. Wallet-Panel refresh (<code>WalletPanel.refresh(uid)</code>).
+            Buchungsliste und Statistiken neu laden.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-none">UI only</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── SINGLE SLOT PATH ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Einzelslot-Pfad — Aufrufkette</div>
+      <span class="sec-sub">AppService.confirmSlot → confirmLesson</span>
+    </div>
+
+    <div class="seq">
+      <div class="seq-step">
+        <div class="seq-num">1</div>
+        <div class="seq-body">
+          <div class="seq-where">app-service.js</div>
+          <div class="seq-fn">AppService.confirmSlot(slotId, cb)</div>
+          <div class="seq-desc">Ruft adapter <code>confirmSlot(slotId)</code> auf, dann <code>getEscrowBySlot</code>, dann <code>confirmLesson</code>.</div>
+          <div class="seq-effect"><span class="tag t-none">koordiniert</span></div>
+        </div>
+      </div>
+      <div class="seq-step">
+        <div class="seq-num">2</div>
+        <div class="seq-body">
+          <div class="seq-where">adapter-localstorage.js</div>
+          <div class="seq-fn">confirmSlot(slotId)</div>
+          <div class="seq-desc">Setzt <code>slot.status = 'confirmed'</code>.</div>
+          <div class="seq-effect"><span class="tag t-slot">slot.status = 'confirmed'</span></div>
+        </div>
+      </div>
+      <div class="seq-step s-critical">
+        <div class="seq-num">3</div>
+        <div class="seq-body">
+          <div class="seq-where">adapter-localstorage.js</div>
+          <div class="seq-fn">confirmLesson(escrowId)</div>
+          <div class="seq-desc">
+            Identische Wallet-Logik wie <code>confirmLessonSilent</code>,
+            aber schreibt <strong>sofort individuelle TX-Einträge</strong> (kein separates writeBlock nötig).
+            Lehrer-TX: <code>escrow_release, amount=fullAmount</code>.
+            Schüler-TX: <code>lesson_confirmed, amount=−remainderAmt</code>.
+          </div>
+          <div class="seq-effect">
+            <span class="tag t-wallet">student.balance -= remainder</span>
+            <span class="tag t-wallet">teacher.balance += fullAmount</span>
+            <span class="tag t-escrow">status = released</span>
+            <span class="tag t-tx">TX: escrow_release</span>
+            <span class="tag t-tx">TX: lesson_confirmed</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WALLET FLOW ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Vollständiger Geldfluss — Buchung bis Bestätigung</div>
+      <span class="sec-sub">Beispiel: 3 Slots à €45 = €135, Deposit 20% = €27 pro Slot = €81 gesamt</span>
+    </div>
+
+    <div class="two-col">
+      <div class="mf">
+        <div class="mf-title">Schüler-Wallet (S1)</div>
+        <div class="mf-body">
+          <div class="mf-phase">Startguthaben</div>
+          <div class="mf-row info">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">Guthaben</div>
+            <div class="mf-amt neu">€500,00</div>
+          </div>
+
+          <div class="mf-phase">Bei Buchung — payDepositSilent × 3</div>
+          <div class="mf-row booking">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">Deposit × 3 Slots (escrow_hold)</div>
+            <div class="mf-amt neg">−€81,00</div>
+          </div>
+          <div class="mf-row info">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">Guthaben nach Buchung</div>
+            <div class="mf-amt neu">€419,00</div>
+          </div>
+
+          <div class="mf-phase">Bei Bestätigung — confirmLessonSilent × 3</div>
+          <div class="mf-row confirm">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">Restbetrag × 3 Slots (lesson_confirmed)</div>
+            <div class="mf-amt neg">−€54,00</div>
+          </div>
+          <div class="mf-row info">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">Guthaben nach Bestätigung</div>
+            <div class="mf-amt neu">€365,00</div>
+          </div>
+
+          <div class="mf-phase">Gesamt abgebucht</div>
+          <div class="mf-row info">
+            <div class="mf-icon stu">S</div>
+            <div class="mf-label">−€81 Deposit −€54 Rest = −€135 gesamt</div>
+            <div class="mf-amt neg">−€135,00</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mf">
+        <div class="mf-title">Lehrer-Wallet (T1)</div>
+        <div class="mf-body">
+          <div class="mf-phase">Startguthaben</div>
+          <div class="mf-row info">
+            <div class="mf-icon tch">T</div>
+            <div class="mf-label">Guthaben</div>
+            <div class="mf-amt neu">€0,00</div>
+          </div>
+
+          <div class="mf-phase">Bei Buchung</div>
+          <div class="mf-row info">
+            <div class="mf-icon tch">T</div>
+            <div class="mf-label">Keine Änderung — Deposit im Escrow</div>
+            <div class="mf-amt neu">€0,00</div>
+          </div>
+
+          <div class="mf-phase">Bei Bestätigung — confirmLessonSilent × 3</div>
+          <div class="mf-row confirm">
+            <div class="mf-icon tch">T</div>
+            <div class="mf-label">fullAmount × 3 (€45 × 3 = €135)</div>
+            <div class="mf-amt pos">+€135,00</div>
+          </div>
+          <div class="mf-row info">
+            <div class="mf-icon tch">T</div>
+            <div class="mf-label">Guthaben nach Bestätigung</div>
+            <div class="mf-amt pos">€135,00</div>
+          </div>
+
+          <div class="mf-phase">TX-Eintrag (writeBlockLessonConfirmed)</div>
+          <div class="mf-row info">
+            <div class="mf-icon tch">T</div>
+            <div class="mf-label">escrow_release, amount=€135</div>
+            <div class="mf-amt pos">sichtbar im Wallet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Wichtig:</strong> Der Deposit (€27/Slot = €81 gesamt) wird bei Buchung vom Schüler abgezogen
+      und im Escrow gehalten. Er ist <em>nicht</em> im Lehrer-Wallet. Bei Bestätigung überweist
+      <code>confirmLessonSilent</code> den <strong>vollen Betrag</strong> (€45/Slot = €135 gesamt) an den Lehrer —
+      das umfasst sowohl den Deposit als auch den Restbetrag (€18/Slot × 3 = €54).
+      Der Schüler zahlt den Restbetrag erst bei Bestätigung.
+    </div>
+  </div>
+
+  <!-- ── FUNCTION RESPONSIBILITIES ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Funktion — Verantwortlichkeiten &amp; Effekte</div></div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Funktion</th><th>Datei</th>
+            <th>Wallet-Update</th><th>Escrow-Update</th><th>TX schreiben</th>
+            <th>Input-Anforderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-b">
+            <td><code>confirmBlock()</code></td>
+            <td>app-service.js</td>
+            <td>Nein</td><td>Nein</td><td>Nein</td>
+            <td><code>slots[]</code> — kann Stubs <code>{slotId}</code> sein. Wird intern zu <code>fullSlots[]</code> angereichert.</td>
+          </tr>
+          <tr>
+            <td><code>confirmSlot()</code> <em>(adapter)</em></td>
+            <td>adapter-localstorage.js</td>
+            <td>Nein</td><td>Nein</td><td>Nein</td>
+            <td><code>slotId</code></td>
+          </tr>
+          <tr>
+            <td><code>getEscrowBySlot()</code></td>
+            <td>app-service.js</td>
+            <td>Nein</td><td>Nein</td><td>Nein</td>
+            <td><code>slotId</code> — gibt Escrow zurück oder null</td>
+          </tr>
+          <tr class="r-a">
+            <td><code>confirmLessonSilent()</code></td>
+            <td>adapter-localstorage.js</td>
+            <td><strong>Ja</strong> — student −remainder, teacher +fullAmt</td>
+            <td><strong>Ja</strong> — status=released, fullPaidAt</td>
+            <td><strong>Nein</strong> — silent!</td>
+            <td><code>escrowId</code> mit <code>depositStatus='held'</code></td>
+          </tr>
+          <tr class="r-a">
+            <td><code>writeBlockLessonConfirmed()</code></td>
+            <td>adapter-localstorage.js</td>
+            <td><strong>Nein</strong> — Salden bereits durch Silent aktualisiert</td>
+            <td>Nein</td>
+            <td><strong>Ja</strong> — 2 TXs (escrow_release + lesson_confirmed)</td>
+            <td><code>fullSlots[]</code> mit <code>.price</code>, <code>.teacherId</code>, <code>.studentId</code> — KEINE Stubs!</td>
+          </tr>
+          <tr class="r-b">
+            <td><code>confirmLesson()</code></td>
+            <td>adapter-localstorage.js</td>
+            <td><strong>Ja</strong> — student −remainder, teacher +fullAmt</td>
+            <td><strong>Ja</strong> — status=released, fullPaidAt</td>
+            <td><strong>Ja</strong> — 2 TXs direkt</td>
+            <td><code>escrowId</code> mit <code>depositStatus='held'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── ESCROW STATE MACHINE ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Escrow-Zustandsmaschine</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>depositStatus</th><th>fullPaymentStatus</th><th>Bedeutung</th><th>Gesetzt durch</th></tr></thead>
+        <tbody>
+          <tr><td><code>unpaid</code></td><td><code>unpaid</code></td>
+              <td>Escrow erstellt, noch kein Deposit</td>
+              <td><code>createEscrow()</code></td></tr>
+          <tr><td><code>held</code></td><td><code>unpaid</code></td>
+              <td>Deposit vom Schüler gezahlt, wartet auf Bestätigung</td>
+              <td><code>payDeposit()</code> / <code>payDepositSilent()</code></td></tr>
+          <tr class="r-a"><td><code>released</code></td><td><code>verified</code></td>
+              <td>Stunde bestätigt, Vollzahlung abgeschlossen</td>
+              <td><code>confirmLessonSilent()</code> / <code>confirmLesson()</code></td></tr>
+          <tr><td><code>refund_requested</code></td><td><code>unpaid</code></td>
+              <td>Stornierung angefragt</td>
+              <td><code>requestDepositRefund()</code></td></tr>
+          <tr><td><code>refunded</code></td><td><code>unpaid</code></td>
+              <td>Deposit zurückgezahlt</td>
+              <td><code>releaseDeposit()</code></td></tr>
+          <tr><td><code>forfeited</code></td><td><code>unpaid</code></td>
+              <td>Deposit verfallen (Stornierung zu spät)</td>
+              <td><code>forfeitDeposit()</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>fullPaymentStatus-Felder:</strong> <code>unpaid → paid → verified</code>.
+      Der <code>paid</code>-Schritt existiert im Schema aber wird nicht aktiv gesetzt —
+      der Übergang von <code>unpaid</code> zu <code>verified</code> erfolgt direkt
+      in <code>confirmLessonSilent</code> / <code>confirmLesson</code>.
+      <code>fullPaidAt</code> wird bei Bestätigung gesetzt.
+    </div>
+  </div>
+
+  <!-- ── TX RECORDS ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">TX-Einträge — was wo geschrieben wird</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Zeitpunkt</th><th>Funktion</th><th>uid</th><th>type</th><th>amount</th><th>description</th></tr></thead>
+        <tbody>
+          <tr><td>Buchung</td><td><code>writeBlockBookingRecord</code></td>
+              <td>Teacher</td><td><code>booking</code></td><td><code>0</code></td>
+              <td>„Neue Buchung — N Slots am..."</td></tr>
+          <tr><td>Buchung</td><td><code>writeBlockEscrowHold</code></td>
+              <td>Student</td><td><code>escrow_hold</code></td><td><code>−totalDeposit</code></td>
+              <td>„Deposit — N Slots am..."</td></tr>
+          <tr class="r-a"><td>Bestätigung</td><td><code>writeBlockLessonConfirmed</code></td>
+              <td>Teacher</td><td><code>escrow_release</code></td>
+              <td><strong><code>+totalFull</code></strong></td>
+              <td>„Zahlung freigegeben — N Slots am..."</td></tr>
+          <tr class="r-a"><td>Bestätigung</td><td><code>writeBlockLessonConfirmed</code></td>
+              <td>Student</td><td><code>lesson_confirmed</code></td>
+              <td><strong><code>−totalRemainder</code></strong></td>
+              <td>„Stunde bestätigt — N Slots am..."</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>TX amount für lesson_confirmed:</strong> Zeigt <code>−totalRemainder</code>
+      (negativer Betrag = Abbuchung). Wenn kein Restbetrag (z.B. Deposit = Vollpreis),
+      dann <code>amount = 0</code>. Der <strong>Saldo danach</strong> (<code>balance</code>)
+      im TX-Eintrag spiegelt das tatsächliche Guthaben nach allen Operationen wider
+      und wird aus dem bereits aktualisierten Wallet gelesen.
+    </div>
+  </div>
+
+  <!-- ── KEY VARIABLES ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Schlüsselvariablen &amp; Berechnungen</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Variable</th><th>Berechnung</th><th>Quelle</th></tr></thead>
+        <tbody>
+          <tr><td><code>depositAmt</code></td><td><code>escrow.depositAmount</code></td>
+              <td>Bei createEscrow aus <code>_calcDeposit(profile, fullAmount)</code> berechnet</td></tr>
+          <tr><td><code>fullAmt</code></td><td><code>escrow.fullAmount</code></td>
+              <td>Bei createEscrow aus <code>profile.pricePerHalfHour</code></td></tr>
+          <tr class="r-a"><td><code>remainderAmt</code></td>
+              <td><code>max(0, fullAmt − depositAmt)</code></td>
+              <td>Berechnet in confirmLessonSilent / confirmLesson</td></tr>
+          <tr class="r-a"><td><code>totalFull</code></td>
+              <td><code>Σ slot.price</code> für alle fullSlots</td>
+              <td>writeBlockLessonConfirmed — benötigt <strong>fullSlots</strong>, nicht Stubs</td></tr>
+          <tr class="r-a"><td><code>totalDep</code></td>
+              <td><code>Σ escrow.depositAmount</code></td>
+              <td>writeBlockLessonConfirmed aus confirmedEscrows[]</td></tr>
+          <tr class="r-a"><td><code>totalRemainder</code></td>
+              <td><code>max(0, totalFull − totalDep)</code></td>
+              <td>writeBlockLessonConfirmed</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── CHANGED FILES ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien — diese Version</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-a">
+            <td><code>js/app-service.js</code></td>
+            <td><code>confirmBlock()</code></td>
+            <td>Slot-Stubs <code>{slotId}</code> werden vor allen weiteren Schritten mit <code>getAllSlotsSync()</code> zu <code>fullSlots[]</code> angereichert. <code>writeBlockLessonConfirmed</code> und <code>confirmSlot</code> erhalten <code>fullSlots</code> statt rohe Stubs.</td>
+          </tr>
+          <tr class="r-a">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>confirmLessonSilent()</code></td>
+            <td>Wallet-Updates für Restbetrag und Vollbetrag implementiert. <code>escrow.fullPaidAt</code> gesetzt.</td>
+          </tr>
+          <tr class="r-a">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>confirmLesson()</code></td>
+            <td>Identisch wie confirmLessonSilent plus eigene TX-Aufzeichnungen.</td>
+          </tr>
+          <tr class="r-a">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>writeBlockLessonConfirmed()</code></td>
+            <td>Keine Wallet-Updates mehr (bereits durch confirmLessonSilent erledigt). TX-Beträge: teacher=<code>totalFull</code>, student=<code>−totalRemainder</code>.</td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>2026-03-19-13</code> → <code>2026-03-19-14</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_LESSON_CONFIRMATION_PIPELINE_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-14 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

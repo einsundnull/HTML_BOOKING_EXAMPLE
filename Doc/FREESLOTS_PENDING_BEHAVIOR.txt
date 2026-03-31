@@ -1,0 +1,28 @@
+
+
+Now let me read how the student "My Bookings" day slots renders pending state — specifically how it keeps the row visible with amber:
+
+Now I have everything I need for the comparison table. Let me also check `getEffectiveTeacherSlot` to understand how teacher pending state is read back:
+
+Now let me check how `buildAllBookingBlock` uses `_pending` to show amber:
+
+Now I have everything. Here is the full comparison:
+
+---
+
+## Vergleichstabelle
+
+| Aspekt | **Teacher – freie Slots** (`renderBookingsPanel`) | **Teacher – All Bookings** (`_populateStudentBlockDetail`) | **Student – Day Slots** (`renderDaySlots`) |
+|---|---|---|---|
+| **Nach Klick auf "+ Buchen"** | `renderDayPanel()` → DOM komplett neu gebaut | DOM bleibt, nur `row.className` wechselt | `renderDaySlots()` → DOM neu gebaut |
+| **Slot verschwindet aus Liste?** | ✅ **JA** — `freeSlots` filtert `s.studentId === null`, pending-book hat noch `studentId = null` im Store → erscheint kurz als frei, dann verschwindet nach render | ❌ Nein — `pendingBookings[s.slotId]` hält den Slot sichtbar | ❌ Nein — pending-book Slots werden explizit zur Liste **hinzugefügt** |
+| **Amber-Highlighting** | ❌ Kein amber — Row hat keine `.slot-pending` Klasse | ✅ `.slot-pending` Klasse auf Row | ✅ `gc-pending` Klasse auf Grid-Zelle |
+| **Undo möglich?** | ❌ Nein (Slot weg, kein Undo-Button) | ✅ Button wechselt zu "Undo" | ✅ Erneuter Klick = Undo |
+| **Pending-Check beim Filtern** | ❌ Fehlt — `freeSlots` nutzt `getEffectiveTeacherSlot` nicht | ✅ `pendingBookings[s.slotId]` hält Slot in Liste | ✅ Pending-book Slots werden separat injiziert |
+| **Button-Text nach Staging** | ❌ Slot weg → kein Button | ✅ Wechselt zu "Undo" | ✅ Wechselt zu "Undo" |
+
+---
+
+**Root cause:** In `renderBookingsPanel` wird `freeSlots` gefiltert mit `!s.studentId` — das ist der **Store-Wert**, nicht der effective-Wert. Aber das eigentliche Problem ist, dass nach `commitBooking()` sofort `renderDayPanel()` aufgerufen wird, das `freeSlots` neu von Store liest — wo der Slot noch `studentId = null` ist (weil nur pending, nicht gespeichert). Das `getEffectiveTeacherSlot` macht den Slot zu `booked`, aber `freeSlots` wird **vor** `getEffectiveTeacherSlot` gefiltert — also ist er noch drin. Dann wird er in `effective` als booked, aber nicht in `allBooked` gezeigt.
+
+**Fix:** Die free-slots-Liste muss pending-book Slots **ausblenden** und stattdessen als amber Row in der Liste behalten — genau wie in den anderen zwei Implementierungen.

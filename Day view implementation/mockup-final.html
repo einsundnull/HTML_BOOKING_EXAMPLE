@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup Final</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-400:#4d7aa0;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;
+  --pending-amber:#f5a623;--pending-amber-bg:#fef3cd;--pending-amber-tx:#7a5c00;
+  --font:'Figtree',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--neutral-100);padding:24px 16px;display:flex;flex-direction:column;gap:20px;align-items:center;}
+
+.label{font-size:11px;font-weight:600;color:var(--neutral-500);text-transform:uppercase;letter-spacing:.07em;width:100%;max-width:420px;}
+
+.frame{width:100%;max-width:420px;background:var(--neutral-0);border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(6,15,28,.10);}
+
+/* ── Row ── */
+.row{display:flex;align-items:stretch;min-height:68px;border-bottom:1px solid var(--neutral-100);position:relative;}
+.row:last-child{border-bottom:none;}
+.row::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;}
+
+/* status colours */
+.s-avail{background:var(--color-50);}         .s-avail::before{background:var(--color-400);}
+.s-empty{background:var(--neutral-0);border:1px dashed var(--neutral-300);}  .s-empty::before{background:var(--neutral-200);}
+.s-disabled{background:var(--neutral-50);}    .s-disabled::before{background:var(--neutral-300);}
+.s-to-avail{background:var(--pending-amber-bg);}  .s-to-avail::before{background:var(--pending-amber);}
+
+/* ── Time col ── */
+.tc{width:72px;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;padding:8px 8px 8px 16px;gap:3px;}
+.ts{font-family:'Courier New',monospace;font-size:14px;font-weight:600;color:var(--neutral-700);line-height:1;}
+.te{font-family:'Courier New',monospace;font-size:12px;color:var(--neutral-400);line-height:1;}
+.s-empty .ts,.s-disabled .ts{color:var(--neutral-400);}
+
+/* ── Sep ── */
+.sep{width:1px;background:var(--neutral-200);margin:12px 0;flex-shrink:0;}
+.s-to-avail .sep{background:rgba(245,166,35,.3);}
+
+/* ── Info col ── */
+.ic{flex:1;display:flex;align-items:center;padding:8px 8px 8px 14px;gap:8px;min-width:0;}
+
+/* ── Pill ── */
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px 3px 8px;border-radius:20px;font-size:12px;font-weight:600;border:1px solid;flex-shrink:0;}
+.p-avail{background:var(--color-100);border-color:var(--color-200);color:var(--color-700);}
+.p-dis{background:var(--neutral-100);border-color:var(--neutral-200);color:var(--neutral-500);}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.p-avail .dot{background:var(--color-400);}
+.p-dis .dot{background:var(--neutral-300);}
+
+/* stopwatch icon */
+.ico{display:inline-flex;align-items:center;color:var(--pending-amber-tx);flex-shrink:0;}
+
+/* hint */
+.hint{font-size:12px;color:var(--neutral-300);font-style:italic;}
+
+/* ── Action col ── */
+/* KEY CHANGE: gap:16px gives comfortable touch distance */
+.ac{display:flex;align-items:center;gap:16px;padding:0 16px 0 4px;flex-shrink:0;}
+
+.btn{font-family:var(--font);font-size:12px;font-weight:600;background:transparent;border:1px solid var(--neutral-200);border-radius:4px;color:var(--neutral-700);cursor:pointer;padding:5px 8px;white-space:nowrap;min-height:30px;touch-action:manipulation;}
+</style>
+</head>
+<body>
+
+<div class="label">Verfügbar — normal (wie im Screenshot)</div>
+<div class="frame">
+  <div class="row s-avail">
+    <div class="tc"><span class="ts">00:30</span><span class="te">–01:00</span></div>
+    <div class="sep"></div>
+    <div class="ic">
+      <span class="pill p-avail"><span class="dot"></span>Verfügbar</span>
+    </div>
+    <div class="ac">
+      <button class="btn">Deaktivieren</button>
+      <button class="btn">Timeout</button>
+    </div>
+  </div>
+
+  <div class="row s-avail">
+    <div class="tc"><span class="ts">01:00</span><span class="te">–01:30</span></div>
+    <div class="sep"></div>
+    <div class="ic">
+      <span class="pill p-avail"><span class="dot"></span>Verfügbar</span>
+    </div>
+    <div class="ac">
+      <button class="btn">Deaktivieren</button>
+      <button class="btn">Timeout</button>
+    </div>
+  </div>
+</div>
+
+<div class="label">Verfügbar + Timeout aktiv — gelb, Pill bleibt links, Stopwatch daneben</div>
+<div class="frame">
+  <div class="row s-to-avail">
+    <div class="tc"><span class="ts">02:00</span><span class="te">–02:30</span></div>
+    <div class="sep"></div>
+    <div class="ic">
+      <!-- Pill exactly as before, unchanged -->
+      <span class="pill p-avail"><span class="dot"></span>Verfügbar</span>
+      <!-- Stopwatch right next to it -->
+      <span class="ico">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><path d="M9 3h6M12 3v2"/>
+        </svg>
+      </span>
+    </div>
+    <div class="ac">
+      <button class="btn">Aufheben</button>
+    </div>
+  </div>
+
+  <div class="row s-to-avail">
+    <div class="tc"><span class="ts">02:30</span><span class="te">–03:00</span></div>
+    <div class="sep"></div>
+    <div class="ic">
+      <span class="pill p-avail"><span class="dot"></span>Verfügbar</span>
+      <span class="ico">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><path d="M9 3h6M12 3v2"/>
+        </svg>
+      </span>
+    </div>
+    <div class="ac">
+      <button class="btn">Aufheben</button>
+    </div>
+  </div>
+</div>
+
+<div class="label">Deaktiviert + Leer (Referenz)</div>
+<div class="frame">
+  <div class="row s-disabled">
+    <div class="tc"><span class="ts">03:00</span><span class="te">–03:30</span></div>
+    <div class="sep"></div>
+    <div class="ic">
+      <span class="pill p-dis"><span class="dot"></span>Deaktiviert</span>
+    </div>
+    <div class="ac">
+      <button class="btn">Aktivieren</button>
+    </div>
+  </div>
+
+  <div class="row s-empty">
+    <div class="tc"><span class="ts">03:30</span><span class="te">–04:00</span></div>
+    <div class="sep"></div>
+    <div class="ic"><span class="hint">Kein Slot angelegt</span></div>
+    <div class="ac">
+      <button class="btn">Hinzufügen</button>
+      <button class="btn">Timeout</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

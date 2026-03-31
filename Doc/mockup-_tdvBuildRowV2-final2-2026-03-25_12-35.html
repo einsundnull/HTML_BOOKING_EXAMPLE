@@ -1,0 +1,165 @@
+<!--
+  MOCKUP: _tdvBuildRowV2 — Final (all rows have + except booked-full)
+  BOOKED+config:  Avatare+Badges | ⚙(on)  + ›
+  BOOKED:         Avatare        | ⚙(off) + ›
+  AVAILABLE:      leer           | ⚙(off) +
+  TIMEOUT:        ⏱             | ⚙(off) +
+  EMPTY:          leer           | ⚙(off) +
+  DATE: 2026-03-25 12:35
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — V2 Final</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c100:#dde4ed;--c300:#8fa9c0;--c400:#4d7aa0;--c500:#3a6285;--c700:#1a3249;--c900:#060f1c;
+  --n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n300:#c9d0d9;--n400:#9aa3af;
+  --to-bg:#fef9ec;--to-bd:#f5d97e;--to-tx:#92650a;
+  --f:'Figtree',sans-serif;--r:4px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--f);background:#e2e8f0;}
+.app{max-width:480px;margin:0 auto;background:#fff;}
+.bar{background:var(--c900);color:#fff;padding:12px 16px;font-size:13px;font-weight:700;}
+.sec{font-size:10px;color:var(--n400);font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:8px 16px 3px;}
+
+.row{display:flex;align-items:stretch;border-bottom:1px solid var(--n100);position:relative;min-height:68px;}
+.row::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;}
+.t{width:64px;flex-shrink:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;gap:2px;text-align:center;}
+.t1{font-family:'Courier New',monospace;font-size:14px;font-weight:700;line-height:1;}
+.t2{font-family:'Courier New',monospace;font-size:11px;line-height:1;}
+.sep{width:1px;flex-shrink:0;align-self:stretch;}
+.info{flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:5px;padding:8px 6px 8px 12px;min-width:0;overflow:hidden;}
+.act{padding:0 12px 0 4px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+
+.gon{width:30px;height:30px;border-radius:var(--r);background:var(--c900);border:1px solid var(--c900);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.goff{width:30px;height:30px;border-radius:var(--r);background:transparent;border:1px solid transparent;color:var(--c300);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;opacity:.35;}
+.add{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+.chev{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;}
+.avs{display:flex;align-items:center;}
+.av{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;margin-left:-8px;}
+.av:first-child{margin-left:0;}
+.bdg{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;}
+.bsq{width:7px;height:7px;border-radius:2px;flex-shrink:0;display:inline-block;}
+.toic{display:flex;align-items:center;}
+
+/* Status */
+.booked{background:var(--c900);}
+.booked::before{background:var(--c400);}
+.booked .t{background:rgba(255,255,255,.05);}
+.booked .t1{color:var(--c300);}
+.booked .t2{color:rgba(255,255,255,.3);}
+.booked .sep{background:rgba(255,255,255,.1);}
+.booked .av{background:var(--c700);border:2px solid #0f2a3f;}
+.booked .add{border:1.5px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.6);}
+.booked .chev{border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);}
+.booked .goff{color:rgba(255,255,255,.3);}
+
+.avail{background:var(--c100);}
+.avail::before{background:var(--c500);}
+.avail .t{background:var(--c100);}
+.avail .t1{color:var(--c700);}
+.avail .t2{color:var(--c400);}
+.avail .sep{background:var(--c300);}
+.avail .add{border:1.5px solid var(--c300);background:transparent;color:var(--c500);}
+
+.tout{background:var(--to-bg);}
+.tout::before{background:var(--to-bd);}
+.tout .t{background:var(--to-bg);}
+.tout .t1{color:var(--to-tx);}
+.tout .t2{color:var(--to-tx);opacity:.6;}
+.tout .sep{background:var(--to-bd);}
+.tout .toic{color:var(--to-tx);}
+.tout .goff{color:var(--to-tx);}
+.tout .add{border:1.5px solid var(--to-bd);background:transparent;color:var(--to-tx);}
+
+.empty{background:var(--n50);}
+.empty::before{background:transparent;}
+.empty .t{background:var(--n100);}
+.empty .t1{color:var(--n400);}
+.empty .t2{color:var(--n300);}
+.empty .sep{background:var(--n200);}
+.empty .add{border:1.5px solid var(--n200);background:transparent;color:var(--n400);}
+
+svg.i{width:13px;height:13px;}
+svg.s{width:12px;height:12px;}
+svg.x{width:10px;height:10px;}
+
+/* Gear SVG reused */
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="bar">Verfügbarkeit 2 — Mi., 25. März 2026</div>
+
+  <div class="sec">Gebucht + Vis-Config → ⚙ aktiv</div>
+  <div class="row booked">
+    <div class="t"><span class="t1">00:00</span><span class="t2">–00:30</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <div class="avs"><div class="av">S</div><div class="av">A</div></div>
+      <span class="bdg" style="background:rgba(139,92,246,.2);color:#c4b5fd;"><span class="bsq" style="background:#8b5cf6;"></span>Nur neue Schüler</span>
+    </div>
+    <div class="act">
+      <button class="gon"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add"><svg class="s" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="chev"><svg class="x" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="sec">Gebucht ohne Config → ⚙ ghost</div>
+  <div class="row booked">
+    <div class="t"><span class="t1">00:30</span><span class="t2">–01:00</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <div class="avs"><div class="av">S</div><div class="av" style="background:#2b4d6b;">B</div></div>
+    </div>
+    <div class="act">
+      <button class="goff"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add"><svg class="s" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+      <button class="chev"><svg class="x" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="sec">Verfügbar → ⚙ ghost + +</div>
+  <div class="row avail">
+    <div class="t"><span class="t1">01:00</span><span class="t2">–01:30</span></div>
+    <div class="sep"></div>
+    <div class="info"></div>
+    <div class="act">
+      <button class="goff"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add"><svg class="s" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="sec">Timeout → ⏱ + ⚙ ghost + + (hebt Timeout auf)</div>
+  <div class="row tout">
+    <div class="t"><span class="t1">01:30</span><span class="t2">–02:00</span></div>
+    <div class="sep"></div>
+    <div class="info">
+      <span class="toic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14.5 15.5"/><path d="M9 3h6M12 3v2"/></svg></span>
+    </div>
+    <div class="act">
+      <button class="goff"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add"><svg class="s" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+  <div class="sec">Leer → ⚙ ghost + +</div>
+  <div class="row empty">
+    <div class="t"><span class="t1">02:00</span><span class="t2">–02:30</span></div>
+    <div class="sep"></div>
+    <div class="info"></div>
+    <div class="act">
+      <button class="goff"><svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+      <button class="add"><svg class="s" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

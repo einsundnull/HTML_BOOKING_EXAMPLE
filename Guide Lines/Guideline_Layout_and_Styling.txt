@@ -1,0 +1,345 @@
+================================================================================
+GUIDELINE — LAYOUT & STYLING
+BookingSystem | Stand: März 2026
+================================================================================
+
+INHALTSVERZEICHNIS
+  1.  Dateistruktur CSS
+  2.  Design Tokens
+  3.  Komponentenregeln
+  4.  Layouts & Seiten-Strukturen
+  5.  Dialoge, Overlays & Alerts
+  6.  i18n / Internationalisierung
+  7.  Templates & Wiederverwendbarkeit
+  8.  Verbotene Praktiken
+  9.  Coding-Regeln JavaScript
+
+────────────────────────────────────────────────────────────────────────────────
+1. DATEISTRUKTUR CSS
+────────────────────────────────────────────────────────────────────────────────
+
+  css/
+    tokens.css          Design-Tokens (Farben, Abstände, Typografie, Schatten)
+    base.css            Reset, Body, Utility-Klassen, Disziplin-Badges
+    components.css      Wiederverwendbare UI-Komponenten (Button, Card, Form, Table)
+    navbar.css          Navbar-Styling
+    landing.css         Landing-Page spezifisch
+    login.css           Login/Auth-Modal, Google-Picker
+    admin.css           Admin-Seite spezifisch (Badges, Action-Buttons)
+    teacher.css         Teacher-Dashboard spezifisch
+    student.css         Student-Dashboard spezifisch
+    wallet.css          Wallet-Seite + Wallet-Panel
+    profile.css         Profil-Edit und -View
+    chat.css            Chat-Overlay
+
+  LADEREIHENFOLGE pro Seite:
+    1. tokens.css
+    2. base.css
+    3. components.css
+    4. navbar.css
+    5. [seiten-spezifische CSS]
+    6. login.css (nur wo AuthModal oder Google-Picker verwendet wird)
+
+────────────────────────────────────────────────────────────────────────────────
+2. DESIGN TOKENS (tokens.css)
+────────────────────────────────────────────────────────────────────────────────
+
+  Alle Werte IMMER als CSS Custom Property verwenden — niemals Hardcoded-Werte.
+
+  FARBEN:
+    --color-100 bis --color-900    Primärfarbe (Blau-Grau-Palette)
+    --color-600                    Primär-Akzent (Buttons, Links)
+    --color-800                    Dunkler Primär
+    --neutral-50 bis --neutral-900 Grautöne
+    --white                        #ffffff
+    --danger-*                     Rot (Fehler, Löschen)
+    --success-*                    Grün (Erfolg)
+
+  TYPOGRAFIE:
+    --font                         'Figtree', sans-serif
+    --text-small                   kleinere Schrift
+    --text-body                    Standard-Fließtext
+    --text-heading                 Überschriften
+    --weight-normal                400
+    --weight-semibold              600
+
+  ABSTÄNDE:
+    --sp-1 bis --sp-8              Spacing-Skala (4px Basis)
+
+  FORMEN & SCHATTEN:
+    --radius-sm / --radius-md / --radius-lg / --radius-xl
+    --shadow-sm / --shadow-md / --shadow-lg
+
+  SICHTBARKEIT:
+    .is-hidden    → display: none (IMMER diese Klasse verwenden — KEIN style.display)
+
+────────────────────────────────────────────────────────────────────────────────
+3. KOMPONENTENREGELN
+────────────────────────────────────────────────────────────────────────────────
+
+  BUTTONS:
+    .btn                  Basis-Button
+    .btn-primary          Primär (ausgefüllt, --color-600)
+    .btn-secondary        Sekundär (Outline)
+    .btn-ghost            Ghost (kein Hintergrund)
+    .btn-danger           Rot (Löschen, Stornieren)
+    .btn-sm               Kleiner Button
+    .btn-self-start       Button alignt sich links (nicht volle Breite)
+
+  FORMULARE:
+    .form-group           Wrapper für Label + Input + Error
+    .form-label           Label-Styling
+    .form-input           Text/Email/Password/Textarea
+    .form-select          Dropdown (KEIN freies Textfeld für vordefinierte Werte)
+    .form-error-msg       Fehlermeldung (mit .is-hidden verstecken/zeigen)
+    .form-hint            Hilfetext unter dem Feld
+    .form-hint-inline     Inline-Hinweis im Label (z.B. "optional")
+    .form-stack           Vertikaler Abstand zwischen form-groups
+
+  KARTEN:
+    .card                 Standard-Karte (weißer Hintergrund, Schatten, Border-Radius)
+    .card-header          Flex-Row: Titel links, Aktionen rechts
+    .card-title           Kartenüberschrift
+    .card-description     Kartenuntertitel
+
+  TABELLE:
+    .table                Volle Breite, zebra-fähig
+    .table-wrapper        Horizontal scrollbarer Container
+    .table-empty-cell     Leerer Zustand (colspan)
+
+  SEGMENTED CONTROL:
+    .segmented            Container
+    .segmented-btn        Button (mit .active für aktiven Tab)
+
+  BADGES:
+    .uid-badge            Code-Tag für UIDs
+    .teacher-selected-badge  Grüner "Ausgewählt"-Badge auf Lehrerkarte
+    .tc-discipline-badge  Disziplin-Badge (mit Farbvarianten je Disziplin):
+      .tc-discipline-badge-ski          Blau
+      .tc-discipline-badge-snowboard    Hellblau
+      .tc-discipline-badge-telemark     Grün
+      .tc-discipline-badge-nordic       Orange
+    .admin-discipline-badge  Disziplin-Badge in Admin-Tabelle
+    .admin-email-badge       E-Mail-Anzeige in Admin-Tabelle
+    .sport-active-badge      "Verfügbar" Badge auf Sport-Karten
+    .sport-coming-badge      "Demnächst" Badge
+
+  TOAST / BENACHRICHTIGUNGEN:
+    Toast.success(html)   Grüne Erfolgsmeldung (verschwindet nach Timeout)
+    Toast.error(html)     Rote Fehlermeldung
+    Toast.info(html)      Neutrale Information
+    Toast.show(msg, type) Generisch
+    → Styling in components.css, kein inline style
+
+  MODAL / DIALOG:
+    Modal.show({ title, bodyHTML, footerHTML }) → { close() }
+    → immer angepasstes Styling (kein Browser-Alert/Confirm!)
+    → Footer enthält Buttons: .btn-ghost (Abbrechen) + .btn-primary/.btn-danger
+    → Overlay schließt bei Klick außerhalb
+    → ESC-Taste schließt
+
+────────────────────────────────────────────────────────────────────────────────
+4. LAYOUTS & SEITEN-STRUKTUREN
+────────────────────────────────────────────────────────────────────────────────
+
+  STANDARD-SEITENSTRUKTUR:
+    <div class="app-shell">
+      <!-- Navbar wird von Navbar.init() injiziert -->
+      <main class="page">
+        <div class="page-header">
+          <h2>Seitentitel</h2>
+          <p>Untertitel</p>
+        </div>
+        <!-- Seiteninhalt -->
+      </main>
+    </div>
+
+  ADMIN-GRID (2 Spalten):
+    .admin-grid   → CSS Grid, 2 Spalten (Create-Form | User-Tabelle)
+
+  TEACHER-LAYOUT (Kalender + Tagespanel + Schülerliste):
+    .teacher-layout → Mehrspalten-Grid
+
+  CATALOG-GRID (Lehrerkarten):
+    .catalog-grid  → Responsive Card-Grid
+
+  VIEW-TABS (für teacher/student):
+    .view-nav         → Tab-Leiste
+    .view-nav-btn     → einzelner Tab (.active für aktiven)
+    .view-hidden      → Klasse zum Verstecken von Views (KEIN style.display)
+
+  STATS-REIHE (Admin):
+    .stats-row / .stat-card / .stat-label / .stat-value
+
+────────────────────────────────────────────────────────────────────────────────
+5. DIALOGE, OVERLAYS & ALERTS
+────────────────────────────────────────────────────────────────────────────────
+
+  REGELN (CRITICAL):
+    ✅ Dialoge und Overlays werden IMMER customisiert — kein window.alert(),
+       window.confirm(), window.prompt() erlaubt.
+    ✅ Alle Dialoge entsprechen dem Styling der Hauptseite (tokens, components)
+    ✅ Dialoge sind eigene Objekte (z.B. AuthModal, Modal, WalletPanel)
+    ✅ Standalone-Dialoge als eigenes HTML in /dialogs/ wenn möglich
+    ✅ Error-Debugging: Overlay-Fehler werden in sichtbarem Dialog angezeigt,
+       NICHT nur in der Browser-Konsole. Overlays müssen try/catch haben.
+
+  MODAL-TEMPLATE (Standard via Modal.show):
+    {
+      title:     String,           // Titelzeile
+      bodyHTML:  String,           // Inhalt (Formular, Text)
+      footerHTML: String           // Buttons (Abbrechen + Bestätigen)
+    }
+
+  GOOGLE-PICKER-OVERLAY:
+    CSS-Klassen: .google-picker-overlay / .google-picker / .google-picker-header /
+                 .google-picker-list / .google-picker-item / .google-picker-avatar /
+                 .google-picker-info / .google-picker-role / .google-picker-footer
+    Schließt via: X-Button, Klick außerhalb, ESC
+
+  AUTH-MODAL (landing.html):
+    CSS: .modal-overlay / .auth-modal / .auth-tabs / .auth-tab-btn /
+         .auth-panel / .auth-panel.is-active / .auth-divider / .auth-google-btn
+    Zwei Panels: signin / signup (gesteuert via _setTab())
+
+  FEHLER IN OVERLAYS (Best Practice):
+    try {
+      // Overlay-Logik
+    } catch(e) {
+      // Sichtbarer Fehler — nicht nur console.error
+      Toast.error('Fehler: ' + e.message);
+      // oder Fehler-Element im Dialog selbst anzeigen
+    }
+
+────────────────────────────────────────────────────────────────────────────────
+6. i18n / INTERNATIONALISIERUNG
+────────────────────────────────────────────────────────────────────────────────
+
+  GRUNDREGELN:
+    ✅ Jeder für den User sichtbare Text ist i18n-kompatibel
+    ✅ Standard-Sprache: DEUTSCH
+    ✅ Namespace = Name der HTML-Seite (z.B. student.html → student.json)
+    ✅ Dialoge/Alerts: Namespace der aufrufenden Seite
+    ✅ Hierarchie so flach wie möglich — nur eine Ebene wenn möglich
+
+  ORDNER:
+    locales/
+      landing.json
+      student.json        (neu — erstellt in dieser Session)
+      skiing-catalog.json
+      wallet.json
+      [weitere nach Seitennamen]
+
+  STRUKTUR (flach, eine Ebene):
+    {
+      "pageTitle":          "Lehrerkatalog",
+      "filterBtn":          "Filter",
+      "filterGroupDiscipline": "Disziplin",
+      "disciplineSki":      "Ski",
+      "expandBtn":          "Details anzeigen",
+      "collapseBtn":        "Schließen"
+    }
+
+  USAGE in JS (Beispiel landing.js):
+    var LandingI18n = {
+      authModalTitle: 'Willkommen',
+      signInSubmit:   'Anmelden',
+      ...
+    };
+    // Text-Zugriff: LandingI18n.authModalTitle
+
+────────────────────────────────────────────────────────────────────────────────
+7. TEMPLATES & WIEDERVERWENDBARKEIT
+────────────────────────────────────────────────────────────────────────────────
+
+  HTML <template>-Element:
+    Für wiederholte Modal-Inhalte (z.B. Edit-Modal in admin.html):
+    <template id="tpl-edit-modal">
+      <div class="form-stack">...</div>
+    </template>
+    Zugriff: document.importNode(tpl.content, true)
+
+  NAVBAR:
+    Navbar.init('pagename', options)
+    → injiziert Navbar automatisch in .app-shell
+    → options.loginBtn: { label, onClick }
+
+  WALLET-PANEL:
+    WalletPanel.mount('container-id', uid)
+    → standalone, wiederverwendbar in teacher.html und student.html
+
+  TEACHER-CARD (student.js):
+    buildTeacherCard(teacher) → DOM-Element
+    → identisches Layout für "Meine Lehrer" und Katalog-Vorschau
+
+  STUDENT-CARD (teacher.js):
+    buildStudentCard(student) → DOM-Element
+    → identisches Layout für "Meine Schüler" Tab
+
+  ACCORDION-SECTIONS (profile.js):
+    _buildAccordion(id, title, desc, contentHTML) → HTML-String
+
+────────────────────────────────────────────────────────────────────────────────
+8. VERBOTENE PRAKTIKEN
+────────────────────────────────────────────────────────────────────────────────
+
+  ❌ element.style.display = 'none'   → IMMER classList.add('is-hidden')
+  ❌ element.style.anything           → IMMER CSS-Klassen verwenden
+  ❌ window.alert() / window.confirm() → IMMER Modal.show() verwenden
+  ❌ Inline-CSS im HTML (<div style="...">) → IMMER externe CSS-Klassen
+  ❌ Inline-CSS in JS → IMMER classList
+  ❌ CSS, JS und HTML in einer Datei (außer <template>) → IMMER getrennte Dateien
+  ❌ Store.*, ProfileStore.*, localStorage direkt im Consumer-Code
+     → IMMER über AppService.*
+  ❌ Passwörter im Produktiv-Einsatz im Klartext → nur für Mock/Demo akzeptabel
+
+────────────────────────────────────────────────────────────────────────────────
+9. CODING-REGELN JAVASCRIPT
+────────────────────────────────────────────────────────────────────────────────
+
+  SYNTAX (ES5-kompatibel, keine modernen Features):
+    ✅ var statt let / const
+    ✅ function() {} statt Arrow-Functions () =>
+    ✅ String-Konkatenation statt Template Literals `${x}`
+    ✅ Klassische for-Schleife statt forEach wo nötig
+    ❌ Optional Chaining (?.)
+    ❌ Nullish Coalescing (??)
+    ❌ Destructuring
+    ❌ Spread-Operator
+    ❌ import / export
+
+  CALLBACKS (Node.js-Konvention):
+    function myFunction(param, callback) {
+      try {
+        var result = ...;
+        callback(null, result);
+      } catch(e) {
+        callback(e, null);
+      }
+    }
+
+  IIFE-PATTERN für Module:
+    var MyModule = (function() {
+      var _private = ...;
+      function _privateMethod() { ... }
+      function publicMethod() { ... }
+      return { publicMethod: publicMethod };
+    })();
+
+  HTML-ESCAPING (IMMER bei User-Daten in innerHTML):
+    function _esc(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+  VOR NEUER IMPLEMENTIERUNG:
+    1. Komplette Codebase prüfen ob Funktion/Klasse schon existiert
+    2. Existierende Klassen/Funktionen wiederverwenden
+    3. Best Practice recherchieren
+    4. Dann implementieren
+
+================================================================================

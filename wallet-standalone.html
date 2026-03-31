@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Wallet — Booking System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="./js/app-config.js"></script>
+  <script>
+    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/wallet.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+<div class="app-shell">
+
+  <main class="page" id="wallet-page">
+
+    <div class="page-header">
+      <h2 data-i18n="pageTitle">Wallet</h2>
+      <p data-i18n="pageSubtitle">Guthaben und Transaktionen</p>
+    </div>
+
+    <!-- Mockup-Hinweis -->
+    <div class="wallet-mockup-notice" id="wallet-mockup-notice">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <circle cx="8" cy="8" r="7" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M8 5v4M8 10.5v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span data-i18n="mockupNote">Dies ist ein Mockup. Keine echten Zahlungen werden verarbeitet.</span>
+      <span>&nbsp;—&nbsp;</span>
+      <span data-i18n="stripePlaceholder">In Produktion: Stripe-Integration</span>
+    </div>
+
+    <!-- Kontostand -->
+    <div class="wallet-balance-card" id="wallet-balance-card" aria-live="polite">
+      <div>
+        <div class="wallet-balance-label" data-i18n="balance">Aktuelles Guthaben</div>
+        <div>
+          <span class="wallet-balance-amount" id="wallet-balance-amount">—</span>
+          <span class="wallet-balance-currency" data-i18n="currency">EUR</span>
+        </div>
+      </div>
+      <div class="wallet-balance-icon" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+          <rect x="2" y="6" width="20" height="14" rx="2" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/>
+          <circle cx="17" cy="15" r="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Ein-/Auszahlung -->
+    <div class="wallet-grid">
+
+      <!-- Einzahlen -->
+      <div class="wallet-action-card">
+        <div class="wallet-action-title">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 3v12M4 8l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="sectionDeposit">Einzahlen</span>
+        </div>
+        <div class="wallet-form-stack">
+          <div class="form-group">
+            <label class="form-label" for="deposit-amount" data-i18n="labelAmount">Betrag (€)</label>
+            <div class="wallet-amount-wrap">
+              <span class="wallet-amount-prefix" aria-hidden="true">€</span>
+              <input
+                class="form-input wallet-amount-input"
+                type="number"
+                id="deposit-amount"
+                min="0.01"
+                step="0.01"
+                data-i18n-placeholder="placeholderAmount"
+                placeholder="z.B. 50"
+                autocomplete="off"
+              />
+            </div>
+            <span class="wallet-field-error" id="deposit-amount-error" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="deposit-desc" data-i18n="labelDescription">Verwendungszweck (optional)</label>
+            <input
+              class="form-input"
+              type="text"
+              id="deposit-desc"
+              data-i18n-placeholder="placeholderDesc"
+              placeholder="z.B. Guthaben aufladen"
+              autocomplete="off"
+            />
+          </div>
+          <button class="btn btn-primary" id="btn-deposit" type="button" data-i18n="btnDeposit">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2v12M3 7l5-5 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Einzahlen
+          </button>
+        </div>
+      </div>
+
+      <!-- Auszahlen -->
+      <div class="wallet-action-card">
+        <div class="wallet-action-title">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <path d="M9 3v12M4 10l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="sectionWithdraw">Auszahlen</span>
+        </div>
+        <div class="wallet-form-stack">
+          <div class="form-group">
+            <label class="form-label" for="withdraw-amount" data-i18n="labelAmount">Betrag (€)</label>
+            <div class="wallet-amount-wrap">
+              <span class="wallet-amount-prefix" aria-hidden="true">€</span>
+              <input
+                class="form-input wallet-amount-input"
+                type="number"
+                id="withdraw-amount"
+                min="0.01"
+                step="0.01"
+                data-i18n-placeholder="placeholderAmount"
+                placeholder="z.B. 50"
+                autocomplete="off"
+              />
+            </div>
+            <span class="wallet-field-error" id="withdraw-amount-error" role="alert"></span>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="withdraw-desc" data-i18n="labelDescription">Verwendungszweck (optional)</label>
+            <input
+              class="form-input"
+              type="text"
+              id="withdraw-desc"
+              data-i18n-placeholder="placeholderDesc"
+              placeholder="z.B. Guthaben auszahlen"
+              autocomplete="off"
+            />
+          </div>
+          <button class="btn btn-secondary" id="btn-withdraw" type="button" data-i18n="btnWithdraw">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M8 2v12M3 9l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Auszahlen
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Transaktionshistorie -->
+    <div class="wallet-history-card">
+      <div class="wallet-history-header">
+        <div class="wallet-history-title">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M8 5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span data-i18n="sectionHistory">Transaktionshistorie</span>
+        </div>
+      </div>
+      <ul class="wallet-tx-list" id="wallet-tx-list" aria-live="polite">
+        <li class="wallet-history-empty" id="wallet-tx-empty" data-i18n="historyEmpty">
+          Noch keine Transaktionen vorhanden.
+        </li>
+      </ul>
+    </div>
+
+  </main>
+
+</div>
+
+<!-- Confirm-Dialog (Auszahlung) -->
+<div class="wallet-confirm-overlay" id="wallet-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="wallet-confirm-title" aria-hidden="true">
+  <div class="wallet-confirm-dialog">
+    <div class="wallet-confirm-title" id="wallet-confirm-title" data-i18n="sectionWithdraw">Auszahlen</div>
+    <div class="wallet-confirm-text" id="wallet-confirm-text"></div>
+    <div class="wallet-confirm-actions">
+      <button class="btn btn-secondary" id="wallet-confirm-cancel" type="button" data-i18n="confirmCancelBtn">Abbrechen</button>
+      <button class="btn btn-primary" id="wallet-confirm-ok" type="button" data-i18n="confirmWithdrawBtn">Ja, auszahlen</button>
+    </div>
+  </div>
+</div>
+<!-- Service Layer -->
+<!-- Wallet -->
+
+<div class="chat-fab-anchor">
+  <button class="chat-fab" id="chat-fab" aria-label="Chat">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+<script>
+window.addEventListener('load', function() {
+  if (typeof ChatPanel !== 'undefined') ChatPanel.init();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOC — Financial Planner: Grouping &amp; Date Filter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035; --color-400: #4d7aa0;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n500: #6b7685; --n700: #2d3540; --n900: #0d1117;
+      --mono: 'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 720px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    .sec { margin-bottom: 40px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 15px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: #14532d; }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: #1a3a6b; }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: #7b3500; }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 14px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.7; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .cn { color: #fde68a; } .ce { color: #fca5a5; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-new { background: #f0fff4; }
+    tbody tr.r-mod { background: #fffbeb; }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .badge { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 10px;
+             font-weight: 700; white-space: nowrap; }
+    .b-new { background: var(--ok-bg);   color: #14532d; border: 1px solid var(--ok-bd); }
+    .b-mod { background: var(--warn-bg); color: #7b3500; border: 1px solid var(--warn-bd); }
+    .b-js  { background: #fef9ec; color: #7b3500; border: 1px solid #fde68a; }
+    .b-css { background: var(--info-bg); color: #1e3a8a; border: 1px solid var(--info-bd); }
+    .b-html{ background: #f0fff4; color: #14532d; border: 1px solid #bbf7d0; }
+    .flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+    .flow-step { display: flex; gap: 14px; padding: 11px 13px; background: var(--n0);
+                 border: 1px solid var(--n200); border-bottom: none; }
+    .flow-step:first-child { border-radius: 8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .flow-num { width: 22px; height: 22px; border-radius: 50%; background: var(--navy);
+                color: #fff; font-size: 10px; font-weight: 700;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0; margin-top: 2px; }
+    .flow-title { font-weight: 700; font-size: 13px; color: var(--n900); margin-bottom: 2px; }
+    .flow-desc  { font-size: 12px; color: var(--n500); line-height: 1.5; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 14px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; }
+      .ph, .page { padding: 16px; } }
+    .col-card { background: var(--n0); border: 1px solid var(--n200); border-radius: 8px; padding: 16px; }
+    .col-card-title { font-size: 12px; font-weight: 700; color: var(--n900);
+                      text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+    /* Mock UI */
+    .mock-filter { display: flex; flex-direction: column; gap: 8px; padding: 12px;
+                   background: var(--n0); border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 14px; }
+    .mock-chips  { display: flex; gap: 5px; flex-wrap: wrap; }
+    .mock-chip   { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px;
+                   border: 1px solid var(--n200); background: var(--n50); color: var(--n500); }
+    .mock-chip.act { background: #060f1c; border-color: #060f1c; color: #fff; }
+    .mock-date-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .mock-date-lbl { font-size: 10px; font-weight: 700; color: var(--n500); white-space: nowrap; }
+    .mock-date-in  { font-size: 10px; padding: 3px 6px; border: 1px solid var(--n200);
+                     border-radius: 4px; color: var(--n700); background: var(--n0);
+                     min-width: 90px; }
+    .mock-rst { font-size: 10px; color: var(--n500); background: none; border: none;
+                cursor: pointer; padding: 3px 6px; }
+    /* Mock booking rows */
+    .mock-list { border: 1px solid var(--n200); border-radius: 8px; overflow: hidden; }
+    .mock-day  { background: var(--n50); padding: 5px 12px;
+                 display: flex; justify-content: space-between;
+                 font-size: 10px; font-weight: 700; color: var(--n500);
+                 text-transform: uppercase; letter-spacing: .5px; }
+    .mock-row  { display: flex; align-items: center; gap: 10px; padding: 8px 12px;
+                 border-top: 1px solid var(--n100); }
+    .mock-icon { width: 28px; height: 28px; border-radius: 50%;
+                 display: flex; align-items: center; justify-content: center;
+                 font-size: 12px; flex-shrink: 0; }
+    .mock-icon.bk   { background: #eff6ff; color: #2563eb; }
+    .mock-icon.conf { background: #f0fdf4; color: #16a34a; }
+    .mock-body { flex: 1; }
+    .mock-r1   { display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; }
+    .mock-r2   { display: flex; justify-content: space-between; font-size: 10px; color: var(--n500); margin-top: 1px; }
+    .mock-ok   { color: #16a34a; font-weight: 700; font-size: 10px; }
+    .mock-pend { color: #d97706; font-weight: 700; font-size: 10px; }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+<div class="ph">
+  <div class="ph-eye">Feature Documentation · BookingSystem · financial.js + financial.html + financial.css</div>
+  <div class="ph-title">Financial Planner — Slot Grouping &amp; Date Filter</div>
+  <div class="ph-sub">
+    Zwei Verbesserungen: Konsekutive Buchungen werden im Buchungsbereich zu Zeitblöcken gruppiert
+    (wiederverwendet <code>mergeBookingBlocks</code> aus ui.js). Beide Abschnitte erhalten
+    Von/Bis-Datumsfilter mit automatischer Reset-Schaltfläche.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">3 Dateien geändert</span>
+    <span class="ph-badge">financial.js · financial.html · financial.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-11</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- WHAT CHANGED -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Was geändert wurde</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Feature</th><th>Vorher</th><th>Nachher</th></tr></thead>
+        <tbody>
+          <tr class="r-mod">
+            <td>1</td>
+            <td><strong>Buchungs-Grouping</strong></td>
+            <td>Jeder Slot einzeln angezeigt — 3 × S1, 45 € → 3 separate Zeilen</td>
+            <td>Konsekutive Slots desselben Schülers zu einem Zeitblock zusammengefasst — S1, 14:00–15:30 · 3 Slots → 1 Zeile</td>
+          </tr>
+          <tr class="r-new">
+            <td>2</td>
+            <td><strong>Datum-Filter Buchungen</strong></td>
+            <td>Kein Datumsfilter</td>
+            <td>Von/Bis-Datumsfelder unterhalb der Chip-Filterleiste. Reset-Button erscheint sobald ein Datum gesetzt ist.</td>
+          </tr>
+          <tr class="r-new">
+            <td>3</td>
+            <td><strong>Datum-Filter Transaktionen</strong></td>
+            <td>Kein Datumsfilter</td>
+            <td>Identisch wie Buchungen — Von/Bis unterhalb der TX-Chips.</td>
+          </tr>
+          <tr class="r-mod">
+            <td>4</td>
+            <td><strong>Status-Badges ohne Inline-Styles</strong></td>
+            <td><code>style="color:#16a34a;font-weight:700"</code> inline</td>
+            <td>CSS-Klassen <code>.fin-status-confirmed</code> / <code>.fin-status-pending</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISUAL PREVIEW -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">UI — Vorschau</div>
+      <span class="sec-sub">Buchungsbereich mit Grouping + Datumsfilter</span>
+    </div>
+
+    <div class="mock-filter">
+      <div class="mock-chips">
+        <span class="mock-chip act">Alle</span>
+        <span class="mock-chip">Unbestätigt</span>
+        <span class="mock-chip">Bestätigt ✓</span>
+        <span class="mock-chip">Zukünftig</span>
+        <span class="mock-chip">Vergangen</span>
+        <span class="mock-chip">⏸ Deposit</span>
+        <span class="mock-chip">→ Fällig</span>
+        <span class="mock-chip">↩ Refund</span>
+      </div>
+      <div class="mock-date-row">
+        <span class="mock-date-lbl">Von</span>
+        <input type="date" class="mock-date-in" value="2026-03-01" readonly />
+        <span class="mock-date-lbl">Bis</span>
+        <input type="date" class="mock-date-in" value="2026-03-31" readonly />
+        <button class="mock-rst">✕</button>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-card-title">❌ Vorher — Einzelne Slots</div>
+        <div class="mock-list">
+          <div class="mock-day"><span>DO., 19. MÄR. 2026</span><span>135,00 €</span></div>
+          <div class="mock-row">
+            <div class="mock-icon bk">✓</div>
+            <div class="mock-body">
+              <div class="mock-r1"><span>S1</span><span>45,00 €</span></div>
+              <div class="mock-r2"><span>14:00–14:30</span><span class="mock-pend">⏳ Unbestätigt</span></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon bk">✓</div>
+            <div class="mock-body">
+              <div class="mock-r1"><span>S1</span><span>45,00 €</span></div>
+              <div class="mock-r2"><span>14:30–15:00</span><span class="mock-pend">⏳ Unbestätigt</span></div>
+            </div>
+          </div>
+          <div class="mock-row">
+            <div class="mock-icon bk">✓</div>
+            <div class="mock-body">
+              <div class="mock-r1"><span>S1</span><span>45,00 €</span></div>
+              <div class="mock-r2"><span>14:30–15:00</span><span class="mock-pend">⏳ Unbestätigt</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-card-title">✅ Nachher — Gruppierte Blöcke</div>
+        <div class="mock-list">
+          <div class="mock-day"><span>DO., 19. MÄR. 2026</span><span>135,00 €</span></div>
+          <div class="mock-row">
+            <div class="mock-icon bk">✓</div>
+            <div class="mock-body">
+              <div class="mock-r1"><span>S1</span><span>135,00 €</span></div>
+              <div class="mock-r2"><span>14:00–15:30 · 3 Slots</span><span class="mock-pend">⏳ Unbestätigt</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUPING LOGIC -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Grouping-Logik — mergeBookingBlocks (Wiederverwendung)</div>
+      <span class="sec-sub">ui.js → financial.js</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Kein redundanter Code.</strong> <code>mergeBookingBlocks()</code> ist eine globale Funktion
+      in <code>ui.js</code> — bereits in <code>teacher.js</code> und <code>student.js</code> verwendet.
+      <code>financial.js</code> ruft diese Funktion auf; kein eigener Merge-Algorithmus notwendig.
+    </div>
+
+    <div class="code-label">financial.js — renderBookings() Grouping-Aufruf</div>
+    <div class="code-block"><code><span class="cm">/* Reuse mergeBookingBlocks from ui.js (global) */</span>
+<span class="ck">var</span> blocks;
+<span class="ck">if</span> (typeof mergeBookingBlocks === <span class="cs">'function'</span>) {
+  blocks = mergeBookingBlocks(date, daySlots, _today, {
+    <span class="cn">groupField</span>:   <span class="cs">'studentId'</span>,      <span class="cm">// group consecutive slots per student</span>
+    <span class="cn">resolveParty</span>: function(slot) {
+      return { studentId: slot.studentId };
+    }
+  });
+} else {
+  <span class="cm">/* Fallback: each slot is its own block */</span>
+  blocks = daySlots.map(function(s) {
+    return {
+      start: s.time,
+      end:   AppService.slotEndTime(s.time),
+      bookedSlots: [s],
+      studentId: s.studentId,
+      isFullyConfirmed: s.status === <span class="cs">'confirmed'</span>
+    };
+  });
+}</code></div>
+
+    <div class="callout c-ok">
+      <strong>Fallback-Sicherheit:</strong> Der <code>typeof mergeBookingBlocks === 'function'</code>-Check
+      stellt sicher, dass die Seite auch dann funktioniert wenn <code>ui.js</code> nicht geladen ist
+      (z.B. in Tests oder zukünftigen Umbau-Szenarien).
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>mergeBookingBlocks Parameter</th><th>Wert in financial.js</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>dateStr</code></td><td>Aktuelles Datum aus <code>dateOrder</code></td><td>Wird in den Block-Output geschrieben</td></tr>
+          <tr><td><code>bookedSlots</code></td><td>Alle Slots des Tages nach Chip-Filter + Datumsfilter</td><td>Input für Merge-Algorithmus</td></tr>
+          <tr><td><code>today</code></td><td><code>_today</code> (ISO-String)</td><td>Für <code>isFullyConfirmed</code> Berechnung</td></tr>
+          <tr><td><code>opts.groupField</code></td><td><code>'studentId'</code></td><td>Konsekutive Slots werden nur gruppiert wenn selbe Student-ID</td></tr>
+          <tr><td><code>opts.resolveParty</code></td><td><code>slot → { studentId }</code></td><td>Kopiert <code>studentId</code> in Block-Objekt</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:13px;color:#2d3540;margin-bottom:14px">
+      <code>mergeBookingBlocks</code> gibt Blöcke zurück mit: <code>start</code>, <code>end</code>,
+      <code>bookedSlots[]</code>, <code>isFullyConfirmed</code>, <code>hasPending</code> und alle
+      Felder aus <code>resolveParty()</code>. Die Blockrenderer-Logik liest daraus Zeitspanne,
+      Slot-Anzahl, Gesamtpreis und Bestätigungsstatus.
+    </p>
+  </div>
+
+  <!-- DATE FILTER ARCHITECTURE -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Datumsfilter-Architektur</div>
+      <span class="sec-sub">financial.js — isolierter Zustand, kein globales bookingsFilter</span>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Bewusste Design-Entscheidung:</strong> <code>_buildSortDateRangeRow()</code> aus
+      <code>ui.js</code> wurde NICHT verwendet, da diese Funktion das <strong>globale</strong>
+      <code>bookingsFilter</code>-Objekt liest/schreibt — das ist der Zustand von
+      <code>teacher.js</code> / <code>student.js</code>. <code>financial.js</code> hat seinen eigenen
+      isolierten Zustand und darf diesen nicht überschreiben.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Neue State-Variable</th><th>Typ</th><th>Initialisierung</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>_bkDateFrom</code></td><td>string</td><td><code>''</code></td><td>Von-Datum für Buchungsfilter (YYYY-MM-DD)</td></tr>
+          <tr class="r-new"><td><code>_bkDateTo</code></td><td>string</td><td><code>''</code></td><td>Bis-Datum für Buchungsfilter (YYYY-MM-DD)</td></tr>
+          <tr class="r-new"><td><code>_txDateFrom</code></td><td>string</td><td><code>''</code></td><td>Von-Datum für TX-Filter (YYYY-MM-DD)</td></tr>
+          <tr class="r-new"><td><code>_txDateTo</code></td><td>string</td><td><code>''</code></td><td>Bis-Datum für TX-Filter (YYYY-MM-DD)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">financial.js — _bindFilters() Datumsfilter-Wiring (Buchungen)</div>
+    <div class="code-block"><code><span class="ck">var</span> bkFromEl = document.getElementById(<span class="cs">'fin-bk-date-from'</span>);
+<span class="ck">var</span> bkToEl   = document.getElementById(<span class="cs">'fin-bk-date-to'</span>);
+<span class="ck">var</span> bkRstEl  = document.getElementById(<span class="cs">'fin-bk-date-reset'</span>);
+
+function _updateBkDateReset() {
+  <span class="cm">/* Reset-Button nur sichtbar wenn mindestens ein Datum gesetzt */</span>
+  if (bkRstEl) bkRstEl.classList.toggle(<span class="cs">'is-hidden'</span>, !_bkDateFrom && !_bkDateTo);
+}
+
+if (bkFromEl) {
+  bkFromEl.addEventListener(<span class="cs">'change'</span>, function() {
+    _bkDateFrom = bkFromEl.value || <span class="cs">''</span>;
+    _updateBkDateReset();
+    renderBookings();
+  });
+}
+<span class="cm">// bkToEl und bkRstEl analog</span></code></div>
+
+    <div class="code-label">financial.js — renderBookings() Datumsfilter-Anwendung</div>
+    <div class="code-block"><code><span class="cm">/* 2 — Date range filter (nach Chip-Filter) */</span>
+if (_bkDateFrom) {
+  filtered = filtered.filter(function(s) {
+    return (s.date || <span class="cs">''</span>) >= _bkDateFrom;
+  });
+}
+if (_bkDateTo) {
+  filtered = filtered.filter(function(s) {
+    return (s.date || <span class="cs">''</span>) <= _bkDateTo;
+  });
+}</code></div>
+  </div>
+
+  <!-- FILTER FLOW -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Filter-Pipeline — Buchungsbereich</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Chip-Filter (<code>_bkFilter</code>)</div>
+          <div class="flow-desc">Alle, Unbestätigt, Bestätigt, Zukünftig, Vergangen, Deposit, Fällig, Refund.
+          Setzt auch den <code>_activeKpi</code>-Zustand zurück bei manuellem Klick.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Datumsfilter (<code>_bkDateFrom</code> / <code>_bkDateTo</code>)</div>
+          <div class="flow-desc">Vergleich <code>slot.date >= _bkDateFrom</code> (ISO-String-Vergleich, lexikographisch korrekt für YYYY-MM-DD).
+          Nur aktiv wenn nicht leer. Kombination mit Chip-Filter möglich.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">Gruppierung nach Datum</div>
+          <div class="flow-desc"><code>byDate{}</code>-Map — Slots nach <code>slot.date</code> gebündelt.
+          <code>dateOrder[]</code> nach neuesten zuerst sortiert.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">mergeBookingBlocks — konsekutive Slots zusammenführen</div>
+          <div class="flow-desc">Pro Tag werden consecutive Slots desselben Schülers zu einem Block zusammengefasst.
+          Ausgabe: <code>blocks[]</code> mit <code>start</code>, <code>end</code>, <code>bookedSlots[]</code>, <code>isFullyConfirmed</code>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <div class="flow-title">Rendering — ein <code>&lt;li&gt;</code> pro Block</div>
+          <div class="flow-desc">Zeitspanne (block.start–block.end), Slot-Anzahl bei &gt;1, Gesamtpreis des Blocks, Bestätigungs-Badge.
+          KPI-Drill-down Extra-Info aus <code>_escrowMap</code>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Typ</th><th>Status</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-mod">
+            <td><code>js/financial.js</code></td>
+            <td><span class="badge b-js">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>Neue State-Variablen:</strong> <code>_bkDateFrom</code>, <code>_bkDateTo</code>, <code>_txDateFrom</code>, <code>_txDateTo</code>.<br>
+              <strong>_bindFilters():</strong> Datumsfilter-Wiring für beide Abschnitte inkl. Reset-Button-Visibility-Toggle.<br>
+              <strong>renderBookings():</strong> Datumsfilter-Stufe nach Chip-Filter. Grouping via <code>mergeBookingBlocks()</code> mit Fallback. Block-Renderer ersetzt Einzel-Slot-Renderer. Inline-Styles durch CSS-Klassen ersetzt.<br>
+              <strong>renderTxHistory():</strong> Datumsfilter-Stufe nach Typ-Filter (<code>_txDateFrom</code>/<code>_txDateTo</code>).
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>financial.html</code></td>
+            <td><span class="badge b-html">HTML</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>Buchungsbereich:</strong> <code>.fin-date-row</code> mit <code>#fin-bk-date-from</code>, <code>#fin-bk-date-to</code>, <code>#fin-bk-date-reset</code> unterhalb der Chip-Leiste eingefügt.<br>
+              <strong>TX-Bereich:</strong> identische Struktur mit <code>#fin-tx-date-from</code>, <code>#fin-tx-date-to</code>, <code>#fin-tx-date-reset</code>.
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>css/financial.css</code></td>
+            <td><span class="badge b-css">CSS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>Neue Klassen:</strong><br>
+              <code>.fin-date-row</code> — Flex-Zeile für Von/Bis-Inputs.<br>
+              <code>.fin-date-label</code> — Beschriftung (semibold, caption).<br>
+              <code>.fin-date-input</code> — Date-Input-Styling (analog <code>.date-range-input</code> in teacher.css).<br>
+              <code>.fin-date-input:focus</code> — Focus-Ring.<br>
+              <code>.fin-date-reset</code> — Ghost-Button zum Zurücksetzen.<br>
+              <code>.fin-status-confirmed</code> / <code>.fin-status-pending</code> — ersetzt Inline-Styles für Status-Badges.
+            </td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><span class="badge b-js">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td><code>APP_VERSION</code> → <code>2026-03-19-11</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- REUSE AUDIT -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Wiederverwendungsaudit — kein redundanter Code</div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Definiert in</th><th>Verwendet von</th><th>Was sie tut</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>mergeBookingBlocks()</code></td>
+            <td><code>ui.js</code> (global)</td>
+            <td>teacher.js, student.js, <strong>financial.js</strong></td>
+            <td>Konsekutive Slots nach groupField zusammenführen</td>
+          </tr>
+          <tr>
+            <td><code>_applyDateRangeFilter()</code></td>
+            <td><code>ui.js</code> (global)</td>
+            <td>teacher.js, student.js</td>
+            <td>Datumsfilter auf Slot-Array (nutzt globales bookingsFilter) — NICHT für financial.js geeignet</td>
+          </tr>
+          <tr>
+            <td><code>_buildSortDateRangeRow()</code></td>
+            <td><code>ui.js</code> (global)</td>
+            <td>teacher.js, student.js</td>
+            <td>Baut Von/Bis-UI-Zeile (nutzt globales bookingsFilter) — NICHT für financial.js geeignet</td>
+          </tr>
+          <tr>
+            <td>Date-Filter-Logik in financial.js</td>
+            <td><code>financial.js</code> (isoliert)</td>
+            <td>financial.js only</td>
+            <td>Eigener isolierter Zustand (_bkDateFrom/_bkDateTo/_txDateFrom/_txDateTo)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-ok">
+      Die Datumsfilter-<strong>UI-Struktur</strong> (<code>.fin-date-row</code>, <code>.fin-date-input</code>) 
+      ist analog zu <code>.date-range-row</code> / <code>.date-range-input</code> in <code>teacher.css</code> —
+      gleiche visuellen Klassen, eigene CSS-Definitionen in <code>financial.css</code> ohne Überschneidung.
+    </div>
+  </div>
+
+  <!-- HTML STRUCTURE -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">HTML-Struktur — neue Datumszeile</div>
+      <span class="sec-sub">Identisch für Buchungen und Transaktionen</span>
+    </div>
+    <div class="code-label">financial.html — Datumsfilter-Zeile</div>
+    <div class="code-block"><code><span class="cm">&lt;!-- Chip-Filterleiste (unverändert) --&gt;</span>
+&lt;div class=<span class="cs">"fin-filter-bar"</span> id=<span class="cs">"fin-bk-filter"</span>&gt;
+  &lt;button class=<span class="cs">"fin-filter-chip active"</span> data-fin-bk=<span class="cs">"all"</span>&gt;Alle&lt;/button&gt;
+  <span class="cm">&lt;!-- ... weitere Chips ... --&gt;</span>
+&lt;/div&gt;
+
+<span class="cm">&lt;!-- NEU: Datumsfilter-Zeile --&gt;</span>
+&lt;div class=<span class="cs">"fin-date-row"</span>&gt;
+  &lt;label class=<span class="cs">"fin-date-label"</span>&gt;Von&lt;/label&gt;
+  &lt;input type=<span class="cs">"date"</span> class=<span class="cs">"fin-date-input"</span> id=<span class="cs">"fin-bk-date-from"</span> /&gt;
+  &lt;label class=<span class="cs">"fin-date-label"</span>&gt;Bis&lt;/label&gt;
+  &lt;input type=<span class="cs">"date"</span> class=<span class="cs">"fin-date-input"</span> id=<span class="cs">"fin-bk-date-to"</span> /&gt;
+  &lt;button class=<span class="cs">"btn btn-ghost btn-sm fin-date-reset is-hidden"</span>
+          id=<span class="cs">"fin-bk-date-reset"</span>
+          aria-label=<span class="cs">"Datumsfilter zurücksetzen"</span>&gt;✕&lt;/button&gt;
+&lt;/div&gt;</code></div>
+
+    <p style="font-size:13px;color:#2d3540;margin-bottom:14px">
+      Der Reset-Button startet mit <code>is-hidden</code> und wird nur sichtbar wenn
+      <code>_bkDateFrom</code> oder <code>_bkDateTo</code> belegt ist — implementiert in
+      <code>_updateBkDateReset()</code> via <code>classList.toggle('is-hidden', !from && !to)</code>.
+    </p>
+  </div>
+
+  <footer>
+    <span>FIN_PLANNER_GROUPING_DATEFILTER_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-11 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

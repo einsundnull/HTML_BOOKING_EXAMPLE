@@ -1,0 +1,26 @@
+_serializeState() ist jetzt vollständig generisch — 7 Kategorien werden per DOM-Query erfasst:
+#
+Was
+Wie
+1
+Alle Text/Number/Email/Tel/URL/Textarea
+input.form-input, textarea.form-input
+2
+Alle Dropdowns
+select.form-select
+3
+Alle Toggle-Switches
+.profile-toggle-input (checked-State)
+4
+Aktive Tag-Chips
+.profile-tag-chip.is-active — pro Gruppe sortiert
+5
+Terrain-Buttons
+.profile-terrain-btn.is-active
+6
+Custom-Chips (Sonstige)
+.profile-custom-chip[data-val]
+7
+Zertifikate
+Jedes [data-cert-field] pro Row (org + level + year)
+Neue Felder die in Zukunft hinzukommen werden automatisch erfasst, solange sie .form-input oder .form-select tragen.

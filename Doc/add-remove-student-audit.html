@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Add / Remove Student — Implementation Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n500:#6b7685;--n900:#0d1117;--c:#3b6ea5;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n50);padding:16px;font-size:12px;}
+h1{font-size:18px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:10px;color:var(--n500);margin-bottom:20px;}
+h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin:20px 0 8px;border-bottom:2px solid #d0e0f0;padding-bottom:4px;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;}
+th{background:var(--n900);color:#fff;padding:7px 10px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+td{padding:6px 10px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--n50);}
+code{font-family:monospace;font-size:9px;background:var(--n100);padding:1px 4px;border-radius:2px;white-space:nowrap;}
+.file{font-size:9px;color:var(--c);font-family:monospace;}
+.fn{font-size:11px;font-weight:600;}
+.ok{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#f0fdf4;color:#14532d;}
+.broken{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#fee2e2;color:#991b1b;}
+.missing{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#f3f4f6;color:#6b7280;}
+.todo{display:inline-block;padding:1px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#fef9ec;color:#7a5c00;}
+.note{font-size:10px;color:var(--n500);line-height:1.6;}
+</style>
+</head>
+<body>
+<h1>Add / Remove Student — Implementation Audit</h1>
+<div class="meta">Verfügbarkeit 2 trash + plus button — how it works elsewhere</div>
+
+<h2>1 — Remove Student (Cancel) — existing implementations</h2>
+<table>
+<thead><tr><th>Location</th><th>UI Element</th><th>Function chain</th><th>Policy dialog?</th><th>Refund?</th><th>Status</th></tr></thead>
+<tbody>
+<tr>
+  <td class="fn">Teacher — All Bookings list<br><span class="file">teacher.js: populateAllBookingDetail()</span></td>
+  <td class="note">"Cancel" button on each slot row inside an expanded block</td>
+  <td class="note"><code>buildBookingBlock → opts.onDismissAll</code> or <code>opts.onCancelSlot</code> → <code>cancelSlotWithPolicy()</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Teacher — Day Panel Bookings tab<br><span class="file">teacher.js: renderDayPanel()</span></td>
+  <td class="note">"Cancel" button in booking row → opens timeout confirm or direct cancel</td>
+  <td class="note"><code>_openConfirmDialogSingle(slotId)</code> or direct <code>cancelSlotWithPolicy(slotId, 'teacher')</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Dashboard — "Stunde" dialog<br><span class="file">dashboard.js: _openBlockDialog()</span></td>
+  <td class="note">"Stornieren" button → policy dialog for whole block</td>
+  <td class="note"><code>_showCancelBlockPolicyDialog(slots, {}, cb, teacherName, ...)</code> → <code>cancelSlotWithPolicy()</code> per slot</td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Student — Day View<br><span class="file">student.js: renderStudentDayView()</span></td>
+  <td class="note">"Cancel" button → stages in <code>pendingDayChanges</code> → Save shows policy summary</td>
+  <td class="note"><code>pendingDayChanges[slotId] = {action:'cancel'}</code> → <code>commitDayChanges()</code> → <code>_showCancelBlockPolicyDialog()</code> → <code>cancelSlotWithPolicy()</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Verfügbarkeit 2 — Trash button<br><span class="file">teacher.js: _openV2CancelDialog()</span></td>
+  <td class="note">🗑 button in expanded student list</td>
+  <td class="note"><code>_openV2CancelDialog(studentId, slot)</code> → calls <code>AppService.calcCancelPolicy()</code> ← <span style="color:#dc2626;font-weight:600">WRONG NAME</span> → should be <code>calcCancellationPolicy()</code></td>
+  <td><span class="ok">YES</span> (built)</td>
+  <td><span class="ok">YES</span> (built)</td>
+  <td><span class="broken">BROKEN</span> — wrong function name + cancels whole slot not single student</td>
+</tr>
+</tbody>
+</table>
+
+<h2>2 — Add Student — existing implementations</h2>
+<table>
+<thead><tr><th>Location</th><th>UI Element</th><th>Function chain</th><th>Escrow?</th><th>Status</th></tr></thead>
+<tbody>
+<tr>
+  <td class="fn">Teacher — Day Panel free slots<br><span class="file">teacher.js: renderDayPanel() free section</span></td>
+  <td class="note">"+ Add" button on available slot row → opens <code>buildBookingForm()</code> modal</td>
+  <td class="note"><code>buildBookingForm(rawSlot, dateStr, slots)</code> → student checkboxes + VON/BIS dropdowns → <code>executeBooking()</code> → <code>commitBooking()</code> → <code>saveBookingChanges()</code> → <code>bookSlotWithEscrowSilent()</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Teacher — Booking detail (existing block)<br><span class="file">teacher.js: populateAllBookingDetail()</span></td>
+  <td class="note">"+ Add" button on free slots within an expanded block</td>
+  <td class="note"><code>opts.onAddSlot(s, pendingMap)</code> → stages in <code>pendingBookings</code> → <code>saveBookingChanges()</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Student — Day View<br><span class="file">student.js: renderStudentDayView()</span></td>
+  <td class="note">Tap on available slot → "Einmal buchen" → stages → Save</td>
+  <td class="note"><code>pendingDayChanges[slotId] = {action:'book'}</code> → <code>commitDayChanges()</code> → <code>bookSlotWithEscrowSilent()</code></td>
+  <td><span class="ok">YES</span></td>
+  <td><span class="ok">WORKING</span></td>
+</tr>
+<tr>
+  <td class="fn">Verfügbarkeit 2 — Plus button<br><span class="file">NOT YET IMPLEMENTED</span></td>
+  <td class="note">➕ button on each slot row (available + booked)</td>
+  <td class="note">Should reuse <code>buildBookingForm(slot, dateStr, allSlots)</code> — already has student picker + escrow</td>
+  <td><span class="ok">YES</span> (via buildBookingForm)</td>
+  <td><span class="missing">MISSING</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>3 — What needs to be fixed / built for Verfügbarkeit 2</h2>
+<table>
+<thead><tr><th>#</th><th>Item</th><th>Fix</th><th>File</th><th>Effort</th></tr></thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td class="fn"><span class="broken">BROKEN</span> Trash button — wrong function name</td>
+  <td class="note">Replace <code>AppService.calcCancelPolicy()</code> → <code>AppService.calcCancellationPolicy()</code> in <code>_openV2CancelDialog()</code></td>
+  <td class="file">teacher.js</td>
+  <td class="note">1 line</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td class="fn"><span class="broken">BROKEN</span> Trash cancels whole slot, not single student</td>
+  <td class="note">Multi-student slot: remove only this student from <code>slot.students[]</code>, keep slot booked for other students. Only cancel entirely if last student. Needs new <code>AppService.removeStudentFromSlot(slotId, studentId)</code>.</td>
+  <td class="file">teacher.js + app-service.js + store.js</td>
+  <td class="note">Medium</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td class="fn"><span class="missing">MISSING</span> Plus button on V2 slot rows</td>
+  <td class="note">Add ➕ circle button to each row in <code>_tdvBuildRowV2</code>. On tap: call existing <code>buildBookingForm(slot, dateStr, allSlots)</code> — reuses all student picker + escrow logic.</td>
+  <td class="file">teacher.js</td>
+  <td class="note">Easy</td>
+</tr>
+</tbody>
+</table>
+
+</body>
+</html>

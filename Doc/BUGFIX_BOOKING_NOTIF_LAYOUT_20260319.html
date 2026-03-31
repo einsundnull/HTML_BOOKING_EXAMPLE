@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGFIX — Booking Notification: Layout &amp; Details Button</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n500: #6b7685; --n700: #2d3540; --n900: #0d1117;
+      --mono: 'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:   #16a34a; --ok-bg: #f0fff4;  --ok-bd: #bbf7d0;
+      --err:  #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe;
+    }
+
+    /* ── Header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 720px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.err  { background: rgba(192,57,43,.3); border-color: rgba(192,57,43,.5); }
+    .ph-badge.ok   { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+
+    /* ── Section ── */
+    .sec { margin-bottom: 40px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+
+    /* ── Callouts ── */
+    .callout { padding: 11px 15px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: #7f1d1d; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: #14532d; }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: #7b3500; }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: #1a3a6b; }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.07); padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Code ── */
+    .code-label { display: inline-block; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6);
+                  font-family: var(--mono); font-size: 10px; font-weight: 700;
+                  letter-spacing: .07em; text-transform: uppercase; padding: 3px 10px;
+                  border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px; padding: 14px 18px;
+                  overflow-x: auto; margin-bottom: 14px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.7; }
+    .cm  { color: #64748b; }  /* comment */
+    .ck  { color: #93c5fd; }  /* key */
+    .cs  { color: #86efac; }  /* string */
+    .ce  { color: #fca5a5; }  /* error/bad */
+    .cg  { color: #6ee7b7; }  /* good */
+    .cy  { color: #fde68a; }  /* yellow/value */
+
+    /* ── Tables ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    tbody tr.r-fix  { background: #f0fff4; }
+    tbody tr.r-bug  { background: #fff0f0; }
+
+    /* ── Badge ── */
+    .badge { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 10px;
+             font-weight: 700; white-space: nowrap; }
+    .b-bug { background: var(--err-bg);  color: #7f1d1d; border: 1px solid var(--err-bd); }
+    .b-fix { background: var(--ok-bg);   color: #14532d; border: 1px solid var(--ok-bd); }
+    .b-css { background: var(--info-bg); color: #1e3a8a; border: 1px solid var(--info-bd); }
+    .b-js  { background: var(--warn-bg); color: #7b3500; border: 1px solid var(--warn-bd); }
+
+    /* ── Before / After diff ── */
+    .diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 14px; }
+    @media (max-width: 700px) { .diff-grid { grid-template-columns: 1fr; } }
+    .diff-panel { border-radius: 8px; overflow: hidden; border: 1px solid var(--n200); }
+    .diff-header { padding: 7px 14px; font-size: 11px; font-weight: 700;
+                   letter-spacing: .05em; text-transform: uppercase; }
+    .diff-header.before { background: #fff0f0; color: #7f1d1d; border-bottom: 1px solid var(--err-bd); }
+    .diff-header.after  { background: #f0fff4; color: #14532d; border-bottom: 1px solid var(--ok-bd); }
+    .diff-body { background: var(--navy); padding: 12px 14px; }
+    .diff-body code { font-family: var(--mono); font-size: 11.5px; color: #e2e8f0;
+                      white-space: pre-wrap; display: block; line-height: 1.7; }
+    .line-bad  { color: #fca5a5; text-decoration: line-through; opacity: .7; }
+    .line-good { color: #86efac; }
+    .line-ctx  { color: #94a3b8; }
+
+    /* ── Mock card preview ── */
+    .mock-wrap { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 14px; align-items: flex-start; }
+    .mock-phone { background: #1a1a2e; border-radius: 14px; padding: 14px; width: 240px; flex-shrink: 0; }
+    .mock-lbl { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.4);
+                letter-spacing: .08em; text-transform: uppercase; margin-bottom: 8px; }
+    .mock-card { background: #fff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e6eb; }
+    .mock-bar { background: #f0f3f7; padding: 6px 10px; display: flex; align-items: center;
+                gap: 5px; font-size: 10px; font-weight: 700; color: #2b4d6b;
+                text-transform: uppercase; letter-spacing: .05em; border-bottom: 1px solid #e2e6eb; }
+    .mock-body { padding: 8px 10px; display: flex; flex-direction: column; gap: 5px; }
+    .mock-who  { font-size: 10px; color: #505a68; }
+    .mock-block { background: #f8f9fb; border-radius: 4px; padding: 5px 7px;
+                  display: flex; flex-direction: column; gap: 2px; }
+    .mock-date  { font-size: 10px; font-weight: 700; color: #0d1117; }
+    .mock-row   { display: flex; align-items: center; gap: 5px; font-size: 10px; }
+    .mock-time  { white-space: nowrap; color: #2d3540; }
+    .mock-sep   { color: #c9d0d9; font-size: 8px; }
+    .mock-meta  { color: #6b7685; white-space: nowrap; }
+    .mock-amt   { font-family: monospace; font-weight: 700; color: #2b4d6b; font-size: 10px; margin-left: auto; }
+    .mock-div   { height: 1px; background: #e2e6eb; margin: 2px 0; }
+    .mock-total { display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: #505a68; }
+    .mock-total-amt { font-family: monospace; color: #1a3249; }
+    .mock-footer { display: flex; justify-content: flex-end; padding-top: 5px;
+                   border-top: 1px solid #f0f2f5; }
+    .mock-btn { font-size: 10px; color: #2b4d6b; background: none; border: none;
+                display: flex; align-items: center; gap: 2px; font-weight: 700; cursor: pointer; }
+    /* bad mock */
+    .mock-row-bad { display: flex; font-size: 10px; color: #c0392b; }
+
+    /* ── Flow ── */
+    .flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+    .flow-step { display: flex; gap: 14px; padding: 11px 13px; background: var(--n0);
+                 border: 1px solid var(--n200); border-bottom: none; }
+    .flow-step:first-child { border-radius: 8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .flow-num { width: 22px; height: 22px; border-radius: 50%; background: var(--navy);
+                color: #fff; font-size: 10px; font-weight: 700;
+                display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+    .flow-title { font-weight: 700; font-size: 13px; color: var(--n900); margin-bottom: 2px; }
+    .flow-desc  { font-size: 12px; color: var(--n500); line-height: 1.5; }
+
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Bugfix Documentation · BookingSystem · chat.js + chat.css</div>
+  <div class="ph-title">Booking Notification — Layout &amp; Details Button Fix</div>
+  <div class="ph-sub">
+    Zwei Bugs in der <code>booking_notification</code> Service-Card behoben:
+    zusammenlaufende Zeitangaben in der Karten-Zeile (Layout) und
+    nicht funktionierender Details-Button (Event-Binding nach innerHTML).
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge err">🐛 Bug 1 — Layout / Lesbarkeit</span>
+    <span class="ph-badge err">🐛 Bug 2 — Details-Button tot</span>
+    <span class="ph-badge ok">✓ 2 Dateien geändert</span>
+    <span class="ph-badge">chat.js · chat.css</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- OVERVIEW -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Zusammenfassung der Bugs</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Bug</th><th>Symptom</th><th>Root Cause</th><th>Fix</th></tr></thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><span class="badge b-bug">Bug 1</span></td>
+            <td>Card-Zeileninhalt zusammengequetscht</td>
+            <td>Anzeige: <code>16:30–18:003 Slots€135,00</code> — Zeit, Slot-Zahl und Betrag laufen ohne Trennzeichen ineinander</td>
+            <td>Die Zeile wurde als <code>innerHTML</code>-String gebaut: drei nackte <code>&lt;span&gt;</code>-Elemente ohne visuellen Separator. CSS-<code>gap</code> fügt Abstand in Flex-Containern ein, aber nur zwischen Elementen — kein sichtbares Trennzeichen zwischen den Texten.</td>
+            <td>Umbau auf <code>createElement</code>. Explizite Separator-Spans (<code>·</code>) zwischen Zeit, Slot-Anzahl und Betrag eingefügt. Neue CSS-Klasse <code>.chat-booking-notif-sep</code> + <code>.chat-booking-notif-time</code>.</td>
+          </tr>
+          <tr class="r-bug">
+            <td><span class="badge b-bug">Bug 2</span></td>
+            <td>Details-Button reagiert nicht</td>
+            <td>Klick auf «Details ›» öffnet kein Overlay</td>
+            <td>
+              Das Overlay-HTML wurde als <code>innerHTML</code>-String mit <code>id=\"cbn-overlay-close-btn\"</code> gesetzt. HTML5-Parser interpretiert <code>\"</code> als Attribut-Wert-Delimiter, sodass die tatsächliche ID <code>"cbn-overlay-close-btn"</code> (mit Anführungszeichen) wird. <code>document.getElementById('cbn-overlay-close-btn')</code> findet <code>null</code> → wirft <code>TypeError: Cannot read properties of null</code> → wird vom <code>try/catch</code> still geschluckt → Overlay erscheint nie.
+            </td>
+            <td>Vollständiger Umbau von <code>_showBookingNotifOverlay()</code> auf <code>createElement</code>/<code>appendChild</code>. Kein <code>innerHTML</code> mit IDs mehr. Event-Listener direkt auf DOM-Referenzen.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- VISUAL BEFORE/AFTER -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Visuelles Vorher / Nachher</div></div>
+
+    <div class="mock-wrap">
+      <div class="mock-phone">
+        <div class="mock-lbl">❌ Vorher (fehlerhaft)</div>
+        <div class="mock-card">
+          <div class="mock-bar">📅 Neue Buchung</div>
+          <div class="mock-body">
+            <div class="mock-who">S1 hat bei Matthias Heinold gebucht</div>
+            <div class="mock-block">
+              <div class="mock-date">Do., 19. März 2026</div>
+              <!-- BAD: no separators, items run together -->
+              <div class="mock-row-bad">16:30–18:003 Slots€135,00</div>
+            </div>
+            <div class="mock-div"></div>
+            <div class="mock-total">
+              <span>3 Slots · Gesamt</span>
+              <span class="mock-total-amt">€135,00</span>
+            </div>
+            <div class="mock-footer">
+              <button class="mock-btn" style="color:#c0392b;cursor:not-allowed">Details › (tot)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mock-phone">
+        <div class="mock-lbl">✅ Nachher (korrekt)</div>
+        <div class="mock-card">
+          <div class="mock-bar">📅 Neue Buchung</div>
+          <div class="mock-body">
+            <div class="mock-who">S1 hat bei Matthias Heinold gebucht</div>
+            <div class="mock-block">
+              <div class="mock-date">Do., 19. März 2026</div>
+              <div class="mock-row">
+                <span class="mock-time">16:30–18:00</span>
+                <span class="mock-sep">·</span>
+                <span class="mock-meta">3 Slots</span>
+                <span class="mock-sep">·</span>
+                <span class="mock-amt">€135,00</span>
+              </div>
+            </div>
+            <div class="mock-div"></div>
+            <div class="mock-total">
+              <span>3 Slots · Gesamt</span>
+              <span class="mock-total-amt">€135,00</span>
+            </div>
+            <div class="mock-footer">
+              <button class="mock-btn">Details ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BUG 1 DEEP DIVE -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Bug 1 — Layout: Zusammenlaufende Zeileninhalte</div>
+      <span class="sec-sub">chat.js + chat.css</span>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Root Cause:</strong> Die Zeile mit Zeit, Slot-Zahl und Betrag wurde als drei nackte
+      <code>&lt;span&gt;</code>-Elemente ohne sichtbaren Separator gebaut.
+      CSS <code>gap</code> in einem Flex-Container fügt unsichtbaren Abstand hinzu —
+      aber auf engen Mobilkarten (≤300px) kollabiert das visuell zu einem lesbaren Textfluss
+      ohne klare Trennung.
+    </div>
+
+    <div class="diff-grid">
+      <div class="diff-panel">
+        <div class="diff-header before">❌ Vorher — innerHTML mit nackten Spans</div>
+        <div class="diff-body"><code><span class="line-bad">'&lt;div class=\"chat-booking-notif-row\"&gt;' +</span>
+<span class="line-bad">  '&lt;span&gt;' + time + '&lt;/span&gt;' +</span>
+<span class="line-bad">  '&lt;span class=\"chat-booking-notif-meta\"&gt;'</span>
+<span class="line-bad">    + slotCount + ' Slots&lt;/span&gt;' +</span>
+<span class="line-bad">  '&lt;span class=\"chat-booking-notif-amount\"&gt;'</span>
+<span class="line-bad">    + amount + '&lt;/span&gt;' +</span>
+<span class="line-bad">'&lt;/div&gt;'</span>
+
+<span class="cm">// Ergebnis im Browser:
+// "16:30–18:00"  "3 Slots"  "€135,00"
+// Auf kleinem Screen → zusammen gequetscht</span></code></div>
+      </div>
+      <div class="diff-panel">
+        <div class="diff-header after">✅ Nachher — createElement + Separator-Spans</div>
+        <div class="diff-body"><code><span class="line-good">var timeSpan = document.createElement('span');</span>
+<span class="line-good">timeSpan.className = 'chat-booking-notif-time';</span>
+<span class="line-good">timeSpan.textContent = timeStart + '–' + timeEnd;</span>
+
+<span class="line-good">var sep1 = document.createElement('span');</span>
+<span class="line-good">sep1.className = 'chat-booking-notif-sep';</span>
+<span class="line-good">sep1.textContent = '·'; // U+00B7</span>
+
+<span class="line-good">var metaSpan = document.createElement('span');</span>
+<span class="line-good">metaSpan.className = 'chat-booking-notif-meta';</span>
+<span class="line-good">metaSpan.textContent = count + ' Slots';</span>
+
+<span class="line-good">// + sep2 + amtSpan analog</span></code></div>
+      </div>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Neue CSS-Klassen:</strong> <code>.chat-booking-notif-sep</code> (gedämpfter Mittelpunkt,
+      <code>flex-shrink:0</code>) und <code>.chat-booking-notif-time</code> (<code>white-space:nowrap</code>,
+      <code>flex-shrink:0</code>) stellen sicher, dass Zeit und Separator nie umbrechen.
+    </div>
+
+    <div class="code-label">chat.css — neue + geänderte Klassen</div>
+    <div class="code-block"><code><span class="cm">/* Vorher: .chat-booking-notif-meta hatte flex:1 — verursachte squeeze */</span>
+<span class="cg">.chat-booking-notif-row {</span>
+<span class="cg">  display: flex;</span>
+<span class="cg">  align-items: center;</span>
+<span class="cg">  gap: var(--sp-2);</span>
+<span class="cg">  font-size: 12px;</span>
+<span class="cg">  color: var(--neutral-700);</span>
+<span class="cg">  flex-wrap: nowrap;   /* NEU: kein Umbruch */</span>
+<span class="cg">}</span>
+
+<span class="cg">.chat-booking-notif-time {   /* NEU */</span>
+<span class="cg">  white-space: nowrap;</span>
+<span class="cg">  flex-shrink: 0;</span>
+<span class="cg">}</span>
+
+<span class="cg">.chat-booking-notif-sep {   /* NEU */</span>
+<span class="cg">  color: var(--neutral-300);</span>
+<span class="cg">  flex-shrink: 0;</span>
+<span class="cg">  font-size: 10px;</span>
+<span class="cg">}</span>
+
+<span class="cg">.chat-booking-notif-meta {  /* GEÄNDERT: kein flex:1 mehr */</span>
+<span class="cg">  color: var(--neutral-500);</span>
+<span class="cg">  white-space: nowrap;</span>
+<span class="cg">  flex-shrink: 0;</span>
+<span class="cg">}</span></code></div>
+  </div>
+
+  <!-- BUG 2 DEEP DIVE -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Bug 2 — Details-Button: Stilles Versagen durch innerHTML + getElementById</div>
+      <span class="sec-sub">chat.js — _showBookingNotifOverlay()</span>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Root Cause:</strong> Das Overlay-HTML wurde als <code>innerHTML</code>-String mit
+      <code>\"</code>-escaped Attributwerten gebaut (z.B. <code>id=\"cbn-overlay-close-btn\"</code>).
+      Der HTML5-Parser interpretiert <code>\"</code> als wörtliches Anführungszeichen im Attributwert.
+      Dadurch ist die tatsächliche ID im DOM: <code>"cbn-overlay-close-btn"</code> (mit Anführungszeichen),
+      nicht <code>cbn-overlay-close-btn</code>. Das nachfolgende
+      <code>document.getElementById('cbn-overlay-close-btn')</code> gibt <code>null</code> zurück.
+      <code>null.addEventListener()</code> wirft einen <code>TypeError</code>, der vom
+      <code>try/catch</code> stumm geschluckt wird. Die Overlay-Animation startet nie.
+    </div>
+
+    <div class="code-label">Fehlerhafte Ausführungskette (Vorher)</div>
+    <div class="code-block"><code><span class="cm">// 1. HTML-String mit \\\" (JS-Escape) wird zu \" im String-Wert</span>
+<span class="ce">overlay.innerHTML =</span>
+<span class="ce">  '&lt;button id=\"cbn-overlay-close-btn\"&gt;...&lt;/button&gt;';</span>
+<span class="cm">//                ^^  ← literale \" im HTML-String</span>
+
+<span class="cm">// 2. HTML5-Parser sieht:  id=  dann "  → Attributwert beginnt</span>
+<span class="cm">//    Wert: "cbn-overlay-close-btn"  (mit den Anführungszeichen!)</span>
+<span class="cm">//    Tatsächliche DOM-ID: '"cbn-overlay-close-btn"'</span>
+
+<span class="cm">// 3. getElementById sucht korrekte ID</span>
+<span class="ce">var closeBtn = document.getElementById('cbn-overlay-close-btn');</span>
+<span class="cm">// → null  (ID stimmt nicht überein!)</span>
+
+<span class="cm">// 4. TypeError: Cannot read properties of null</span>
+<span class="ce">closeBtn.addEventListener('click', closeOverlay);</span>
+<span class="cm">// → TypeError geworfen</span>
+
+<span class="cm">// 5. try/catch fängt ab, _debugLog schreibt in console.error</span>
+<span class="cm">// 6. requestAnimationFrame(overlay.classList.add) wird NIE erreicht</span>
+<span class="cm">// 7. Overlay erscheint nicht — kein sichtbarer Fehler für den User</span></code></div>
+
+    <div class="callout c-ok">
+      <strong>Fix:</strong> Vollständiger Umbau von <code>_showBookingNotifOverlay()</code> auf
+      <code>createElement</code> / <code>appendChild</code>. Alle DOM-Referenzen (closeBtn, walletBtn)
+      werden als JavaScript-Variablen gehalten. Keine IDs für interne Buttons.
+      Event-Listener direkt auf die Variablen gesetzt — keine <code>getElementById</code>-Suche
+      nach <code>innerHTML</code>-Injection.
+    </div>
+
+    <div class="diff-grid">
+      <div class="diff-panel">
+        <div class="diff-header before">❌ Vorher — innerHTML + getElementById</div>
+        <div class="diff-body"><code><span class="line-bad">overlay.innerHTML =</span>
+<span class="line-bad">  '&lt;button id=\"cbn-overlay-close-btn\"&gt;…&lt;/button&gt;';</span>
+<span class="cm">// ↑ id enthält Anführungszeichen im DOM!</span>
+
+<span class="line-bad">document.getElementById('cbn-overlay-close-btn')</span>
+<span class="line-bad">  .addEventListener('click', closeOverlay);</span>
+<span class="cm">// ↑ null → TypeError → alles bricht ab</span></code></div>
+      </div>
+      <div class="diff-panel">
+        <div class="diff-header after">✅ Nachher — createElement + direkte Referenz</div>
+        <div class="diff-body"><code><span class="line-good">var closeBtn = document.createElement('button');</span>
+<span class="line-good">closeBtn.className = 'cbn-overlay-close';</span>
+<span class="line-good">closeBtn.setAttribute('aria-label', ...);</span>
+<span class="line-good">closeBtn.innerHTML = '&lt;svg&gt;...&lt;/svg&gt;';</span>
+<span class="cm">// ↑ nur SVG-Inhalt per innerHTML, keine IDs</span>
+
+<span class="line-good">closeBtn.addEventListener('click', closeOverlay);</span>
+<span class="cm">// ↑ direkte Variable → kein getElementById nötig</span>
+
+<span class="line-good">header.appendChild(closeBtn);</span>
+<span class="line-good">panel.appendChild(header);</span>
+<span class="line-good">overlay.appendChild(panel);</span></code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURAL RULE -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Architektur-Regel (abgeleitet aus diesem Bug)</div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Regel:</strong> HTML-Strings mit <code>\"</code>-escaped Attributwerten dürfen
+      <strong>nicht</strong> für dynamisch erstellte DOM-Elemente verwendet werden, wenn anschließend
+      per <code>getElementById</code> oder <code>querySelector('[id=...]')</code> auf diese Elemente
+      zugegriffen werden soll.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Pattern</th><th>Sicher?</th><th>Warum</th></tr></thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><code>el.innerHTML = '...id=\"foo\"...';</code><br><code>document.getElementById('foo')</code></td>
+            <td><span class="badge b-bug">Unsicher</span></td>
+            <td>HTML5-Parser kann <code>\"</code> als wörtliches Zeichen im Attributwert interpretieren → ID im DOM enthält Anführungszeichen → <code>getElementById</code> findet <code>null</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>var btn = document.createElement('button');</code><br><code>btn.id = 'foo';</code><br><code>btn.addEventListener(...);</code></td>
+            <td><span class="badge b-fix">Sicher</span></td>
+            <td>ID wird als JS-Property gesetzt — kein HTML-Parser involviert. Event-Listener direkt auf Variable — kein <code>getElementById</code> nötig.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>el.innerHTML = '...';</code><br><code>el.querySelector('.class-name')</code></td>
+            <td><span class="badge b-fix">Sicher</span></td>
+            <td>Klassen-Selektoren mit <code>\"</code>-Escaping funktionieren zuverlässig. Wie bei anderen Service-Messages im Projekt (<code>student_request</code>, <code>booking_request</code>).</td>
+          </tr>
+          <tr>
+            <td>Inline-SVG per <code>innerHTML</code></td>
+            <td><span class="badge b-fix">Sicher</span></td>
+            <td>SVG-Inhalt enthält keine IDs die nachher per JS gesucht werden. Keine <code>getElementById</code>-Abhängigkeit.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion / Klasse</th><th>Art der Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/chat.js</code><br><span class="badge b-js">JS</span></td>
+            <td><code>_buildServiceMsg()</code><br>Block: <code>serviceEvent === 'booking_notification'</code></td>
+            <td>
+              Vollständiger Umbau von <code>innerHTML</code>-String auf <code>createElement</code>/<code>appendChild</code>.<br>
+              Separator-Spans (<code>·</code>) zwischen Zeit, Slot-Anzahl und Betrag eingefügt.<br>
+              <code>detailsBtn</code> wird als Variable gehalten → Event-Listener direkt ohne querySelector-Umweg.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/chat.js</code><br><span class="badge b-js">JS</span></td>
+            <td><code>_showBookingNotifOverlay()</code></td>
+            <td>
+              Vollständiger Umbau von <code>innerHTML</code>-Overlay auf <code>createElement</code>/<code>appendChild</code>.<br>
+              <code>closeBtn</code> und <code>walletBtn</code> als JS-Variablen gehalten.<br>
+              <code>closeBtn.addEventListener</code> statt <code>document.getElementById('...').addEventListener</code>.<br>
+              <code>_makeParty()</code>-Hilfsfunktion für wiederkehrende Party-Zeilen (DRY).<br>
+              Keine IDs auf internen Overlay-Buttons.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>css/chat.css</code><br><span class="badge b-css">CSS</span></td>
+            <td><code>.chat-booking-notif-row</code><br><code>.chat-booking-notif-time</code> (neu)<br><code>.chat-booking-notif-sep</code> (neu)<br><code>.chat-booking-notif-meta</code></td>
+            <td>
+              <code>.chat-booking-notif-row</code>: <code>flex-wrap: nowrap</code> hinzugefügt.<br>
+              <code>.chat-booking-notif-time</code>: neu — <code>white-space:nowrap</code>, <code>flex-shrink:0</code>.<br>
+              <code>.chat-booking-notif-sep</code>: neu — gedämpfte Farbe, <code>flex-shrink:0</code>.<br>
+              <code>.chat-booking-notif-meta</code>: <code>flex:1</code> entfernt → <code>white-space:nowrap</code>, <code>flex-shrink:0</code>.
+            </td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>2026-03-19-5</code> → <code>2026-03-19-6</code> — Browser-Cache invalidiert.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXECUTION FLOW AFTER FIX -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Korrekter Ausführungsfluss nach dem Fix</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">User klickt «Details ›» in der Chat-Card</div>
+          <div class="flow-desc"><code>detailsBtn.addEventListener('click', ...)</code> — Button-Referenz ist JS-Variable, kein DOM-Lookup nötig. <code>e.stopPropagation()</code> verhindert Bubbling.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">_showBookingNotifOverlay(snap, actorUid) aufgerufen</div>
+          <div class="flow-desc">Existierendes Overlay wird entfernt (Duplicate-Guard). Alle DOM-Elemente via <code>createElement</code> gebaut — kein HTML-Parser involviert.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">overlay.appendChild(panel) → document.body.appendChild(overlay)</div>
+          <div class="flow-desc">Overlay ist im DOM. <code>closeBtn</code> und <code>walletBtn</code> sind bereits bekannte Variablen — Event-Listener werden direkt gebunden.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">requestAnimationFrame → overlay.classList.add('is-open')</div>
+          <div class="flow-desc">CSS-Transition (<code>opacity</code> + <code>translateY</code>) animiert das Bottom-Sheet herein. User sieht Overlay mit Slot-Details und «Im Wallet anzeigen»-Button.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-content">
+          <div class="flow-title">User klickt «Im Wallet anzeigen» oder ✕ oder Backdrop</div>
+          <div class="flow-desc"><code>closeOverlay()</code> entfernt <code>is-open</code>, nach 300ms wird das Element aus dem DOM entfernt. ESC-Listener wird ebenfalls sauber entfernt.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>BUGFIX_BOOKING_NOTIF_LAYOUT_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-6 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

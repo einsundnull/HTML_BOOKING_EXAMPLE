@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPL — Verschiebungs-Grund &amp; Benachrichtigungen</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy:#060f1c; --navy-800:#0f2035;
+      --n0:#fff; --n50:#f8f9fb; --n100:#f0f2f5; --n200:#e2e6eb;
+      --n400:#9aa3af; --n500:#6b7685; --n700:#2d3540; --n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a; --ok-bg:#f0fff4; --ok-bd:#bbf7d0;
+      --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+      --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+      --err:#c0392b; --err-bg:#fff0f0; --err-bd:#fecaca;
+    }
+    .ph { background:var(--navy); padding:28px 40px 24px; }
+    .ph-eye { font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+              text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:6px; }
+    .ph-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:5px; }
+    .ph-sub { font-size:13px; color:rgba(255,255,255,.5); max-width:760px; margin-bottom:14px; }
+    .ph-meta { display:flex; gap:8px; flex-wrap:wrap; }
+    .ph-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+                border-radius:999px; font-size:11px; font-weight:600;
+                background:rgba(255,255,255,.1); color:rgba(255,255,255,.75);
+                border:1px solid rgba(255,255,255,.15); }
+    .page { padding:28px 40px; max-width:1100px; margin:0 auto; }
+    @media(max-width:700px){.ph,.page{padding:16px;}}
+    .sec { margin-bottom:44px; }
+    .sec-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px;
+               padding-bottom:9px; border-bottom:2px solid var(--n200); }
+    .sec-title { font-size:17px; font-weight:700; }
+    .sec-sub { font-size:12px; color:var(--n500); margin-left:auto; font-family:var(--mono); }
+    .callout { padding:11px 16px; border-radius:8px; border-left:3px solid;
+               font-size:13px; line-height:1.6; margin-bottom:14px; }
+    .c-ok  { background:var(--ok-bg);  border-color:var(--ok);  color:#14532d; }
+    .c-inf { background:var(--info-bg);border-color:var(--info);color:#1a3a6b; }
+    .c-wrn { background:var(--warn-bg);border-color:var(--warn);color:#7b3500; }
+    .callout strong{font-weight:700;}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px;}
+    .tw { overflow-x:auto; border-radius:8px; border:1px solid var(--n200); margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--navy-800); color:rgba(255,255,255,.82); text-align:left;
+               padding:9px 13px; font-size:10px; font-weight:700;
+               letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    tbody td { padding:9px 13px; border-bottom:1px solid var(--n200);
+               vertical-align:top; color:var(--n700); line-height:1.5; }
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr.r-new{background:var(--info-bg);}
+    tbody tr.r-mod{background:var(--warn-bg);}
+    tbody tr.r-ok {background:var(--ok-bg);}
+    tbody tr.r-ctx{background:var(--n50);}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249;}
+    .code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0;}
+    .code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:14px;}
+    .code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0;}
+    .cm{color:#64748b}.ck{color:#93c5fd}.cs{color:#86efac}.cg{color:#6ee7b7}
+    .flow{display:flex;flex-direction:column;margin-bottom:14px;}
+    .flow-step{display:grid;grid-template-columns:28px 1fr;border:1px solid var(--n200);border-bottom:none;background:var(--n0);}
+    .flow-step:first-child{border-radius:8px 8px 0 0;}
+    .flow-step:last-child{border-bottom:1px solid var(--n200);border-radius:0 0 8px 8px;}
+    .flow-step.hi{background:var(--ok-bg);}
+    .flow-num{background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:flex-start;justify-content:center;padding-top:12px;}
+    .flow-body{padding:10px 14px;}
+    .flow-fn{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px;}
+    .flow-file{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--n400);margin-bottom:3px;}
+    .flow-desc{font-size:12px;color:var(--n500);line-height:1.5;}
+    /* Mock dialog */
+    .mock{border:1px solid var(--n200);border-radius:10px;overflow:hidden;background:var(--n0);max-width:340px;margin-bottom:14px;}
+    .mock-title{padding:10px 14px;font-weight:700;font-size:14px;border-bottom:1px solid var(--n200);background:var(--n50);}
+    .mock-body{padding:12px;display:flex;flex-direction:column;gap:10px;}
+    .mock-row{display:flex;gap:8px;}
+    .mock-col{flex:1;display:flex;flex-direction:column;gap:4px;}
+    .mock-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--n500);}
+    .mock-input{height:32px;border:1px solid var(--n200);border-radius:4px;background:var(--n50);}
+    .mock-reason{border:1px solid var(--n200);border-radius:6px;background:var(--n50);padding:10px;display:flex;flex-direction:column;gap:6px;}
+    .mock-reason-badge{font-size:10px;font-weight:700;color:var(--err);display:inline;}
+    .mock-select{height:34px;border:1px solid var(--n200);border-radius:4px;background:var(--n0);}
+    .mock-textarea{height:48px;border:1px solid var(--n200);border-radius:4px;background:var(--n0);}
+    .mock-btn-row{display:flex;gap:8px;justify-content:flex-end;}
+    .mock-btn-ghost{padding:6px 12px;border:1px solid var(--n200);border-radius:6px;font-size:12px;background:var(--n0);}
+    .mock-btn-primary{padding:6px 12px;border-radius:6px;font-size:12px;background:var(--navy);color:#fff;border:none;}
+    /* Mock chat bubble */
+    .mock-chat{max-width:280px;margin-bottom:14px;}
+    .mock-bubble{background:var(--n100);border-radius:12px 12px 12px 3px;padding:10px 12px;font-size:12px;line-height:1.6;color:var(--n700);}
+    .mock-bubble strong{color:var(--n900);}
+    .mock-bubble-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--n400);margin-bottom:4px;}
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500);}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Move Reason + Notifications</div>
+  <div class="ph-title">Verschiebungs-Grund &amp; Benachrichtigungs-System</div>
+  <div class="ph-sub">
+    Pflichtgrund bei Verschiebungen (Combobox + Freitext), Audit-Log aller Verschiebungen,
+    Chat-Benachrichtigung <code>booking_moved</code> an die Gegenpartei,
+    E-Mail via <code>EmailService.onBookingMoved()</code>.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">8 Dateien geändert</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-27</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- FEATURE 1: MOVE REASON -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Feature 1 — Verschiebungs-Grund Dialog</div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px">
+      <div>
+        <div class="mock">
+          <div class="mock-title">Block bearbeiten</div>
+          <div class="mock-body">
+            <div class="mock-row">
+              <div class="mock-col"><div class="mock-label">Datum</div><div class="mock-input"></div></div>
+              <div class="mock-col"><div class="mock-label">Startzeit</div><div class="mock-input"></div></div>
+            </div>
+            <div class="mock-reason">
+              <div class="mock-label">Grund der Verschiebung <span class="mock-reason-badge">*</span></div>
+              <div class="mock-select" style="display:flex;align-items:center;padding:0 8px;font-size:12px;color:var(--n400)">Bitte Grund wählen…</div>
+              <div class="mock-label">Hinweis <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--n400)">(optional)</span></div>
+              <div class="mock-textarea"></div>
+            </div>
+            <div class="mock-btn-row">
+              <div class="mock-btn-ghost">Abbrechen</div>
+              <div class="mock-btn-primary">Verfügbarkeit prüfen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;color:var(--n500);margin-bottom:8px">Grund-Kategorien (rollenabhängig)</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>Key</th><th>Label</th><th>Rollen</th></tr></thead>
+            <tbody>
+              <tr><td><code>schedule_conflict</code></td><td>Terminüberschneidung</td><td>Beide</td></tr>
+              <tr><td><code>illness</code></td><td>Krankheit</td><td>Beide</td></tr>
+              <tr><td><code>student_request</code></td><td>Auf Wunsch des Schülers</td><td>Lehrer</td></tr>
+              <tr><td><code>teacher_request</code></td><td>Auf Wunsch des Lehrers</td><td>Schüler</td></tr>
+              <tr><td><code>technical_issue</code></td><td>Technische Probleme</td><td>Beide</td></tr>
+              <tr><td><code>personal_matter</code></td><td>Persönlicher Grund</td><td>Beide</td></tr>
+              <tr><td><code>travel</code></td><td>Reise / Abwesenheit</td><td>Beide</td></tr>
+              <tr><td><code>weather</code></td><td>Wetterbedingungen</td><td>Beide</td></tr>
+              <tr><td><code>other</code></td><td>Sonstiges</td><td>Beide</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-inf">
+      <strong>Pflichtfeld-Validierung:</strong> Wird „Verschieben" ohne Grund-Auswahl geklickt,
+      erhält das <code>&lt;select&gt;</code> die Klasse <code>.input-error</code> (roter Rahmen)
+      und ein Fehlertext erscheint im <code>.move-check-result</code>-Element.
+      Der Confirm-Ablauf wird unterbrochen.
+    </div>
+  </div>
+
+  <!-- FEATURE 2: MOVE LOG -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Feature 2 — Verschiebungs-Audit-Log</div></div>
+
+    <div class="callout c-inf">
+      <strong>Neuer Storage-Key:</strong> <code>app_move_log</code> — Array von <code>MoveLogEntry</code>-Objekten.
+      Wird bei jeder Verschiebung automatisch befüllt. Keine manuelle Aktion nötig.
+    </div>
+
+    <div class="code-label">Schema MoveLogEntry</div>
+    <div class="code-block"><code>{
+  <span class="ck">moveId</span>:       <span class="cs">"mv_uuid"</span>,
+  <span class="ck">slotId</span>:       <span class="cs">"new-slot-id"</span>,
+  <span class="ck">oldSlotId</span>:    <span class="cs">"old-slot-id"</span>,
+  <span class="ck">teacherId</span>:    <span class="cs">"t1"</span>,
+  <span class="ck">studentId</span>:    <span class="cs">"s1"</span>,
+  <span class="ck">movedBy</span>:      <span class="cs">"t1"</span>,
+  <span class="ck">movedByRole</span>:  <span class="cs">"teacher"</span>,
+  <span class="ck">oldDate</span>:      <span class="cs">"2026-03-20"</span>,
+  <span class="ck">oldTime</span>:      <span class="cs">"14:00"</span>,
+  <span class="ck">newDate</span>:      <span class="cs">"2026-03-25"</span>,
+  <span class="ck">newTime</span>:      <span class="cs">"15:00"</span>,
+  <span class="ck">reason</span>:       <span class="cs">"illness"</span>,
+  <span class="ck">reasonLabel</span>:  <span class="cs">"Krankheit"</span>,
+  <span class="ck">note</span>:         <span class="cs">"Arzttermin kurzfristig"</span>,
+  <span class="ck">createdAt</span>:    <span class="cs">"2026-03-19T12:00:00.000Z"</span>
+}</code></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>API</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>Store.MoveLog.all()</code></td><td>Alle Einträge (neueste zuerst)</td></tr>
+          <tr class="r-new"><td><code>Store.MoveLog.byTeacher(uid)</code></td><td>Einträge für einen Lehrer</td></tr>
+          <tr class="r-new"><td><code>Store.MoveLog.byStudent(uid)</code></td><td>Einträge für einen Schüler</td></tr>
+          <tr class="r-new"><td><code>Store.MoveLog.bySlot(slotId)</code></td><td>Einträge für alten oder neuen SlotId</td></tr>
+          <tr class="r-new"><td><code>AppService.getMoveLog()</code></td><td>Shortcut zu Store.MoveLog.all()</td></tr>
+          <tr class="r-new"><td><code>AppService.getMoveLogByTeacher(uid)</code></td><td>Für Finanzplaner / Teacher-Dashboard</td></tr>
+          <tr class="r-new"><td><code>AppService.getMoveLogByStudent(uid)</code></td><td>Für Student-Dashboard</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FEATURE 3: CHAT NOTIFICATION -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Feature 3 — Chat-Benachrichtigung booking_moved</div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px">
+      <div>
+        <p style="font-size:12px;color:var(--n500);margin-bottom:8px">Chat-Bubble (Empfänger-Seite)</p>
+        <div class="mock-chat">
+          <div class="mock-bubble-label">booking_moved</div>
+          <div class="mock-bubble">
+            <strong>📆 Matthias Heinold hat den Termin verschoben</strong><br>
+            Von: Fr., 20. Mär 14:00–14:30<br>
+            Nach: Mi., 25. Mär 15:00–15:30<br>
+            Grund: Krankheit<br>
+            „Arzttermin kurzfristig"
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="code-label">ChatStore.sendMoveNotification</div>
+        <div class="code-block"><code><span class="ck">var</span> snap = {
+  actorId:     currentUser.uid,
+  actorRole:   <span class="cs">'teacher'</span>,
+  actorName:   <span class="cs">'Matthias Heinold'</span>,
+  teacherId:   <span class="cs">'t1'</span>,
+  studentId:   <span class="cs">'s1'</span>,
+  oldDate:     <span class="cs">'2026-03-20'</span>,
+  oldTime:     <span class="cs">'14:00'</span>,
+  oldEndTime:  <span class="cs">'14:30'</span>,
+  newDate:     <span class="cs">'2026-03-25'</span>,
+  newTime:     <span class="cs">'15:00'</span>,
+  newEndTime:  <span class="cs">'15:30'</span>,
+  reason:      <span class="cs">'illness'</span>,
+  reasonLabel: <span class="cs">'Krankheit'</span>,
+  note:        <span class="cs">'Arzttermin'</span>
+};
+ChatStore.sendMoveNotification(
+  currentUser.uid, <span class="cm">/* sender */</span>
+  stuId,           <span class="cm">/* receiver */</span>
+  snap
+);</code></div>
+      </div>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>msg.type</th><th>Renderer</th><th>Wer bekommt die Nachricht</th></tr></thead>
+        <tbody>
+          <tr class="r-new">
+            <td><code>booking_moved</code></td>
+            <td><code>_buildMoveBubble(msg)</code></td>
+            <td>Immer die Gegenseite: Lehrer verschiebt → Schüler; Schüler verschiebt → Lehrer</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALL FLOW -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Vollständige Aufrufkette bei Verschiebung</div>
+      <span class="sec-sub">ui.js → student.js / teacher.js → adapter → chat.js → email.js</span>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <div class="flow-file">ui.js — openMoveBlockDialogShared()</div>
+          <div class="flow-fn">Dialog öffnet mit Datum/Zeit + Grund-Sektion</div>
+          <div class="flow-desc">Grund-Dropdown wird mit <code>MOVE_REASONS</code> gefüllt, gefiltert nach <code>opts.actorRole</code>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <div class="flow-file">ui.js — confirmBtn.click</div>
+          <div class="flow-fn">Pflichtfeld-Validierung</div>
+          <div class="flow-desc">Kein Grund → <code>.input-error</code> auf Select, Fehlermeldung, Abbruch. Sonst: <code>opts._lastMoveOpts = { reason, reasonLabel, note }</code> gesetzt, <code>opts.onConfirm(pending, opts)</code> aufgerufen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js — onConfirm()</div>
+          <div class="flow-fn">pendingMoveOpts[partyId] = opts._lastMoveOpts</div>
+          <div class="flow-desc">Move-Opts werden nach teacherId (Student) oder studentId (Lehrer) zwischengespeichert, für den späteren <code>writeMoveRecord</code>-Aufruf nach Save.</div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js — onAllDone() / confirmAndSave()</div>
+          <div class="flow-fn">AppService.writeMoveRecord(oldSlot, newSlot, uid, role, cb, moveOpts)</div>
+          <div class="flow-desc">
+            Adapter schreibt: TX (move) für Initiator + Gegenseite, <code>Store.Slots.markMoved()</code>, <code>Store.MoveLog.add()</code> mit reason+note+movedBy.
+          </div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js — im writeMoveRecord-Callback</div>
+          <div class="flow-fn">ChatStore.sendMoveNotification(senderId, receiverId, snap)</div>
+          <div class="flow-desc">Chat-Nachricht Typ <code>booking_moved</code> an die Gegenseite mit altem/neuem Termin, Grund, Freitext.</div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">6</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js</div>
+          <div class="flow-fn">EmailService.onBookingMoved(receiverUid, data)</div>
+          <div class="flow-desc">E-Mail an die Gegenseite. Bereits implementierte API wird jetzt erstmals aufgerufen.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICATION MATRIX -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Benachrichtigungs-Matrix — aktueller Stand</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Ereignis</th><th>Chat (Lehrer)</th><th>Chat (Schüler)</th><th>E-Mail (Lehrer)</th><th>E-Mail (Schüler)</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr class="r-ctx"><td>Erstkontakt (Schüler wählt Lehrer)</td><td><code>student_request</code></td><td>—</td><td>✓</td><td>—</td><td>✅ implementiert</td></tr>
+          <tr class="r-ctx"><td>Anfrage akzeptiert</td><td>—</td><td>—</td><td>—</td><td>✓ API</td><td>✅ API vorhanden</td></tr>
+          <tr class="r-ctx"><td>Buchung abgeschlossen</td><td><code>booking_notification</code></td><td><code>booking_notification</code></td><td>✓</td><td>teilw.</td><td>✅ implementiert</td></tr>
+          <tr class="r-ok"><td><strong>Termin verschoben</strong></td><td><code>booking_moved</code> ✅ neu</td><td><code>booking_moved</code> ✅ neu</td><td>✓ ✅ jetzt aktiv</td><td>✓ ✅ jetzt aktiv</td><td>✅ neu implementiert</td></tr>
+          <tr><td>Stornierung</td><td>—</td><td>—</td><td>✓ API</td><td>✓ API</td><td>⚠ API vorhanden, Chat fehlt (P2)</td></tr>
+          <tr><td>Bestätigung</td><td>—</td><td>—</td><td>—</td><td>—</td><td>⚠ fehlt (P3)</td></tr>
+          <tr><td>Zahlung freigegeben</td><td>—</td><td>—</td><td>—</td><td>—</td><td>⚠ fehlt (P4)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-mod"><td><code>js/store.js</code></td><td><code>KEYS.MOVE_LOG</code> + <code>Store.MoveLog</code> Objekt mit <code>add / all / byTeacher / byStudent / bySlot</code></td></tr>
+          <tr class="r-mod"><td><code>js/adapter-localstorage.js</code></td><td><code>writeMoveRecord()</code> erhält 6. Parameter <code>moveOpts</code>. Schreibt <code>Store.MoveLog.add()</code> und persistiert reason/note/movedBy in TX-Meta.</td></tr>
+          <tr class="r-mod"><td><code>js/app-service.js</code></td><td><code>writeMoveRecord()</code> Signatur erweitert. <code>getMoveLog / getMoveLogByTeacher / getMoveLogByStudent</code> exponiert.</td></tr>
+          <tr class="r-mod"><td><code>js/chat.js</code></td><td>i18n-Keys für <code>booking_moved</code>. <code>ChatStore.sendMoveNotification()</code>. <code>_buildMoveBubble()</code> Renderer. Router in <code>_renderMessages()</code>.</td></tr>
+          <tr class="r-mod"><td><code>js/ui.js</code></td><td><code>MOVE_REASONS[]</code> Konstante. Grund-Sektion HTML in <code>openMoveBlockDialogShared()</code>. Dropdown-Befüllung + Pflichtfeldvalidierung. <code>opts._lastMoveOpts</code> gesetzt. <code>onConfirm(pending, opts)</code>.</td></tr>
+          <tr class="r-mod"><td><code>js/student.js</code></td><td><code>pendingMoveOpts</code> Variable. <code>onConfirm</code> speichert Move-Opts. <code>writeMoveRecord</code>-Callback sendet Chat + Email.</td></tr>
+          <tr class="r-mod"><td><code>js/teacher.js</code></td><td>Identisch wie student.js.</td></tr>
+          <tr class="r-mod"><td><code>css/components.css</code></td><td><code>.form-textarea</code>, <code>.input-error</code> neu.</td></tr>
+          <tr class="r-mod"><td><code>css/teacher.css</code></td><td><code>.move-reason-section</code>, <code>.move-reason-label</code>, <code>.move-reason-required</code>, <code>.move-reason-optional</code>, <code>.move-check-ok</code>, <code>.move-check-fail</code>.</td></tr>
+          <tr class="r-mod"><td><code>js/app-config.js</code></td><td><code>dashboard.html</code>: <code>chat.js</code> + <code>wallet-panel.js</code> hinzugefügt. <code>APP_VERSION → 2026-03-19-27</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_MOVE_REASON_NOTIFICATIONS_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-27 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

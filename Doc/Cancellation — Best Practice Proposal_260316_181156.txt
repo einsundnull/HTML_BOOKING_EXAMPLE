@@ -1,0 +1,85 @@
+## Cancellation — Best Practice Proposal
+
+### Core Question
+When a student cancels, **who bears the cost?** This depends entirely on timing. Industry standard (Airbnb, Calendly, booking.com) is a **tiered cancellation policy** based on notice period.
+
+---
+
+### Proposed Tiers
+
+| Notice given | Student pays | Teacher gets | Deposit status |
+|---|---|---|---|
+| **> 48h before lesson** | Nothing | Nothing | Full refund to student |
+| **24–48h before lesson** | 50% of deposit | 50% of deposit | Partial — split |
+| **< 24h before lesson** | Full deposit | Full deposit | Deposit forfeited to teacher |
+| **No-show** | Full price | Full price | Deposit kept + remainder charged |
+| **Teacher cancels** | Nothing | Nothing | Full refund to student always |
+
+---
+
+### Who can cancel what
+
+| Actor | Can cancel | Conditions |
+|---|---|---|
+| **Student** | Their own unconfirmed bookings | Only if not within no-cancel window |
+| **Student** | Their own confirmed bookings | Subject to cancellation policy — deposit may be forfeited |
+| **Teacher** | Any booking on their schedule | Always allowed — triggers full student refund |
+| **Admin** | Any booking | Always allowed — can override policy |
+
+---
+
+### Data already in place
+
+| Field | Where | Purpose |
+|---|---|---|
+| `escrow.depositStatus` | `app_escrow` | `held` → can be refunded or forfeited |
+| `escrow.depositAmount` | `app_escrow` | How much is at stake |
+| `requestDepositRefund()` | adapter | Student requests refund |
+| `releaseDeposit()` | adapter | Teacher approves refund |
+| `forfeitDeposit()` | adapter | Teacher keeps deposit |
+| `adminReleaseEscrow()` | adapter + AppService | Admin override |
+| `slot.confirmedAt` | `app_slots` | Was the lesson confirmed? |
+| `slot.date + slot.time` | `app_slots` | Calculate notice period |
+
+All the financial functions already exist — the policy logic and UI are missing.
+
+---
+
+### Flow Design
+
+```
+Student clicks Cancel on a booked slot
+        ↓
+System calculates notice period
+(now vs slot.date + slot.time)
+        ↓
+        ├─ > 48h  → show "Full refund" dialog → auto-refund on confirm
+        │
+        ├─ 24–48h → show "50% deposit forfeited" warning → teacher notified
+        │
+        └─ < 24h  → show "Deposit forfeited" hard warning
+                   → require explicit typed confirmation ("I understand")
+                   → teacher notified immediately
+```
+
+---
+
+### Key Design Decisions to confirm before implementation
+
+| Question | Options |
+|---|---|
+| **Should the cancellation window be configurable per teacher?** | Fixed system-wide OR teacher sets their own policy in profile |
+| **Should teacher actively approve refunds?** | Auto-refund if teacher doesn't respond in X days OR teacher must click "Approve refund" |
+| **Confirmed vs unconfirmed** — different policy? | Confirmed lessons harder to cancel (deposit always forfeited) OR same policy regardless |
+| **Cancellation reason** | Required text field OR optional OR not collected |
+| **Admin dispute resolution** | Should admin be notified of contested cancellations? |
+
+---
+
+### What already needs to be built
+
+1. `AppService.cancelSlotWithPolicy(slotId, studentId, cb)` — computes notice period, applies correct escrow action, notifies teacher
+2. Cancellation policy settings in teacher profile (`cancellationWindow`, `policyMode`)
+3. UI warning dialog with tier explanation before cancel is committed
+4. Teacher notification when student cancels (email already exists via `EmailService`)
+5. Admin view of disputed/pending refund requests

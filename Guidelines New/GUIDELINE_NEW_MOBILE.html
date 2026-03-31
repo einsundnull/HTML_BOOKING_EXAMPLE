@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — Mobile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+  <style>
+    /* Mobile-page-specific tokens */
+    --mobile-badge: #a855f7;
+    .gl-page-eyebrow-dot-mobile { background: #a855f7; }
+
+    /* Breakpoint visualiser */
+    .gl-bp-table { width: 100%; border-collapse: collapse; margin-top: var(--sp-2); font-size: var(--text-small); }
+    .gl-bp-table th {
+      text-align: left; padding: var(--sp-2) var(--sp-3);
+      background: var(--neutral-700); color: var(--neutral-0);
+      font-size: var(--text-caption); font-weight: var(--weight-semibold);
+      letter-spacing: 0.06em; text-transform: uppercase;
+    }
+    .gl-bp-table td { padding: 10px var(--sp-3); border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+    .gl-bp-table tr:nth-child(even) td { background: var(--bg-subtle); }
+    .gl-bp-table td code { font-family: var(--font-mono); font-size: 12px; }
+    .gl-bp-table td.bp-val { font-family: var(--font-mono); color: var(--arch-text); }
+
+    /* Touch target visualiser */
+    .gl-touch-demo {
+      display: flex; gap: var(--sp-3); flex-wrap: wrap;
+      align-items: flex-end; margin: var(--sp-2) 0;
+    }
+    .gl-touch-item {
+      display: flex; flex-direction: column; align-items: center;
+      gap: var(--sp-2);
+    }
+    .gl-touch-box {
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      font-size: var(--text-caption); font-family: var(--font-mono);
+      color: var(--neutral-0); font-weight: var(--weight-semibold);
+    }
+    .gl-touch-label { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+
+    /* Spacing scale mobile preview */
+    .gl-spacing-demo { display: flex; flex-direction: column; gap: 6px; margin: var(--sp-2) 0; }
+    .gl-spacing-row { display: flex; align-items: center; gap: var(--sp-3); }
+    .gl-spacing-bar { background: var(--color-400); height: 20px; border-radius: 3px; flex-shrink: 0; }
+    .gl-spacing-meta { font-family: var(--font-mono); font-size: var(--text-caption); color: var(--text-secondary); white-space: nowrap; }
+  </style>
+</head>
+<body>
+
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+  </ul>
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<main class="gl-page">
+  <div class="gl-container">
+
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:#a855f7;" aria-hidden="true"></span>
+        Guideline · Mobile Layout
+      </div>
+      <h1 class="gl-page-title">Mobile Layout</h1>
+      <p class="gl-page-subtitle">
+        Regeln für mobile Browser-Kompatibilität und responsives Layout.
+        Diese Guideline ergänzt die Styling-Guideline um mobile-spezifische Hard-Rules:
+        Touch-Targets, Safe-Area-Insets, Scroll-Verhalten, iOS-Safari-Fixes
+        und das responsive Verhalten aller UI-Komponenten.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-hard">🔴 Hard-Rule</span>
+        <span class="gl-badge gl-badge-soft">🔵 Soft-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">iOS Safari · Android Chrome · PWA-ready</span>
+      </div>
+    </header>
+
+    <!-- Legend -->
+    <div class="gl-legend" role="list" aria-label="Regeltypen-Legende">
+      <div class="gl-legend-item gl-legend-item-hard" role="listitem">
+        <div class="gl-legend-label">🔴 Hard-Rule</div>
+        <div class="gl-legend-desc">Nicht verhandelbar. Bricht Mobile-UX wenn ignoriert.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-soft" role="listitem">
+        <div class="gl-legend-label">🔵 Soft-Rule</div>
+        <div class="gl-legend-desc">Starke Empfehlung. Abweichung erfordert Begründung.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-arch" role="listitem">
+        <div class="gl-legend-label">🟢 Arch-Rule</div>
+        <div class="gl-legend-desc">Strukturell. CSS-Konvention die immer gilt.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-neg" role="listitem">
+        <div class="gl-legend-label">⛔ Verboten</div>
+        <div class="gl-legend-desc">Erzeugt Bugs auf Touch-Geräten oder iOS-Safari.</div>
+      </div>
+    </div>
+
+    <!-- ── 1. BREAKPOINTS ─────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-bp">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-bp">1. Breakpoints</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fünf Breakpoints — alle durch 8 teilbar — keine eigenen Werte</div>
+            <div class="gl-rule-desc">Keine media queries mit 900px, 1100px, 600px oder anderen nicht auf der Skala liegenden Werten.</div>
+            <table class="gl-bp-table">
+              <thead><tr><th>Token</th><th>Wert</th><th>Kontext</th><th>Section-Spacing</th><th>Container-Padding</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><code>--bp-sm</code></td>
+                  <td class="bp-val">480px</td>
+                  <td>Kleines Smartphone (Portrait)</td>
+                  <td>—</td>
+                  <td><code>var(--sp-2)</code> 8px</td>
+                </tr>
+                <tr>
+                  <td><code>--bp-md</code></td>
+                  <td class="bp-val">768px</td>
+                  <td>Tablet (Portrait) / Smartphone (Landscape)</td>
+                  <td><code>var(--sp-6)</code> 48px</td>
+                  <td><code>var(--sp-3)</code> 16px</td>
+                </tr>
+                <tr>
+                  <td><code>--bp-lg</code></td>
+                  <td class="bp-val">1024px</td>
+                  <td>Tablet (Landscape) / kleiner Desktop</td>
+                  <td><code>var(--sp-7)</code> 64px</td>
+                  <td><code>var(--sp-4)</code> 24px</td>
+                </tr>
+                <tr>
+                  <td><code>--bp-xl</code></td>
+                  <td class="bp-val">1280px</td>
+                  <td>Standard-Desktop</td>
+                  <td><code>var(--sp-8)</code> 96px</td>
+                  <td><code>var(--sp-5)</code> 32px</td>
+                </tr>
+                <tr>
+                  <td><code>--bp-2xl</code></td>
+                  <td class="bp-val">1536px</td>
+                  <td>Breiter Screen / externes Display</td>
+                  <td><code>var(--sp-8)</code> 96px</td>
+                  <td><code>var(--sp-5)</code> 32px</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Mobile-First Media Queries mit <code style="font-family:var(--font-mono);font-size:13px;">min-width</code></div>
+            <div class="gl-rule-desc">
+              Basis-CSS schreibt den mobilen Zustand. Desktop-Overrides kommen mit <code style="font-family:var(--font-mono);font-size:12px;">@media (min-width: ...)</code>.
+              Ausnahme: Spezifische Rücknahmen (z.B. Hover-States) dürfen <code style="font-family:var(--font-mono);font-size:12px;">max-width</code> nutzen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* ✅ Mobile-First: Basis = Mobile, Desktop per min-width */</span>
+.card {
+  padding: <span class="c-val">var(--sp-3)</span>;         <span class="c-cmt">/* Mobile: 16px */</span>
+}
+<span class="c-ok">@media (min-width: 768px) {
+  .card { padding: var(--sp-4); }  /* Tablet+: 24px */
+}
+@media (min-width: 1024px) {
+  .card { padding: var(--sp-5); }  /* Desktop: 32px */
+}</span>
+
+<span class="c-bad">/* ❌ Desktop-First: schlechter Ausgangspunkt für Mobile */</span>
+<span class="c-bad">.card { padding: var(--sp-5); }  /* Desktop als Basis */</span>
+<span class="c-bad">@media (max-width: 768px) { .card { padding: var(--sp-3); } }</span></code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. TOUCH TARGETS ───────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-touch">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-touch">2. Touch Targets</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+
+      <!-- Visual demo -->
+      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-3);">
+        <div style="font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--sp-2);">Touch-Target-Größen im Vergleich</div>
+        <div class="gl-touch-demo">
+          <div class="gl-touch-item">
+            <div class="gl-touch-box" style="width:24px;height:24px;background:var(--hard-badge);">24</div>
+            <span class="gl-touch-label">⛔ Zu klein</span>
+          </div>
+          <div class="gl-touch-item">
+            <div class="gl-touch-box" style="width:36px;height:36px;background:#f59e0b;">36</div>
+            <span class="gl-touch-label">⚠ Grenzwertig</span>
+          </div>
+          <div class="gl-touch-item">
+            <div class="gl-touch-box" style="width:44px;height:44px;background:var(--arch-badge);font-size:11px;">44px</div>
+            <span class="gl-touch-label">✅ Minimum<br>(Apple HIG)</span>
+          </div>
+          <div class="gl-touch-item">
+            <div class="gl-touch-box" style="width:48px;height:48px;background:var(--accent);font-size:11px;">48px</div>
+            <span class="gl-touch-label">✅ Ideal<br>(Material)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alle interaktiven Elemente: <code style="font-family:var(--font-mono);font-size:13px;">min-height: 44px</code> auf Mobile</div>
+            <div class="gl-rule-desc">
+              Apple HIG und WCAG 2.5.5 definieren 44×44px als Mindest-Touch-Ziel.
+              Das gilt für Buttons, Links, Checkboxen, Selects, Nav-Links und alle anderen tappbaren Elemente.
+              Visuell darf das Element kleiner sein — aber der tappbare Bereich muss 44px erreichen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* ✅ Richtig: visuell klein, Touch-Area groß */</span>
+@media (max-width: 768px) {
+  .btn { min-height: <span class="c-val">44px</span>; }
+  .nav-link { min-height: <span class="c-val">44px</span>; display: flex; align-items: center; }
+  .form-select { min-height: <span class="c-val">44px</span>; }
+
+  <span class="c-cmt">/* Icon-only Buttons: padding statt min-height */</span>
+  .btn-icon { padding: <span class="c-val">10px</span>; } <span class="c-cmt">/* 24px icon + 10px * 2 = 44px */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide · Apple HIG · WCAG 2.5.5</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">touch-action: manipulation</code> auf allen Buttons</div>
+            <div class="gl-rule-desc">
+              Eliminiert den 300ms Tap-Delay auf iOS (Double-Tap-Zoom-Prävention).
+              Gilt für alle <code style="font-family:var(--font-mono);font-size:12px;">.btn</code>-Varianten, Nav-Links und alle tappbaren Custom-Elemente.
+            </div>
+            <div class="gl-code-block"><code>.btn, .nav-link, [role="button"] {
+  touch-action: <span class="c-val">manipulation</span>;
+  -webkit-tap-highlight-color: <span class="c-val">transparent</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Premium · iOS-Fixes</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hover-States nur bei echten Zeigegeräten</div>
+            <div class="gl-rule-desc">
+              Ohne diese Media-Query "klebt" der Hover-State nach einem Tap auf Touch-Geräten dauerhaft.
+              <code style="font-family:var(--font-mono);font-size:12px;">:active</code> übernimmt das visuelle Touch-Feedback ohne Media-Query.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  @media (hover: hover) and (pointer: fine) {
+      .btn:hover { background: var(--accent-hover); }
+    }</span>
+
+<span class="c-bad">❌  .btn:hover { background: var(--accent-hover); }
+    /* klebt nach Tap auf Touch — verboten */</span>
+
+<span class="c-cmt">/* :active braucht keine Media-Query — funktioniert auf Touch */</span>
+<span class="c-ok">✅  .btn:active { background: var(--color-600); }</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium · iOS-Fixes</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. IOS SAFARI FIXES ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-ios">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-ios">3. iOS Safari — Pflicht-Fixes</h2>
+        <span class="gl-section-count">6 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-warn">
+        <strong>iOS Safari verhält sich in mehreren Punkten anders als alle anderen Browser.</strong>
+        Diese Fixes müssen im globalen Reset (<code style="font-family:var(--font-mono);">base.css</code>) vorhanden sein —
+        sie sind keine optionalen Polyfills sondern notwendige Korrekturen.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">viewport-fit=cover</code> im Meta-Tag</div>
+            <div class="gl-rule-desc">
+              Ohne diesen Parameter liefert <code style="font-family:var(--font-mono);font-size:12px;">env(safe-area-inset-*)</code> immer 0 zurück.
+              iPhone Notch und Dynamic Island werden dann nicht berücksichtigt.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">&lt;meta name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #1</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Safe-Area-Insets für Notch / Dynamic Island</div>
+            <div class="gl-rule-desc">
+              Navbar und Footer müssen die Safe Areas berücksichtigen, damit Inhalte nicht unter der Notch oder dem Home-Indicator verschwinden.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Im Reset: Safe-Area-Tokens definieren */</span>
+:root {
+  --safe-top:    <span class="c-val">env(safe-area-inset-top, 0px)</span>;
+  --safe-bottom: <span class="c-val">env(safe-area-inset-bottom, 0px)</span>;
+  --safe-left:   <span class="c-val">env(safe-area-inset-left, 0px)</span>;
+  --safe-right:  <span class="c-val">env(safe-area-inset-right, 0px)</span>;
+}
+
+<span class="c-cmt">/* Navbar: oben geschützt */</span>
+.navbar {
+  padding-top: <span class="c-val">var(--safe-top)</span>;
+}
+
+<span class="c-cmt">/* Footer / fixed bottom bar: unten geschützt */</span>
+.footer-fixed {
+  padding-bottom: <span class="c-val">calc(var(--sp-3) + var(--safe-bottom))</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #7</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">-webkit-text-size-adjust: 100%</code> auf <code style="font-family:var(--font-mono);font-size:13px;">html</code></div>
+            <div class="gl-rule-desc">Verhindert automatische Schriftgrößenanpassung bei Landscape-Rotation in iOS Safari. Gehört in den globalen Reset.</div>
+            <div class="gl-code-block"><code>html {
+  -webkit-text-size-adjust: <span class="c-val">100%</span>;
+  text-size-adjust: <span class="c-val">100%</span>; <span class="c-cmt">/* Standard für zukünftige Browser */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #2</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">-webkit-tap-highlight-color: transparent</code> im Reset</div>
+            <div class="gl-rule-desc">Entfernt den blauen/grauen Flash bei jedem Tap auf iOS und Android. Ohne dieses Reset erscheint bei jedem Button-Tap ein hässlicher Highlight-Effekt.</div>
+            <div class="gl-code-block"><code>* {
+  -webkit-tap-highlight-color: <span class="c-val">transparent</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #4</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">position: -webkit-sticky</code> als Fallback für Sticky-Elemente</div>
+            <div class="gl-rule-desc">iOS Safari benötigt vor Version 13 das Webkit-Prefix. Beide Varianten immer zusammen schreiben.</div>
+            <div class="gl-code-block"><code>.navbar {
+  position: <span class="c-val">-webkit-sticky</span>; <span class="c-cmt">/* iOS Safari &lt; 13 */</span>
+  position: <span class="c-val">sticky</span>;
+  top: <span class="c-val">0</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #6</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">:focus-visible</code> Fallback für Safari &lt; 15.4</div>
+            <div class="gl-rule-desc">iOS Safari unterstützt <code style="font-family:var(--font-mono);font-size:12px;">:focus-visible</code> erst ab Version 15.4. Für ältere Versionen mit <code style="font-family:var(--font-mono);font-size:12px;">@supports not</code> als Fallback absichern.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Primär: :focus-visible (moderne Browser) */</span>
+.btn:focus-visible {
+  outline: none;
+  box-shadow: <span class="c-val">var(--focus-ring)</span>;
+}
+
+<span class="c-cmt">/* Fallback: :focus für Safari &lt; 15.4 */</span>
+@supports not selector(:focus-visible) {
+  .btn:focus {
+    outline: none;
+    box-shadow: <span class="c-val">var(--focus-ring)</span>;
+  }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #11</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 4. SCROLL & OVERFLOW ───────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-scroll">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-scroll">4. Scroll &amp; Overflow</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Horizontaler Scroll auf der Seite: immer verhindern</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">overflow-x: hidden</code> auf <code style="font-family:var(--font-mono);font-size:12px;">body</code> ist der erste Schutzmechanismus.
+              Ursache ist fast immer ein Element das breiter als <code style="font-family:var(--font-mono);font-size:12px;">100vw</code> wird — häufig Code-Blöcke oder Tabellen ohne Wrapper.
+            </div>
+            <div class="gl-code-block"><code>body { overflow-x: <span class="c-val">hidden</span>; }
+
+<span class="c-cmt">/* Horizontale Scroll-Container explizit erlauben */</span>
+.table-wrapper,
+.code-scroll {
+  overflow-x: <span class="c-val">auto</span>;
+  -webkit-overflow-scrolling: <span class="c-val">touch</span>; <span class="c-cmt">/* Momentum Scroll auf iOS */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide · iOS-Fixes</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Drawers und Modals: Body-Scroll sperren beim Öffnen</div>
+            <div class="gl-rule-desc">
+              Wenn ein Modal oder Drawer offen ist, muss Scrollen auf der Hauptseite verhindert werden.
+              Die einfachste zuverlässige Methode auf iOS:
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Body-Scroll sperren */</span>
+<span class="c-key">function</span> lockScroll() {
+  document.body.style.overflow = <span class="c-val">'hidden'</span>;
+}
+<span class="c-key">function</span> unlockScroll() {
+  document.body.style.overflow = <span class="c-val">''</span>;
+}
+
+<span class="c-cmt">/* WICHTIG: bei Drawer/Modal open/close aufrufen */</span>
+<span class="c-ok">MyDrawer.open  → lockScroll()</span>
+<span class="c-ok">MyDrawer.close → unlockScroll()</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">overscroll-behavior: contain</code> in scrollbaren Panels</div>
+            <div class="gl-rule-desc">
+              Verhindert dass Scroll aus einem Drawer/Modal auf die Hauptseite überläuft (Scroll-Chaining).
+              Besonders auf iOS und Android wichtig.
+            </div>
+            <div class="gl-code-block"><code>.drawer-content,
+.modal-body,
+.scrollable-panel {
+  overflow-y: <span class="c-val">auto</span>;
+  overscroll-behavior: <span class="c-val">contain</span>;
+  -webkit-overflow-scrolling: <span class="c-val">touch</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Smooth Scroll nur wenn keine reduced-motion Präferenz</div>
+            <div class="gl-rule-desc">iOS Safari unterstützt <code style="font-family:var(--font-mono);font-size:12px;">scroll-behavior: smooth</code> erst ab Version 15.4. Immer in die reduced-motion Media-Query einbetten.</div>
+            <div class="gl-code-block"><code>@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: <span class="c-val">smooth</span>; }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #3 · StyleGuide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 5. RESPONSIVE KOMPONENTEN ─────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-comp-mobile">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-comp-mobile">5. Responsive Komponenten</h2>
+        <span class="gl-section-count">5 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Navbar auf Mobile: Hamburger-Menü — keine horizontale Linkliste</div>
+            <div class="gl-rule-desc">
+              Ab 768px werden Desktop-Navbar-Links ausgeblendet und durch ein Hamburger-Icon mit Drawer ersetzt.
+              Der Drawer öffnet sich von oben oder von der Seite, nimmt die volle Breite ein und sperrt den Body-Scroll.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Pattern: Desktop-Links verstecken, Toggle zeigen */</span>
+.nav-links  { display: <span class="c-val">flex</span>; }
+.nav-toggle { display: <span class="c-val">none</span>; }
+
+@media (max-width: 768px) {
+  .nav-links  { display: <span class="c-val">none</span>; }
+  .nav-toggle { display: <span class="c-val">flex</span>; }
+  .nav-mobile { <span class="c-cmt">/* Drawer: full-width, fixed */</span> }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide · Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Tabellen: horizontaler Scroll-Wrapper auf Mobile</div>
+            <div class="gl-rule-desc">
+              Tabellen werden auf kleinen Screens nicht gequetscht — sie bekommen einen scrollbaren Wrapper.
+              Keine <code style="font-family:var(--font-mono);font-size:12px;">table-layout: fixed</code> auf Mobile ohne Scroll-Container.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Immer: Tabelle in Wrapper einschließen */</span>
+&lt;div class="table-wrapper"&gt;
+  &lt;table class="table"&gt;...&lt;/table&gt;
+&lt;/div&gt;
+
+.table-wrapper {
+  overflow-x: <span class="c-val">auto</span>;
+  -webkit-overflow-scrolling: <span class="c-val">touch</span>;
+  border-radius: <span class="c-val">var(--radius-md)</span>;
+  border: <span class="c-val">1px solid var(--border)</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Form-Inputs: font-size ≥ 16px verhindert iOS-Zoom</div>
+            <div class="gl-rule-desc">
+              iOS Safari zoomt automatisch hinein wenn ein Input den Fokus erhält und <code style="font-family:var(--font-mono);font-size:12px;">font-size</code> kleiner als 16px ist.
+              Alle <code style="font-family:var(--font-mono);font-size:12px;">input</code>, <code style="font-family:var(--font-mono);font-size:12px;">textarea</code>, <code style="font-family:var(--font-mono);font-size:12px;">select</code> müssen mindestens 16px haben.
+            </div>
+            <div class="gl-code-block"><code>input, textarea, select {
+  font-size: <span class="c-ok">var(--text-body)</span>; <span class="c-cmt">/* 16px — verhindert iOS-Zoom */</span>
+}
+
+<span class="c-bad">/* ❌ Führt zu ungewolltem Zoom auf iOS: */</span>
+<span class="c-bad">input { font-size: 14px; }</span></code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Spezifikation</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Drawers: <code style="font-family:var(--font-mono);font-size:13px;">transform</code> statt <code style="font-family:var(--font-mono);font-size:13px;">left/right/top</code> animieren</div>
+            <div class="gl-rule-desc">
+              Layout-Properties (<code style="font-family:var(--font-mono);font-size:12px;">left</code>, <code style="font-family:var(--font-mono);font-size:12px;">top</code>) triggern Layout-Berechnungen — performanceintensiv auf Mobile.
+              Immer <code style="font-family:var(--font-mono);font-size:12px;">transform: translateX()</code> für Drawer-Animationen.
+            </div>
+            <div class="gl-code-block"><code>.drawer {
+  position: <span class="c-val">fixed</span>;
+  right: <span class="c-val">0</span>; top: <span class="c-val">0</span>; bottom: <span class="c-val">0</span>;
+  width: <span class="c-val">min(480px, 100vw)</span>;  <span class="c-cmt">/* max 480px, aber nie breiter als Viewport */</span>
+  transform: <span class="c-val">translateX(100%)</span>;     <span class="c-cmt">/* Hidden: aus dem Viewport */</span>
+  transition: transform <span class="c-val">200ms ease</span>;
+  will-change: <span class="c-val">transform</span>;
+}
+.drawer.is-open {
+  transform: <span class="c-val">translateX(0)</span>;       <span class="c-cmt">/* Sichtbar */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Cards auf Mobile: volle Breite statt Grid</div>
+            <div class="gl-rule-desc">
+              Card-Grids die auf Desktop 3 oder mehr Spalten haben, reduzieren auf Mobile auf 1 Spalte.
+              Tablet (≥ 768px): 2 Spalten. Desktop (≥ 1024px): Original-Grid.
+            </div>
+            <div class="gl-code-block"><code>.card-grid {
+  display: <span class="c-val">grid</span>;
+  grid-template-columns: <span class="c-val">1fr</span>;           <span class="c-cmt">/* Mobile: 1 Spalte */</span>
+  gap: <span class="c-val">var(--sp-3)</span>;
+}
+@media (min-width: 768px) {
+  .card-grid { grid-template-columns: <span class="c-val">repeat(2, 1fr)</span>; }
+}
+@media (min-width: 1024px) {
+  .card-grid { grid-template-columns: <span class="c-val">repeat(3, 1fr)</span>; }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">StyleGuide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 6. LOGICAL PROPERTIES ──────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-logical">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-logical">6. Logical Properties &amp; RTL</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Logical Properties bevorzugen + physikalischen Fallback davor</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">padding-inline</code>, <code style="font-family:var(--font-mono);font-size:12px;">margin-block</code> etc. sind RTL-fähig.
+              iOS 14.0 unterstützt sie vollständig, darunter braucht es Fallbacks.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Richtig: physikalischer Fallback + logical override */</span>
+.container {
+  padding-left: <span class="c-val">var(--sp-5)</span>;    <span class="c-cmt">/* Fallback */</span>
+  padding-right: <span class="c-val">var(--sp-5)</span>;
+  padding-inline: <span class="c-val">var(--sp-5)</span>;   <span class="c-cmt">/* Überschreibt bei Support */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE · iOS-Fixes #9</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">CSS Grid: <code style="font-family:var(--font-mono);font-size:13px;">grid-gap</code> und <code style="font-family:var(--font-mono);font-size:13px;">gap</code> zusammen schreiben</div>
+            <div class="gl-rule-desc"><code style="font-family:var(--font-mono);font-size:12px;">gap</code> in CSS Grid ist erst ab iOS 12 stabil. Für breitere Kompatibilität beide Properties schreiben.</div>
+            <div class="gl-code-block"><code>.grid {
+  grid-gap: <span class="c-val">var(--sp-3)</span>;   <span class="c-cmt">/* Fallback iOS &lt; 12 */</span>
+  gap: <span class="c-val">var(--sp-3)</span>;        <span class="c-cmt">/* Standard */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #10</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 7. VOLLSTÄNDIGER BASE.CSS MOBILE RESET ─────────── -->
+    <section class="gl-section" aria-labelledby="sec-reset">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-reset">7. Vollständiger Mobile-Reset (base.css)</h2>
+      </div>
+      <div class="gl-callout gl-callout-ok">
+        <strong>Dieser Block gehört in base.css</strong> — er muss auf jeder Seite geladen werden.
+        Er fasst alle Pflicht-Fixes aus den vorherigen Sektionen zusammen.
+      </div>
+      <div class="gl-code-block"><code><span class="c-cmt">/* ════════════════════════════════════════════════════════
+   Mobile Reset — base.css
+   Alle Pflicht-Fixes für Mobile Browser
+   ════════════════════════════════════════════════════════ */</span>
+
+<span class="c-cmt">/* 1. Box model + Tap-Highlight */</span>
+*, *::before, *::after {
+  box-sizing: <span class="c-val">border-box</span>;
+  margin: <span class="c-val">0</span>; padding: <span class="c-val">0</span>;
+  -webkit-tap-highlight-color: <span class="c-val">transparent</span>;
+}
+
+<span class="c-cmt">/* 2. iOS Safari text-size-adjust */</span>
+html {
+  -webkit-text-size-adjust: <span class="c-val">100%</span>;
+  text-size-adjust: <span class="c-val">100%</span>;
+}
+
+<span class="c-cmt">/* 3. Smooth Scroll nur ohne reduced-motion */</span>
+@media (prefers-reduced-motion: no-preference) {
+  html { scroll-behavior: <span class="c-val">smooth</span>; }
+}
+
+<span class="c-cmt">/* 4. Body: no horizontal overflow */</span>
+body {
+  overflow-x: <span class="c-val">hidden</span>;
+  min-height: <span class="c-val">100vh</span>;
+  min-height: <span class="c-val">-webkit-fill-available</span>; <span class="c-cmt">/* iOS 100vh fix */</span>
+}
+
+<span class="c-cmt">/* 5. Touch-Targets: Buttons, Links */</span>
+button, [role="button"], a, input, select, textarea {
+  touch-action: <span class="c-val">manipulation</span>;
+}
+
+<span class="c-cmt">/* 6. Inputs: font-size ≥ 16px → kein iOS-Zoom */</span>
+input, textarea, select {
+  font-size: <span class="c-val">max(16px, 1rem)</span>;
+}
+
+<span class="c-cmt">/* 7. Sticky: Webkit-Prefix Fallback */</span>
+.is-sticky {
+  position: <span class="c-val">-webkit-sticky</span>;
+  position: <span class="c-val">sticky</span>;
+}
+
+<span class="c-cmt">/* 8. Focus-Visible Fallback für Safari &lt; 15.4 */</span>
+@supports not selector(:focus-visible) {
+  *:focus { outline: none; box-shadow: <span class="c-val">var(--focus-ring)</span>; }
+}
+
+<span class="c-cmt">/* 9. Safe-Area-Insets (benötigt viewport-fit=cover im meta-Tag) */</span>
+:root {
+  --safe-top:    <span class="c-val">env(safe-area-inset-top,    0px)</span>;
+  --safe-bottom: <span class="c-val">env(safe-area-inset-bottom, 0px)</span>;
+  --safe-left:   <span class="c-val">env(safe-area-inset-left,   0px)</span>;
+  --safe-right:  <span class="c-val">env(safe-area-inset-right,  0px)</span>;
+}</code></div>
+    </section>
+
+    <!-- ── 8. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-mobile-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-mobile-forbidden">8. Verbotene Mobile-Muster</h2>
+        <span class="gl-section-count">5 Einträge</span>
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hover-States ohne <code style="font-family:var(--font-mono);font-size:13px;">@media (hover: hover)</code></div>
+            <div class="gl-rule-desc">Klebt nach dem Tap dauerhaft. Jeder <code style="font-family:var(--font-mono);font-size:12px;">:hover</code>-State muss in die hover-Media-Query eingeschlossen sein.</div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #5</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Input font-size unter 16px</div>
+            <div class="gl-rule-desc">Triggert automatischen iOS-Zoom beim Fokus. Immer <code style="font-family:var(--font-mono);font-size:12px;">max(16px, 1rem)</code> für Inputs.</div>
+          </div>
+          <span class="gl-rule-source">iOS-Spezifikation</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">overflow: hidden</code> auf einem Scroll-Container-Parent</div>
+            <div class="gl-rule-desc">Bricht <code style="font-family:var(--font-mono);font-size:12px;">position: sticky</code> für alle Kinder. Immer <code style="font-family:var(--font-mono);font-size:12px;">overflow: clip</code> prüfen oder das Layout umstrukturieren.</div>
+          </div>
+          <span class="gl-rule-source">iOS-Fixes #12</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Tabellen ohne horizontalen Scroll-Wrapper</div>
+            <div class="gl-rule-desc">Erzeugt horizontalen Page-Scroll. Jede Tabelle braucht einen <code style="font-family:var(--font-mono);font-size:12px;">.table-wrapper</code> mit <code style="font-family:var(--font-mono);font-size:12px;">overflow-x: auto</code>.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Layout-Animationen (<code style="font-family:var(--font-mono);font-size:13px;">left</code>, <code style="font-family:var(--font-mono);font-size:13px;">top</code>, <code style="font-family:var(--font-mono);font-size:13px;">width</code>) statt <code style="font-family:var(--font-mono);font-size:13px;">transform</code></div>
+            <div class="gl-rule-desc">Triggert Layout-Recalculations und ist auf Mobile-CPUs deutlich langsamer. Immer <code style="font-family:var(--font-mono);font-size:12px;">transform</code> und <code style="font-family:var(--font-mono);font-size:12px;">opacity</code>.</div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_MOBILE.html · Stand: März 2026 · Neue Guideline — ergänzt GUIDELINE_NEW_STYLING.html um alle Mobile-spezifischen Regeln</span>
+      <span class="gl-footer-text">← <a href="GUIDELINE_NEW_STYLING.html">Zurück: Styling</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+</body>
+</html>

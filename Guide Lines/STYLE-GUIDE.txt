@@ -1,0 +1,327 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                        myBio Style Guide 2026                               ║
+║                    Konventionen & Best Practices                            ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 1. CSS KONVENTIONEN                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[1.1] Struktur
+──────────────────────────────────────────────────────────────────────────────
+CSS-Dateien sind in Sektionen unterteilt:
+
+/* ─── Reset ─────────────────────────────────────────── */
+/* ─── Tokens ─────────────────────────────────────────── */
+/* ─── Base ───────────────────────────────────────────── */
+/* ─── Layout ─────────────────────────────────────────── */
+/* ─── [Komponente] ───────────────────────────────────── */
+
+[1.2] Naming Conventions]
+──────────────────────────────────────────────────────────────────────────────
+BEM-ähnlich, aber vereinfacht:
+
+.komponente                    /* Block */
+.komponente-element            /* Element */
+.komponente-modifikator        /* Modifikator */
+
+Beispiele:
+.nav                          /* Navigation */
+.nav-brand                    /* Brand Logo */
+.nav-link                     /* Link */
+.nav-link--btn                /* Link als Button */
+.nav-link--lang               /* Sprachschalter */
+
+[1.3] Token-Nutzung]
+──────────────────────────────────────────────────────────────────────────────
+✅ Richtig:  Verwende immer Tokens
+  color: var(--text-primary);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+
+❌ Falsch:   Keine Hardcodierten Werte
+  color: #060f1c;
+  padding: 24px;
+  border-radius: 16px;
+
+Ausnahme: Hex-Werte in :root Definition der Tokens
+
+[1.4] Logical Properties]
+──────────────────────────────────────────────────────────────────────────────
+Verwende logical properties für RTL-Support:
+
+✅ Richtig:
+  padding-inline: var(--space-5);
+  margin-block: var(--space-4);
+
+❌ Falsch:
+  padding-left: var(--space-5);
+  margin-top: var(--space-4);
+
+Fallback für ältere Browser:
+  padding-left: var(--space-5);
+  padding-right: var(--space-5);
+  padding-inline: var(--space-5);
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 2. HTML KONVENTIONEN                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[2.1] Struktur
+──────────────────────────────────────────────────────────────────────────────
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Seitentitel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="dateiname.css">
+</head>
+<body>
+  <!-- Content -->
+  <script src="dateiname.js" defer></script>
+</body>
+</html>
+
+[2.2] i18n Attributes
+──────────────────────────────────────────────────────────────────────────────
+data-i18n          - Text Content
+data-i18n-html     - HTML Content (z.B. <br>)
+data-i18n-aria     - ARIA Labels
+data-i18n-placeholder - Placeholder für Inputs
+
+Beispiele:
+<h1 data-i18n-html="hero.headline">Hallo,<br>ich bin dabei.</h1>
+<p data-i18n="hero.sub">90 Sekunden...</p>
+<button aria-label data-i18n-aria="drawer.close">✕</button>
+<input data-i18n-placeholder="field.label" placeholder="Name">
+
+[2.3] Accessibility
+──────────────────────────────────────────────────────────────────────────────
+- Semantic Tags: <nav>, <section>, <footer>, <aside>
+- ARIA Labels für interaktive Elemente ohne Text
+- aria-labelledby für Sections
+- role="dialog" und aria-modal für Modals/Drawers
+- tabindex="-1" für initially hidden elements
+- tabindex="0" für focusable custom elements
+
+<nav aria-label="Hauptnavigation">
+<section aria-labelledby="hero-headline">
+<aside role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 3. JAVASCRIPT KONVENTIONEN                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[3.1] IIFE Pattern]
+──────────────────────────────────────────────────────────────────────────────
+Alle Scripts in IIFE wrapped, um global Scope nicht zu verschmutzen:
+
+(function () {
+  'use strict';
+
+  // Code hier
+
+}());
+
+[3.2] Var vs Let/Const]
+──────────────────────────────────────────────────────────────────────────────
+Verwende var für konsistentes Verhalten in älteren Browsern.
+ES6+ Features sind OK, wenn sie polyfilled werden können.
+
+[3.3] Event Delegation]
+──────────────────────────────────────────────────────────────────────────────
+Für dynamisch geladene Elements Event Delegation verwenden:
+
+document.addEventListener('click', function (e) {
+  if (e.target.matches('.btn-close')) {
+    closeDrawer();
+  }
+});
+
+[3.4] localStorage Handling]
+──────────────────────────────────────────────────────────────────────────────
+Immer try-catch für localStorage (Private Browsing Mode):
+
+try {
+  localStorage.setItem('key', 'value');
+} catch (e) {
+  // Silent fail
+}
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 4. DATEI-ORGANISATION                                                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[4.1] Naming Convention]
+──────────────────────────────────────────────────────────────────────────────
+HTML:  name-theme.html       (index-premium-dark.html)
+CSS:   name-theme.css        (index-premium-dark.css)
+JS:    name-theme.js         (index-premium-dark.js)
+
+Oder:
+HTML:  name.html             (profile.html)
+CSS:   name.css              (profile.css)
+JS:    name.js               (profile.js)
+
+Templates:
+template-name.html    (template-nav.html)
+template-name-dark.html
+
+[4.2] Trennung der Concerns]
+──────────────────────────────────────────────────────────────────────────────
+✅ Richtig:
+- HTML = Struktur
+- CSS  = Styling
+- JS   = Verhalten
+
+❌ Falsch:
+- Inline Styles (style="...")
+- Inline Scripts (<script>...</script> im HTML body)
+- Style Tags im HTML (<style>...</style>)
+
+Ausnahme: kleine Critical CSS im head für Performance
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 5. THEME SWITCHING                                                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[5.1] Semantic Aliases]
+──────────────────────────────────────────────────────────────────────────────
+Light Theme (index-premium.css):
+:root {
+  --bg-base:        var(--neutral-50);
+  --bg-surface:     var(--neutral-0);
+  --text-primary:   var(--color-900);
+}
+
+Dark Theme (index-premium-dark.css):
+:root {
+  --bg-base:        var(--color-900);
+  --bg-surface:     var(--color-800);
+  --text-primary:   var(--color-50);
+}
+
+Alle Komponenten verwenden die Aliases, nicht die direkten Farben!
+
+[5.2] Theme-Switch Implementation]
+──────────────────────────────────────────────────────────────────────────────
+Option A: Separate HTML-Dateien (aktuell verwendet)
+- index-premium.html (Light)
+- index-premium-dark.html (Dark)
+
+Option B: Theme Toggle via data-attribute
+<body data-theme="dark">
+[data-theme="dark"] {
+  --bg-base: var(--color-900);
+}
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 6. TEMPLATING                                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[6.1] Template Loading]
+──────────────────────────────────────────────────────────────────────────────
+Verwende template-loader.js für wiederkehrende Elemente:
+
+TemplateLoader.loadNavigation('#navContainer', [
+  {text: 'Über mich', href: '#about', i18n: 'nav.about'},
+  {text: 'Video', href: '#video', i18n: 'nav.video'}
+], isDark);
+
+TemplateLoader.loadFooter('#footerContainer', isDark);
+
+[6.2] Template Structure]
+──────────────────────────────────────────────────────────────────────────────
+Templates sollten minimal sein und nur das Markup enthalten.
+Keine Scripts, keine Styles, nur data-i18n Attribute.
+
+<!-- template-nav.html -->
+<nav class="nav" aria-label="Hauptnavigation">
+  <a href="#" class="nav-brand" data-i18n="nav.brand">WG Berlin</a>
+  <ul class="nav-links" id="navLinks">
+    <!-- Dynamically populated -->
+  </ul>
+</nav>
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 7. RESPONSIVE DESIGN                                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[7.1] Mobile First vs Desktop First]
+──────────────────────────────────────────────────────────────────────────────
+Aktuell: Desktop First mit Media Queries für Mobile
+
+@media (max-width: 1024px) { /* Tablet */ }
+@media (max-width: 768px)  { /* Mobile */ }
+@media (max-width: 480px)  { /* Small Mobile */ }
+
+[7.2] Breakpoints]
+──────────────────────────────────────────────────────────────────────────────
+1024px - Tablet (andscape)
+768px  - Tablet (portrait) / Mobile (landscape)
+480px  - Mobile (portrait)
+
+[7.3] Responsive Tokens]
+──────────────────────────────────────────────────────────────────────────────
+Überschreibe Tokens in Media Queries statt Komponenten-Styles:
+
+@media (max-width: 1024px) {
+  :root {
+    --text-display: 40px;
+    --leading-display: 48px;
+  }
+}
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ 8. BEST PRACTICES                                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[8.1] Performance]
+──────────────────────────────────────────────────────────────────────────────
+- Deferred Scripts: <script src="..." defer></script>
+- Preconnect für Fonts: Google Fonts CDN
+- will-change für Animationen (drawer transform)
+- Overscroll-behavior-y: contain für Drawer
+
+[8.2] Touch Optimierung]
+──────────────────────────────────────────────────────────────────────────────
+- Min-Height 44px für touch targets (Buttons, Links)
+- touch-action: manipulation für Buttons
+- -webkit-tap-highlight-color: transparent im Reset
+
+[8.3] Cross-Browser]
+──────────────────────────────────────────────────────────────────────────────
+- -webkit-sticky für Safari
+- @supports not selector(:focus-visible) für ältere Browser
+- env() für Safe Area Insets mit Fallback
+
+[8.4] Code Quality]
+──────────────────────────────────────────────────────────────────────────────
+- Keine !important außer für Utilities
+- Keine Magic Numbers
+- Konsistente Einrückung (2 spaces)
+- Kommentare für Sektionen
+
+═══════════════════════════════════════════════════════════════════════════════
+
+CHECKLISTE FÜR NEUE KOMPONENTEN:
+
+□ Tokens verwenden (keine Hardcodierten Werte)
+□ Logical Properties + Fallback
+□ Semantic HTML Tags
+□ ARIA Labels/Attributes
+□ data-i18n für Texte
+□ Focus Styling (:focus-visible)
+□ Hover States (@media (hover: hover))
+□ Active States
+□ Responsive Breakpoints
+□ Mobile Touch Targets (min 44px)
+□ Reduced Motion Support
+
+═══════════════════════════════════════════════════════════════════════════════
+ENDE DES STYLE GUIDES
+═══════════════════════════════════════════════════════════════════════════════

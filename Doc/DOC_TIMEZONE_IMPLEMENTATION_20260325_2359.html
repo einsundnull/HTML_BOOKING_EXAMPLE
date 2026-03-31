@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="doc-created" content="2026-03-25T23:59">
+  <meta name="doc-type" content="DOC">
+  <meta name="doc-subject" content="Zeitzonenkonvertierung — Implementierung">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOC — Zeitzonenkonvertierung 2026-03-25</title>
+  <style>
+    :root {
+      --font: 'Figtree', sans-serif;
+      --color-900: #060f1c; --color-800: #0f2035; --color-700: #1a3249;
+      --color-400: #4d7aa0; --color-200: #bccada; --color-100: #dde4ed; --color-50: #f0f3f7;
+      --neutral-0: #ffffff; --neutral-50: #f8f9fb; --neutral-100: #f0f2f5;
+      --neutral-200: #e2e6eb; --neutral-400: #9aa3af; --neutral-500: #6b7685;
+      --neutral-600: #505a68; --neutral-700: #2d3540; --neutral-900: #0d1117;
+      --sp-1:4px; --sp-2:8px; --sp-3:16px; --sp-4:24px; --sp-5:32px; --sp-6:48px;
+      --radius:8px; --radius-lg:16px;
+      --shadow: 0 1px 3px rgba(6,15,28,0.08);
+      --text-heading:24px; --text-large:20px; --text-body:16px; --text-small:14px; --text-caption:12px;
+      --weight-semibold:600;
+      --ok:#1e6b3a; --ok-bg:#e8f5ee; --ok-border:#a3d4b5;
+      --info:#1a3d6b; --info-bg:#e8f0fa; --info-border:#a0bce8;
+      --warn:#7a4f00; --warn-bg:#fff4e0; --warn-border:#f0c060;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family: var(--font,'Figtree',sans-serif); font-size:var(--text-body); color:var(--neutral-900); background:var(--neutral-50); padding:var(--sp-5); line-height:1.6; }
+    .shell { max-width:1100px; margin:0 auto; }
+
+    /* Header */
+    .doc-header { background:var(--color-900); color:#fff; border-radius:var(--radius); padding:var(--sp-5); margin-bottom:var(--sp-5); }
+    .doc-header h1 { font-size:var(--text-large); font-weight:var(--weight-semibold); margin-bottom:var(--sp-2); }
+    .doc-meta { font-size:var(--text-caption); color:var(--color-200); }
+    .doc-meta span { margin-right:var(--sp-3); }
+
+    /* Sections */
+    .section { background:var(--neutral-0); border:1px solid var(--neutral-200); border-radius:var(--radius); margin-bottom:var(--sp-4); overflow:hidden; box-shadow:var(--shadow); }
+    .section-title { background:var(--neutral-50); border-bottom:1px solid var(--neutral-200); padding:var(--sp-3) var(--sp-4); font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); }
+    .section-body { padding:var(--sp-4); }
+    .section-body p { margin-bottom:var(--sp-3); font-size:var(--text-small); color:var(--neutral-700); }
+    .section-body p:last-child { margin-bottom:0; }
+
+    /* Code */
+    pre { font-family:'JetBrains Mono','Courier New',monospace; font-size:13px; background:var(--color-900); color:#c8d8e8; border-radius:var(--radius); padding:var(--sp-3) var(--sp-4); overflow-x:auto; margin:var(--sp-3) 0; line-height:1.6; }
+    code { font-family:'JetBrains Mono','Courier New',monospace; font-size:12px; background:var(--neutral-100); border:1px solid var(--neutral-200); border-radius:4px; padding:1px 5px; }
+    .hl { color:#f0c060; } .ok { color:#7dd3a8; } .cm { color:#7a9ec0; } .kw { color:#c792ea; }
+
+    /* Table */
+    table { width:100%; border-collapse:collapse; font-size:var(--text-small); margin:var(--sp-3) 0; }
+    th { background:var(--neutral-50); border:1px solid var(--neutral-200); padding:var(--sp-2) var(--sp-3); text-align:left; font-weight:var(--weight-semibold); color:var(--color-800); }
+    td { border:1px solid var(--neutral-200); padding:var(--sp-2) var(--sp-3); vertical-align:top; }
+    tr:nth-child(even) td { background:#fafbfc; }
+
+    /* Callouts */
+    .callout { border-radius:var(--radius); padding:var(--sp-3) var(--sp-4); margin:var(--sp-3) 0; font-size:var(--text-small); }
+    .c-ok   { background:var(--ok-bg);   border:1px solid var(--ok-border);   color:var(--ok); }
+    .c-info { background:var(--info-bg); border:1px solid var(--info-border); color:var(--info); }
+    .c-warn { background:var(--warn-bg); border:1px solid var(--warn-border); color:var(--warn); }
+    .callout strong { font-weight:var(--weight-semibold); }
+
+    /* Flow diagram */
+    .flow { display:flex; flex-direction:column; gap:var(--sp-2); margin:var(--sp-3) 0; }
+    .flow-row { display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+    .flow-box { background:var(--color-50); border:1px solid var(--color-200); border-radius:var(--radius); padding:var(--sp-2) var(--sp-3); font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); white-space:nowrap; }
+    .flow-box.utc { background:var(--ok-bg); border-color:var(--ok-border); color:var(--ok); }
+    .flow-box.local { background:var(--info-bg); border-color:var(--info-border); color:var(--info); }
+    .flow-arrow { color:var(--neutral-400); font-size:18px; }
+    .flow-label { font-size:11px; color:var(--neutral-500); }
+
+    /* Badge */
+    .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:var(--weight-semibold); white-space:nowrap; }
+    .b-utc   { background:var(--ok-bg);   color:var(--ok);   border:1px solid var(--ok-border); }
+    .b-local { background:var(--info-bg); color:var(--info); border:1px solid var(--info-border); }
+    .b-warn  { background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-border); }
+
+    h2 { font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); margin-bottom:var(--sp-2); margin-top:var(--sp-3); }
+    h2:first-child { margin-top:0; }
+    ul { padding-left:var(--sp-4); font-size:var(--text-small); color:var(--neutral-700); }
+    ul li { margin-bottom:var(--sp-1); }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="shell">
+
+  <header class="doc-header">
+    <h1>Dokumentation — Zeitzonenkonvertierung</h1>
+    <div class="doc-meta">
+      <span>Typ: DOC</span>
+      <span>Erstellt: <time datetime="2026-03-25T23:59">25. März 2026, 23:59</time></span>
+      <span>Dateien: <code style="background:rgba(255,255,255,.1);border:none;color:#fff">timezone-service.js</code> · <code style="background:rgba(255,255,255,.1);border:none;color:#fff">adapter-localstorage.js</code> · <code style="background:rgba(255,255,255,.1);border:none;color:#fff">ui.js</code> · <code style="background:rgba(255,255,255,.1);border:none;color:#fff">teacher.js</code> · <code style="background:rgba(255,255,255,.1);border:none;color:#fff">student.js</code></span>
+    </div>
+  </header>
+
+  <!-- 1. Modell -->
+  <div class="section">
+    <div class="section-title">1 — Grundprinzip: UTC-Anchored Absolute Time</div>
+    <div class="section-body">
+      <p>Das System verwendet das <strong>UTC-anchored Absolute Time Model</strong> (auch: Fixed Time Model). Alle Zeiten werden intern als UTC gespeichert und sind timezone-unabhängig. Die Anzeige wird zur Laufzeit in die Lokalzeit des jeweiligen Betrachters konvertiert — niemals die gespeicherte Zeit selbst.</p>
+
+      <div class="callout c-ok">
+        <strong>Kernregel:</strong> Eine gespeicherte Zeit ändert sich nie. Nur die Anzeige ändert sich je nach Timezone des Betrachters. Das ist identisch zum Verhalten von Kalender-Systemen wie Google Calendar (bei „specific time"-Events).
+      </div>
+
+      <h2>Beispiel</h2>
+      <table>
+        <thead><tr><th>Aktion</th><th>UTC (gespeichert)</th><th>Teacher sieht (Georgia UTC+4)</th><th>Student sieht (Berlin UTC+1)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Teacher in Georgia setzt Slot</td>
+            <td><span class="badge b-utc">08:30 UTC</span></td>
+            <td>12:30 (lokal)</td>
+            <td>09:30 (lokal)</td>
+          </tr>
+          <tr>
+            <td>Teacher zieht nach Berlin, stellt TZ um</td>
+            <td><span class="badge b-utc">08:30 UTC</span> — unverändert</td>
+            <td>09:30 (lokal Berlin)</td>
+            <td>09:30 (lokal) — unverändert</td>
+          </tr>
+          <tr>
+            <td>Student ändert seine TZ von Berlin auf Tokyo (UTC+9)</td>
+            <td><span class="badge b-utc">08:30 UTC</span> — unverändert</td>
+            <td>09:30 (lokal Berlin) — unverändert</td>
+            <td>17:30 (lokal Tokyo)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. Datenschema -->
+  <div class="section">
+    <div class="section-title">2 — Datenschema</div>
+    <div class="section-body">
+      <h2>Slot</h2>
+      <pre><span class="cm">/* app_slots — jeder Slot speichert UTC-Zeit */</span>
+{
+  slotId:    <span class="ok">'slot_abc123'</span>,
+  teacherId: <span class="ok">'u_teacher_1'</span>,
+  studentId: <span class="ok">null</span>,          <span class="cm">/* null = verfügbar */</span>
+  date:      <span class="ok">'2026-03-26'</span>,   <span class="cm">/* ISO 8601, immer UTC-Datum */</span>
+  <span class="hl">time:      '08:30',</span>        <span class="cm">/* UTC "HH:MM" — niemals lokale Zeit */</span>
+  status:    <span class="ok">'available'</span>,
+  baseStatus:<span class="ok">'available'</span>
+}</pre>
+
+      <h2>Recurring Rule</h2>
+      <pre><span class="cm">/* app_recurring — Recurring Rules speichern ebenfalls UTC */</span>
+{
+  recurringId: <span class="ok">'rec_xyz'</span>,
+  teacherId:   <span class="ok">'u_teacher_1'</span>,
+  dayOfWeek:   <span class="ok">0</span>,            <span class="cm">/* 0=Montag … 6=Sonntag */</span>
+  <span class="hl">time:        '08:30'</span>        <span class="cm">/* UTC "HH:MM" — absolut, unveränderlich */</span>
+}</pre>
+
+      <div class="callout c-info">
+        <strong>Wichtig:</strong> <code>rule.time</code> ist UTC — kein IANA-Timezone-Kontext gespeichert. Wenn der Teacher seine Timezone ändert, bleibt die Rule unverändert. Der Slot erscheint für den Teacher zu einer anderen Lokalzeit, aber der UTC-Wert — und damit der Zeitpunkt — bleibt identisch.
+      </div>
+
+      <h2>Profile (Timezone)</h2>
+      <pre><span class="cm">/* ProfileStore — IANA-Timezone für Display-Konvertierung */</span>
+{
+  uid:      <span class="ok">'u_teacher_1'</span>,
+  <span class="hl">timezone: 'Europe/Berlin'</span>  <span class="cm">/* IANA-String, optional. Leer = Browser-TZ */</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- 3. TimezoneService -->
+  <div class="section">
+    <div class="section-title">3 — TimezoneService (timezone-service.js)</div>
+    <div class="section-body">
+      <p>Alle Timezone-Operationen gehen über <code>TimezoneService</code>. Die Konvertierung verwendet den nativen <code>toLocaleString</code>-Trick ohne externe Bibliothek — DST-korrekt per Datum.</p>
+
+      <table>
+        <thead><tr><th>Methode</th><th>Signatur</th><th>Rückgabe</th><th>Verwendung</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>getUserTimezone(uid)</code></td>
+            <td><code>(uid) → string</code></td>
+            <td>IANA-String oder Browser-TZ</td>
+            <td>Alle Caller — Einstiegspunkt für TZ-Lookup</td>
+          </tr>
+          <tr>
+            <td><code>utcToLocal(utcTime, date, iana)</code></td>
+            <td><code>('08:30', '2026-03-26', 'Europe/Berlin')</code></td>
+            <td><code>{ localTime, dateOffset, offsetLabel }</code></td>
+            <td>Anzeige: UTC → Lokal für Betrachter</td>
+          </tr>
+          <tr>
+            <td><code>localToUtc(localTime, date, iana)</code></td>
+            <td><code>('09:30', '2026-03-26', 'Europe/Berlin')</code></td>
+            <td><code>{ utcTime, dateOffset }</code></td>
+            <td>Speichern: Lokale Eingabe → UTC (nur createSlot ohne _utc-Flag)</td>
+          </tr>
+          <tr>
+            <td><code>getOffsetMinutes(iana, date)</code></td>
+            <td><code>('Europe/Berlin', '2026-03-26')</code></td>
+            <td><code>number</code> (Minuten, DST-korrekt)</td>
+            <td>Grid-Aufbau: Lokale Mitternacht berechnen</td>
+          </tr>
+          <tr>
+            <td><code>displayTime(utcTime, date, viewerUid)</code></td>
+            <td><code>('08:30', '2026-03-26', uid)</code></td>
+            <td><code>{ text, offsetLabel, dateOffset, changed, timezone }</code></td>
+            <td>All-in-one Display-Helper für UI-Layer</td>
+          </tr>
+          <tr>
+            <td><code>formatOffset(iana, date)</code></td>
+            <td><code>('Europe/Berlin', '2026-06-01')</code></td>
+            <td><code>'UTC+2'</code></td>
+            <td>TZ-Badge-Anzeige neben Zeiten</td>
+          </tr>
+          <tr>
+            <td><code>TIMEZONES</code></td>
+            <td>Array</td>
+            <td>~45 IANA-Einträge mit Labels</td>
+            <td>Profil-Timezone-Picker Dropdown</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <pre><span class="cm">/* DST-korrekter Offset-Trick — kein Moment.js, keine externe Lib */</span>
+<span class="kw">function</span> _getOffsetMinutes(ianaTimezone, dateStr) {
+  <span class="kw">var</span> base = (dateStr || <span class="ok">'2026-01-01'</span>) + <span class="ok">'T12:00:00'</span>;
+  <span class="kw">var</span> d   = <span class="kw">new</span> Date(base);
+  <span class="kw">var</span> utc = <span class="kw">new</span> Date(d.toLocaleString(<span class="ok">'en-US'</span>, { timeZone: <span class="ok">'UTC'</span> }));
+  <span class="kw">var</span> loc = <span class="kw">new</span> Date(d.toLocaleString(<span class="ok">'en-US'</span>, { timeZone: ianaTimezone }));
+  <span class="kw">return</span> (loc - utc) / <span class="hl">60000</span>; <span class="cm">/* Minuten, positiv = östlich von UTC */</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- 4. Datenfluss -->
+  <div class="section">
+    <div class="section-title">4 — Datenfluss: Speichern und Anzeigen</div>
+    <div class="section-body">
+
+      <h2>Teacher setzt Slot im Week Grid</h2>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-box local">Teacher klickt Zelle<br><small>localLabel = "12:30"</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">cell.dataset.time<br><small>= cellUtcTime (UTC)</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">gridPending["date|UTC"]<br><small>= 'available'</small></div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-label">▼ Teacher klickt Speichern</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">flushGridPending()<br><small>key = "date|UTC"</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box utc">createRecurring(dow, <strong>UTC</strong>)<br><small>rule.time = UTC</small></div>
+          <span class="flow-arrow">+</span>
+          <div class="flow-box utc">createSlot({time: UTC, _utc:true})<br><small>slot.time = UTC</small></div>
+        </div>
+      </div>
+
+      <h2>Anzeige im Grid (Teacher und Student)</h2>
+      <div class="flow">
+        <div class="flow-row">
+          <div class="flow-box utc">_buildLocalOrderedUtcTimes(<br>refDate, uid)<br><small>48 UTC-Strings ab lokaler Mitternacht</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">times[t] = UTC<br>localLabels[t] = "HH:MM lokal"</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box local">Zeilen-Label = localLabel<br><small>Immer "00:00..23:30 lokal"</small></div>
+        </div>
+        <div class="flow-row">
+          <span class="flow-label">▼ Pro Zelle</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box">localToUtc(localLabel, cellDate, tz)<br><small>Per-Datum: DST-korrekt</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box utc">slotExistsSync(uid, date, cellUtcTime)<br><small>Lookup via UTC-Key</small></div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-box">Cell Status<br><small>available / booked / empty</small></div>
+        </div>
+      </div>
+
+      <h2>createSlot: _utc-Flag</h2>
+      <p><code>createSlot</code> konvertiert standardmäßig die übergebene Zeit via <code>localToUtc</code>. Caller die bereits UTC übergeben, setzen <code>_utc: true</code> um die Konvertierung zu überspringen. Das Flag wird nicht persistiert.</p>
+      <pre><span class="cm">/* Caller mit lokaler Zeit (z.B. Drag & Drop, Formular-Eingabe): */</span>
+AppService.createSlot({ teacherId, date, <span class="hl">time: '12:30'</span>, status: 'available' });
+<span class="cm">/* → adapter konvertiert: localToUtc('12:30', date, teacherTZ) → speichert UTC */</span>
+
+<span class="cm">/* Caller mit UTC-Zeit (Week Grid, Day View, flushGridPending): */</span>
+AppService.createSlot({ teacherId, date, <span class="hl">time: '08:30', _utc: true</span>, status: 'available' });
+<span class="cm">/* → adapter überspringt Konvertierung, speichert '08:30' direkt als UTC */</span></pre>
+    </div>
+  </div>
+
+  <!-- 5. Grid-Aufbau -->
+  <div class="section">
+    <div class="section-title">5 — Grid-Aufbau: _buildLocalOrderedUtcTimes (ui.js)</div>
+    <div class="section-body">
+      <p>Gemeinsame Funktion für Day View, Teacher Week Grid und Student Week Grid. Gibt 48 UTC-Strings zurück, geordnet so dass Index 0 = lokale 00:00 entspricht. Die Zeilen-Labels sind immer "00:00" bis "23:30" lokal — die UTC-Werte darunter verschieben sich je nach Timezone.</p>
+
+      <pre><span class="cm">/* ui.js — window._buildLocalOrderedUtcTimes */</span>
+<span class="kw">function</span> _buildLocalOrderedUtcTimes(dateStr, uid) {
+  <span class="kw">var</span> offsetMin = TimezoneService.getOffsetMinutes(
+    TimezoneService.getUserTimezone(uid), dateStr
+  );
+  <span class="cm">/* UTC-Minuten von lokalem Mitternacht: */</span>
+  <span class="kw">var</span> midnightUtcMin = ((-offsetMin) % 1440 + 1440) % 1440;
+
+  <span class="kw">var</span> times = [];
+  <span class="kw">for</span> (<span class="kw">var</span> i = 0; i &lt; 48; i++) {
+    <span class="kw">var</span> m = (midnightUtcMin + i * 30) % 1440;
+    times.push(pad(Math.floor(m/60)) + <span class="ok">':'</span> + pad(m%60));
+  }
+  <span class="kw">return</span> times; <span class="cm">/* times[0] = lokale 00:00 in UTC */</span>
+}</pre>
+
+      <table>
+        <thead><tr><th>Timezone</th><th>midnightUtcMin</th><th>times[0] (= lokal 00:00)</th><th>times[25] (= lokal 12:30)</th></tr></thead>
+        <tbody>
+          <tr><td>UTC+0 (London)</td><td>0</td><td>00:00 UTC</td><td>12:30 UTC</td></tr>
+          <tr><td>UTC+1 (Berlin Winter)</td><td>1380</td><td>23:00 UTC</td><td>11:30 UTC</td></tr>
+          <tr><td>UTC+2 (Berlin Sommer)</td><td>1320</td><td>22:00 UTC</td><td>10:30 UTC</td></tr>
+          <tr><td>UTC+4 (Georgia)</td><td>1200</td><td>20:00 UTC</td><td>08:30 UTC</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout c-info">
+        <strong>DST-Übergangswoche:</strong> Auf einer Woche die eine Zeitumstellung enthält (z.B. 29. März 2026, Europa UTC+1→UTC+2) hat jede Spalte einen anderen UTC-Offset. Deshalb berechnet das Grid <code>localToUtc(localLabel, cellDateStr)</code> <strong>pro Zelle</strong> — nicht einmalig für die ganze Woche. So findet Samstag und Sonntag der gleiche lokale Label "12:30" jeweils den richtigen UTC-Slot.
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. materialiseWeek -->
+  <div class="section">
+    <div class="section-title">6 — materialiseWeek (adapter-localstorage.js)</div>
+    <div class="section-body">
+      <p>Materialisiert Recurring Rules für eine bestimmte Woche in konkrete Slots. Da <code>rule.time</code> UTC ist, wird keine Konvertierung benötigt — die Zeit wird direkt als Slot-Zeit übernommen.</p>
+
+      <pre><span class="cm">/* adapter-localstorage.js */</span>
+<span class="kw">function</span> materialiseWeek(teacherId, weekDates, callback) {
+  <span class="kw">var</span> rules = Store.Recurring.byTeacher(teacherId);
+
+  <span class="cm">/* 1. PURGE — alle nicht-gebuchten available-Slots dieser Woche löschen.
+     Verhindert Duplikate bei wiederholtem Aufruf oder nach Datenkorruption. */</span>
+  <span class="kw">var</span> purged = allSlots.filter(<span class="kw">function</span>(s) {
+    <span class="kw">if</span> (s.teacherId !== teacherId)                    <span class="kw">return true</span>; <span class="cm">/* anderer Teacher */</span>
+    <span class="kw">if</span> (!weekDateStrs[s.date])                         <span class="kw">return true</span>; <span class="cm">/* andere Woche */</span>
+    <span class="kw">if</span> (s.studentId || s.confirmedAt || s.bookedAt)    <span class="kw">return true</span>; <span class="cm">/* gebucht */</span>
+    <span class="kw">if</span> (s.status === <span class="ok">'timeout'</span>)                       <span class="kw">return true</span>; <span class="cm">/* Timeout */</span>
+    <span class="kw">return false</span>; <span class="cm">/* plain available → löschen */</span>
+  });
+
+  <span class="cm">/* 2. MATERIALISE — für jede Rule + Wochentag einen Slot anlegen */</span>
+  rules.forEach(<span class="kw">function</span>(rule) {
+    <span class="kw">var</span> dateStr = weekDates[rule.dayOfWeek].toISOString().slice(0,10);
+    <span class="cm">/* rule.time ist UTC — direkt verwenden, keine Konvertierung */</span>
+    <span class="kw">var</span> key = teacherId + <span class="ok">'|'</span> + dateStr + <span class="ok">'|'</span> + <span class="hl">rule.time</span>;
+    <span class="kw">if</span> (!existSet[key]) {
+      purged.push({ date: dateStr, <span class="hl">time: rule.time</span>, status: <span class="ok">'available'</span>, ... });
+    }
+  });
+}</pre>
+    </div>
+  </div>
+
+  <!-- 7. Display-Layer -->
+  <div class="section">
+    <div class="section-title">7 — Display-Layer: UTC → Lokal</div>
+    <div class="section-body">
+      <p>Alle Render-Funktionen konvertieren UTC-Slot-Zeiten zur Laufzeit in die Lokalzeit des Betrachters. Der UTC-Wert im Storage wird nie verändert.</p>
+
+      <table>
+        <thead><tr><th>Funktion</th><th>Datei</th><th>Konvertiert für</th></tr></thead>
+        <tbody>
+          <tr><td><code>_tTeacherTime(utc, date)</code></td><td><code>teacher.js</code></td><td>Day View Zeitanzeigen (Teacher)</td></tr>
+          <tr><td><code>_tViewerTime(utc, date, uid)</code></td><td><code>ui.js</code></td><td>Booking Blocks, Dialoge, Bestätigungen</td></tr>
+          <tr><td><code>_buildLocalOrderedUtcTimes(date, uid)</code></td><td><code>ui.js</code></td><td>Week Grid Zeilen-Labels (Teacher + Student)</td></tr>
+          <tr><td><code>TimezoneService.displayTime(utc, date, uid)</code></td><td><code>timezone-service.js</code></td><td>All-in-one: Text + Badge + dateOffset</td></tr>
+          <tr><td><code>TimezoneService.utcToLocal(utc, date, iana)</code></td><td><code>timezone-service.js</code></td><td>Low-Level, alle obigen nutzen dies intern</td></tr>
+        </tbody>
+      </table>
+
+      <h2>TX-History: Dual Timestamp</h2>
+      <p>Jede Transaktion speichert zwei Zeitstempel: <code>createdAt</code> (UTC ISO, SSOT für Filter und Sort) und <code>createdAtLocal</code> (lokale ISO-Zeit des Akteurs ohne Z) sowie <code>actorTimezone</code> (IANA-String). Die Wallet-Ansicht zeigt primär die lokale Zeit mit UTC-Badge.</p>
+      <pre><span class="cm">/* TX-Objekt — Beispiel */</span>
+{
+  txId:           <span class="ok">'tx_abc'</span>,
+  <span class="hl">createdAt:      '2026-03-25T20:47:00.000Z'</span>,  <span class="cm">/* UTC — SSOT */</span>
+  <span class="ok">createdAtLocal: '2026-03-25T21:47:00'</span>,       <span class="cm">/* lokal (kein Z) */</span>
+  <span class="ok">actorTimezone:  'Europe/Berlin'</span>               <span class="cm">/* IANA */</span>
+}</pre>
+    </div>
+  </div>
+
+  <!-- 8. Verhalten bei TZ-Wechsel -->
+  <div class="section">
+    <div class="section-title">8 — Verhalten bei Timezone-Wechsel</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Wer ändert TZ?</th><th>Was passiert?</th><th>Was bleibt gleich?</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Teacher</strong> ändert Timezone im Profil</td>
+            <td>Grid und Day View zeigen Slots zu anderen lokalen Uhrzeiten. Recurring Rule-Zeilen verschieben sich im Grid.</td>
+            <td>UTC-Wert der Slots und Rules. Student sieht keine Änderung.</td>
+          </tr>
+          <tr>
+            <td><strong>Student</strong> ändert Timezone im Profil</td>
+            <td>Alle Slots im Student-Grid und in der Buchungshistorie verschieben sich um das Delta. Teacher sieht keine Änderung.</td>
+            <td>UTC-Wert der Slots. Teacher-Grid unverändert.</td>
+          </tr>
+          <tr>
+            <td><strong>Sommerzeitumstellung</strong> (DST)</td>
+            <td>In der Übergangswoche berechnet jede Grid-Zelle ihren UTC-Key per-Datum via <code>localToUtc(localLabel, cellDate)</code>. Slots bleiben an der richtigen lokalen Position.</td>
+            <td>UTC-Wert der Slots. Lokale Anzeige korrekt dank per-Zelle-Konvertierung.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout c-warn">
+        <strong>Achtung bei TZ-Änderung des Teachers:</strong> Bestehende Recurring Rules behalten ihren UTC-Wert. Das bedeutet: der Teacher sieht die Slots nach TZ-Wechsel zu anderen Lokalzeiten. Er muss ggf. die Recurring Rules neu setzen, wenn er seine Verfügbarkeit an die neue lokale Zeit anpassen will. Der Student sieht in jedem Fall keine Änderung.
+      </div>
+    </div>
+  </div>
+
+  <!-- 9. Dateien -->
+  <div class="section">
+    <div class="section-title">9 — Beteiligte Dateien</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>Datei</th><th>Verantwortlichkeit</th></tr></thead>
+        <tbody>
+          <tr><td><code>timezone-service.js</code></td><td>Alle Konvertierungen, IANA-TZ-Lookup, TIMEZONES-Liste, DST-korrekter Offset-Trick</td></tr>
+          <tr><td><code>adapter-localstorage.js</code></td><td><code>createSlot</code> (_utc-Flag), <code>materialiseWeek</code> (Purge + Materialise), TX Dual Timestamp</td></tr>
+          <tr><td><code>ui.js</code></td><td><code>_buildLocalOrderedUtcTimes</code>, <code>_tViewerTime</code>, Booking Block Merge (viewerUid → lokale start/end)</td></tr>
+          <tr><td><code>teacher.js</code></td><td>Week Grid Render, Day View Render, <code>flushGridPending</code> (UTC-Rule), <code>_tdvBuildAllDayTimes</code></td></tr>
+          <tr><td><code>student.js</code></td><td>Student Week Grid Render (identische Logik wie teacher.js)</td></tr>
+          <tr><td><code>wallet-core.js</code></td><td>TX-History Dual Timestamp Anzeige (lokal + UTC-Badge)</td></tr>
+          <tr><td><code>profile.js</code></td><td>IANA Timezone-Picker Dropdown im Profil</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

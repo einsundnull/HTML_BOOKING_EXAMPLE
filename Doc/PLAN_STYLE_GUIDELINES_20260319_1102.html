@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-19T11:02">
+  <meta name="doc-type"     content="PLAN">
+  <meta name="doc-subject"  content="Styling-Guideline Fix-Plan">
+  <title>PLAN — Styling-Guideline Bugfix-Plan 2026-03-19</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.55; }
+    :root {
+      --navy: #060f1c; --navy800: #0f2035; --mono: 'Consolas', monospace;
+      --c400: #4d7aa0; --n0: #fff; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n500: #6b7685; --n700: #2d3540;
+      --p1-bg: #fff0f0; --p1-bd: #e5a5a5; --p1-tx: #8b1a1a; --p1: #c0392b;
+      --p2-bg: #fff8f0; --p2-bd: #e5c0a5; --p2-tx: #7b3500; --p2: #d97706;
+      --p3-bg: #fffff0; --p3-bd: #e5e0a5; --p3-tx: #5c4a00; --p3: #ca8a04;
+      --p4-bg: #f0f8ff; --p4-bd: #a5c0e5; --p4-tx: #1a3a6b; --p4: #2563eb;
+    }
+    .ph { background: var(--navy); padding: 26px 36px 22px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+               text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 24px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 640px; margin-bottom: 12px; }
+    .ph-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600; margin-right: 6px;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .page { padding: 26px 36px; max-width: 1280px; margin: 0 auto; }
+    .sg { display: grid; grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 24px; }
+    .sc { background: var(--n0); border: 1px solid var(--n200); border-radius: 8px;
+           padding: 12px 14px; border-top: 3px solid; }
+    .sc-p1 { border-top-color: var(--p1); } .sc-p2 { border-top-color: var(--p2); }
+    .sc-p3 { border-top-color: var(--p3); } .sc-p4 { border-top-color: var(--p4); }
+    .sc-val { font-size: 28px; font-weight: 700; }
+    .sc-p1 .sc-val { color: var(--p1); } .sc-p2 .sc-val { color: var(--p2); }
+    .sc-p3 .sc-val { color: var(--p3); } .sc-p4 .sc-val { color: var(--p4); }
+    .sc-lbl { font-size: 11px; color: var(--n500); }
+    .callout { padding: 10px 14px; border-radius: 8px; border-left: 3px solid;
+                font-size: 13px; margin-bottom: 14px; }
+    .c-info { background: var(--p4-bg); border-color: var(--p4); color: var(--p4-tx); }
+    .sec { margin-bottom: 32px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px;
+                padding-bottom: 8px; border-bottom: 1px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy800); color: rgba(255,255,255,.82); text-align: left;
+                padding: 9px 12px; font-size: 10px; font-weight: 700;
+                letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 12px; border-bottom: 1px solid var(--n200);
+                vertical-align: top; color: var(--n700); line-height: 1.45; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r1 { background: #fff8f8; }
+    tbody tr.r2 { background: #fffdf5; }
+    tbody tr.r3 { background: #fffff5; }
+    tbody tr.r4 { background: #f8faff; }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.06);
+            padding: 1px 5px; border-radius: 3px; }
+    .sev { display:inline-flex; padding: 2px 8px; border-radius:999px;
+            font-size:10px; font-weight:700; white-space:nowrap; }
+    .s1 { background:var(--p1-bg);color:var(--p1-tx);border:1px solid var(--p1-bd); }
+    .s2 { background:var(--p2-bg);color:var(--p2-tx);border:1px solid var(--p2-bd); }
+    .s3 { background:var(--p3-bg);color:var(--p3-tx);border:1px solid var(--p3-bd); }
+    .s4 { background:var(--p4-bg);color:var(--p4-tx);border:1px solid var(--p4-bd); }
+    .ck { color: #16a34a; font-weight:700; }
+    .mono { font-family: var(--mono); font-size: 11.5px; }
+    footer { margin-top: 40px; padding-top: 12px; border-top: 1px solid var(--n200);
+              display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+<header class="ph">
+  <div class="ph-eye">PLAN · Styling-Guidelines Bugfix · BookingSystem</div>
+  <div class="ph-title">Styling-Guideline Fix-Plan</div>
+  <div class="ph-sub">
+    Vollständiger, geordneter Plan zur Behebung aller Verstöße aus
+    AUDIT_STYLE_GUIDELINES_20260319_1040. 6 Kategorien · 357 Funde.
+    Jede Maßnahme ist atomar und unabhängig durchführbar.
+  </div>
+  <div>
+    <span class="ph-chip">📅 19. März 2026, 11:02</span>
+    <span class="ph-chip">4 Prioritätsstufen</span>
+    <span class="ph-chip">Basis: AUDIT_STYLE_GUIDELINES_20260319_1040.html</span>
+  </div>
+</header>
+<main class="page">
+  <div class="sg">
+    <div class="sc sc-p1"><div class="sc-val">3</div><div class="sc-lbl">P1 — Kritisch · Tokens</div></div>
+    <div class="sc sc-p2"><div class="sc-val">2</div><div class="sc-lbl">P2 — Hoch · Hover + JS</div></div>
+    <div class="sc sc-p3"><div class="sc-val">3</div><div class="sc-lbl">P3 — Mittel · Typography + HTML</div></div>
+    <div class="sc sc-p4"><div class="sc-val">2</div><div class="sc-lbl">P4 — Niedrig · Meta + !important</div></div>
+  </div>
+
+  <div class="callout c-info">
+    <strong>Strategie:</strong>
+    P1 zuerst: neue Tokens in <code>tokens.css</code> anlegen — alle anderen Fixes bauen darauf auf.
+    Dann P2 (hover guard + style.display), P3 (font-weight/size), P4 (meta tags).
+    Jeder Schritt wird einzeln committed. Nach Abschluss: vollständiger Folge-Audit.
+  </div>
+
+  <section class="sec" aria-labelledby="s1">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="s1">P1 — Neue Semantik-Tokens in tokens.css</h2>
+      <span class="sec-sub">~214 Funde behoben · tokens.css + 10 CSS-Dateien</span>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Datei</th><th>Maßnahme</th><th>Neue Tokens</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="r1"><td><span class="sev s1">P1-A</span></td><td class="mono">tokens.css</td>
+          <td>Status-Farben (confirmed/pending/held/failed), Danger, Toast-Backgrounds, Slot-Timeout, Pending-Amber, Chart-Farben als neue Token-Gruppen ergänzen</td>
+          <td><code>--status-confirmed-*</code> <code>--status-pending-*</code> <code>--status-held-*</code> <code>--status-failed-*</code> <code>--danger-*</code> <code>--toast-error-bg</code> <code>--slot-timeout-*</code> <code>--pending-amber-*</code> <code>--chart-confirmed</code> <code>--chart-booked</code></td>
+          <td>⬜</td></tr>
+        <tr class="r1"><td><span class="sev s1">P1-B</span></td>
+          <td class="mono">components.css<br>wallet.css<br>admin.css<br>financial.css<br>base.css</td>
+          <td>Alle Hex-Farbwerte durch neue Token ersetzen: btn-danger Hover/Active, Badges (confirmed/released), Wallet TX-Icons, Admin Status-Karten, Toast-Backgrounds, Slot-Pending-States</td>
+          <td>Verwendet Token aus P1-A</td><td>⬜</td></tr>
+        <tr class="r1"><td><span class="sev s1">P1-C</span></td>
+          <td class="mono">teacher.css<br>student.css<br>chat.css<br>user-detail.css<br>catalog-filter-drawer.css<br>navbar.css<br>profile.css</td>
+          <td>Verbleibende Hex-Werte in Seiten-spezifischen CSS durch Token ersetzen: Slot-Timeout/Pending in teacher/student, Chat-Booking-Status, User-Rollen-Badges, Error-Dialog, Danger-Hover</td>
+          <td>Verwendet Token aus P1-A</td><td>⬜</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="sec" aria-labelledby="s2">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="s2">P2 — Hover-Guard &amp; style.display</h2>
+      <span class="sec-sub">57 + 33 Funde · 7 CSS + 2 JS Dateien</span>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Datei</th><th>Maßnahme</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="r2"><td><span class="sev s2">P2-A</span></td>
+          <td class="mono">components.css</td>
+          <td>13 :hover-Regeln (btn-primary, btn-secondary, btn-ghost, btn-danger, form-input/select) in <code>@media (hover: hover) and (pointer: fine)</code> einschließen</td>
+          <td>⬜</td></tr>
+        <tr class="r2"><td><span class="sev s2">P2-B</span></td>
+          <td class="mono">student.css<br>teacher.css</td>
+          <td>Je 13 :hover-Regeln in Hover-Guard einschließen (cal-btn, grid-cell, view-nav-btn, slot-action-btn, grid-round-btn, grid-mode-btn)</td>
+          <td>⬜</td></tr>
+        <tr class="r2"><td><span class="sev s2">P2-C</span></td>
+          <td class="mono">admin.css<br>wallet.css<br>financial.css<br>login.css<br>chat.css<br>user-detail.css<br>skiing-catalog.css</td>
+          <td>Verbleibende 18 :hover-Regeln in Hover-Guard einschließen</td>
+          <td>⬜</td></tr>
+        <tr class="r2"><td><span class="sev s2">P2-D</span></td>
+          <td class="mono">admin.js</td>
+          <td>22× <code>el.style.display = …</code> → <code>el.classList.add/remove('is-hidden')</code>. Tab-Wechsel (L30–32, L80–82), Reset-Buttons (L721, L756, L893), Empty-States (L900–903, L1031–1034), Audit-Summary (L1375–1380), Row-Toggle (L1461)</td>
+          <td>⬜</td></tr>
+        <tr class="r2"><td><span class="sev s2">P2-E</span></td>
+          <td class="mono">financial.js<br>skiing-catalog.js<br>profile.js</td>
+          <td>Restliche <code>style.display</code>-Funde ersetzen. Ausnahmen dokumentieren: <code>style.height</code> (auto-resize), <code>style.left/top</code> (dynamische Positionierung), <code>style.bottom</code> (FAB-Offset) — diese bleiben</td>
+          <td>⬜</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="sec" aria-labelledby="s3">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="s3">P3 — Typografie &amp; Inline-Styles in HTML</h2>
+      <span class="sec-sub">~50 Funde · 8 CSS + 3 HTML Dateien</span>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Datei(en)</th><th>Maßnahme</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="r3"><td><span class="sev s3">P3-A</span></td>
+          <td class="mono">financial.css<br>base.css<br>student.css<br>admin.css<br>wallet.css<br>profile.css<br>teacher.css</td>
+          <td>20× <code>font-weight: 700</code> → <code>var(--weight-semibold)</code>. Alle Vorkommen in KPI-Labels, Chart-Labels, Badges, Summary-Werten</td>
+          <td>⬜</td></tr>
+        <tr class="r3"><td><span class="sev s3">P3-B</span></td>
+          <td class="mono">financial.css<br>wallet.css<br>admin.css<br>teacher.css</td>
+          <td>Off-Scale font-size normalisieren: 36px→<code>var(--text-hero)</code>, 18px→<code>var(--text-body)</code> oder <code>var(--text-heading)</code>, 15px→<code>var(--text-body)</code>, 9px+8px→<code>var(--text-caption)</code></td>
+          <td>⬜</td></tr>
+        <tr class="r3"><td><span class="sev s3">P3-C</span></td>
+          <td class="mono">admin.html<br>financial.html<br>index.html</td>
+          <td>Inline-<code>style=""</code> entfernen: Tab-Panels via <code>.is-hidden</code>, Filter-Input-Widths in admin.css auslagern, Legend-Dots via CSS-Klassen, <code>display:none</code> → <code>.is-hidden</code></td>
+          <td>⬜</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="sec" aria-labelledby="s4">
+    <div class="sec-hdr">
+      <h2 class="sec-title" id="s4">P4 — Meta-Tags &amp; lang-Attribute</h2>
+      <span class="sec-sub">10 Funde · 5 HTML-Dateien</span>
+    </div>
+    <div class="tw"><table>
+      <thead><tr><th>#</th><th>Dateien</th><th>Maßnahme</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr class="r4"><td><span class="sev s4">P4-A</span></td>
+          <td class="mono">student.html · teacher.html · wallet-standalone.html · catalog-filter-drawer.html</td>
+          <td>Viewport-Meta erweitern: <code>viewport-fit=cover</code> ergänzen → <code>content="width=device-width, initial-scale=1.0, viewport-fit=cover"</code></td>
+          <td>⬜</td></tr>
+        <tr class="r4"><td><span class="sev s4">P4-B</span></td>
+          <td class="mono">catalog-filter-drawer.html · navbar.html</td>
+          <td><code>lang="de"</code> auf <code>&lt;html&gt;</code>-Element ergänzen</td>
+          <td>⬜</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+  <footer>
+    <span>PLAN_STYLE_GUIDELINES_20260319_1102.html · Basis: AUDIT_STYLE_GUIDELINES_20260319_1040.html</span>
+    <span>Folge-Audit nach Abschluss: AUDIT_STYLE_GUIDELINES_POST_[TIMESTAMP].html</span>
+  </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,49 @@
+Let me read both issues carefully.
+
+Now I have the complete picture. Here is the analysis:
+
+---
+
+## Issue 1 — Overflow rechts (Screenshot 1)
+
+**Ursache:** `.all-booking-slot-row` hat `display: flex; gap: var(--sp-3)` mit mehreren Items:
+- `time` (`flex: 1`, `white-space: nowrap`)
+- `status` (`min-width: 64px`)  
+- `price` (`margin-left: auto`, `white-space: nowrap`)
+- `btns` (`flex-shrink: 0`) mit `✓` + `Cancel`
+
+Auf ~360px Bildschirm: `~90px time` + `64px status (leer)` + `~70px price` + `~130px btns` = ~354px + gaps → Overflow.
+
+---
+
+## Issue 2 — Preis-Summe im "My Students" Tab
+
+Screenshot 2 zeigt den **My Students** Tab mit Schüler-Karten (s1, s2, s3) — jede zeigt "Alle 8 / Unbestätigt 7 / Bestätigt 1". Hier fehlt die Preis-Summe pro Schüler.
+
+---
+
+## Vollständiger Plan
+
+| # | Problem | Fix | Wo | Aufwand |
+|---|---|---|---|---|
+| **1a** | Slot-Row überläuft — `status` nimmt `64px` auch wenn leer | `min-width: 64px` entfernen wenn leer → `min-width: 0` | `teacher.css` | 1 Zeile |
+| **1b** | Slot-Row: `Cancel`-Button passt nicht mehr rein | Buttons in Row auf `btn-sm` belassen, `gap` von `sp-3` auf `sp-2` reduzieren | `teacher.css` | 1 Zeile |
+| **1c** | Preis nimmt Platz auch wenn `status` leer | Status-Span bei leerem Text ausblenden (`display:none`) | `teacher.css` | 1 Zeile |
+| **2a** | My Students: Preis-Summe pro Schüler fehlt | `_calcBlockCounts` → `_calcBookingBlockCounts` mit `priceFn` — zeigt Gesamtsumme im Schüler-Badge | `teacher.js` `buildStudentRow` | Gering |
+| **2b** | My Students Badges zeigen kein `totalAll` etc. | Neues `student-price-badge` Span neben Badges | `teacher.js` `buildStudentRow` | Gering |
+| **2c** | `_calcBlockCounts` ruft noch alten Code auf | Ersetzen durch `_calcBookingBlockCounts` mit `priceFn` | `teacher.js` | 1 Zeile |
+
+---
+
+## Resultat nach Fix
+
+**Slot-Row** (links → rechts, passend auf 360px):
+`14:30 – 15:00` · `€45,00` · `✓` · `Cancel`
+
+**My Students Karte:**
+```
+s1
+Alle 8 (€405) · Unbestätigt 7 · Bestätigt ✓ 1 (€45)
+```
+
+Soll ich implementieren?

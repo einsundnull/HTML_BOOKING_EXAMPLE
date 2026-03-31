@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Financial Summary Panel — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;overflow-x:auto;margin:14px 0}
+pre .cm{color:#6c7086;font-style:italic} pre .kw{color:#cba6f7} pre .str{color:#a6e3a1}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600} .new{color:var(--accent);font-weight:600}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+
+/* Live-feeling card mockups */
+.fin-demo {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 12px;
+  margin: 20px 0;
+}
+.fcard {
+  position: relative;
+  border-radius: 10px;
+  padding: 16px 16px 16px 18px;
+  border: 1px solid transparent;
+  overflow: hidden;
+  min-height: 90px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fcard-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;opacity:.7}
+.fcard-val{font-size:20px;font-weight:700;letter-spacing:-.5px;line-height:1.1;margin-top:2px}
+.fcard-sub{font-size:11px;opacity:.6}
+.fcard-ico{position:absolute;top:10px;right:12px;font-size:20px;opacity:.2;user-select:none}
+.fc1{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}
+.fc2{background:#fffbeb;border-color:#fde68a;color:#78350f}
+.fc3{background:#eff6ff;border-color:#bfdbfe;color:#1e3a8a}
+.fc4{background:#faf5ff;border-color:#e9d5ff;color:#4c1d95}
+.fc5{background:#f8fafc;border-color:#e2e8f0;color:#0f172a}
+.fc6{background:#fff1f2;border-color:#fecdd3;color:#881337}
+@media(max-width:640px){.fin-demo{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<h1>Financial Summary Panel</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Live-Mockup</h2>
+
+<div class="fin-demo">
+  <div class="fcard fc1">
+    <div class="fcard-lbl">Bestätigt &amp; ausgezahlt</div>
+    <div class="fcard-val">€1.890,00</div>
+    <div class="fcard-sub">42 Stunden</div>
+    <div class="fcard-ico">★</div>
+  </div>
+  <div class="fcard fc2">
+    <div class="fcard-lbl">Deposit gehalten</div>
+    <div class="fcard-val">€270,00</div>
+    <div class="fcard-sub">30 Slots</div>
+    <div class="fcard-ico">⏸</div>
+  </div>
+  <div class="fcard fc3">
+    <div class="fcard-lbl">Fällig bei Bestätigung</div>
+    <div class="fcard-val">€810,00</div>
+    <div class="fcard-sub">30 Slots</div>
+    <div class="fcard-ico">→</div>
+  </div>
+  <div class="fcard fc4">
+    <div class="fcard-lbl">Geplanter Umsatz</div>
+    <div class="fcard-val">€2.700,00</div>
+    <div class="fcard-sub">60 zukünftige Slots</div>
+    <div class="fcard-ico">📅</div>
+  </div>
+  <div class="fcard fc5">
+    <div class="fcard-lbl">Wallet Gesamtguthaben</div>
+    <div class="fcard-val">€3.000,00</div>
+    <div class="fcard-sub">6 Benutzer</div>
+    <div class="fcard-ico">💳</div>
+  </div>
+  <div class="fcard fc6">
+    <div class="fcard-lbl">Ausstehende Refunds</div>
+    <div class="fcard-val">€45,00</div>
+    <div class="fcard-sub">2 offen</div>
+    <div class="fcard-ico">↩</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — Kennzahlen im Detail</h2>
+
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Kennzahl</th><th>Farbe</th><th>Bedeutung</th><th>Berechnung</th><th>Datenquelle</th></tr></thead>
+<tbody>
+  <tr>
+    <td>1</td>
+    <td><strong>Bestätigt &amp; ausgezahlt</strong></td>
+    <td style="color:#14532d;background:#f0fdf4;font-weight:700">Grün</td>
+    <td>Stunden die vom Schüler bestätigt wurden → Deposit an Lehrer freigegeben. Abgeschlossener Umsatz.</td>
+    <td><code>Σ slot.price</code> aller Slots mit <code>status=confirmed</code></td>
+    <td><code>getAllSlots()</code></td>
+  </tr>
+  <tr>
+    <td>2</td>
+    <td><strong>Deposit gehalten</strong></td>
+    <td style="color:#78350f;background:#fffbeb;font-weight:700">Amber</td>
+    <td>Geld das aktuell im Treuhand-Escrow liegt — vom Schüler bezahlt aber noch nicht an Lehrer freigegeben.</td>
+    <td><code>Σ escrow.depositAmount</code> wo <code>depositStatus=held</code></td>
+    <td><code>getAllEscrows()</code></td>
+  </tr>
+  <tr>
+    <td>3</td>
+    <td><strong>Fällig bei Bestätigung</strong></td>
+    <td style="color:#1e3a8a;background:#eff6ff;font-weight:700">Blau</td>
+    <td>Was der Lehrer noch erhält wenn alle unbestätigten Stunden bestätigt werden. Deposit bereits gehalten → nur Restbetrag.</td>
+    <td><code>Σ (escrow.fullAmount − escrow.depositAmount)</code> für alle gebuchten Slots mit <code>depositStatus=held</code></td>
+    <td><code>getAllSlots()</code> + <code>getAllEscrows()</code></td>
+  </tr>
+  <tr>
+    <td>4</td>
+    <td><strong>Geplanter Umsatz</strong></td>
+    <td style="color:#4c1d95;background:#faf5ff;font-weight:700">Violett</td>
+    <td>Vollpreis aller gebuchten und bestätigten <em>zukünftigen</em> Stunden (ab heute). Zeigt erwartete Einnahmen.</td>
+    <td><code>Σ slot.price</code> aller Slots mit <code>status=booked|confirmed</code> und <code>date ≥ heute</code></td>
+    <td><code>getAllSlots()</code></td>
+  </tr>
+  <tr>
+    <td>5</td>
+    <td><strong>Wallet Gesamtguthaben</strong></td>
+    <td style="color:#0f172a;background:#f8fafc;font-weight:700">Grau</td>
+    <td>Summe aller Wallet-Guthaben aller Benutzer. Zeigt die Liquidität im System.</td>
+    <td><code>Σ wallet.balance</code> aller User</td>
+    <td><code>localStorage['app_wallets']</code></td>
+  </tr>
+  <tr>
+    <td>6</td>
+    <td><strong>Ausstehende Refunds</strong></td>
+    <td style="color:#881337;background:#fff1f2;font-weight:700">Rot</td>
+    <td>Escrows wo ein Rückerstattungsantrag gestellt wurde aber noch nicht verarbeitet. Admin-Handlungsbedarf.</td>
+    <td><code>Σ escrow.depositAmount</code> wo <code>depositStatus=refund_requested</code></td>
+    <td><code>getAllEscrows()</code></td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Beziehungen zwischen Kennzahlen</h2>
+
+<pre><code><span class="cm">/* Vollständige Geldfluss-Logik */</span>
+
+Slot gebucht
+  → Deposit vom Schüler-Wallet abgezogen
+  → Escrow.depositStatus = <span class="str">'held'</span>             → Karte 2: Deposit gehalten (+)
+  → Restbetrag noch fällig                     → Karte 3: Fällig bei Bestätigung (+)
+  → Zukünftiger Slot                           → Karte 4: Geplanter Umsatz (+)
+
+Slot bestätigt
+  → Deposit an Lehrer-Wallet freigegeben
+  → Escrow.depositStatus = <span class="str">'released'</span>          → Karte 2: Deposit gehalten (-)
+  → Karte 3 entfällt (kein Restbetrag mehr)    → Karte 3: Fällig bei Bestätigung (-)
+  → slot.status = <span class="str">'confirmed'</span>                 → Karte 1: Bestätigt & ausgezahlt (+)
+  → falls vergangen: nicht mehr in Karte 4     → Karte 4: Geplanter Umsatz (-)
+
+Refund beantragt
+  → Escrow.depositStatus = <span class="str">'refund_requested'</span>  → Karte 6: Ausstehende Refunds (+)
+  → Admin verarbeitet Refund
+  → depositStatus = <span class="str">'refunded'</span>                → Karte 6: Ausstehende Refunds (-)
+</code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Datenpipeline</h2>
+
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Page load / Klick ↻ → <code>renderFinSummary()</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">4 parallele Ladevorgänge:<br>
+    <code>AppService.getAllSlots(cb)</code><br>
+    <code>AppService.getAllEscrows(cb)</code><br>
+    <code>AppService.getAllTransactions({}, cb)</code><br>
+    <code>localStorage.getItem('app_wallets')</code> (sync)
+  </div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Callback-Barrier (<code>pending</code> counter) → wenn alle 4 geladen: <code>_computeFinSummary()</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">6 Berechnungen in Sequenz → 6× <code>_set(id, value)</code> → DOM update</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Escrow Status Lifecycle</h2>
+
+<div class="tw"><table>
+<thead><tr><th>depositStatus</th><th>Bedeutung</th><th>Karte betroffen</th></tr></thead>
+<tbody>
+  <tr><td><code>unpaid</code></td><td>Escrow angelegt, Deposit noch nicht bezahlt</td><td>keine</td></tr>
+  <tr><td><code>held</code></td><td>Deposit bezahlt, liegt im Treuhand</td><td>Karte 2 ✓ + Karte 3 ✓</td></tr>
+  <tr><td><code>released</code></td><td>Deposit an Lehrer freigegeben (Bestätigung)</td><td>Karte 1 ✓</td></tr>
+  <tr><td><code>refund_requested</code></td><td>Rückerstattungsantrag gestellt</td><td>Karte 6 ✓</td></tr>
+  <tr><td><code>refunded</code></td><td>Rückerstattung verarbeitet</td><td>keine</td></tr>
+  <tr><td><code>forfeited</code></td><td>Deposit einbehalten (späte Stornierung)</td><td>keine</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — CSS Design-System</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Klasse</th><th>Farbe</th><th>Karte</th></tr></thead>
+<tbody>
+  <tr><td><code>.fin-card--confirmed</code></td><td>Grün (#f0fdf4 / #14532d)</td><td>Bestätigt &amp; ausgezahlt</td></tr>
+  <tr><td><code>.fin-card--held</code></td><td>Amber (#fffbeb / #78350f)</td><td>Deposit gehalten</td></tr>
+  <tr><td><code>.fin-card--pending</code></td><td>Blau (#eff6ff / #1e3a8a)</td><td>Fällig bei Bestätigung</td></tr>
+  <tr><td><code>.fin-card--future</code></td><td>Violett (#faf5ff / #4c1d95)</td><td>Geplanter Umsatz</td></tr>
+  <tr><td><code>.fin-card--wallet</code></td><td>Grau (#f8fafc / #0f172a)</td><td>Wallet Gesamtguthaben</td></tr>
+  <tr><td><code>.fin-card--refund</code></td><td>Rot (#fff1f2 / #881337)</td><td>Ausstehende Refunds</td></tr>
+</tbody>
+</table></div>
+
+<p>Layout: <code>display:grid; grid-template-columns: repeat(3, 1fr)</code> auf Desktop, <code>repeat(2, 1fr)</code> auf Mobile (&lt;640px). Icon positioniert absolut (top-right, opacity 0.18).</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Geänderte Dateien</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>admin.html</code></td><td>v=20</td><td>Financial Summary Panel mit 6 Karten (IDs: fin-confirmed, fin-held, fin-pending, fin-future, fin-wallet, fin-refund)</td></tr>
+  <tr><td><code>admin.js</code></td><td>v=20</td><td><code>renderFinSummary()</code>, <code>_computeFinSummary()</code> — parallel data loading mit callback barrier</td></tr>
+  <tr><td><code>admin.css</code></td><td>v=11</td><td><code>.fin-summary-panel</code>, <code>.fin-cards-grid</code>, <code>.fin-card</code> + 6 Farbvarianten, responsive grid</td></tr>
+</tbody>
+</table></div>
+
+</body>
+</html>

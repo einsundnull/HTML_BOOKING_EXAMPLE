@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Meine Schüler — Booking System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="./js/app-config.js"></script>
+  <script>
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/profile.css',
+        './css/my-students.css',
+        './css/chat.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <main class="page" id="my-students-page">
+    <div class="page-header">
+      <h2>Meine Schüler</h2>
+      <p>Schüler verwalten und individuelle Preise festlegen.</p>
+    </div>
+    <div id="my-students-list"></div>
+  </main>
+</div>
+
+<!-- Chat FAB -->
+<div class="chat-fab-anchor">
+  <button class="chat-fab" id="chat-fab" aria-label="Chat">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<script>
+window.addEventListener('load', function() {
+  if (typeof ChatPanel !== 'undefined') ChatPanel.init();
+});
+</script>
+</body>
+</html>

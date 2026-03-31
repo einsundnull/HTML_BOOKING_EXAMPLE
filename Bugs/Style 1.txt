@@ -1,0 +1,94 @@
+Ich lese zuerst die aktuellen CSS-Dateien des Projekts.
+
+Ich habe alle Infos. Jetzt die Tabelle:
+
+---
+
+## Vergleich: Projekt vs. Style Guides
+
+| # | Regel (aus den Guides) | Projekt-Status | Befund |
+|---|---|---|---|
+| **TOKENS & FARBEN** | | | |
+| 1 | CSS Custom Properties für alle Werte | ✅ Erfüllt | `tokens.css` vorhanden, alle Werte als `--var` |
+| 2 | Navy-Farbskala (`--color-50` bis `--color-900`) | ⚠️ Abweichend | Skala existiert, aber andere Hex-Werte: Projekt nutzt `#4d7aa0` (color-400) statt Guide-Wert `#5b87cc` |
+| 3 | Neutrale Skala (`--neutral-0` bis `--neutral-900`) | ⚠️ Lücken | `neutral-400` und `neutral-800` fehlen komplett in `tokens.css` |
+| 4 | **Semantische Aliase** (`--bg-base`, `--bg-surface`, `--accent`, `--text-primary` etc.) | ❌ Fehlt | Nicht implementiert — CSS greift direkt auf Raw-Tokens (`var(--neutral-50)`) zu statt auf Aliases |
+| 5 | 60-30-10 Farbverteilung explizit umgesetzt | ⚠️ Implizit | Prinzip erkennbar, aber nirgendwo dokumentiert oder als Alias durchgezogen |
+| 6 | Keine Hardcode-Werte außer in `:root` | ❌ Verletzungen | `btn-danger`: `#c0392b`, `#fdf0ee`; `profile.css`: `10px`; `wallet.css`: `15px` |
+| 7 | Keine Gradients | ✅ Erfüllt | Keine Gradients im gesamten CSS |
+| **TYPOGRAFIE** | | | |
+| 8 | Figtree 400 / 600 — nur 2 Gewichte | ✅ Erfüllt | `--weight-regular: 400`, `--weight-semibold: 600` |
+| 9 | Genau 4 Schriftgrößen (Display/Heading/Body/Caption) | ✅ Erfüllt | 48/24/16/12px — alle als Tokens |
+| 10 | Alle Größen durch 4 oder 8 teilbar | ⚠️ Verletzungen | `profile.css`: `10px` (nicht teilbar), `wallet.css`: `15px` (nicht teilbar), `components.css`: `7px` |
+| **SPACING** | | | |
+| 11 | 8pt-Grid (`--sp-1` bis `--sp-9`) | ✅ Erfüllt | 4/8/16/24/32/48/64/96/128px — korrekt |
+| 12 | Semantische Spacing-Aliases (`--gap-inner`, `--gap-between`, `--gap-section`) | ❌ Fehlt | Nicht definiert — wird an manchen Stellen direkt mit `var(--sp-3)` etc. gemacht |
+| **LAYOUT** | | | |
+| 13 | Container `max-width: 1280px` + `padding: 32px` | ✅ Erfüllt | `--container-max: 1280px`, `--container-pad: 32px` |
+| 14 | 12-Column Grid | ❌ Fehlt | Kein `.grid { grid-template-columns: repeat(12, 1fr) }` — es gibt nur 2-col Grids |
+| **KOMPONENTEN** | | | |
+| 15 | Button: Default / Hover / Active / Focus / Disabled | ✅ Erfüllt | Alle 5 States in `components.css` definiert |
+| 16 | Focus-Ring sichtbar, nie unterdrückt | ✅ Erfüllt | `--focus-ring` definiert, auf `btn:focus-visible` angewendet |
+| 17 | `btn-radius` → `--radius-md` (8px) | ⚠️ Abweichend | Projekt nutzt `--radius-sm` (4px) statt `--radius-md` (8px) für Buttons |
+| 18 | Button-Copy: Verb, max. 3 Wörter | ⚠️ Teilweise | Viele korrekt ("Anmelden", "Speichern"), aber auch "Passwort anzeigen", "Kurs entdecken" |
+| **DARK THEME** | | | |
+| 19 | Dark Theme (`data-theme="dark"` oder separate CSS) | ❌ Fehlt | Vollständig nicht implementiert |
+| **ACCESSIBILITY** | | | |
+| 20 | Semantic HTML (`nav`, `section`, `aside`, `footer`) | ⚠️ Teilweise | `nav`/`main` vorhanden, `section`/`footer` oft durch `div` ersetzt |
+| 21 | ARIA-Labels auf interaktiven Elementen | ⚠️ Teilweise | Landing/Katalog: vorhanden — Admin/Teacher/Student-Seiten: lückenhaft |
+| 22 | `role="dialog"` + `aria-modal` auf Modals | ⚠️ Teilweise | Auth-Modal hat es; andere Modals (Edit, etc.) unklar |
+| 23 | `@media (hover: hover)` für Hover-States | ❌ Fehlt | Alle Hover-States sind ungeschützt — kleben auf Touch-Screens |
+| 24 | `prefers-reduced-motion` | ❌ Fehlt | Animationen laufen immer, kein Opt-out |
+| 25 | Min. Touch-Target 44px | ⚠️ Teilweise | Viele Buttons unter 44px (z.B. `.btn-sm`, `.chat-fab` mit 34px) |
+| 26 | `touch-action: manipulation` auf Buttons | ❌ Fehlt | Nur in `loop.html` (Test-Seite) — nicht auf `.btn` |
+| **MOBILE / CROSS-PLATFORM** | | | |
+| 27 | `viewport-fit=cover` im Meta-Tag | ❌ Fehlt | Nicht in keiner HTML-Datei gesetzt |
+| 28 | Safe Area Insets (`env(safe-area-inset-*)`) | ❌ Fehlt | iPhone Notch / Dynamic Island nicht berücksichtigt |
+| 29 | `-webkit-tap-highlight-color: transparent` | ❌ Fehlt | Kein Tap-Flash-Reset im CSS-Reset |
+| 30 | Logical Properties (`padding-inline`, `margin-block`) | ❌ Fehlt | Ausschließlich physikalische Properties verwendet |
+| **i18n** | | | |
+| 31 | `data-i18n` Attribute im HTML | ❌ Anderer Ansatz | Projekt nutzt JS-Objekte (`LandingI18n.xxx`) statt `data-i18n` Attribute — funktional, aber inkompatibel mit Template-Loader-Pattern des Guides |
+| 32 | Flache i18n-Hierarchie (1 Ebene) | ✅ Erfüllt | JSON-Struktur ist flach, Namespace = Seitenname |
+| **DATEI-ORGANISATION** | | | |
+| 33 | HTML / CSS / JS strikt getrennt, kein Inline | ✅ Erfüllt | Projektarchitektur-Regel wird konsequent eingehalten |
+| 34 | IIFE-Pattern in JS | ✅ Erfüllt | Module als IIFE (`(function() { ... })()`) |
+| 35 | Transition-Tokens | ⚠️ Abweichend | Projekt hat nur `--transition: 150ms ease` — Guide fordert `--duration-fast` (120ms) + `--duration-base` (200ms) getrennt |
+| 36 | Icons: eine Library, 16px oder 24px | ⚠️ Teilweise | SVG-Icons inline — gemischte Größen (14px, 18px, 24px gefunden) |
+| 37 | Keine Emojis | ✅ Erfüllt | Keine Emojis im UI |
+
+---
+
+### Zusammenfassung
+
+| Kategorie | ✅ Erfüllt | ⚠️ Teilweise | ❌ Fehlt |
+|---|---|---|---|
+| Tokens & Farben | 2 | 3 | 2 |
+| Typografie | 2 | 1 | 0 |
+| Spacing | 1 | 0 | 1 |
+| Layout | 1 | 0 | 1 |
+| Komponenten | 2 | 2 | 0 |
+| Dark Theme | 0 | 0 | 1 |
+| Accessibility | 0 | 3 | 3 |
+| Mobile / Cross-Platform | 0 | 0 | 4 |
+| i18n | 1 | 0 | 1 |
+| Datei-Organisation | 4 | 1 | 0 |
+
+**Kritischste Lücken:** Semantische Farbaliase fehlen komplett, Dark Theme nicht vorhanden, alle 4 Mobile-Optimierungen fehlen (viewport-fit, safe-area, tap-highlight, touch-action), `@media (hover: hover)` fehlt überall.
+
+| # | Punkt | Warum wirklich kritisch |
+|---|---|---|
+| 🟠 **6** | **Hardcodierte Werte** (`#c0392b` in `btn-danger`, `10px`/`15px` in `profile.css`/`wallet.css`) | Wenn Tokens sich ändern, werden diese Stellen nicht mitgezogen — stille Inkonsistenzen, schwer zu finden |
+| 🔴 **23** | **`@media (hover: hover)` fehlt** | Echter Bug: Hover-States "kleben" nach einem Tap auf jedem Touchscreen (Android & iPhone). Betrifft alle Buttons, alle Links, alle Cards |
+| 🔴 **27/28** | **`viewport-fit=cover` + Safe Area Insets fehlen** | Auf iPhones mit Notch/Dynamic Island überlappt die Navbar die Hardware-Elemente — die App ist dort visuell kaputt |
+| 🟠 **29** | **`-webkit-tap-highlight-color: transparent` fehlt** | Jeder Tap auf iOS/Android erzeugt einen blauen/grauen Flash — sieht unfertig und billig aus |
+| 🟠 **26** | **`touch-action: manipulation` auf `.btn` fehlt** | 300ms Tap-Delay auf iOS bei allen Buttons — die App fühlt sich träge an |
+| 🟠 **3** | **`--neutral-400` und `--neutral-800` fehlen in `tokens.css`** | Wenn Code diese Tokens referenziert (z.B. Disabled-States), fällt das lautlos weg — kein Fehler, einfach unsichtbar |
+| 🟠 **24** | **`prefers-reduced-motion` fehlt** | Alle Animationen (Toast, FAB, Drawer) laufen bei Nutzern mit Bewegungsempfindlichkeit — Accessibility-Pflicht |
+
+---
+
+**Vom Administrator abgesegnet (kein Handlungsbedarf):**
+- ~~#2 Abweichende Farbwerte~~ → ✅ Approved
+- ~~#19 Dark Theme~~ → ✅ Approved
+
+**Priorität:** Die beiden 🔴 (hover-sticky + Safe Area) würden ich zuerst angehen — die sind auf echten Mobilgeräten sofort sichtbar.

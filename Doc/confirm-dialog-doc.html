@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buchungsbestätigung Dialog — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;overflow-x:auto;margin:14px 0}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1} pre .cm{color:#6c7086;font-style:italic}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600} .no{color:var(--red)} .new{color:var(--accent);font-weight:600}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill-new{background:#eff6ff;color:var(--accent)} .pill-ok{background:#dcfce7;color:var(--green)}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.divider{border:none;border-top:2px solid var(--border);margin:52px 0}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+
+/* Dialog mockup */
+.dialog-mockup{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;max-width:380px;margin:20px 0;box-shadow:0 8px 32px rgba(0,0,0,.08)}
+.dm-title{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--ink)}
+.dm-header{padding-bottom:12px;border-bottom:1px solid #f1f5f9;margin-bottom:12px}
+.dm-teacher{font-size:16px;font-weight:700;color:var(--ink)}
+.dm-date{font-size:13px;color:var(--muted);margin-top:2px}
+.dm-payment{background:#f8fafc;border-radius:8px;padding:12px;margin-bottom:12px}
+.dm-section-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:#9ca3af;margin-bottom:8px}
+.dm-row{display:flex;justify-content:space-between;font-size:13px;color:#374151;padding:3px 0}
+.dm-row.release{font-size:14px;font-weight:700}
+.dm-row.balance{border-top:1px solid #e5e7eb;margin-top:6px;padding-top:8px}
+.badge-paid{color:#16a34a;font-weight:700}
+.badge-pending{color:#d97706;font-weight:700}
+.dm-warn{font-size:12px;color:var(--amber);background:#fffbeb;border:1px solid #fde68a;border-radius:6px;padding:8px 10px;margin-top:4px}
+.dm-footer{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.dm-btn-cancel{background:none;border:none;color:var(--muted);font-weight:600;cursor:pointer;padding:8px 16px}
+.dm-btn-confirm{background:#1d4ed8;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+
+<h1>Buchungsbestätigung Dialog</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Vorher / Nachher</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Element</th><th>Vorher</th><th>Nachher</th></tr></thead>
+<tbody>
+  <tr><td>Lehrername</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+  <tr><td>Uhrzeit</td><td class="ok">✓</td><td class="ok">✓</td></tr>
+  <tr><td>Datum</td><td class="no">✗ fehlte</td><td class="ok new">✓ Do., 19. März 2026</td></tr>
+  <tr><td>Vollpreis der Stunde</td><td class="no">✗ fehlte</td><td class="ok new">✓ €135,00</td></tr>
+  <tr><td>Deposit-Betrag</td><td class="no">✗ fehlte</td><td class="ok new">✓ €27,00</td></tr>
+  <tr><td>Deposit-Art</td><td class="no">✗ fehlte</td><td class="ok new">✓ Deposit (20%) oder pauschal</td></tr>
+  <tr><td>Deposit-Status</td><td class="no">✗ fehlte</td><td class="ok new">✓ ✓ bezahlt / ⚠ ausstehend</td></tr>
+  <tr><td>Freizugebender Betrag</td><td class="no">✗ nur Text</td><td class="ok new">✓ €108,00 (Vollpreis − Deposit)</td></tr>
+  <tr><td>Zahlungsart</td><td class="no">✗ fehlte</td><td class="ok new">✓ Bar vor Ort / Wallet</td></tr>
+  <tr><td>Guthaben danach</td><td class="no">✗ fehlte</td><td class="ok new">✓ €256,00 (grün/rot je nach Saldo)</td></tr>
+  <tr><td>Warnhinweis (Nicht stornierbar)</td><td class="ok">✓ oben, prominent</td><td class="ok">✓ unten, kompakter</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — Dialog-Mockup</h2>
+
+<div class="dialog-mockup">
+  <div class="dm-title">Buchung bestätigen</div>
+  <div class="dm-header">
+    <div class="dm-teacher">Matthias Heinold</div>
+    <div class="dm-date">Do., 19. März 2026 &bull; 14:00 &ndash; 15:30</div>
+  </div>
+  <div class="dm-payment">
+    <div class="dm-section-lbl">Zahlung</div>
+    <div class="dm-row"><span>Vollpreis</span><strong>€135,00</strong></div>
+    <div class="dm-row"><span>Deposit (20%)</span><span>€27,00 <span class="badge-paid">&#10003; bezahlt</span></span></div>
+    <div class="dm-row release" style="color:#1d4ed8"><span>Jetzt freizugeben</span><strong>€108,00</strong></div>
+    <div class="dm-row balance"><span>Guthaben danach</span><strong style="color:#16a34a">€256,00</strong></div>
+  </div>
+  <div class="dm-warn">&#9888; Nach der Bestätigung kann diese Buchung <strong>nicht mehr storniert</strong> werden.</div>
+  <div class="dm-footer">
+    <button class="dm-btn-cancel">Abbrechen</button>
+    <button class="dm-btn-confirm">Jetzt bestätigen</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Betragsberechnung</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Szenario</th><th>Freizugeben jetzt</th><th>Formel</th></tr></thead>
+<tbody>
+  <tr>
+    <td>Deposit bezahlt (held) + instant</td>
+    <td><code>fullAmount - depositAmount</code></td>
+    <td>Deposit bereits abgezogen → nur Rest freigeben</td>
+  </tr>
+  <tr>
+    <td>Kein Deposit / deposit unpaid</td>
+    <td><code>fullAmount</code></td>
+    <td>Voller Betrag wird bei Bestätigung abgezogen</td>
+  </tr>
+  <tr>
+    <td>Bar vor Ort (cash_on_site)</td>
+    <td><code>0</code></td>
+    <td>Kein Wallet-Abzug — Zahlung erfolgt direkt</td>
+  </tr>
+  <tr>
+    <td>Kein Escrow vorhanden</td>
+    <td><code>0</code></td>
+    <td>Fallback — kein Zahlungsblock angezeigt</td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Datenquellen</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Datenquelle</th><th>Funktion</th></tr></thead>
+<tbody>
+  <tr><td>Lehrername</td><td><code>slot.teacherId</code></td><td><code>ProfileStore.getDisplayName()</code></td></tr>
+  <tr><td>Datum</td><td><code>slot.date</code></td><td><code>new Date().toLocaleDateString('de-DE', ...)</code></td></tr>
+  <tr><td>Uhrzeit</td><td><code>slot.time</code> / <code>slot.endTime</code></td><td><code>AppService.slotEndTime()</code></td></tr>
+  <tr><td>Vollpreis</td><td><code>escrow.fullAmount</code></td><td><code>AppService.getEscrowBySlot(slotId, cb)</code></td></tr>
+  <tr><td>Deposit-Betrag</td><td><code>escrow.depositAmount</code></td><td><code>AppService.getEscrowBySlot()</code></td></tr>
+  <tr><td>Deposit-Art</td><td><code>escrow.depositType</code> + <code>escrow.depositPercent</code></td><td><code>AppService.getEscrowBySlot()</code></td></tr>
+  <tr><td>Deposit-Status</td><td><code>escrow.depositStatus</code> (<code>'held'</code>/<code>'unpaid'</code>)</td><td><code>AppService.getEscrowBySlot()</code></td></tr>
+  <tr><td>Zahlungsart</td><td><code>escrow.paymentMode</code></td><td><code>AppService.getEscrowBySlot()</code></td></tr>
+  <tr><td>Aktuelles Guthaben</td><td><code>wallet.balance</code></td><td><code>AppService.getWalletSync(uid)</code></td></tr>
+  <tr><td>Guthaben danach</td><td>Berechnung</td><td><code>balance - releaseNow</code></td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Escrow Schema (Referenz)</h2>
+
+<pre><code>{
+  escrowId:         <span class="str">'esc_...'</span>,
+  slotId:           <span class="str">'slot_...'</span>,
+  studentId:        <span class="str">'s1'</span>,
+  teacherId:        <span class="str">'t1'</span>,
+  depositAmount:    <span class="num">27.00</span>,       <span class="cm">// Deposit-Betrag in €</span>
+  depositType:      <span class="str">'percent'</span>,  <span class="cm">// 'percent' | 'fixed'</span>
+  depositPercent:   <span class="num">20</span>,          <span class="cm">// nur wenn depositType='percent'</span>
+  fullAmount:       <span class="num">135.00</span>,      <span class="cm">// Vollpreis der Stunde</span>
+  paymentMode:      <span class="str">'instant'</span>,  <span class="cm">// 'instant' | 'cash_on_site'</span>
+  requiresDeposit:  <span class="kw">true</span>,
+  depositStatus:    <span class="str">'held'</span>,     <span class="cm">// 'unpaid' | 'held' | 'released' | 'refunded'</span>
+  fullPaymentStatus:<span class="str">'unpaid'</span>,   <span class="cm">// 'unpaid' | 'paid'</span>
+  depositPaidAt:    <span class="str">'2026-03-18T10:00Z'</span>,
+  createdAt:        <span class="str">'2026-03-18T09:55Z'</span>
+}</code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — Ablauf-Pipeline</h2>
+
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Schüler klickt <strong>✓ Bestätigen</strong> auf gebuchtem Slot</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>_openStudentConfirmDialog(slotId)</code> → lädt Slot synchron</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>AppService.getEscrowBySlot(slotId, cb)</code> → async, lädt Escrow-Objekt</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><code>AppService.getWalletSync(uid)</code> → sync, lädt aktuelles Guthaben</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Berechnet: <code>releaseNow</code>, <code>balanceAfter</code>, Deposit-Status-Badge</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">6</div><div class="flow-text"><code>Modal.show()</code> mit vollständigem Detail-Body</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">7</div><div class="flow-text">„Jetzt bestätigen" → <code>AppService.confirmSlot(slotId, cb)</code> → Toast mit freigegebenem Betrag</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Geänderte Dateien</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>student.js</code></td><td>v=51</td><td><code>_openStudentConfirmDialog()</code> komplett neu — async escrow + wallet load, vollständiger Detail-Body</td></tr>
+  <tr><td><code>student.css</code></td><td>v=29</td><td>Neue Klassen: <code>.confirm-dialog-detail</code>, <code>.confirm-detail-header</code>, <code>.confirm-detail-payment</code>, <code>.confirm-detail-row</code>, <code>.confirm-detail-release</code>, <code>.confirm-detail-note</code></td></tr>
+</tbody>
+</table></div>
+
+</body>
+</html>

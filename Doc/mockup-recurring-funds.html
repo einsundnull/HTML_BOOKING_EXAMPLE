@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Recurring Edge Cases</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c400:#4d7aa0;--c100:#dde4ed;--c700:#1a3249;--c900:#060f1c;
+  --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+  --ok-bg:#f0fdf4;--ok-tx:#14532d;--ok-bd:#86efac;
+  --warn-bg:#fef9ec;--warn-tx:#7a5c00;
+  --bad-bg:#fee2e2;--bad-tx:#991b1b;
+  --font:'Figtree',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n100);padding:24px 12px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+.col{display:flex;flex-direction:column;gap:8px;width:290px;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);text-align:center;}
+.badge-ok{display:inline-block;background:var(--ok-bg);color:var(--ok-tx);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+.badge-warn{display:inline-block;background:var(--warn-bg);color:var(--warn-tx);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+.badge-bad{display:inline-block;background:var(--bad-bg);color:var(--bad-tx);padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+
+.modal{background:var(--n0);border-radius:12px;padding:18px;box-shadow:0 6px 24px rgba(0,0,0,.12);}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.mt{font-size:15px;font-weight:600;color:var(--c900);}
+.mx{color:var(--n400);font-size:16px;background:none;border:none;cursor:pointer;}
+
+.slot-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid var(--n100);}
+.st{font-family:monospace;color:var(--n700);}
+.total{display:flex;justify-content:space-between;padding:6px 0;font-weight:700;font-size:12px;}
+
+.status-ok{background:var(--ok-bg);color:var(--ok-tx);border-radius:5px;padding:7px 9px;font-size:11px;margin-top:5px;line-height:1.4;}
+.status-bad{background:var(--bad-bg);color:var(--bad-tx);border-radius:5px;padding:7px 9px;font-size:11px;margin-top:5px;line-height:1.4;}
+
+.divider{border:none;border-top:1px solid var(--n100);margin:11px 0;}
+
+.recur-section{background:var(--n50);border:1px solid var(--n200);border-radius:7px;padding:10px;}
+.recur-title{font-size:11px;font-weight:600;color:var(--n700);margin-bottom:8px;}
+
+/* check rows */
+.check-row{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:11px;}
+.dot-ok{width:7px;height:7px;border-radius:50%;background:#16a34a;flex-shrink:0;}
+.dot-no{width:7px;height:7px;border-radius:50%;background:var(--n200);flex-shrink:0;}
+.dot-warn{width:7px;height:7px;border-radius:50%;background:#f59e0b;flex-shrink:0;}
+.dot-bad{width:7px;height:7px;border-radius:50%;background:#dc2626;flex-shrink:0;}
+.row-ok{color:var(--n700);}
+.row-grey{color:var(--n400);}
+.row-warn{color:var(--warn-tx);background:var(--warn-bg);border-radius:3px;padding:1px 4px;}
+.row-bad{color:var(--bad-tx);background:var(--bad-bg);border-radius:3px;padding:1px 4px;}
+
+/* wallet bar */
+.wallet-bar{background:var(--n100);border-radius:5px;padding:7px 9px;font-size:11px;margin-top:6px;}
+.wallet-row{display:flex;justify-content:space-between;margin-bottom:2px;}
+.wallet-ok{color:var(--ok-tx);font-weight:600;}
+.wallet-bad{color:var(--bad-tx);font-weight:600;}
+.progress-wrap{background:var(--n200);border-radius:3px;height:5px;margin-top:4px;overflow:hidden;}
+.progress-fill-ok{height:100%;background:#16a34a;border-radius:3px;}
+.progress-fill-warn{height:100%;background:#f59e0b;border-radius:3px;}
+
+/* buttons */
+.btns{margin-top:11px;display:flex;flex-direction:column;gap:5px;}
+.btn-primary{background:var(--c400);color:#fff;border:none;border-radius:7px;padding:10px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%;}
+.btn-primary-disabled{background:var(--n200);color:var(--n400);border:none;border-radius:7px;padding:10px;font-family:var(--font);font-size:13px;font-weight:600;cursor:not-allowed;width:100%;}
+.btn-secondary{background:var(--n0);color:var(--c700);border:1.5px solid var(--c400);border-radius:7px;padding:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;width:100%;}
+.btn-ghost{background:none;border:none;color:var(--n500);font-family:var(--font);font-size:12px;cursor:pointer;padding:6px;width:100%;}
+</style>
+</head>
+<body>
+
+<!-- Case 1: All slots available, enough funds -->
+<div class="col">
+  <div class="lbl">Case 1</div>
+  <div class="badge-ok">✓ Genug Guthaben</div>
+  <div class="modal">
+    <div class="mh"><span class="mt">Buchung bestätigen</span><button class="mx">✕</button></div>
+    <div class="slot-row"><span class="st">11:30–12:00</span><span>€90</span></div>
+    <div class="total"><span>Gesamt</span><span>€90</span></div>
+    <div class="status-ok">✓ Deposit €18 abgezogen. Danach: €5050</div>
+    <hr class="divider">
+    <div class="recur-section">
+      <div class="recur-title">↻ 4 von 4 Terminen verfügbar</div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 29.03 · €90</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 05.04 · €90</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 12.04 · €90</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 19.04 · €90</span></div>
+      <div class="wallet-bar">
+        <div class="wallet-row"><span>Deposit gesamt</span><span class="wallet-ok">€72 / €5068</span></div>
+        <div class="progress-wrap"><div class="progress-fill-ok" style="width:85%"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn-primary">Jetzt buchen + 4 Wiederholungen</button>
+      <button class="btn-ghost">Nur einmalig · Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Case 2: Some slots unavailable (teacher) -->
+<div class="col">
+  <div class="lbl">Case 2</div>
+  <div class="badge-warn">⚠ Teilweise verfügbar</div>
+  <div class="modal">
+    <div class="mh"><span class="mt">Buchung bestätigen</span><button class="mx">✕</button></div>
+    <div class="slot-row"><span class="st">11:30–12:00</span><span>€90</span></div>
+    <div class="total"><span>Gesamt</span><span>€90</span></div>
+    <div class="status-ok">✓ Deposit €18 abgezogen. Danach: €5050</div>
+    <hr class="divider">
+    <div class="recur-section">
+      <div class="recur-title">↻ 3 von 4 Terminen verfügbar</div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 29.03 · €90</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 05.04 · €90</span></div>
+      <div class="check-row"><span class="dot-no"></span><span class="row-grey">So 12.04 · nicht verfügbar</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 19.04 · €90</span></div>
+      <div class="wallet-bar">
+        <div class="wallet-row"><span>Deposit gesamt</span><span class="wallet-ok">€54 / €5068</span></div>
+        <div class="progress-wrap"><div class="progress-fill-ok" style="width:80%"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn-primary">Buchen + 3 verfügbare Termine</button>
+      <button class="btn-ghost">Nur einmalig · Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Case 3: Deposit covers only partial — book as far as funds allow -->
+<div class="col">
+  <div class="lbl">Case 3</div>
+  <div class="badge-warn">⚠ Deposit reicht für 2 von 4</div>
+  <div class="modal">
+    <div class="mh"><span class="mt">Buchung bestätigen</span><button class="mx">✕</button></div>
+    <div class="slot-row"><span class="st">11:30–12:00</span><span>€90</span></div>
+    <div class="total"><span>Gesamt</span><span>€90</span></div>
+    <div class="status-ok">✓ Deposit €18 abgezogen. Danach: €32</div>
+    <hr class="divider">
+    <div class="recur-section">
+      <div class="recur-title">↻ Deposit reicht für 2 von 4 Terminen</div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 29.03 · €90 · Deposit €18 ✓</span></div>
+      <div class="check-row"><span class="dot-ok"></span><span class="row-ok">So 05.04 · €90 · Deposit €18 ✓</span></div>
+      <div class="check-row"><span class="dot-warn"></span><span class="row-warn">So 12.04 · Guthaben reicht nicht</span></div>
+      <div class="check-row"><span class="dot-warn"></span><span class="row-warn">So 19.04 · Guthaben reicht nicht</span></div>
+      <div class="wallet-bar">
+        <div class="wallet-row"><span>Guthaben</span><span style="color:var(--warn-tx);font-weight:600">€50 — reicht für 2</span></div>
+        <div class="progress-wrap"><div class="progress-fill-warn" style="width:40%"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn-primary">Buchen + 2 mögliche Termine</button>
+      <button class="btn-ghost">Nur einmalig · Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Case 4: Not enough even for first booking -->
+<div class="col">
+  <div class="lbl">Case 4</div>
+  <div class="badge-bad">✗ Zu wenig Guthaben</div>
+  <div class="modal">
+    <div class="mh"><span class="mt">Buchung bestätigen</span><button class="mx">✕</button></div>
+    <div class="slot-row"><span class="st">11:30–12:00</span><span>€90</span></div>
+    <div class="total"><span>Gesamt</span><span>€90</span></div>
+    <div class="status-bad">⚠ Guthaben: €12 — Deposit €18 nicht gedeckt</div>
+    <hr class="divider">
+    <div class="recur-section">
+      <div class="recur-title">↻ Keine Buchung möglich</div>
+      <div class="check-row"><span class="dot-bad"></span><span class="row-bad">So 29.03 · Guthaben reicht nicht</span></div>
+      <div class="check-row"><span class="dot-bad"></span><span class="row-bad">So 05.04 · Guthaben reicht nicht</span></div>
+      <div class="check-row"><span class="dot-bad"></span><span class="row-bad">So 12.04 · Guthaben reicht nicht</span></div>
+      <div class="check-row"><span class="dot-bad"></span><span class="row-bad">So 19.04 · Guthaben reicht nicht</span></div>
+      <div class="wallet-bar">
+        <div class="wallet-row"><span>Guthaben</span><span class="wallet-bad">€12 — nicht ausreichend</span></div>
+        <div class="progress-wrap"><div class="progress-fill-warn" style="width:8%;background:#dc2626"></div></div>
+      </div>
+    </div>
+    <div class="btns">
+      <button class="btn-primary-disabled" disabled>Buchen nicht möglich</button>
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

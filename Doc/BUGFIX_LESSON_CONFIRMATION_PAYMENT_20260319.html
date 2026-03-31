@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BUGFIX — Lesson Confirmation: Remainder Payment Missing</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540; --n900: #0d1117;
+      --mono: 'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca;
+    }
+
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.sev { background: rgba(192,57,43,.4); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub   { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+
+    .callout { padding: 12px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: #14532d; }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: #1a3a6b; }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: #7b3500; }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: #7f1d1d; }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug { background: #fff0f0; }
+    tbody tr.r-fix { background: #f0fff4; }
+    tbody tr.r-ctx { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 14px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cg { color: #6ee7b7; }
+    .cn { color: #fde68a; }
+
+    .badge { display: inline-flex; padding: 2px 8px; border-radius: 999px;
+             font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .b-bug { background: var(--err-bg);  color: #7f1d1d; border: 1px solid var(--err-bd); }
+    .b-fix { background: var(--ok-bg);   color: #14532d; border: 1px solid var(--ok-bd); }
+    .b-js  { background: #fef9ec; color: #7b3500; border: 1px solid #fde68a; }
+
+    .flow { display: flex; flex-direction: column; margin-bottom: 14px; }
+    .flow-step { display: flex; gap: 14px; padding: 11px 14px; background: var(--n0);
+                 border: 1px solid var(--n200); border-bottom: none; }
+    .flow-step:first-child { border-radius: 8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .flow-step.bug-step { background: #fff5f5; }
+    .flow-step.fix-step { background: #f0fff4; }
+    .flow-num { width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+                color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0;
+                display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+    .flow-num.bug { background: var(--err); }
+    .flow-num.fix { background: var(--ok); }
+    .flow-title { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+    .flow-desc  { font-size: 12px; color: var(--n500); line-height: 1.5; }
+
+    /* Money flow diagram */
+    .money-diagram { display: grid; gap: 16px; margin-bottom: 14px; }
+    .money-diagram.two { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 700px) { .money-diagram.two { grid-template-columns: 1fr; } }
+    .md-card { border-radius: 8px; border: 1px solid var(--n200); overflow: hidden; }
+    .md-title { padding: 8px 12px; font-size: 11px; font-weight: 700;
+                text-transform: uppercase; letter-spacing: .05em; }
+    .md-title.bug { background: #fff0f0; color: #7f1d1d; border-bottom: 1px solid var(--err-bd); }
+    .md-title.fix { background: #f0fff4; color: #14532d; border-bottom: 1px solid var(--ok-bd); }
+    .md-body { padding: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+    .md-actor { display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+                border-radius: 6px; background: var(--n50); }
+    .md-icon { width: 28px; height: 28px; border-radius: 50%; display: flex;
+               align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+    .md-icon.student  { background: #eff6ff; color: #2563eb; }
+    .md-icon.teacher  { background: #f0fff4; color: #16a34a; }
+    .md-icon.escrow   { background: #fffbeb; color: #d97706; }
+    .md-name   { font-weight: 700; font-size: 12px; }
+    .md-bal    { font-family: var(--mono); font-size: 12px; margin-left: auto; }
+    .md-bal.pos { color: #16a34a; }
+    .md-bal.neg { color: #c0392b; }
+    .md-bal.neu { color: var(--n500); }
+    .md-arrow  { text-align: center; color: var(--n400); font-size: 11px; padding: 2px 0; }
+    .md-missing { text-align: center; font-size: 11px; font-weight: 700;
+                  color: var(--err); background: #fff0f0; padding: 5px 8px; border-radius: 4px; }
+    .md-note { font-size: 11px; color: var(--n500); text-align: center; margin-top: 2px; }
+
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Bugfix Documentation · BookingSystem · adapter-localstorage.js</div>
+  <div class="ph-title">Lesson Confirmation — Restbetrag wurde nicht abgebucht</div>
+  <div class="ph-sub">
+    Bei der Stundenbestätigung wurde dem Lehrer nur der Deposit-Betrag ausgezahlt.
+    Der Restbetrag (Vollpreis minus Deposit) wurde weder vom Schülerkonto abgebucht
+    noch dem Lehrer gutgeschrieben. Betrifft alle drei Bestätigungspfade.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge sev">🔴 Kritischer Zahlungsfehler</span>
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">adapter-localstorage.js</span>
+    <span class="ph-badge ok">✓ 3 Funktionen gefixt</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-13</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- SYMPTOM FROM SCREENSHOTS -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Beobachtetes Symptom (Screenshots)</div></div>
+
+    <div class="callout c-err">
+      <strong>Szenario:</strong> Schüler S1 hat 3 Slots (€135 gesamt) bei Lehrer Matthias Heinold gebucht.
+      Deposit-Betrag: €27 (= 20%). Restbetrag: €108. Nach Stundenbestätigung:
+      Lehrer erhält nur +€27 (<code>escrow_release</code>). Schüler-Konto: keine Abbuchung.
+      Die €108 verschwinden im Nichts — weder Schüler belastet, noch Lehrer gutgeschrieben.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Wallet</th><th>Erwartete Bewegungen</th><th>Tatsächliche Bewegungen</th><th>Delta</th></tr></thead>
+        <tbody>
+          <tr class="r-bug">
+            <td>Schüler (S1)</td>
+            <td>−€27 Deposit (bei Buchung) &nbsp;+&nbsp; −€108 Restbetrag (bei Bestätigung)</td>
+            <td>−€27 Deposit ✓ &nbsp;&nbsp; €0 Restbetrag ✗</td>
+            <td style="color:#c0392b;font-weight:700">−€108 fehlt</td>
+          </tr>
+          <tr class="r-bug">
+            <td>Lehrer (Matthias)</td>
+            <td>+€27 Deposit-Release + +€108 Restbetrag = +€135 gesamt</td>
+            <td>+€27 escrow_release ✓ &nbsp;&nbsp; €0 Restbetrag ✗</td>
+            <td style="color:#c0392b;font-weight:700">+€108 fehlt</td>
+          </tr>
+          <tr>
+            <td>Escrow</td>
+            <td>Status: released, fullPaymentStatus: verified</td>
+            <td>Identisch — Status korrekt gesetzt</td>
+            <td>OK</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ROOT CAUSE -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Root Cause — Fehlende Implementierung der fullPaymentStatus-Pipeline</div></div>
+
+    <div class="callout c-err">
+      <strong>Root Cause:</strong> Das Escrow-Schema definiert
+      <code>fullPaymentStatus: 'unpaid' → 'paid' → 'verified'</code>.
+      Der <code>'paid'</code>-Schritt (Abbuchung des Restbetrags vom Schüler und Gutschrift beim Lehrer)
+      wurde in allen drei Bestätigungsfunktionen nie implementiert.
+      Stattdessen sprang der Status direkt von implizit-unpaid zu <code>'verified'</code>,
+      ohne dass Geld bewegt wurde.
+    </div>
+
+    <div class="money-diagram two">
+      <div class="md-card">
+        <div class="md-title bug">❌ Vorher — bei Stundenbestätigung</div>
+        <div class="md-body">
+          <div class="md-actor">
+            <div class="md-icon student">S</div>
+            <div><div class="md-name">Schüler S1</div><div style="font-size:11px;color:#6b7685">Startguthaben: €500</div></div>
+            <div class="md-bal neg">nach Deposit: €473</div>
+          </div>
+          <div class="md-arrow">↓ Bestätigung geklickt</div>
+          <div class="md-actor" style="border:1px solid #fecaca">
+            <div class="md-icon escrow">⏸</div>
+            <div><div class="md-name">Escrow</div><div style="font-size:11px;color:#6b7685">depositAmount: €27 &nbsp;·&nbsp; fullAmount: €135</div></div>
+            <div class="md-bal" style="color:#d97706">→ released</div>
+          </div>
+          <div class="md-arrow">↓ <strong style="color:#c0392b">nur depositAmount transferiert</strong></div>
+          <div class="md-actor">
+            <div class="md-icon teacher">T</div>
+            <div><div class="md-name">Lehrer Matthias</div></div>
+            <div class="md-bal pos">+€27 nur</div>
+          </div>
+          <div class="md-missing">⚠ Restbetrag €108 — nie abgebucht &amp; nie ausgezahlt</div>
+          <div class="md-note">Schüler behält €108 unrechtmäßig · Lehrer verliert €108</div>
+        </div>
+      </div>
+
+      <div class="md-card">
+        <div class="md-title fix">✅ Nachher — bei Stundenbestätigung</div>
+        <div class="md-body">
+          <div class="md-actor">
+            <div class="md-icon student">S</div>
+            <div><div class="md-name">Schüler S1</div><div style="font-size:11px;color:#6b7685">nach Deposit: €473</div></div>
+            <div class="md-bal neg">−€108 Restbetrag → €365</div>
+          </div>
+          <div class="md-arrow">↓ Bestätigung geklickt</div>
+          <div class="md-actor" style="border:1px solid #bbf7d0">
+            <div class="md-icon escrow">⏸</div>
+            <div><div class="md-name">Escrow</div><div style="font-size:11px;color:#6b7685">depositAmount: €27 &nbsp;·&nbsp; fullAmount: €135</div></div>
+            <div class="md-bal" style="color:#16a34a">→ released + fullPaidAt</div>
+          </div>
+          <div class="md-arrow">↓ <strong style="color:#16a34a">fullAmount transferiert (Deposit + Restbetrag)</strong></div>
+          <div class="md-actor">
+            <div class="md-icon teacher">T</div>
+            <div><div class="md-name">Lehrer Matthias</div></div>
+            <div class="md-bal pos">+€135 gesamt</div>
+          </div>
+          <div class="md-note">Schüler: −€27 (Booking) −€108 (Bestätigung) = −€135 total<br>Lehrer: +€135 korrekt</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESCROW SCHEMA -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Escrow-Schema &amp; Zustandsmaschine</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Feld</th><th>Werte</th><th>Bedeutung</th></tr></thead>
+        <tbody>
+          <tr><td><code>depositStatus</code></td>
+              <td><code>unpaid → held → released</code><br><code>held → refund_requested → refunded/forfeited</code></td>
+              <td>Zustand des Deposits im Escrow. <code>held</code> = Deposit vom Schüler bezahlt, noch nicht an Lehrer ausgegeben.</td></tr>
+          <tr><td><code>fullPaymentStatus</code></td>
+              <td><code>unpaid → <del>paid</del> → verified</code></td>
+              <td>Zustand der Vollzahlung. <code>paid</code>-Schritt war nie implementiert — direkt zu <code>verified</code> gesprungen.</td></tr>
+          <tr><td><code>depositAmount</code></td>
+              <td>z.B. €27</td>
+              <td>Betrag der Anzahlung (bei Buchung gezahlt).</td></tr>
+          <tr><td><code>fullAmount</code></td>
+              <td>z.B. €135</td>
+              <td>Gesamtpreis aller Slots. Vorhanden im Escrow — wurde aber nie zur Berechnung des Restbetrags genutzt.</td></tr>
+          <tr class="r-bug"><td><code>fullPaidAt</code></td>
+              <td><code>null</code></td>
+              <td>Wurde nie gesetzt — kein Zeitstempel der vollständigen Zahlung. <strong>Fix: wird jetzt auf <code>now</code> gesetzt.</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">Berechnung Restbetrag — identisch in allen drei Funktionen</div>
+    <div class="code-block"><code><span class="ck">var</span> depositAmt   = parseFloat(escrow.depositAmount) || 0;
+<span class="ck">var</span> fullAmt      = parseFloat(escrow.fullAmount)    || 0;
+<span class="ck">var</span> remainderAmt = Math.max(0, Math.round((fullAmt - depositAmt) * 100) / 100);
+
+<span class="cm">/* Beispiel: fullAmt=135, depositAmt=27 → remainderAmt=108
+   Math.max(0, ...) schützt vor negativem Restbetrag falls Deposit > fullAmount */</span></code></div>
+  </div>
+
+  <!-- THREE FUNCTIONS -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Drei betroffene Funktionen</div>
+      <span class="sec-sub">adapter-localstorage.js</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Wichtig — Reihenfolge und Verantwortlichkeiten:</strong>
+      Bei einem Buchungsblock (<code>confirmBlock</code>) werden die drei Funktionen in folgender Reihenfolge aufgerufen:
+      <code>confirmLessonSilent × N</code> → <code>writeBlockLessonConfirmed × 1</code>.
+      Die "Silent"-Variante macht die Wallet-Updates, die normale
+      <code>writeBlockLessonConfirmed</code> schreibt nur noch die Transaktionsaufzeichnungen.
+      Ohne diese Trennung käme es zur doppelten Abbuchung.
+    </div>
+
+    <!-- Function 1 -->
+    <div style="margin-bottom:28px">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">1. <code>confirmLessonSilent</code> — Block-Bestätigung (pro Escrow, kein TX)</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aspekt</th><th style="color:#c0392b">Vorher (fehlerhaft)</th><th style="color:#16a34a">Nachher (korrekt)</th></tr></thead>
+          <tbody>
+            <tr class="r-bug"><td>Schüler-Wallet</td><td>Keine Änderung</td><td><code>balance -= remainderAmt</code></td></tr>
+            <tr class="r-bug"><td>Lehrer-Wallet</td><td><code>balance += depositAmount</code></td><td><code>balance += fullAmt</code> (Deposit + Restbetrag)</td></tr>
+            <tr class="r-bug"><td>Escrow fullPaidAt</td><td><code>null</code> — nie gesetzt</td><td><code>fullPaidAt = now</code></td></tr>
+            <tr><td>TX-Aufzeichnung</td><td>Keine (korrekt — "Silent")</td><td>Keine (unverändert)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="code-label">adapter-localstorage.js — confirmLessonSilent (Kern der Änderung)</div>
+      <div class="code-block"><code><span class="cm">/* Vorher: */</span>
+<span class="ce">wallets[escrow.teacherId].balance += escrow.depositAmount;  // ← NUR Deposit!</span>
+<span class="cm">// Schüler-Wallet: keine Änderung</span>
+<span class="cm">// fullPaidAt: nie gesetzt</span>
+
+<span class="cm">/* Nachher: */</span>
+<span class="ck">var</span> depositAmt   = parseFloat(escrow.depositAmount) || 0;
+<span class="ck">var</span> fullAmt      = parseFloat(escrow.fullAmount)    || 0;
+<span class="ck">var</span> remainderAmt = Math.max(0, Math.round((fullAmt - depositAmt) * 100) / 100);
+
+<span class="cm">/* Restbetrag vom Schüler abziehen */</span>
+<span class="cg">if (remainderAmt > 0) {</span>
+<span class="cg">  wallets[escrow.studentId].balance -= remainderAmt;</span>
+<span class="cg">}</span>
+
+<span class="cm">/* Lehrer erhält VOLLBETRAG (Deposit war im Escrow, Restbetrag kommt jetzt) */</span>
+<span class="cg">wallets[escrow.teacherId].balance += fullAmt;</span>
+
+<span class="cg">escrow.fullPaidAt = now;  // ← neu gesetzt</span></code></div>
+    </div>
+
+    <!-- Function 2 -->
+    <div style="margin-bottom:28px">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">2. <code>writeBlockLessonConfirmed</code> — TX-Aufzeichnung für den Block</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aspekt</th><th style="color:#c0392b">Vorher (fehlerhaft)</th><th style="color:#16a34a">Nachher (korrekt)</th></tr></thead>
+          <tbody>
+            <tr class="r-bug"><td>Wallet-Updates</td><td>Student-Remainder-Abbuchung hier (doppelt!)</td><td>Keine Wallet-Updates — Balances wurden bereits in <code>confirmLessonSilent</code> aktualisiert</td></tr>
+            <tr class="r-bug"><td>Lehrer TX <code>amount</code></td><td><code>totalDep</code> (nur Deposit-Summe)</td><td><code>totalFull</code> (voller Preis aller Slots)</td></tr>
+            <tr class="r-bug"><td>Schüler TX <code>amount</code></td><td><code>0</code></td><td><code>-totalRemainder</code> (Restbetrag als negative Zahl)</td></tr>
+            <tr><td>TX description (Lehrer)</td><td>„Zahlung freigegeben..."</td><td>Identisch</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="callout c-warn">
+        <strong>Doppelzählungs-Falle:</strong> In der ersten Implementierung des Fixes hatte
+        <code>writeBlockLessonConfirmed</code> ebenfalls die Restbetrag-Abbuchung vom Schüler.
+        Das führte zur <em>doppelten</em> Abbuchung (einmal in <code>confirmLessonSilent</code>,
+        einmal hier). Der Fix wurde in einem zweiten Schritt korrigiert:
+        <code>writeBlockLessonConfirmed</code> führt <strong>keine Wallet-Updates mehr</strong> durch —
+        es liest nur die aktuellen Salden und schreibt die TX-Einträge.
+      </div>
+
+      <div class="code-label">adapter-localstorage.js — writeBlockLessonConfirmed (Kern der Änderung)</div>
+      <div class="code-block"><code><span class="cm">/* Vorher: txTch.amount = totalDep (nur Deposit), txStu.amount = 0 */</span>
+<span class="ce">var txTch = { ..., amount: totalDep, ... };  // ← falsch</span>
+<span class="ce">var txStu = { ..., amount: 0,        ... };  // ← falsch</span>
+
+<span class="cm">/* Nachher: Wallet-Updates passieren NICHT hier (wurden in confirmLessonSilent gemacht) */</span>
+<span class="ck">var</span> totalRemainder = Math.max(0, Math.round((totalFull - totalDep) * 100) / 100);
+<span class="ck">var</span> wallets = _loadWallets();  <span class="cm">// nur lesen — kein Update</span>
+<span class="ck">var</span> tBal = wallets[teacherId].balance;  <span class="cm">// bereits korrekt durch confirmLessonSilent</span>
+<span class="ck">var</span> sBal = wallets[studentId].balance;  <span class="cm">// bereits korrekt durch confirmLessonSilent</span>
+
+<span class="cg">var txTch = { ..., amount: totalFull,                         balance: tBal, ... };</span>
+<span class="cg">var txStu = { ..., amount: totalRemainder > 0 ? -totalRemainder : 0, balance: sBal, ... };</span></code></div>
+    </div>
+
+    <!-- Function 3 -->
+    <div style="margin-bottom:28px">
+      <h3 style="font-size:14px;font-weight:700;margin-bottom:10px">3. <code>confirmLesson</code> — Einzelslot-Bestätigung (Wallet + TX)</h3>
+      <div class="tw">
+        <table>
+          <thead><tr><th>Aspekt</th><th style="color:#c0392b">Vorher (fehlerhaft)</th><th style="color:#16a34a">Nachher (korrekt)</th></tr></thead>
+          <tbody>
+            <tr class="r-bug"><td>Schüler-Wallet</td><td>Keine Änderung</td><td><code>sw.balance -= remainderAmt</code></td></tr>
+            <tr class="r-bug"><td>Lehrer-Wallet</td><td><code>tw.balance += escrow.depositAmount</code></td><td><code>tw.balance += fullAmt</code></td></tr>
+            <tr class="r-bug"><td>Lehrer TX <code>amount</code></td><td><code>escrow.depositAmount</code></td><td><code>fullAmt</code></td></tr>
+            <tr class="r-bug"><td>Schüler TX <code>amount</code></td><td><code>0</code></td><td><code>remainderAmt > 0 ? -remainderAmt : 0</code></td></tr>
+            <tr class="r-bug"><td>Escrow <code>fullPaidAt</code></td><td><code>null</code></td><td><code>now</code></td></tr>
+            <tr><td>TX description</td><td>„Deposit freigegeben..."</td><td>„Zahlung freigegeben..."</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALL CHAIN -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Vollständiger Aufrufpfad — Block-Bestätigung</div>
+      <span class="sec-sub">confirmBlock → confirmLessonSilent × N → writeBlockLessonConfirmed</span>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div>
+          <div class="flow-title">UI: Lehrer klickt „Bestätigen" auf einem Block</div>
+          <div class="flow-desc"><code>AppService.confirmBlock(slots, cb)</code> aufgerufen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div>
+          <div class="flow-title">confirmBlock — Step 1: alle Slots als confirmed markieren</div>
+          <div class="flow-desc"><code>confirmSlot(slotId)</code> × N — setzt Slot-Status auf <code>confirmed</code>. Keine Wallet-Änderungen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div>
+          <div class="flow-title">confirmBlock — Step 2: Escrows sammeln</div>
+          <div class="flow-desc"><code>getEscrowBySlot(slotId)</code> × N — alle Escrows mit Status <code>held</code> werden in <code>confirmedEscrows[]</code> gesammelt.</div>
+        </div>
+      </div>
+      <div class="flow-step fix-step">
+        <div class="flow-num fix">4</div>
+        <div>
+          <div class="flow-title">confirmLessonSilent × N — Wallet-Updates (GEFIXT)</div>
+          <div class="flow-desc">
+            Pro Escrow: <code>student.balance -= remainderAmt</code>, <code>teacher.balance += fullAmt</code>, <code>_saveWallets()</code>.
+            Escrow: <code>depositStatus='released'</code>, <code>fullPaidAt=now</code>.
+            <strong>Kein TX geschrieben</strong> (silent — der Block-TX folgt im nächsten Schritt).
+          </div>
+        </div>
+      </div>
+      <div class="flow-step fix-step">
+        <div class="flow-num fix">5</div>
+        <div>
+          <div class="flow-title">writeBlockLessonConfirmed — TX-Aufzeichnung (GEFIXT)</div>
+          <div class="flow-desc">
+            Liest aktuelle Salden (bereits korrekt aus Schritt 4).
+            Schreibt 2 aggregierte TXs:
+            Lehrer: <code>escrow_release</code>, <code>amount=totalFull</code>.
+            Schüler: <code>lesson_confirmed</code>, <code>amount=-totalRemainder</code>.
+            <strong>Keine Wallet-Updates</strong>.
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">6</div>
+        <div>
+          <div class="flow-title">Callback an UI — Toast + Refresh</div>
+          <div class="flow-desc">UI zeigt Erfolgs-Toast. Kalender und Wallet-View werden neu geladen.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDGE CASES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Sonderfälle &amp; Schutzlogik</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Szenario</th><th>Verhalten</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Deposit = Vollpreis (z.B. 100%-Deposit)</td>
+            <td><code>remainderAmt = Math.max(0, fullAmt - depositAmt) = 0</code> → kein Schüler-Debit, Lehrer erhält <code>fullAmt</code> (= <code>depositAmt</code>). Korrekt.</td>
+          </tr>
+          <tr>
+            <td>Deposit &gt; Vollpreis (rechnerisch möglich)</td>
+            <td><code>Math.max(0, ...)</code> schützt vor negativem Restbetrag. Restbetrag = 0.</td>
+          </tr>
+          <tr>
+            <td>Kein Deposit (<code>requiresDeposit=false</code>)</td>
+            <td>Bei Buchung ohne Escrow wird <code>confirmBlock</code> mit leerer <code>confirmedEscrows[]</code> aufgerufen → <code>writeBlockLessonConfirmed(slots, [], cb)</code> → <code>totalDep=0</code>, <code>totalFull=Vollpreis</code>. Aber da <code>confirmLessonSilent</code> nie aufgerufen wird, fehlt der Wallet-Update! Dieser Pfad (kein Deposit) war jedoch schon vorher korrekt über <code>cash_on_site</code>-Logik abgedeckt.</td>
+          </tr>
+          <tr>
+            <td>Cash-on-site (kein Wallet-Abzug)</td>
+            <td><code>paymentMode='cash_on_site'</code> → kein Escrow erstellt → <code>confirmedEscrows=[]</code> → <code>writeBlockLessonConfirmed(slots, [], cb)</code> → <code>totalDep=0</code>, <code>totalFull</code> kann 0 oder Preis sein. Nur ein <code>lesson_confirmed</code>-TX, kein Geldfluss. Unverändert korrekt.</td>
+          </tr>
+          <tr>
+            <td>Schüler-Wallet hat zu wenig Guthaben bei Bestätigung</td>
+            <td>In der aktuellen Implementierung wird keine Guthabenprüfung beim Bestätigen gemacht (nur beim Buchen). Der Restbetrag wird abgezogen, auch wenn das Guthaben negativ wird. Dies entspricht dem bestehenden Verhalten — eine Prüfung bei Bestätigung wäre ein separates Feature.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>confirmLessonSilent</code></td>
+            <td>
+              Restbetrag berechnen (<code>fullAmt - depositAmt</code>).<br>
+              Schüler-Wallet um Restbetrag debiten.<br>
+              Lehrer-Wallet um <code>fullAmt</code> (statt <code>depositAmt</code>) kreditieren.<br>
+              <code>escrow.fullPaidAt = now</code> setzen.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>writeBlockLessonConfirmed</code></td>
+            <td>
+              Wallet-Debit für Schüler entfernt (verhindert Doppelzählung).<br>
+              Lehrer TX: <code>amount = totalFull</code> (war <code>totalDep</code>).<br>
+              Schüler TX: <code>amount = -totalRemainder</code> (war <code>0</code>).<br>
+              Salden werden nur noch gelesen, nicht mehr geschrieben.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td><code>confirmLesson</code></td>
+            <td>
+              Identische Restbetrag-Logik wie <code>confirmLessonSilent</code>.<br>
+              Schüler-Wallet um Restbetrag debiten.<br>
+              Lehrer-Wallet um <code>fullAmt</code> kreditieren.<br>
+              TX-Beträge korrigiert (<code>fullAmt</code> / <code>-remainderAmt</code>).<br>
+              <code>escrow.fullPaidAt = now</code> setzen.
+            </td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>2026-03-19-12</code> → <code>2026-03-19-13</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- EXPECTED TX RECORDS AFTER FIX -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Erwartete TX-Einträge nach dem Fix (Beispiel: 3 Slots à €45)</div>
+    </div>
+    <div class="callout c-info">
+      Basis: Vollpreis €135, Deposit €27 (20%), Restbetrag €108.
+      Schüler-Startguthaben: €500. Lehrer-Startguthaben: €0.
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Zeitpunkt</th><th>Wallet</th><th>TX-Typ</th><th>Amount</th><th>Balance danach</th></tr></thead>
+        <tbody>
+          <tr><td>Buchung</td><td>Schüler S1</td><td><code>escrow_hold</code></td><td>−€27</td><td>€473</td></tr>
+          <tr><td>Buchung</td><td>Schüler S1</td><td><code>booking</code></td><td>€0</td><td>€473</td></tr>
+          <tr class="r-fix"><td>Bestätigung</td><td>Schüler S1</td><td><code>lesson_confirmed</code></td><td style="color:#c0392b;font-weight:700">−€108</td><td style="font-weight:700">€365</td></tr>
+          <tr class="r-fix"><td>Bestätigung</td><td>Lehrer Matthias</td><td><code>escrow_release</code></td><td style="color:#16a34a;font-weight:700">+€135</td><td style="font-weight:700">€135</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-warn">
+      <strong>Hinweis zu Altdaten:</strong> Bestätigungen die vor diesem Fix durchgeführt wurden,
+      haben nur den Deposit-Betrag transferiert. Diese Transaktionen müssen manuell korrigiert werden
+      (direkter Wallet-Transfer des fehlenden Restbetrags). Es gibt keine automatische Rückwirkung.
+    </div>
+  </div>
+
+  <footer>
+    <span>BUGFIX_LESSON_CONFIRMATION_PAYMENT_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-13 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

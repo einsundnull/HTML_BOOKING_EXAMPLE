@@ -1,0 +1,188 @@
+================================================================
+SCHEMA — Verschiebungs-Grund Dialog
+Move Reason Dialog · BookingSystem
+19. März 2026
+================================================================
+
+ZWECK
+─────
+Beim Verschieben eines Termins wird ein Pflichtgrund ausgewählt
+und ein optionaler Freitext angegeben. Grund + Text werden
+in der Datenbank gespeichert, in der Chat-Nachricht angezeigt
+und im Buchungsprotokoll festgehalten.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UI-STRUKTUR — Erweiterung des bestehenden Move-Dialogs
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Der Grund-Abschnitt wird im bestehenden openMoveBlockDialogShared()
+eingefügt — direkt NACH der Datums/Zeit-Auswahl,
+VOR dem "Verfügbarkeit prüfen"-Button.
+
+┌──────────────────────────────────────────────────┐
+│  Block bearbeiten                            [×] │
+│                                                  │
+│  2 Slots (14:00 – 15:00) — S1                   │
+│  [✓ Bestätigen]  [Stornieren]                    │
+│  ──────────────────────────────────────          │
+│  Datum        Startzeit                          │
+│  [__________] [Datum wählen ▼]                   │
+│                                                  │
+│  ── GRUND DER VERSCHIEBUNG ──────────────────    │  ← neu
+│  Grund *                                         │
+│  [Bitte wählen...          ▼]                   │
+│                                                  │
+│  Hinweis (optional)                              │
+│  [________________________________]              │
+│  [________________________________]              │
+│                                                  │
+│  [Verfügbarkeit prüfen]                          │
+│  [Verschieben]  (erscheint nach Prüfung)         │
+│  [Abbrechen]                                     │
+└──────────────────────────────────────────────────┘
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMBOBOX — GRUND-KATEGORIEN (Best Practice)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Key (gespeichert)       Label (DE)                    Wer kann wählen
+──────────────────────────────────────────────────────────────────────────
+schedule_conflict       Terminüberschneidung          Lehrer + Schüler
+illness                 Krankheit                     Lehrer + Schüler
+student_request         Auf Wunsch des Schülers       Lehrer
+teacher_request         Auf Wunsch des Lehrers        Schüler
+technical_issue         Technische Probleme           Lehrer + Schüler
+personal_matter         Persönlicher Grund            Lehrer + Schüler
+travel                  Reise / Abwesenheit           Lehrer + Schüler
+weather                 Wetterbedingungen             Lehrer + Schüler
+other                   Sonstiges                     Lehrer + Schüler
+
+Erstes Element der Dropdown-Liste:
+  value=""  label="Bitte Grund wählen..."  (deaktiviert, Platzhalter)
+
+Validierung:
+  - Grund ist PFLICHTFELD — ohne Auswahl kann "Verschieben" nicht
+    bestätigt werden
+  - Freitext: optional, max 200 Zeichen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATENSPEICHERUNG — Slot-Objekt Erweiterung
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Bestehend (store.js Slot):
+  {
+    slotId, teacherId, studentId, date, time, status,
+    confirmedAt, movedFrom: { date, time }, movedAt
+  }
+
+Neu hinzugefügt:
+  {
+    ...
+    movedFrom:   { date: "2026-03-20", time: "14:00" },
+    movedAt:     "2026-03-19T12:00:00.000Z",
+    moveReason:  "illness",           ← Key aus Combobox
+    moveNote:    "Arzttermin kurzfristig",  ← Freitext (optional)
+    movedBy:     "t1"                 ← uid der verschiebenden Person
+  }
+
+Speicherort: bestehender localStorage Key app_slots
+Kein neuer Storage-Key nötig — Erweiterung des Slot-Objekts.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DOKUMENTATIONS-LOG — separater Storage Key
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Neuer Key: app_move_log  [ ...moveLogEntry ]
+
+Schema MoveLogEntry:
+  {
+    moveId:      "mv_uuid",
+    slotId:      "slot_xyz",        ← neuer Slot nach Verschiebung
+    oldSlotId:   "slot_abc",        ← Original-Slot (falls trackbar)
+    teacherId:   "t1",
+    studentId:   "s1",
+    movedBy:     "t1",              ← uid
+    movedByRole: "teacher",         ← "teacher" | "student"
+    oldDate:     "2026-03-20",
+    oldTime:     "14:00",
+    newDate:     "2026-03-25",
+    newTime:     "15:00",
+    reason:      "illness",         ← Key
+    reasonLabel: "Krankheit",       ← Label (DE, zum Zeitpunkt der Verschiebung)
+    note:        "Arzttermin",      ← Freitext
+    createdAt:   "2026-03-19T..."
+  }
+
+Zugriff: Store.MoveLog.add(entry) / Store.MoveLog.all()
+          Store.MoveLog.byTeacher(tid) / Store.MoveLog.byStudent(sid)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHAT-NACHRICHT BEI VERSCHIEBUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Neuer serviceEvent: 'booking_moved'
+
+Chat-Bubble Inhalt (wie booking_notification, eigenes Rendering):
+  ┌────────────────────────────────────┐
+  │ 📅  Termin verschoben             │
+  │     Matthias Heinold              │
+  │     Fr., 20. März 14:00–14:30     │
+  │     → Mi., 25. März 15:00–15:30   │
+  │                                   │
+  │     Grund: Krankheit              │
+  │     „Arzttermin kurzfristig"      │
+  └────────────────────────────────────┘
+
+ChatStore.sendMoveNotification(teacherId, studentId, moveData)
+  moveData = {
+    actorId, actorRole, actorName,
+    oldDate, oldTime, oldEndTime,
+    newDate, newTime, newEndTime,
+    reason, reasonLabel, note
+  }
+
+Empfänger: die jeweils ANDERE Partei
+  movedBy = teacher → Nachricht an student
+  movedBy = student → Nachricht an teacher
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPLEMENTIERUNGS-REIHENFOLGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. store.js          Store.MoveLog hinzufügen (neuer Key + API)
+2. adapter-localstorage.js  saveMoveLog() implementieren
+3. app-service.js    AppService.saveMoveLog() exponieren
+4. chat.js           sendMoveNotification() + Rendering booking_moved
+5. locales/          Grund-Labels in allen Namespaces
+6. ui.js             Grund-Abschnitt in openMoveBlockDialogShared()
+                     Validierung (Pflichtfeld)
+                     Nach Verschiebung: saveMoveLog() + sendMoveNotification()
+7. email.js          EmailService.onBookingMoved() aufrufen
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+GEÄNDERTE DATEIEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Datei                     Änderung
+──────────────────────────────────────────────────────────────
+js/store.js               Store.MoveLog { MOVE_LOG: 'app_move_log' }
+js/adapter-localstorage.js saveMoveLog(entry, cb)
+js/app-service.js         AppService.saveMoveLog(entry, cb)
+js/chat.js                sendMoveNotification(), Rendering booking_moved
+js/ui.js                  Grund-Sektion in openMoveBlockDialogShared,
+                          Validierung, saveMoveLog + sendMoveNotification
+                          nach erfolgreicher Verschiebung
+locales/student.json      moveReasonXxx Labels
+locales/teacher.json*     moveReasonXxx Labels
+                          (* teacher.json existiert noch nicht → neu anlegen
+                             ODER Grund-Labels in separate move-reasons.json)
+js/app-config.js          APP_VERSION bump
+
+================================================================

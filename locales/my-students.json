@@ -1,0 +1,41 @@
+{
+  "pageTitle":            "Meine Schüler",
+  "pageSubtitle":         "Schüler verwalten und individuelle Preise festlegen.",
+
+  "searchPlaceholder":    "Schüler suchen\u2026",
+
+  "summaryBooking":       "Buchung",
+  "summaryBookingPlural": "Buchungen",
+
+  "badgeAll":             "Alle",
+  "badgePending":         "Unbest.",
+  "badgeConfirmed":       "Best. \u2713",
+
+  "accPriceTitle":        "Preiseinstellungen",
+  "accPricePer30":        "\u20ac / 30 Min.",
+  "priceLabel":           "Preis pro 30 Min.",
+  "priceDefaultBadge":    "Standardpreis",
+  "priceOverrideBadge":   "Individuell",
+  "priceHintPrefix":      "Standardpreis: ",
+  "priceSave":            "Speichern",
+  "priceReset":           "Zur\u00fccksetzen",
+
+  "gridBtnTitle":         "Individuelle Einstellungen",
+  "gridBtnSub":           "Sichtbarkeit im Wochen-Grid",
+
+  "accBookingsTitle":     "Buchungen",
+  "accBookingsTotal":     "gesamt",
+  "bookingsEmpty":        "Noch keine Buchungen.",
+
+  "statusConfirmed":      "Best. \u2713",
+  "statusPending":        "Unbest.",
+
+  "emptyNoStudents":      "Noch keine Sch\u00fcler verkn\u00fcpft.",
+  "emptyNoResults":       "Kein Sch\u00fcler gefunden.",
+
+  "toastInvalidPrice":    "Bitte einen g\u00fcltigen Preis eingeben.",
+  "toastSaveError":       "Fehler beim Speichern.",
+  "toastSaveSuccess":     "Preis gespeichert.",
+  "toastResetError":      "Fehler beim Zur\u00fccksetzen.",
+  "toastResetSuccess":    "Auf Standardpreis zur\u00fcckgesetzt."
+}

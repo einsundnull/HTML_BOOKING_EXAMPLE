@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Multi-Student Booking — Full Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n500:#6b7685;--n900:#0d1117;--ok-bg:#f0fdf4;--ok-tx:#14532d;--bad-bg:#fee2e2;--bad-tx:#991b1b;--warn-bg:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:12px;background:var(--n50);padding:16px;}
+h1{font-size:15px;font-weight:600;margin-bottom:4px;}
+.sub{font-size:11px;color:var(--n500);margin-bottom:14px;}
+h2{font-size:12px;font-weight:600;color:var(--n900);margin:16px 0 6px;text-transform:uppercase;letter-spacing:.04em;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;}
+th{background:var(--n100);padding:7px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);border-bottom:2px solid var(--n200);}
+td{padding:7px 10px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.5;}
+tr:last-child td{border-bottom:none;}
+.ok{display:inline-block;background:var(--ok-bg);color:var(--ok-tx);padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;}
+.bad{display:inline-block;background:var(--bad-bg);color:var(--bad-tx);padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;}
+.warn{display:inline-block;background:var(--warn-bg);color:var(--warn-tx);padding:1px 5px;border-radius:3px;font-size:10px;font-weight:600;}
+.cat{background:var(--n100);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);padding:5px 10px;border-bottom:1px solid var(--n200);}
+code{font-family:monospace;font-size:10px;background:var(--n100);padding:1px 4px;border-radius:2px;}
+.fix{background:#fef3cd;border-left:3px solid #f5a623;padding:10px 12px;border-radius:4px;margin-bottom:16px;font-size:11px;line-height:1.6;}
+</style>
+</head>
+<body>
+<h1>Multi-Student Booking — Full Audit</h1>
+<div class="sub">How teacher books for 2 students, what each student sees, bugs found</div>
+
+<div class="fix">
+  <strong>3 Bugs found:</strong>
+  (1) <strong>Affordability check only uses first student</strong> — second student's wallet ignored entirely.
+  (2) <strong>Extra students get a NEW slot via createSlot</strong> — this new slot has no slotId link to original, no recurring support, different deposit logic.
+  (3) <strong>"Regelmäßig buchen" missing in buildBookingForm</strong> — the teacher booking form has no recurring button.
+</div>
+
+<h2>1 — What happens when teacher books slot for 2 students</h2>
+<table>
+<thead><tr>
+  <th>Step</th><th>First student (newStudentId)</th><th>Extra students (extraStudents[])</th><th>Status</th>
+</tr></thead>
+<tbody>
+<tr><td>Teacher selects S1 + S2, clicks Prüfen</td><td>Wallet of S1 checked via <code>calcDepositInfo</code></td><td><span class="bad">NOT CHECKED</span> — S2 wallet never read</td><td><span class="bad">BUG</span></td></tr>
+<tr><td>Teacher clicks Buchen</td><td><code>bookSlotWithEscrowSilent(slotId, S1)</code><br>Books original slot, charges S1 deposit</td><td><code>createSlot({status:'booked', studentId:S2})</code><br>New slot created with same time/date, no escrow</td><td><span class="warn">DIFFERENT FLOWS</span></td></tr>
+<tr><td>Slot stored</td><td>Original slot: <code>studentId=S1, status='booked'</code></td><td>New slot: <code>studentId=S2, status='booked'</code> — fresh slotId, no baseStatus link</td><td><span class="warn">SEPARATE RECORDS</span></td></tr>
+<tr><td>Deposit charged</td><td>✓ Escrow created for S1</td><td><span class="bad">✗ No escrow for S2</span> — wallet not touched</td><td><span class="bad">BUG</span></td></tr>
+</tbody>
+</table>
+
+<h2>2 — What each student sees after teacher books</h2>
+<table>
+<thead><tr>
+  <th>View</th><th>Student 1 (S1)</th><th>Student 2 (S2, extra)</th><th>Note</th>
+</tr></thead>
+<tbody>
+<tr><td>Calendar dot</td><td>✓ "My booking" dot on day</td><td>✓ "My booking" dot on day (own slot)</td><td><span class="ok">OK</span></td></tr>
+<tr><td>Day view / freie Slots</td><td>Slot shows as <code>Meine Buchung</code> with Cancel</td><td>Slot shows as <code>Meine Buchung</code> with Cancel (own slot)</td><td><span class="ok">OK</span></td></tr>
+<tr><td>Availability for 3rd student</td><td colspan="2">Both original + new slot are <code>status='booked'</code> — teacher has 2 booked entries at same time. A 3rd student cannot book the same time slot as it's shown as booked by S1. S2 has a separate slot record so the original slot appears blocked.</td><td><span class="ok">Correct</span></td></tr>
+<tr><td>Week grid (student)</td><td>Slot shown as booked (dark)</td><td>Slot shown as booked (own record)</td><td><span class="ok">OK</span></td></tr>
+<tr><td>Deposit / wallet</td><td>✓ Deposit deducted correctly</td><td><span class="bad">✗ No deposit deducted — S2 gets booking for free</span></td><td><span class="bad">BUG</span></td></tr>
+<tr><td>Cancel by student</td><td>Normal cancel flow with policy</td><td>Cancel deletes new slot — but no refund logic since no escrow was created</td><td><span class="bad">BUG</span></td></tr>
+</tbody>
+</table>
+
+<h2>3 — Recurring booking in teacher booking form</h2>
+<table>
+<thead><tr>
+  <th>Context</th><th>Has recurring button?</th><th>Which implementation?</th><th>Status</th>
+</tr></thead>
+<tbody>
+<tr><td><code>buildBookingForm</code> (teacher books from day panel)</td><td><span class="bad">✗ NO</span> — no recurring button at all in this form</td><td>—</td><td><span class="bad">MISSING</span></td></tr>
+<tr><td><code>populateBookingDetail</code> (teacher edits existing block)</td><td><span class="ok">✓ YES</span> — "Regelmäßig buchen" toggle</td><td>Delegates to <code>_openRecurringBookingDialog</code> ✓</td><td><span class="ok">OK</span></td></tr>
+<tr><td>Student day view (SDV slot tap)</td><td><span class="ok">✓ YES</span></td><td>Delegates to shared dialog ✓</td><td><span class="ok">OK</span></td></tr>
+<tr><td>Student summary panel</td><td><span class="ok">✓ YES</span></td><td>Delegates to shared dialog ✓</td><td><span class="ok">OK</span></td></tr>
+</tbody>
+</table>
+
+<h2>4 — What needs to be fixed</h2>
+<table>
+<thead><tr><th>#</th><th>Bug</th><th>Fix</th><th>Effort</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Affordability check only reads S1 wallet</td><td>Loop through all <code>selectedUids</code> in Prüfen, show each student's wallet status separately</td><td><span class="warn">MEDIUM</span></td></tr>
+<tr><td>2</td><td>Extra students get no deposit charged</td><td>Call <code>bookSlotWithEscrowSilent</code> for extra students too (with a new slot), not <code>createSlot</code>. Or add deposit deduction step after <code>createSlot</code>.</td><td><span class="bad">COMPLEX</span></td></tr>
+<tr><td>3</td><td>No recurring button in <code>buildBookingForm</code></td><td>Add "↻ Regelmäßig buchen" button to <code>buildBookingForm</code> footer. On click: collect <code>rangeSlots</code> as bundleSlots, call <code>_openRecurringBookingDialog</code>.</td><td><span class="ok">EASY</span></td></tr>
+<tr><td>4</td><td>Cancel of extra-student slot has no refund</td><td>Depends on fix #2 — once escrow exists for S2, cancel flow handles refund automatically.</td><td>Blocked by #2</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

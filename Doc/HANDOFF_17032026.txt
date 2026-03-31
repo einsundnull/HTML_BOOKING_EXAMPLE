@@ -1,0 +1,705 @@
+================================================================================
+HANDOFF-DOKUMENT — BookingSystem
+Für das nächste LLM / den nächsten Chat
+Erstellt: 17.03.2026
+================================================================================
+
+ZWECK DIESES DOKUMENTS
+──────────────────────
+Vollständige Übergabe des aktuellen Projektstands nach einer langen
+Bugfix-Session. Enthält:
+  1. Was in dieser Session gemacht wurde
+  2. Welche Dateien aktuell sind / welche gelöscht werden können
+  3. Vollständige AppService / Wallet / Escrow Funktionsreferenz
+  4. Offene Punkte
+
+
+================================================================================
+1. WAS IN DIESER SESSION GEMACHT WURDE
+================================================================================
+
+NEUE DATEIEN ERSTELLT
+─────────────────────
+  js/wallet-core.js
+    Gemeinsamer Kern für wallet.js und wallet-panel.js.
+    Eliminiert ~370 Zeilen duplizierten Code.
+    Enthält: loadI18n, formatAmount, formatDate, escHtml,
+    buildTxItem, buildTxMetaLine, validateAmount, createInstance(opts).
+    Wichtig: buildTxMetaLine war im Panel vorher nicht vorhanden — jetzt
+    zeigen beide Wallet-Ansichten vollständige TX-Metadaten.
+
+GEÄNDERTE DATEIEN (diese Session)
+──────────────────────────────────
+  js/teacher.js     — alle unten beschriebenen Fixes
+  js/student.js     — alle unten beschriebenen Fixes
+  js/ui.js          — alle unten beschriebenen Fixes
+  js/wallet.js      — auf WalletCore umgestellt (lean consumer)
+  js/wallet-panel.js — auf WalletCore umgestellt (lean consumer)
+
+
+
+
+BUGFIXES — PHASE 1 (Sicherheit & Korrektheit)
+──────────────────────────────────────────────
+F1  Snapshot-Dateien gelöscht (siehe oben)
+
+F2  ui.js ~221: Store.Slots.confirm() → AppService.confirmSlot() mit
+    Callback-Barrier. Bestätigungen hatten vorher kein Escrow-Settlement.
+
+F3  Double-Save Guard:
+    student.js: modal-confirm-commit Button wird nach Klick disabled.
+    teacher.js: booking-save-btn.disabled=true beim Eintritt in
+    saveBookingChanges, =false nach Abschluss.
+
+F4  teacher.js: Redundanter inline getWallet-Call im Cancel-Callback
+    entfernt (7 Zeilen). WalletPanel.refresh() am Ende deckt es ab.
+
+
+BUGFIXES — PHASE 2 (Stabilität & Architektur)
+──────────────────────────────────────────────
+F5  student.js commitDayChanges(): Callback-Barrier eingebaut.
+    pending-Counter, onAllDone() feuert einmal wenn alle async Ops
+    (bookSlotWithEscrow + cancelSlotWithPolicy) zurück sind.
+    Vorher: renderCalendar() lief synchron bevor Callbacks kamen → Flackern.
+
+F6  teacher.js saveBookingChanges(): Gleiches Barrier-Muster.
+    Auch extraStudents-createSlot-Calls im Counter erfasst.
+
+F7  11 direkte Store.*-Zugriffe in ui.js + teacher.js durch AppService ersetzt:
+    Store.Slots.all()               → AppService.getAllSlotsSync()
+    Store.Slots.byTeacherDate()     → AppService.getSlotsByTeacherDateSync()
+    Store.slotEndTime()             → AppService.slotEndTime()
+    Store.Recurring.materialiseWeek() → AppService.materialiseWeek()
+    Store.slotTimesInRange()        → AppService.slotTimesInRange()
+
+F8  loop.html + wallet-standalone.html gelöscht
+
+
+BUGFIXES — PHASE 3 (Refactoring / Wartbarkeit)
+───────────────────────────────────────────────
+F9  teacher.js: renderAllBookingsList(opts) akzeptiert jetzt
+    opts.container + opts.dateFilter. renderBookingsPanel delegiert
+    den Booked-Blocks-Teil daran. ~130 Zeilen duplizierter Pipeline-Code
+    eliminiert.
+
+F10 student.js: Inline-Zeitfilter (past/upcoming) durch
+    _applyTimeFilter() aus ui.js ersetzt. Einheitliche Implementierung.
+
+
+WALLET-BUGFIXES (eigene Runde)
+────────────────────────────────
+  — bookSlotWithEscrow-Callback: Re-render + WalletPanel.refresh() nach
+    Buchung (vorher keine UI-Aktualisierung im Callback)
+  — cancelSlotWithPolicy-Callback: WalletPanel.refresh() nach Stornierung
+    (Refund war im Panel nicht sichtbar)
+  — commitDayChanges() + saveBookingChanges(): WalletPanel.refresh() am Ende
+  — student.js _repopulateFree(): onCancelSlot-Handler mit
+    _showCancelPolicyDialog verdrahtet — vorher wurde Stornierung in der
+    Free-Slots-Accordion still ohne Policy-Dialog gestaged
+
+
+================================================================================
+2. DOKUMENTATIONS-DATEIEN: BEHALTEN / LÖSCHEN
+================================================================================
+
+── BEHALTEN (aktuelle Architektur-Referenz) ─────────────────────────────────
+
+  Guide Lines/Guideline_Architecture.txt
+    Architektur-Übersicht, Schichtenmodell, Datenbankschema, alle
+    Datenzugriffsfunktionen. PRIMÄRE REFERENZ für nächstes LLM.
+
+  Guide Lines/Guideline_Layout_and_Styling.txt
+    CSS-Regeln, Komponentenregeln, Verbotene Praktiken, JS-Coding-Regeln.
+
+  Guide Lines/STYLE-GUIDE.txt + STYLE-DESCRIPTION.txt + Styling-Guide.txt
+    Design Tokens, Responsive Breakpoints, Komponenten-Spezifikationen.
+
+  Guide Lines/UI-Guide Lines Premium.txt
+    Premium UI Philosophie, Farbsystem, Typografie, Spacing.
+
+  Guide Lines/Cancellation — Best Practice Proposal_260316_181156.txt
+    Stornierungsrichtlinie (Tier-System). Teilweise implementiert.
+    Behalten: Policy-UI und Teacher-Profil-Felder noch offen.
+
+  Doc/CANCELLATION_SYSTEM.txt
+    Vollständige Dokumentation des implementierten Cancellation-Systems.
+
+  Doc/CRUD_SERVICE_REFERENCE_v2.md
+    Aktuellste Service-Referenz (v2 > v1). Escrow-Schema dokumentiert.
+
+  Doc/BOOKING_CONFIRMATION_LOGIC.txt
+    Buchungsbestätigungs-Flow. Noch relevant.
+
+  Doc/BOOKING_FILTER_UI_SCHEME.txt
+    Filter-UI Spezifikation.
+
+  Doc/EMAIL_SYSTEM.md
+    EmailService-Dokumentation.
+
+  Doc/GUIDELINES_JS.md
+    JS-Coding-Richtlinien (ES5, IIFE, Callbacks).
+
+  Doc/MOVE_DIALOG_UI_SCHEME.txt
+    Move-Dialog Spezifikation.
+
+  Doc/CATALOG_FILTER_DRAWER_SCHEME.txt
+    Catalog-Filter Spezifikation.
+
+  Doc/TEACHER_SELECTION_FLOW.txt
+    Teacher-Selection Flow.
+
+  Doc/Schema availability rules.txt
+    Verfügbarkeitsregeln.
+
+  Doc/wallet-debug.txt
+    Debug-Referenz für Wallet-Probleme. Kann nach stabilem Betrieb gelöscht werden.
+
+  Doc/INIT.md
+    Initialisierungs-Dokumentation.
+
+
+── LÖSCHEN (überholt / wurden in Code umgesetzt) ────────────────────────────
+
+  Doc/Escrow implementation 1_260312_225552.txt
+    LÖSCHEN. Initialer Escrow-Plan. Vollständig implementiert.
+
+  Doc/Implement Escrow 1_260316_154409.txt
+    LÖSCHEN. Escrow-UI-Integration. Deployed.
+
+  Doc/Wallet implementation plan Notes_260312_213529.txt
+    LÖSCHEN. Wallet-Implementierungsplan. Vollständig deployed.
+
+  Doc/Comparison booking behavior buggy Notes_260316_081121.txt
+    LÖSCHEN. Bug-Analyse-Notizen. Alle Bugs gefixt.
+
+  Doc/Vollständiger Vergleich Schedule-Bookings vs All_260316_085357.txt
+    LÖSCHEN. renderBookingsPanel-Redundanz. Durch F9 gefixt.
+
+  Doc/Teacher All Bookings vs Student My Bookings _260316_101629.txt
+    LÖSCHEN. Vergleichsanalyse. Umgesetzt.
+
+  Doc/Vergleichstabelle Zähl-Logik Teacher vs Student_260316_105050.txt
+    LÖSCHEN. Zähl-Logik-Vergleich. Umgesetzt.
+
+  Doc/Vergleichstabelle Free Slots Accordion_260316_114915.txt
+    LÖSCHEN. Free-Slots-Accordion-Analyse. Umgesetzt (inkl. onCancelSlot-Fix).
+
+  Doc/Implement prices _260316_120641.txt
+    LÖSCHEN. Preis-Implementierung Phase 1. Deployed.
+
+  Doc/Implementierung prices 2_260316_123340.txt
+    LÖSCHEN. Deployed.
+
+  Doc/Implement prices 3_260316_125320.txt
+    LÖSCHEN. Deployed.
+
+  Doc/My Students Filter vs All Bookings Filter_260316_130516.txt
+    LÖSCHEN. Filter-Analyse. Umgesetzt.
+
+  Doc/Upfront payment booking 1_260316_133042.txt
+    LÖSCHEN. Deployed.
+
+  Doc/Upfront payment booking 2_260316_133628.txt
+    LÖSCHEN. Deployed.
+
+  Doc/Staging comparison teacher student booking_260315_203609.txt
+    LÖSCHEN. Vergleichsanalyse vor Fixes.
+
+  Doc/Teach studen lt logik booking comparison _260315_202526.txt
+    LÖSCHEN. Vergleichsanalyse vor Fixes.
+
+  Doc/Gegenüberstellung teacher student_260315_191046.txt
+    LÖSCHEN. Vergleichsanalyse vor Fixes.
+
+  Doc/Vergleich Book a lesson (renderDaySlots) vs My B_260315_210650.txt
+    LÖSCHEN. Vergleichsanalyse. Alle Fixes deployed.
+
+  Doc/Quality check 1.txt
+    LÖSCHEN. Einmalige Qualitätsprüfung. Erledigt.
+
+  Doc/SUMMARY.md
+    LÖSCHEN (ersetzt durch dieses Dokument).
+
+  Doc/JOURNAL.md
+    LÖSCHEN (veraltet, ersetzt durch dieses Dokument).
+
+  Doc/HORIZONTAL_SCROLL_BUG.md
+    LÖSCHEN wenn Fix deployed. Prüfen ob noch relevant.
+
+  Doc/BUGFIX_ProfileStore_NameResolution.md
+    LÖSCHEN wenn Fix stabil. Einmaliger Bug.
+
+  Doc/Mockup teacher to student booking form.txt
+    LÖSCHEN. Mockup-Phase abgeschlossen.
+
+  Doc/Read before changed edit-profile .txt
+    LÖSCHEN wenn edit-profile stabil ist.
+
+  Doc/Schema Kalender.docx + Schema Kalender Planung.docx
+    LÖSCHEN wenn Kalender-Implementierung stabil.
+
+  Doc/TEACHER_VS_STUDENT_COMPARISON.md
+    LÖSCHEN. Vergleichs-Doku. Umgesetzt.
+
+  Bugs/Debug_260315_213623.txt
+    LÖSCHEN. Store-Direktzugriffe (F7 gefixt), andere Punkte gefixt.
+
+  Bugs/Accept Student Bug_260316_202746.txt
+    PRÜFEN ob noch relevant. Student sieht Lehrer erst nach Annahme.
+
+  Bugs/Student add booking bug_260316_140613.txt
+    LÖSCHEN. + Add Button Fix deployed.
+
+  Bugs/Style 1.txt
+    LÖSCHEN. Style-Audit. Approved-Items abgehakt.
+
+  Bugs/Vollständiger Vergleich Schedule-Bookings vs All_260316_085357.txt
+    LÖSCHEN. renderBookingsPanel-Redundanz durch F9 gefixt.
+
+  Bugs/Zahlen der bookings .txt
+    LÖSCHEN. Zähl-Logik-Bug gefixt.
+
+  Doc/CRUD_SERVICE_REFERENCE.md (v1)
+    LÖSCHEN. Durch CRUD_SERVICE_REFERENCE_v2.md ersetzt.
+
+  Doc/Folder Hierarchie .txt
+    LÖSCHEN wenn Ordnerstruktur stabil.
+
+
+================================================================================
+3. VOLLSTÄNDIGE FUNKTIONSREFERENZ — AppService / Wallet / Escrow
+================================================================================
+
+ARCHITEKTUR-ÜBERSICHT
+──────────────────────
+  UI-Schicht  (teacher.js, student.js, admin.js, wallet.js etc.)
+      ↓  ruft NUR AppService.* auf — NIEMALS Store.* direkt
+  AppService  (app-service.js)      ← einziger Zugangspunkt für UI
+      ↓  delegiert an AppAdapter
+  AppAdapter  (app-config.js)       ← var AppAdapter = LocalStorageAdapter
+      ↓
+  LocalStorageAdapter (adapter-localstorage.js)
+      ↓  einzige Datei die Store.* direkt aufrufen darf
+  Store       (store.js)            ← localStorage lesen/schreiben
+
+  Wallet-Schicht (Sonderfall):
+  wallet.html → wallet.js (standalone)     ┐
+                                           ├→ WalletCore (wallet-core.js)
+  teacher/student.html → wallet-panel.js  ┘     ↓ AppService
+
+
+────────────────────────────────────────────────────────────────────────────────
+3A. AppService (app-service.js) — ALLE EXPORTIERTEN FUNKTIONEN
+────────────────────────────────────────────────────────────────────────────────
+
+USERS
+  getUser(uid, cb)                    → User-Objekt | null
+  getAllUsers(cb)                     → User[]
+  getUsersByRole(role, cb)            → User[] (role: 'teacher'|'student'|'admin')
+  createUser(data, cb)                → neuer User
+  deleteUser(uid, cb)                 → void
+
+PROFILES
+  getProfile(uid, cb)                 → Profil-Objekt | null
+  getProfileOrDefault(uid, cb)        → Profil || Default-Profil
+  saveProfile(uid, data, cb)          → gespeichertes Profil
+  getDisplayName(uid, cb)             → String (Profil > Store > uid)
+  getProfilePhoto(uid, cb)            → Base64 | null
+  getTeachersWithProfiles(cb)         → [{user, profile}] — für Katalog
+
+SLOTS (async)
+  getSlotById(slotId, cb)             → Slot | null
+  getSlotsByTeacher(uid, cb)          → Slot[]
+  getSlotsByTeacherDate(uid, date, cb)→ Slot[] sortiert nach Zeit
+  getSlotsByStudent(uid, cb)          → Slot[]
+  getAllSlots(cb)                      → alle Slots
+  slotExists(uid, date, time, cb)     → Slot | null
+  createSlot(data, cb)                → neuer Slot
+  createSlotRange(uid,date,start,end,status,cb) → Anzahl erstellt
+  updateSlot(slotId, patch, cb)       → void
+  setSlotAvailability(slotId, base, cb) → void
+  bookSlot(slotId, studentId, cb)     → void (NUR über bookSlotWithEscrow verwenden)
+  cancelSlotBooking(slotId, cb)       → void (NUR über cancelSlotWithPolicy verwenden)
+  deleteSlot(slotId, cb)              → void
+  releaseSlot(slotId, cb)             → void (Slot freigeben ohne Cancel)
+  confirmSlot(slotId, cb)             → Slot als bestätigt markieren
+
+SLOTS (synchron — nur localStorage)
+  getAllSlotsSync()                    → Slot[]
+  getSlotsByTeacherSync(uid)          → Slot[]
+  getSlotsByTeacherDateSync(uid,date) → Slot[]
+  getSlotsByStudentSync(uid)          → Slot[]
+  slotExistsSync(uid, date, time)     → Slot | null
+
+RECURRING
+  getRecurringByTeacher(uid, cb)      → Recurring[]
+  recurringExists(uid, dow, time, cb) → Boolean
+  createRecurring(uid, dow, time, cb) → void
+  deleteRecurringByDayTime(uid,dow,time,cb) → void
+  materialiseWeek(uid, weekDates, cb) → void (erstellt Slots aus Recurring-Regeln)
+  recurringExistsSync(uid, dow, time) → Boolean (synchron)
+
+SELECTIONS
+  getSelectionsByStudent(uid, cb)     → Selection[]
+  getSelectionsByTeacher(uid, cb)     → Selection[]
+  createSelection(studentId, teacherId, cb) → void
+  deleteSelection(studentId, teacherId, cb) → void
+  getSelectionsByStudentSync(uid)     → Selection[]
+  getSelectionsByTeacherSync(uid)     → Selection[]
+
+USERS (synchron)
+  getUserSync(uid)                    → User | null
+  getUsersByRoleSync(role)            → User[]
+
+STATS
+  getAdminStats(cb)                   → { userCount, teacherCount, studentCount, slotCount, bookingCount }
+  getUserStats(uid, cb)               → { bookings, slots, earnings }
+
+ZEIT-HELFER (synchron, kein Callback)
+  slotEndTime(timeStr)                → 'HH:MM' (+30min)
+  slotTimesInRange(start, end)        → String[] (30-min-Schritte)
+
+WALLET
+  getWallet(uid, cb)                  → { uid, balance, currency, updatedAt }
+  getWalletSync(uid)                  → wallet (synchron)
+  deposit(uid, amount, desc, cb)      → { wallet, transaction }
+  withdraw(uid, amount, desc, cb)     → { wallet, transaction } — Fehler wenn balance < amount
+  getTransactions(uid, cb)            → Transaction[]
+  getTeacherPriceSync(teacherId)      → number (pricePerHalfHour aus Profil)
+  calcDepositInfo(teacherId, fullAmount, cb)
+    → { depositAmount, depositType, depositPercent, requiresDeposit, paymentMode }
+  checkPendingAffordability(pendingSlots[], studentId, cb)
+    → { totalCost, walletBalance, canAfford, requiresDeposit,
+        depositAmount, depositCovered, paymentMode }
+
+ESCROW
+  getAllEscrows(cb)                    → Escrow[] (Admin)
+  createEscrow(slotId, studentId, teacherId, cb) → Escrow
+  getEscrowBySlot(slotId, cb)         → Escrow | null
+  getEscrowsByStudent(uid, cb)        → Escrow[]
+  getEscrowsByTeacher(uid, cb)        → Escrow[] (mit Schülernamen)
+  payDeposit(escrowId, cb)            → { escrow, transaction } — unpaid→held
+  requestDepositRefund(escrowId, cb)  → void — held→refund_requested
+  releaseDeposit(escrowId, cb)        → { wallet, transaction } — →refunded (Schüler)
+  forfeitDeposit(escrowId, cb)        → { wallet, transaction } — →forfeited (Lehrer)
+  confirmLesson(escrowId, cb)         → { escrow, transaction } — →released
+  adminReleaseEscrow(escrowId, adminUid, cb) → void — Admin-Override, 2 TX
+
+ESCROW KOMBINIERT (UI sollte diese nutzen, nicht die Primitiven)
+  bookSlotWithEscrow(slotId, studentId, teacherId, cb)
+    Atomare Buchung: bookSlot + createEscrow + payDeposit.
+    Rollback bei Fehler (cancelSlotBooking wenn Escrow/Deposit fehlschlägt).
+    cb: fn(err, { escrow, transaction|null })
+
+  cancelSlotWithPolicy(slotId, actorRole, cb)
+    Atomare Stornierung: cancelSlotBooking + Escrow-Aktion je Tier.
+    actorRole: 'student'|'teacher'|'admin'
+    cb: fn(err, { policy, transaction|null })
+    Tier-Logik:
+      teacher_cancel / full_refund → requestDepositRefund + releaseDeposit
+      forfeit / partial (MVP)      → requestDepositRefund + forfeitDeposit
+      no_escrow                    → nur writeCancellationRecord (kein Geld)
+
+  calcCancellationPolicy(slotId, actorRole, cb)
+    Berechnet was bei Stornierung passiert (OHNE zu stornieren).
+    cb: fn(err, { tier, noticeHours, depositStatus, depositAmount,
+                  refundAmount, forfeitAmount, escrowId, paymentMode })
+    Tiers: 'full_refund'|'partial'|'forfeit'|'teacher_cancel'|'no_escrow'
+
+SONSTIGES
+  onChange(fn)                        → Cross-Tab-Sync Listener
+
+
+────────────────────────────────────────────────────────────────────────────────
+3B. LocalStorageAdapter (adapter-localstorage.js) — INTERNE FUNKTIONEN
+────────────────────────────────────────────────────────────────────────────────
+
+Die Adapter-Funktionen werden NUR von AppService aufgerufen.
+UI-Code darf sie NICHT direkt aufrufen.
+
+Wallet-intern:
+  _loadWallets()           localStorage app_wallets lesen
+  _saveWallets(data)       localStorage app_wallets schreiben
+  _loadTxs()               localStorage app_transactions lesen
+  _saveTxs(data)           localStorage app_transactions schreiben
+  _txId()                  TX-ID generieren: 'tx_<ts>_<random>'
+  _isoNow()                ISO-8601 Timestamp jetzt
+
+Escrow-intern:
+  _loadEscrows()           localStorage app_escrow lesen
+  _saveEscrows(data)       localStorage app_escrow schreiben
+  _escrowId()              Escrow-ID: 'esc_<timestamp>'
+  _buildTxMeta(escrow,opts) Vollständiges meta-Objekt für TX:
+                            slotDate, slotTime, teacherId, studentId,
+                            escrowId, fullAmount, depositAmount,
+                            cancellationTier, cancelledAt, bookedAt,
+                            depositType, depositPercent, requiresDeposit
+  _calcDeposit(profile, fullAmount)  Deposit aus Profil-Settings
+  _tagEscrowTier(escrowId, tier, cb) Escrow mit Storno-Tier markieren
+
+Escrow-public (über AppService):
+  calcDepositInfo(teacherId, fullAmount, cb)
+  getEscrow(escrowId, cb)
+  getEscrowBySlot(slotId, cb)
+  getEscrowsByStudent(studentId, cb)
+  getEscrowsByTeacher(teacherId, cb)
+  getAllEscrows(cb)
+  createEscrow(slotId, studentId, teacherId, cb)
+    Speichert: slotId, studentId, teacherId, depositAmount, depositType,
+    depositPercent, fullAmount, paymentMode, requiresDeposit, depositStatus,
+    createdAt, slotDate, slotTime
+  payDeposit(escrowId, cb)
+  requestDepositRefund(escrowId, cb)  NUR wenn depositStatus='held'
+  releaseDeposit(escrowId, cb)
+  forfeitDeposit(escrowId, cb)
+  confirmLesson(escrowId, cb)
+  adminReleaseEscrow(escrowId, adminUid, cb)
+  updateNegotiatedAmount(escrowId, amount, cb)
+  writeCancellationRecord(slotId, studentId, teacherId, policy, cb)
+    Schreibt cancellation-TX auch ohne Geldbewegung (cash_on_site, kein Escrow)
+
+
+────────────────────────────────────────────────────────────────────────────────
+3C. WalletCore (wallet-core.js) — GLOBALES MODUL: window.WalletCore
+────────────────────────────────────────────────────────────────────────────────
+
+Statische Hilfsmethoden (direkt aufrufbar):
+  WalletCore.loadI18n(cb)            Lädt wallet.json einmalig (gecacht, Queue)
+  WalletCore.formatAmount(n)         Zahl → '12,50' (DE-Format)
+  WalletCore.formatDate(iso)         ISO → 'TT.MM.JJJJ HH:MM'
+  WalletCore.escHtml(str)            HTML-Sonderzeichen escapen
+  WalletCore.buildTxItem(tx, i18n)   TX-Objekt → <li> DOM-Element
+  WalletCore.buildTxMetaLine(tx)     TX.meta → HTML-String mit Datum/Name/Tier
+  WalletCore.validateAmount(el,err,i18n) Input validieren → Boolean
+  WalletCore.clearError(errEl)       Fehlerfeld leeren
+  WalletCore.TX_ICONS                Konstante: { deposit:'↑', withdrawal:'↓', ... }
+
+Factory:
+  WalletCore.createInstance(opts) → Instanz
+    opts.uid               User-UID
+    opts.i18n              i18n-Objekt
+    opts.getId(key)        Funktion: semantischer Key → DOM-Element-ID
+    opts.onBalanceUpdate(wallet) Hook nach Saldo-Änderung
+    opts.onError(ctx, err) Fehler-Handler
+    Keys: balance, txList, txEmpty, depAmt, depDesc, depBtn, depErr,
+          wdAmt, wdDesc, wdBtn, wdErr, confirm, confirmText, confirmOk, confirmCancel
+
+  Instanz-Methoden:
+    renderBalance(wallet)    Saldo-Anzeige aktualisieren
+    renderHistory(txs)       TX-Liste rendern
+    loadData()               getWallet + getTransactions laden
+    loadHistory()            Nur TX-History nachladen
+    doDeposit()              Einzahlung ausführen
+    requestWithdraw()        Auszahlungs-Confirm öffnen
+    doWithdraw()             Auszahlung bestätigen + ausführen
+    openConfirm()            Bestätigungs-Dialog öffnen
+    closeConfirm()           Bestätigungs-Dialog schließen
+    bindEvents()             Alle Event-Listener verdrahten
+
+
+────────────────────────────────────────────────────────────────────────────────
+3D. WalletPanel (wallet-panel.js) — GLOBALES MODUL: window.WalletPanel
+────────────────────────────────────────────────────────────────────────────────
+
+Wird in teacher.html (#teacher-wallet-panel) und
+student.html (#student-wallet-panel) gemountet.
+
+  WalletPanel.mount(containerId, uid)
+    HTML-Struktur des Panels rendern, WalletCore.createInstance() aufrufen,
+    Events binden, Daten laden.
+
+  WalletPanel.refresh(uid)
+    Kontostand + TX-History neu laden (in-place, kein Re-Render des HTML).
+    No-Op wenn Panel noch nicht gemountet (mount() beim Tab-Öffnen lädt frisch).
+
+Wann aufrufen:
+  Nach bookSlotWithEscrow (in Callbacks von commitDayChanges / saveBookingChanges)
+  Nach cancelSlotWithPolicy (am Ende von commitDayChanges / saveBookingChanges)
+  Nach manueller Einzahlung/Auszahlung (automatisch durch WalletCore intern)
+
+
+────────────────────────────────────────────────────────────────────────────────
+3E. wallet.js — Standalone Wallet-Seite (wallet.html)
+────────────────────────────────────────────────────────────────────────────────
+
+Lean consumer von WalletCore. Enthält nur:
+  _applyI18n()          data-i18n Attribute auf DOM anwenden
+  _showError()          Inline-Fehler-Fallback (wenn kein UI.showToast)
+  _ID_MAP               Feste HTML-IDs der Standalone-Seite
+  _onBalanceUpdate(w)   Navbar-Badge synchronisieren
+  DOMContentLoaded      Auth-Guard, Navbar.init, WalletCore.loadI18n → createInstance
+
+
+────────────────────────────────────────────────────────────────────────────────
+3F. Escrow-Datenschema (localStorage key: app_escrow)
+────────────────────────────────────────────────────────────────────────────────
+
+Felder pro Escrow-Objekt:
+  escrowId          'esc_<timestamp>'
+  slotId            Referenz auf app_slots
+  studentId
+  teacherId
+  depositAmount     EUR
+  depositType       'fixed' | 'percent'
+  depositPercent    z.B. 20 (null wenn fixed)
+  fullAmount        Gesamtpreis der Stunde
+  negotiatedAmount  null oder abweichender Preis
+  paymentMode       'instant' | 'cash_on_site'
+  requiresDeposit   Boolean
+  depositStatus     'unpaid'|'held'|'refund_requested'|'refunded'|'forfeited'|'released'
+  fullPaymentStatus 'unpaid'|'paid'|'verified'
+  slotDate          'YYYY-MM-DD' (direkt gespeichert, kein Slot-Lookup nötig)
+  slotTime          'HH:MM'
+  depositPaidAt
+  releasedAt
+  createdAt
+
+Deposit-Status-Flow:
+  unpaid
+    → held              (payDeposit)
+      → refund_requested (requestDepositRefund)
+        → refunded       (releaseDeposit)   — Deposit → Schüler
+        → forfeited      (forfeitDeposit)   — Deposit → Lehrer
+      → released         (confirmLesson)    — Stunde bestätigt
+
+
+────────────────────────────────────────────────────────────────────────────────
+3G. Transaktions-Schema (localStorage key: app_transactions)
+────────────────────────────────────────────────────────────────────────────────
+
+Felder:
+  txId            'tx_<timestamp>_<random>'
+  uid             Wallet-Inhaber
+  type            'deposit'|'withdrawal'|'escrow_hold'|'escrow_release'
+                  |'escrow_refund'|'cancellation'
+  amount          EUR (negativ bei Abzug)
+  balance         Saldo nach TX
+  description     Lesbarer Text: 'Stornierung: Name, Datum, Tier'
+  status          'completed'|'pending'|'failed'
+  createdAt       ISO-8601
+  relatedUid      Gegenpartei
+  meta            {
+                    slotDate, slotTime,
+                    teacherId, studentId,
+                    escrowId, fullAmount, depositAmount,
+                    cancellationTier,
+                    cancelledAt, bookedAt,
+                    depositType, depositPercent, requiresDeposit
+                  }
+
+
+────────────────────────────────────────────────────────────────────────────────
+3H. Shared UI-Funktionen in ui.js (relevant für Escrow/Wallet)
+────────────────────────────────────────────────────────────────────────────────
+
+  _showCancelPolicyDialog(slot, pendingMap, onAction, teacherName, time, endTime, dateStr, actorRole)
+    Öffnet Policy-Warning-Dialog mit Tier, Rückerstattungsbetrag, Vorankündigungs-
+    zeit. Bei Bestätigung: cancelSlotWithPolicy() direkt (kein Staging),
+    dann Toast + Navbar-Badge-Update. onAction() wird danach aufgerufen.
+    WICHTIG: Wird von student.js, teacher.js und ui.js direkt aufgerufen.
+    window._showCancelPolicyDialog = _showCancelPolicyDialog (global)
+
+  _showCancelBlockPolicyDialog(slots, pendingMap, onAction, ...)
+    Gleich wie oben aber für mehrere Slots (Block).
+    Summiert Deposits aller Slots.
+
+  _buildCancelPolicyBody(policy, teacherName, time, endTime, dateStr)
+    HTML-String für den Policy-Dialog-Body.
+    Zeigt Tier, Rückerstattung, Vorankündigungszeit farblich.
+
+  _applyTimeFilter(slots, timeFilter, today)
+    Filter: 'past' (date < today) | 'upcoming' (date >= today) | 'all'
+    window._applyTimeFilter (global — student.js und teacher.js nutzen es)
+
+  _applyConfirmFilter(slots, confirmed)
+    Filter: 'confirmed' | 'unconfirmed' | 'all'
+
+  populateBookingDetail(detail, block, opts)
+    Füllt ein Block-Detail-Element mit Slot-Zeilen.
+    opts.onCancelSlot(s, map, onAction) MUSS immer gesetzt sein wenn der
+    User Buchungen stornieren kann — sonst wird still ohne Policy-Dialog gestaged.
+
+  mergeBookingBlocks(dateStr, slots, today, opts)
+    Gemeinsame Merge-Funktion für teacher.js und student.js.
+    opts.groupField: 'studentId' (teacher) | 'teacherId' (student)
+    opts.resolveParty: fn → { student|teacherId }
+
+  fmtPrice(amount)
+    EUR-Preisformatierung für UI-Anzeige.
+
+
+================================================================================
+4. OFFENE PUNKTE (bekannt, noch nicht implementiert)
+================================================================================
+
+  PRIO HOCH:
+    requestDepositRefund schlägt fehl wenn depositStatus='unpaid'
+    (cash_on_site / Deposit nicht bezahlt). Stornierung läuft durch ohne
+    Escrow-Settlement. Fix: in cancelSlotWithPolicy direkt
+    writeCancellationRecord aufrufen wenn Status 'unpaid'.
+
+  PRIO MITTEL:
+    _showCancelPolicyDialog in ui.js (~885): onAction-Callback
+    aktualisiert nach direkter Stornierung nur Navbar-Badge, nicht
+    WalletPanel. Fix: WalletPanel.refresh(wUid) nach Navbar-Update.
+
+    Cancellation-Policy Teacher-Profil-Felder (cancellationWindow,
+    cancellationPartial, cancellationStrict) + UI-Dialog fehlen noch.
+    Die calcCancellationPolicy-Funktion liest sie bereits aber die
+    Profile-Edit-UI hat noch keinen Abschnitt dafür.
+
+    Partial-Refund (24–48h Tier) ist MVP: volles Deposit an Lehrer statt
+    korrektem Split. Formel: forfeitAmount = depositAmount * (partialPct/100).
+
+    Admin-Dispute-Resolution-Ansicht für bestrittene Stornierungen fehlt.
+
+  PRIO NIEDRIG:
+    Paragliding / Diving / Tour Guides als aktive Katalogseiten.
+    profile-edit.html: Zahlungseinstellungen-Abschnitt für Teacher.
+    Passwort-Hashing (bcrypt) für Produktionsreife.
+
+
+================================================================================
+5. AKTUELLE DATEISTRUKTUR
+================================================================================
+
+HTML/
+├── js/
+│   ├── store.js                  Store.Users/Slots/Recurring/Selections
+│   ├── auth.js                   Auth.current/login/logout
+│   ├── profile.js                ProfileStore + ProfileEdit + ProfileView
+│   ├── ui.js                     Toast, Modal, shared UI-Funktionen
+│   ├── navbar.js                 Navbar.init(page, options)
+│   ├── adapter-localstorage.js   LocalStorageAdapter (aktiver Adapter)
+│   ├── adapter-firestore.js      FirestoreAdapter (Stub — NICHT aktiv)
+│   ├── app-config.js             var AppAdapter = LocalStorageAdapter
+│   ├── app-service.js            AppService.* (einziger Zugangspunkt für UI)
+│   ├── wallet-core.js            WalletCore (gemeinsamer Wallet-Kern) [NEU]
+│   ├── wallet-panel.js           WalletPanel.mount/refresh
+│   ├── wallet.js                 Standalone wallet.html Consumer
+│   ├── teacher.js                Lehrer-Dashboard
+│   ├── student.js                Schüler-Dashboard
+│   ├── admin.js                  Admin-Verwaltung
+│   ├── landing.js                Landing Page + AuthModal
+│   ├── chat.js                   Chat-Overlay
+│   ├── email.js                  EmailService
+│   ├── skiing-catalog.js         Lehrerkatalog
+│   ├── catalog-filter-drawer.js  Filter-Schublade
+│   ├── catalog-seed.js           Seed-Daten für Katalog
+│   ├── skiing.js                 Ski-Kategorie-Seite
+│   ├── user-detail.js            User-Detail-Seite
+│   └── navbar.js                 Navbar
+├── css/                          (unverändert)
+├── locales/                      wallet.json, student.json, skiing-catalog.json
+├── Doc/                          (siehe Abschnitt 2)
+├── Bugs/                         (siehe Abschnitt 2)
+└── Guide Lines/                  (alle behalten)
+
+AKTIVE HTML-SEITEN:
+  landing.html   teacher.html   student.html   admin.html
+  wallet.html    profile-edit.html   profile-view.html
+  skiing.html    skiing-catalog.html
+  debug.html     (nur Entwicklung)
+
+
+================================================================================

@@ -1,0 +1,405 @@
+<!--
+  MOCKUP: buildTeacherCard + _populateDetail (student view)
+  FILE:   student.js       : line 910  — function buildTeacherCard(teacher, mySelections, reqStatus)
+          student.js       : line 1854 — slot booking confirm dialog (_slotPrice)
+          student.js       : line 574  — notification snapshot (pricePerSlot)
+          student.js       : line 89   — pending slots affordability check
+          student.js       : line 319  — confirm dialog pending slots
+          skiing-catalog.js: line 647  — _buildCard price display
+  CSS:    student.css — .teacher-card-price, NEW: .teacher-card-price-individual
+  CHANGE: All student-facing price displays must use getStudentPriceForTeacherSync(studentId, teacherId)
+          instead of getTeacherPriceSync(teacherId).
+          Teacher card in catalog: show individual price with badge if override active.
+          All calculations (affordability, deposit, notifications) use individual price.
+  DATE:   2026-03-24 17:00
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup + Impl-Tabelle — Individueller Schülerpreis in Student-View</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#ffffff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-800:#1a2130;--neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-regular:400;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(6,15,28,0.08);
+  --transition:150ms ease;
+  --pending-amber-bg:#fef3cd;--pending-amber-bd:#f5d97e;--pending-amber-tx:#7a5c00;
+  --status-confirmed-bg:#f0fdf4;--status-confirmed-bd:#bbf7d0;--status-confirmed-tx:#14532d;
+  --navy:#060f1c;--navy-800:#0f2035;
+  --mono:'Consolas','Courier New',monospace;
+  --ok:#16a34a;--ok-bg:#f0fff4;--ok-bd:#bbf7d0;--ok-tx:#14532d;
+  --info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;--info-tx:#1e3a8a;
+  --warn:#d97706;--warn-bg:#fffbeb;--warn-bd:#fde68a;--warn-tx:#7b3500;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e8ecf0;color:var(--neutral-900);line-height:1.6;}
+
+/* ── Doc header ── */
+.ph{background:var(--navy);padding:28px 32px 24px;}
+.ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px;}
+.ph-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:5px;}
+.ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:780px;margin-bottom:14px;}
+.ph-meta{display:flex;gap:8px;flex-wrap:wrap;}
+.ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15);}
+
+/* ── Layout ── */
+.page{padding:28px 32px;max-width:1100px;margin:0 auto;}
+@media(max-width:700px){.ph,.page{padding:16px;}}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start;}
+@media(max-width:640px){.two-col{grid-template-columns:1fr;}}
+.sec{margin-bottom:48px;}
+.sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--neutral-200);}
+.sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0;}
+.sec-title{font-size:17px;font-weight:700;}
+.mock-label{font-size:10px;font-weight:600;color:var(--neutral-400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.mock-label.before{color:#c0392b;}
+.mock-label.after{color:var(--ok);}
+.mock-note{font-size:12px;color:var(--neutral-600);background:var(--neutral-100);border-radius:var(--radius-sm);padding:8px 12px;border-left:3px solid var(--color-300);margin-bottom:12px;line-height:1.5;}
+.mock-note strong{color:var(--neutral-800);}
+code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249;}
+
+/* ── Tables ── */
+.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--neutral-200);margin-bottom:20px;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;}
+tbody td{padding:9px 13px;border-bottom:1px solid var(--neutral-200);vertical-align:top;color:var(--neutral-700);line-height:1.5;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr.r-mod{background:var(--info-bg);}
+tbody tr.r-new{background:var(--ok-bg);}
+tbody tr.r-ctx{background:var(--neutral-50);}
+
+/* ── Callout ── */
+.callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px;}
+.c-info{background:var(--info-bg);border-color:var(--info);color:var(--info-tx);}
+.c-warn{background:var(--warn-bg);border-color:var(--warn);color:var(--warn-tx);}
+.callout strong{font-weight:700;}
+
+/* ── Code block ── */
+.code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0;}
+.code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:16px;}
+.code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0;}
+.cm{color:#64748b;}.ck{color:#93c5fd;}.cs{color:#86efac;}.cn{color:#fca5a5;}
+
+/* ── Existing student.css classes (1:1) ── */
+.card{background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:var(--radius-lg);padding:var(--sp-4);box-shadow:var(--shadow);}
+.teacher-card-top{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);margin-bottom:var(--sp-3);}
+.teacher-card-name-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;}
+.teacher-card-name{font-weight:var(--weight-semibold);color:var(--neutral-900);margin-bottom:var(--sp-1);}
+.teacher-card-discipline{display:inline-block;font-size:10px;font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:.5px;padding:2px 7px;border-radius:20px;background:var(--color-50);color:var(--color-600);align-self:flex-start;}
+.teacher-card-price{font-size:var(--text-caption);color:var(--color-500);font-weight:var(--weight-semibold);}
+.teacher-card-avail{font-size:var(--text-caption);color:var(--neutral-500);margin-bottom:var(--sp-2);}
+.teacher-card-actions{display:flex;gap:var(--sp-2);}
+.teacher-selected-badge{font-size:10px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--color-100);color:var(--color-700);border:1px solid var(--color-200);white-space:nowrap;}
+.btn{font-family:var(--font);font-size:var(--text-caption);font-weight:var(--weight-semibold);padding:5px var(--sp-3);border-radius:var(--radius-sm);border:1px solid transparent;cursor:pointer;display:inline-flex;align-items:center;gap:var(--sp-1);}
+.btn-primary{background:var(--color-900);color:var(--neutral-0);border-color:var(--color-900);}
+.btn-secondary{background:var(--color-400);color:var(--neutral-0);border-color:var(--color-400);}
+.btn-ghost{background:transparent;color:var(--neutral-600);}
+.avatar-md{width:44px;height:44px;border-radius:50%;background:var(--color-100);color:var(--color-700);font-size:14px;font-weight:var(--weight-semibold);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ── NEW class — teacher-card-price-individual ── */
+/* NEW: student.css — append after .teacher-card-price rule */
+.teacher-card-price-individual {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--text-caption);
+  color: var(--color-500);
+  font-weight: var(--weight-semibold);
+}
+.teacher-card-price-individual .price-individual-badge {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  padding: 1px 5px;
+  border-radius: 99px;
+  background: var(--color-100);
+  color: var(--color-700);
+  border: 1px solid var(--color-200);
+  white-space: nowrap;
+}
+</style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Mockup + Implementierungstabelle · BookingSystem</div>
+  <div class="ph-title">Individueller Schülerpreis — Student-Ansicht</div>
+  <div class="ph-sub">
+    Alle preisbezogenen Anzeigen und Berechnungen für den Schüler müssen
+    <code style="color:rgba(255,255,255,.8)">getStudentPriceForTeacherSync(studentId, teacherId)</code>
+    statt <code style="color:rgba(255,255,255,.8)">getTeacherPriceSync(teacherId)</code> verwenden.
+    Lehrer-Karte im Katalog zeigt individuellen Preis mit Badge.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 24. März 2026</span>
+    <span class="ph-badge">student.js</span>
+    <span class="ph-badge">skiing-catalog.js</span>
+    <span class="ph-badge">student.css (neue Klasse)</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ══ 1. Implementierungstabelle ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Alle notwendigen Implementierungen</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Schlüssel-Funktion bereits vorhanden:</strong>
+      <code>AppService.getStudentPriceForTeacherSync(studentId, teacherId)</code> existiert seit dem
+      letzten Commit. Sie gibt <code>priceOverride</code> zurück, falls gesetzt — sonst den
+      Profil-Standardpreis. Alle folgenden Punkte ersetzen nur den Aufruf.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Datei</th>
+            <th>Stelle / Zeile</th>
+            <th>Vorher</th>
+            <th>Nachher</th>
+            <th>Auswirkung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-mod">
+            <td><strong>1</strong></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~910<br><code>buildTeacherCard()</code></td>
+            <td><code>getTeacherPriceSync(teacher.uid)</code></td>
+            <td><code>getStudentPriceForTeacherSync(currentUser.uid, teacher.uid)</code></td>
+            <td>Katalog-Karte zeigt individuellen Preis + Badge „Ihr Preis"</td>
+          </tr>
+          <tr class="r-mod">
+            <td><strong>2</strong></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~89<br>pending affordability check</td>
+            <td><code>AppService.getTeacherPriceSync(s.teacherId)</code></td>
+            <td><code>AppService.getStudentPriceForTeacherSync(currentUser.uid, s.teacherId)</code></td>
+            <td>Bezahlbarkeits-Check rechnet mit individuellem Preis</td>
+          </tr>
+          <tr class="r-mod">
+            <td><strong>3</strong></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~319<br>confirm dialog pending slots</td>
+            <td><code>AppService.getTeacherPriceSync(s.teacherId)</code></td>
+            <td><code>AppService.getStudentPriceForTeacherSync(currentUser.uid, s.teacherId)</code></td>
+            <td>Bestätigungs-Dialog zeigt und berechnet mit individuellem Preis</td>
+          </tr>
+          <tr class="r-mod">
+            <td><strong>4</strong></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~574<br>notification snapshot<br><code>pricePerSlot</code></td>
+            <td><code>AppService.getTeacherPriceSync(tKey)</code></td>
+            <td><code>AppService.getStudentPriceForTeacherSync(currentUser.uid, tKey)</code></td>
+            <td>Buchungsbenachrichtigung und Email-Snapshot enthalten individuellen Preis</td>
+          </tr>
+          <tr class="r-mod">
+            <td><strong>5</strong></td>
+            <td><code>student.js</code></td>
+            <td>Zeile ~1854<br>slot booking modal<br><code>_slotPrice</code></td>
+            <td><code>AppService.getTeacherPriceSync(activeTeacherId)</code></td>
+            <td><code>AppService.getStudentPriceForTeacherSync(currentUser.uid, activeTeacherId)</code></td>
+            <td>„Slot buchen?"-Dialog zeigt individuellen Preis pro Termin</td>
+          </tr>
+          <tr class="r-mod">
+            <td><strong>6</strong></td>
+            <td><code>skiing-catalog.js</code></td>
+            <td>Zeile ~647<br><code>_buildCard()</code> price display</td>
+            <td><code>p.pricePerHalfHour</code> direkt aus Profil</td>
+            <td><code>AppService.getStudentPriceForTeacherSync(_currentUser.uid, uid)</code></td>
+            <td>Katalog-Karte im Skiing-Catalog zeigt individuellen Preis</td>
+          </tr>
+          <tr class="r-new">
+            <td><strong>7</strong></td>
+            <td><code>student.css</code></td>
+            <td>Nach <code>.teacher-card-price</code></td>
+            <td>—</td>
+            <td>Neue Klassen <code>.teacher-card-price-individual</code> + <code>.price-individual-badge</code></td>
+            <td>Visuelles Badge „Ihr Preis" wenn Override aktiv</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>✓</td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td><code>bookSlot()</code></td>
+            <td colspan="2">Bereits korrekt — liest priceOverride bei Buchung (Commit vom heute)</td>
+            <td>Slot.price bereits korrekt gesetzt</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>✓</td>
+            <td><code>student.js</code></td>
+            <td><code>priceFn</code> in Badges + Buchungsliste</td>
+            <td colspan="2">Bereits korrekt — liest <code>s.price</code> (locked bei Buchung)</td>
+            <td>Bisherige Buchungen bereits mit eingefrorenem Preis</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Skiing-Catalog Sonderfall (Punkt 6):</strong> Der Catalog liest aktuell direkt
+      <code>p.pricePerHalfHour</code> aus dem Profil-Objekt — er geht nicht über AppService.
+      Hier muss zuerst geprüft werden ob <code>_currentUser</code> gesetzt ist
+      (Catalog ist auch ohne Login sichtbar). Fallback: Profil-Preis wie bisher.
+    </div>
+  </div>
+
+  <!-- ══ 2. Mockup — Teacher Card (Katalog) ══════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Mockup — Lehrer-Karte im Katalog (student.js · buildTeacherCard)</span>
+    </div>
+
+    <div class="two-col">
+
+      <!-- VORHER -->
+      <div>
+        <div class="mock-label before">Vorher — immer Standardpreis</div>
+        <div class="mock-note">
+          Zeigt immer <code>getTeacherPriceSync</code> — kein Unterschied zwischen
+          Standardpreis und individuellem Preis sichtbar.
+        </div>
+        <div class="card">
+          <div class="teacher-card-top">
+            <div class="avatar-md">T1</div>
+            <div class="teacher-card-name-wrap">
+              <div class="teacher-card-name">t1</div>
+              <span class="teacher-card-discipline">Ski</span>
+              <!-- Standardpreis — kein Badge -->
+              <div class="teacher-card-price">€45,00 / 30 min</div>
+            </div>
+            <span class="teacher-selected-badge">Selected</span>
+          </div>
+          <div class="teacher-card-avail">3 available slots</div>
+          <div class="teacher-card-actions">
+            <button class="btn btn-secondary">Book lessons</button>
+            <button class="btn btn-ghost">Remove</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NACHHER: individueller Preis aktiv -->
+      <div>
+        <div class="mock-label after">Nachher — individueller Preis mit Badge</div>
+        <div class="mock-note">
+          Zeigt <code>getStudentPriceForTeacherSync</code>. Wenn Override aktiv:
+          Badge „Ihr Preis" in blauem Pill neben dem Betrag.
+        </div>
+        <div class="card">
+          <div class="teacher-card-top">
+            <div class="avatar-md">T1</div>
+            <div class="teacher-card-name-wrap">
+              <div class="teacher-card-name">t1</div>
+              <span class="teacher-card-discipline">Ski</span>
+              <!-- Individueller Preis MIT Badge -->
+              <div class="teacher-card-price-individual">
+                €35,00 / 30 min
+                <span class="price-individual-badge">Ihr Preis</span>
+              </div>
+            </div>
+            <span class="teacher-selected-badge">Selected</span>
+          </div>
+          <div class="teacher-card-avail">3 available slots</div>
+          <div class="teacher-card-actions">
+            <button class="btn btn-secondary">Book lessons</button>
+            <button class="btn btn-ghost">Remove</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- NACHHER: Standardpreis (kein Override) -->
+    <div style="margin-top:16px;">
+      <div class="mock-label after">Nachher — Standardpreis (kein Override) — unverändertes Aussehen</div>
+      <div class="mock-note">
+        Kein Override → kein Badge, identisches Aussehen wie vorher.
+        <code>getStudentPriceForTeacherSync</code> gibt Profil-Preis zurück.
+      </div>
+      <div class="card" style="max-width:340px;">
+        <div class="teacher-card-top">
+          <div class="avatar-md">T1</div>
+          <div class="teacher-card-name-wrap">
+            <div class="teacher-card-name">t1</div>
+            <span class="teacher-card-discipline">Ski</span>
+            <div class="teacher-card-price">€45,00 / 30 min</div>
+          </div>
+          <span class="teacher-selected-badge">Selected</span>
+        </div>
+        <div class="teacher-card-avail">3 available slots</div>
+        <div class="teacher-card-actions">
+          <button class="btn btn-secondary">Book lessons</button>
+          <button class="btn btn-ghost">Remove</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ 3. Code-Änderungen ═══════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Konkrete Code-Änderungen</span>
+    </div>
+
+    <div class="code-label">student.js — buildTeacherCard() · Zeile ~946 (Punkt 1 + Badge-Logik)</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+<span class="ck">var</span> price = AppService.getTeacherPriceSync(teacher.uid) || null;
+
+<span class="cm">/* Nachher */</span>
+<span class="ck">var</span> effectivePrice = currentUser
+  ? AppService.getStudentPriceForTeacherSync(currentUser.uid, teacher.uid)
+  : AppService.getTeacherPriceSync(teacher.uid);
+<span class="ck">var</span> price         = effectivePrice || null;
+<span class="ck">var</span> defaultPrice   = AppService.getTeacherPriceSync(teacher.uid);
+<span class="ck">var</span> hasIndividual  = currentUser && price !== null && price !== defaultPrice;
+
+<span class="cm">/* Im Preis-Element: */</span>
+<span class="ck">if</span> (hasIndividual) {
+  priceEl.className = <span class="cs">'teacher-card-price-individual'</span>;
+  priceEl.innerHTML = priceText +
+    <span class="cs">' &lt;span class="price-individual-badge"&gt;Ihr Preis&lt;/span&gt;'</span>;
+} <span class="ck">else</span> {
+  priceEl.className = <span class="cs">'teacher-card-price'</span>;
+  priceEl.textContent = priceText;
+}</code></div>
+
+    <div class="code-label">student.js — Punkte 2, 3, 4, 5 — überall gleiche Substitution</div>
+    <div class="code-block"><code><span class="cm">/* Vorher — an allen 4 Stellen */</span>
+AppService.getTeacherPriceSync(teacherId)
+
+<span class="cm">/* Nachher — an allen 4 Stellen (currentUser ist immer gesetzt wenn Student eingeloggt) */</span>
+AppService.getStudentPriceForTeacherSync(currentUser.uid, teacherId)</code></div>
+
+    <div class="code-label">skiing-catalog.js — Punkt 6 — mit Fallback für nicht eingeloggte User</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+<span class="ck">var</span> _tPrice = parseFloat(p.pricePerHalfHour);
+
+<span class="cm">/* Nachher */</span>
+<span class="ck">var</span> _rawPrice = (_currentUser && typeof AppService !== <span class="cs">'undefined'</span>)
+  ? AppService.getStudentPriceForTeacherSync(_currentUser.uid, uid)
+  : parseFloat(p.pricePerHalfHour);
+<span class="ck">var</span> _tPrice = parseFloat(_rawPrice) || parseFloat(p.pricePerHalfHour) || 0;</code></div>
+  </div>
+
+</div>
+</body>
+</html>

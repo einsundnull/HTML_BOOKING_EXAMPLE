@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="IMPL">
+  <meta name="doc-subject"  content="Währungsanzeige — Redundanzanalyse & Bugfixes Profile-View">
+  <title>IMPL — Currency Price Display 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+           font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .ph-badge.err { background: rgba(192,57,43,.3);  border-color: rgba(192,57,43,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-new  { background: var(--info-bg); }
+    tbody tr.r-fix  { background: var(--ok-bg); }
+    tbody tr.r-bug  { background: var(--err-bg); }
+    tbody tr.r-ctx  { background: var(--n50); }
+    tbody tr.r-warn { background: var(--warn-bg); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-ok   { background: var(--ok-bg);   color: var(--ok-tx);   border: 1px solid var(--ok-bd); }
+    .sev-bug  { background: var(--err-bg);  color: var(--err-tx);  border: 1px solid var(--err-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .sev-info { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">IMPL · Währungsanzeige · BookingSystem</div>
+  <div class="ph-title">Währungsanzeige — Redundanzanalyse &amp; Bugfixes</div>
+  <div class="ph-sub">
+    Vollständige Analyse aller Preis-Anzeige-Funktionen im Projekt. Zwei Bugs behoben:
+    <code>profile.js</code> und <code>ui.js</code> zeigten Lehrerpreise ohne Konvertierung
+    in die Nutzerwährung — auch wenn der Gast eine andere Währung eingestellt hatte.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge inf">🔵 IMPL + Bugfix</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">2 Dateien geändert</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-18</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════
+       SECTION 1 — ALLE PREIS-ANZEIGE-FUNKTIONEN
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-inventory">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-inventory">Inventar — alle Preis-Anzeige-Funktionen</h2>
+      <span class="sec-sub">8 Stellen · 5 Dateien</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Zwei Typen von Beträgen im System:</strong>
+      Wallet-Beträge sind immer in <strong>EUR</strong> gespeichert →
+      <code>_fmtForUser(amountEUR, uid)</code> ist der korrekte SSOT.
+      Lehrerpreise hingegen sind in der <strong>eigenen Währung des Lehrers</strong>
+      (<code>priceCurrency</code>) gespeichert — sie brauchen eine separate
+      Konvertierungs-Logik via <code>CurrencyService.convertSync()</code>.
+      Diese zwei Typen sind <strong>nicht redundant</strong>.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Funktion / Stelle</th>
+            <th>Datei · Zeile</th>
+            <th>Eingabe</th>
+            <th>Konvertierung</th>
+            <th>Viewer-Währung</th>
+            <th>Redundanz?</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- SSOT -->
+          <tr class="r-ctx">
+            <td><strong>1</strong></td>
+            <td><code>_fmtForUser(amountEUR, uid)</code></td>
+            <td><code>ui.js</code> · 1998</td>
+            <td>Betrag in <strong>EUR</strong>, uid des Betrachters</td>
+            <td>EUR → <code>displayCurrency</code> des uid</td>
+            <td><code>getUserCurrency(uid)</code></td>
+            <td><span class="sev sev-ok">SSOT</span></td>
+            <td>✅ Korrekt</td>
+          </tr>
+
+          <!-- Basis-Funktionen -->
+          <tr class="r-ctx">
+            <td><strong>2</strong></td>
+            <td><code>CurrencyService.format(amount, code)</code></td>
+            <td><code>currency-service.js</code> · 70</td>
+            <td>Betrag + Currency-Code</td>
+            <td>❌ Keine — nur Formatierung</td>
+            <td>—</td>
+            <td><span class="sev sev-info">Basis</span></td>
+            <td>✅ Korrekt</td>
+          </tr>
+
+          <tr class="r-ctx">
+            <td><strong>3</strong></td>
+            <td><code>CurrencyService.convertSync(a, from, to)</code></td>
+            <td><code>currency-service.js</code> · 122</td>
+            <td>Betrag, Quell-Code, Ziel-Code</td>
+            <td>✅ Ja — aus Rate-Cache</td>
+            <td>—</td>
+            <td><span class="sev sev-info">Basis</span></td>
+            <td>✅ Korrekt</td>
+          </tr>
+
+          <tr class="r-ctx">
+            <td><strong>4</strong></td>
+            <td><code>CurrencyService.getUserCurrency(uid)</code></td>
+            <td><code>currency-service.js</code> · 178</td>
+            <td>uid oder <code>null</code></td>
+            <td>— (Lookup)</td>
+            <td>Profil → GuestSettings → EUR</td>
+            <td><span class="sev sev-info">Basis</span></td>
+            <td>✅ Korrekt</td>
+          </tr>
+
+          <!-- Lehrerpreis-Stellen -->
+          <tr class="r-fix">
+            <td><strong>5</strong></td>
+            <td>Preis-Block in <code>_buildCard()</code></td>
+            <td><code>skiing-catalog.js</code> · 598</td>
+            <td><code>pricePerHalfHour</code> in <code>priceCurrency</code></td>
+            <td>✅ <code>priceCurrency</code> → Viewer-Währung</td>
+            <td><code>getUserCurrency(null)</code> — liest GuestSettings</td>
+            <td><span class="sev sev-ok">Nötig</span></td>
+            <td>✅ Korrekt (implementiert v13)</td>
+          </tr>
+
+          <tr class="r-bug">
+            <td><strong>6</strong></td>
+            <td>Preis-Block in <code>_buildHeroSection()</code> <em>(vorher)</em></td>
+            <td><code>profile.js</code> · 1905</td>
+            <td><code>pricePerHalfHour</code> in <code>priceCurrency</code></td>
+            <td>⚠️ Nur wenn <code>_viewer &amp;&amp; _viewer.uid</code> gesetzt</td>
+            <td>Fehlt für Gäste und Direktlinks ohne <code>?viewer=</code></td>
+            <td><span class="sev sev-bug">Bug</span></td>
+            <td>🔴 War fehlerhaft</td>
+          </tr>
+
+          <tr class="r-fix">
+            <td><strong>7</strong></td>
+            <td>Preis-Block in <code>_buildHeroSection()</code> <em>(nachher)</em></td>
+            <td><code>profile.js</code> · 1905</td>
+            <td><code>pricePerHalfHour</code> in <code>priceCurrency</code></td>
+            <td>✅ <code>priceCurrency</code> → Viewer-Währung</td>
+            <td><code>getUserCurrency(_viewer?.uid ?? null)</code> — auch für Gäste</td>
+            <td><span class="sev sev-ok">Nötig</span></td>
+            <td>✅ Behoben v18</td>
+          </tr>
+
+          <tr class="r-bug">
+            <td><strong>8</strong></td>
+            <td>Preis in <code>showProfileSheet()</code> <em>(vorher)</em></td>
+            <td><code>ui.js</code> · 1193</td>
+            <td><code>pricePerHalfHour</code> in <code>priceCurrency</code></td>
+            <td>❌ Keine Konvertierung</td>
+            <td>Immer Lehrer-Währung — ignoriert Viewer-Einstellung</td>
+            <td><span class="sev sev-bug">Bug</span></td>
+            <td>🔴 War fehlerhaft</td>
+          </tr>
+
+          <tr class="r-fix">
+            <td><strong>9</strong></td>
+            <td>Preis in <code>showProfileSheet()</code> <em>(nachher)</em></td>
+            <td><code>ui.js</code> · 1193</td>
+            <td><code>pricePerHalfHour</code> in <code>priceCurrency</code></td>
+            <td>✅ <code>priceCurrency</code> → Viewer-Währung</td>
+            <td><code>Auth.current()</code> → <code>getUserCurrency()</code> → GuestSettings</td>
+            <td><span class="sev sev-ok">Nötig</span></td>
+            <td>✅ Behoben v18</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 2 — REDUNDANZENTSCHEID
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-redundancy">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-redundancy">Redundanzentscheid</h2>
+    </div>
+
+    <div class="callout c-ok">
+      <strong>Kein Code ist redundant.</strong> Die scheinbare Doppelung zwischen
+      <code>_fmtForUser</code> (Stellen 1) und den Lehrerpreis-Blöcken (Stellen 5–9)
+      ist kein Fehler, sondern durch unterschiedliche Speicherformate begründet.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Betrag-Typ</th>
+            <th>Gespeichert in</th>
+            <th>Korrekte Konvertierungs-Funktion</th>
+            <th>Begründung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td>Wallet-Saldo, Buchungsbeträge, Deposits</td>
+            <td>Immer <strong>EUR</strong> (Systemwährung)</td>
+            <td><code>_fmtForUser(amountEUR, uid)</code></td>
+            <td>
+              Alle Finanztransaktionen laufen intern in EUR.
+              <code>_fmtForUser</code> macht EUR → Viewer-Währung in einem Schritt.
+              Einsatz: <code>student.js</code>, <code>teacher.js</code>, <code>ui.js</code> (Buchungsdialoge).
+            </td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Lehrerpreis (<code>pricePerHalfHour</code>)</td>
+            <td><strong>Beliebige Währung</strong> (<code>priceCurrency</code>)</td>
+            <td><code>convertSync(price, priceCurrency, viewerCurrency)</code></td>
+            <td>
+              Ein Lehrer kann seinen Preis z.B. in CHF eingeben.
+              <code>_fmtForUser</code> würde falsch rechnen, weil es EUR als Eingabe erwartet.
+              Einsatz: <code>skiing-catalog.js</code>, <code>profile.js</code>, <code>ui.js</code> (Profile-Sheet).
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 3 — VIEWER-CURRENCY AUFLÖSUNG
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-resolution">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-resolution">Viewer-Currency-Auflösung — Prioritätskette</h2>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Eine einzige Funktion</strong> für alle Stellen:
+      <code>CurrencyService.getUserCurrency(uid)</code>.
+      Sie deckt alle drei Fälle ab.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Priorität</th>
+            <th>Bedingung</th>
+            <th>Quelle</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td>1</td>
+            <td>uid vorhanden + Profil hat <code>displayCurrency</code></td>
+            <td><code>ProfileStore.get(uid).displayCurrency</code></td>
+            <td>Eingeloggter Student hat USD eingestellt → USD</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>2</td>
+            <td>uid <code>null</code> oder kein Profil-Eintrag</td>
+            <td><code>Store.GuestSettings.getCurrency()</code> (<code>app_guest_settings</code>)</td>
+            <td>Gast hat im Footer-Dropdown GEL gewählt → GEL</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>3</td>
+            <td>Weder Profil noch localStorage-Eintrag</td>
+            <td>Hardcoded <code>'EUR'</code></td>
+            <td>Erster Seitenaufruf ohne jede Einstellung → EUR</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Root Cause der Bugs:</strong> <code>profile.js</code> und <code>ui.js</code>
+      riefen <code>getUserCurrency</code> nur auf wenn <code>_viewer.uid</code> gesetzt war.
+      Bei Gästen (kein Login) oder bei Direktlinks ohne <code>?viewer=</code> war
+      <code>_viewer</code> <code>null</code> → kein Aufruf → Fallback auf Lehrer-Währung.
+      <strong>Fix:</strong> <code>getUserCurrency(null)</code> aufrufen — Priorität 2
+      (GuestSettings) greift dann korrekt.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 4 — GEÄNDERTE STELLEN
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-changes">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-changes">Geänderte Stellen</h2>
+      <span class="sec-sub">2 Dateien · APP_VERSION 2026-03-21-18</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Funktion</th>
+            <th>Vorher</th>
+            <th>Nachher</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>profile.js</code></td>
+            <td><code>_buildHeroSection()</code><br>Preis-Block</td>
+            <td>
+              Konvertierung nur wenn<br>
+              <code>_viewer &amp;&amp; _viewer.uid</code> —<br>
+              Gäste sehen immer Lehrer-Währung
+            </td>
+            <td>
+              <code>getUserCurrency(_viewer?.uid ?? null)</code> —<br>
+              Priorität 2 (GuestSettings) greift für Gäste.
+              Preis wird immer in Viewer-Währung angezeigt,
+              nie als <code>≈</code>-Anhang
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>ui.js</code></td>
+            <td><code>showProfileSheet()</code><br>Preis-Badge</td>
+            <td>
+              <code>CurrencyService.format(price, priceCurrency)</code> —<br>
+              immer Lehrer-Währung, keine Konvertierung
+            </td>
+            <td>
+              <code>Auth.current()</code> → <code>getUserCurrency(uid)</code> →<br>
+              <code>convertSync(price, priceCurrency, viewerCurrency)</code>.
+              Viewer-Währung wie im Katalog
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════
+       SECTION 5 — ÜBERSICHT ALLER STELLEN MIT VIEWER-WÄHRUNG
+       ══════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-coverage">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-coverage">Vollständige Abdeckung — Preis-Anzeige-Stellen</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Seite / Komponente</th>
+            <th>Datei</th>
+            <th>Viewer-Währung?</th>
+            <th>Gast-Support?</th>
+            <th>Notiz</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>Lehrerkatalog — Karten-Preis</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td>✅ Ja</td>
+            <td>✅ Ja — <code>getUserCurrency(null)</code></td>
+            <td>Implementiert in v13, korrekt</td>
+          </tr>
+          <tr class="r-fix">
+            <td>Lehrerprofil — Hero-Preis</td>
+            <td><code>profile.js</code></td>
+            <td>✅ Ja</td>
+            <td>✅ Ja — behoben in v18</td>
+            <td>War Bug: fehlte für Gäste</td>
+          </tr>
+          <tr class="r-fix">
+            <td>Profile-Sheet (Bottom-Sheet im Katalog)</td>
+            <td><code>ui.js</code></td>
+            <td>✅ Ja</td>
+            <td>✅ Ja — behoben in v18</td>
+            <td>War Bug: keine Konvertierung</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Buchungsdialog — Preiszeilen</td>
+            <td><code>ui.js</code></td>
+            <td>✅ Ja</td>
+            <td>— (nur eingeloggt buchbar)</td>
+            <td>Via <code>_fmtForUser</code> — korrekt (EUR-Basis)</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Student-Dashboard — Lehrerpreis</td>
+            <td><code>student.js</code></td>
+            <td>✅ Ja</td>
+            <td>— (nur eingeloggt)</td>
+            <td>Via <code>getUserCurrency(currentUser.uid)</code> — korrekt</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Wallet / Transaktionen</td>
+            <td><code>financial.js</code>, <code>wallet-core.js</code></td>
+            <td>✅ Ja</td>
+            <td>— (nur eingeloggt)</td>
+            <td>Via <code>_fmtForUser</code> — korrekt (EUR-Basis)</td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Filter-Drawer — Preis-Slider Max</td>
+            <td><code>catalog-filter-drawer.js</code></td>
+            <td>✅ Ja</td>
+            <td>✅ Ja — <code>getUserCurrency(null)</code></td>
+            <td>Implementiert in v13, korrekt</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>IMPL_CURRENCY_PRICE_DISPLAY_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-18 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<!--
+  MOCKUP: TX / Booking History — Dual Timestamp (local + UTC)
+  FILE:   adapter-localstorage.js — _isoNow(), all TX creations (~35 sites)
+          wallet-core.js          — _showTxDetail() line ~548, list item line ~143
+          user-detail.js          — _buildTxItem() line ~548
+  CSS:    wallet.css — .wallet-tx-date, .wtx-detail-row
+          NEW: .wallet-tx-time-block, .tx-utc-badge, .wtx-tz-row
+  CHANGE: 1. _timestampNow(actorUid) replaces _isoNow() for TX writes.
+             Adds createdAtLocal + actorTimezone to every TX (additive, createdAt UTC stays).
+          2. TX list: local time primary, UTC badge secondary.
+          3. TX detail: Zeitpunkt expands to local + UTC + timezone sub-rows.
+          4. Same for meta.bookedAt, meta.cancelledAt.
+  DATE:   2026-03-25 22:30
+-->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup — TX Dual Timestamp</title>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Figtree', sans-serif;
+      --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+      --color-400:#4d7aa0;--color-600:#2b4d6b;--color-700:#1a3249;--color-900:#060f1c;
+      --neutral-0:#ffffff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+      --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+      --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;--neutral-900:#0d1117;
+      --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+      --radius:8px;--radius-lg:16px;
+      --shadow-lg:0 4px 16px rgba(6,15,28,0.12);
+      --text-body:16px;--text-small:14px;--text-caption:12px;
+      --weight-semibold:600;
+      --status-confirmed-bg:#f0fdf4;--status-confirmed-icon:#065f46;
+      --status-held-bg:#fef3c7;--status-held-tx:#92400e;
+      --status-failed-bg:#fee2e2;--status-failed-tx:#991b1b;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);font-size:var(--text-body);color:var(--neutral-900);background:var(--neutral-100);padding:var(--sp-4)}
+    .page{max-width:920px;margin:0 auto}
+    .page-title{font-size:20px;font-weight:var(--weight-semibold);margin-bottom:var(--sp-2)}
+    .page-sub{font-size:var(--text-small);color:var(--neutral-500);margin-bottom:var(--sp-5)}
+    .state-row{display:flex;gap:var(--sp-4);align-items:flex-start;flex-wrap:wrap;margin-bottom:var(--sp-5)}
+    .state-col{flex:1;min-width:260px}
+    .state-label{font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+    .card{background:var(--neutral-0);border-radius:var(--radius);border:1px solid var(--neutral-200);overflow:hidden}
+    .divider{height:1px;background:var(--neutral-200);margin:var(--sp-4) 0}
+
+    /* TX list — existing 1:1 */
+    .wallet-tx-list{list-style:none}
+    .wallet-tx-item{display:flex;align-items:flex-start;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--neutral-100);cursor:pointer}
+    .wallet-tx-item:last-child{border-bottom:none}
+    .wallet-tx-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .wallet-tx-icon.booking{background:var(--status-confirmed-bg);color:var(--status-confirmed-icon)}
+    .wallet-tx-icon.escrow_hold{background:var(--status-held-bg);color:var(--status-held-tx)}
+    .wallet-tx-icon.teacher_cancel{background:var(--status-failed-bg);color:var(--status-failed-tx)}
+    .wallet-tx-body{flex:1;min-width:0}
+    .wallet-tx-row1,.wallet-tx-row2{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-2)}
+    .wallet-tx-row2{margin-top:2px}
+    .wallet-tx-type{font-size:var(--text-small);font-weight:var(--weight-semibold)}
+    .wallet-tx-amount{font-size:var(--text-small);font-weight:var(--weight-semibold)}
+    .wallet-tx-amount.positive{color:var(--status-confirmed-icon)}
+    .wallet-tx-amount.negative{color:var(--status-failed-tx)}
+    .wallet-tx-date{font-size:var(--text-caption);color:var(--neutral-500)}
+    .wallet-tx-status{font-size:10px;font-weight:var(--weight-semibold);padding:1px 8px;border-radius:10px}
+    .wallet-tx-status.completed{background:var(--status-confirmed-bg);color:var(--status-confirmed-icon)}
+    .wallet-tx-desc{font-size:var(--text-caption);color:var(--neutral-500);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    /* existing tz-offset-badge */
+    .tz-offset-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:var(--weight-semibold);color:var(--color-600);background:var(--color-50);border:1px solid var(--color-200);border-radius:10px;padding:1px var(--sp-2);margin-left:var(--sp-1);white-space:nowrap;vertical-align:middle}
+
+    /* ══ NEW CSS — wallet.css append after .wallet-tx-date ══ */
+    .wallet-tx-time-block{display:flex;align-items:center;gap:0;font-size:var(--text-caption);color:var(--neutral-500)}
+    .tx-utc-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);background:var(--neutral-100);border:1px solid var(--neutral-200);border-radius:10px;padding:1px 6px;margin-left:var(--sp-1);white-space:nowrap}
+
+    /* ══ NEW CSS — wallet.css append after .wtx-detail-row ══ */
+    .wtx-tz-row{display:flex;justify-content:space-between;align-items:baseline;gap:var(--sp-2);padding:4px var(--sp-3);background:var(--neutral-50);border-top:1px solid var(--neutral-100);font-size:var(--text-caption)}
+    .wtx-tz-row-label{color:var(--neutral-400);font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:.05em;font-size:10px}
+    .wtx-tz-row-value{color:var(--neutral-600);font-size:var(--text-caption)}
+
+    /* detail panel — existing 1:1 */
+    .wtx-detail-panel{background:var(--neutral-0);border-radius:var(--radius-lg);border:1px solid var(--neutral-200);box-shadow:var(--shadow-lg);overflow:hidden}
+    .wtx-detail-header{display:flex;align-items:center;gap:var(--sp-3);padding:var(--sp-4);border-bottom:1px solid var(--neutral-100)}
+    .wtx-header-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+    .wtx-header-type{font-size:var(--text-small);font-weight:var(--weight-semibold)}
+    .wtx-header-date{font-size:var(--text-caption);color:var(--neutral-500);margin-top:2px}
+    .wtx-detail-body{padding:var(--sp-3) 0}
+    .wtx-detail-section{padding:0 var(--sp-3) var(--sp-2)}
+    .wtx-detail-section+.wtx-detail-section{border-top:1px solid var(--neutral-100);padding-top:var(--sp-2);margin-top:var(--sp-1)}
+    .wtx-detail-section-title{font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+    .wtx-detail-row{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-2);padding:5px 0;border-bottom:1px solid var(--neutral-100)}
+    .wtx-detail-row:last-child{border-bottom:none}
+    .wtx-detail-row.highlight{background:var(--neutral-50);margin:0 calc(-1*var(--sp-3));padding:5px var(--sp-3)}
+    .wtx-detail-label{font-size:var(--text-caption);color:var(--neutral-500);flex-shrink:0;padding-top:1px}
+    .wtx-detail-value{font-size:var(--text-small);color:var(--neutral-900);text-align:right}
+
+    /* schema box */
+    .schema-box{background:var(--neutral-900);color:#c8d8e8;border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;line-height:1.6;margin-bottom:var(--sp-4);overflow-x:auto}
+    .schema-box .hl{color:#f0c060}.schema-box .ok{color:#7dd3a8}.schema-box .cm{color:#7a9ec0}.schema-box .rm{color:#e07070;text-decoration:line-through}
+    .annotation{background:var(--color-50);border:1px solid var(--color-200);border-radius:var(--radius);padding:var(--sp-3) var(--sp-4);font-size:var(--text-small);color:var(--color-700);margin-bottom:var(--sp-4)}
+    .annotation code{font-family:'JetBrains Mono','Courier New',monospace;font-size:12px;background:var(--color-100);padding:1px 5px;border-radius:3px}
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-title">Mockup — TX &amp; Buchungshistorie: Dual Timestamp</div>
+  <div class="page-sub">mockup-txHistory-dualTimestamp-2026-03-25_22-30.html &nbsp;·&nbsp; Lokale Zeit + UTC in Liste und Detailansicht</div>
+
+  <div class="schema-box">
+<span class="cm">/* adapter-localstorage.js — _timestampNow(actorUid) ersetzt _isoNow() für TX-Writes */</span>
+{
+  txId: '...', uid: '...', type: 'booking', amount: 0,
+  <span class="rm">createdAt: '2026-03-25T20:47:00.000Z',</span>         <span class="cm">/* alt: nur UTC */</span>
+  <span class="hl">createdAt:      '2026-03-25T20:47:00.000Z',</span>    <span class="cm">/* bleibt: UTC ISO — SSOT für Filter/Sort */</span>
+  <span class="ok">createdAtLocal: '2026-03-25T21:47:00',</span>         <span class="cm">/* neu: lokale Zeit des Akteurs (kein Z) */</span>
+  <span class="ok">actorTimezone:  'Europe/Berlin',</span>               <span class="cm">/* neu: IANA TZ des Akteurs */</span>
+  meta: { ... }
+}
+  </div>
+
+  <div class="annotation">
+    <strong>Strategie:</strong> <code>createdAt</code> (UTC ISO) bleibt unverändert — alle Filter, Sort und bestehende Caller sind nicht betroffen. <code>createdAtLocal</code> und <code>actorTimezone</code> werden additiv ergänzt. Anzeige: lokale Zeit primär, UTC als kleines Badge.
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- TX LIST: vorher / nachher -->
+  <div class="state-row">
+    <div class="state-col">
+      <div class="state-label">State A — Liste heute (nur UTC)</div>
+      <div class="card">
+        <ul class="wallet-tx-list">
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon booking">📅</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Buchung</span><span class="wallet-tx-amount positive">+0,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-date">25.03.2026, 20:47</span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Neue Buchung — 2 Slots am 26.03.2026 09:00–10:00</div>
+            </div>
+          </li>
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon escrow_hold">🔒</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Deposit hinterlegt</span><span class="wallet-tx-amount negative">-18,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-date">25.03.2026, 20:47</span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Escrow — 26.03.2026 09:00</div>
+            </div>
+          </li>
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon teacher_cancel">✕</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Storniert (Lehrer)</span><span class="wallet-tx-amount positive">+18,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-date">24.03.2026, 15:12</span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Stornierung — 25.03.2026 14:00</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <div class="state-label">State B — Liste nach Fix (lokal + UTC-Badge)</div>
+      <div class="card">
+        <ul class="wallet-tx-list">
+          <!-- Teacher Berlin UTC+1 — Aktion um 21:47 lokal / 20:47 UTC -->
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon booking">📅</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Buchung</span><span class="wallet-tx-amount positive">+0,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-time-block">
+                  25.03.2026, 21:47
+                  <span class="tx-utc-badge">UTC 20:47</span>
+                </span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Neue Buchung — 2 Slots am 26.03.2026 09:00–10:00</div>
+            </div>
+          </li>
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon escrow_hold">🔒</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Deposit hinterlegt</span><span class="wallet-tx-amount negative">-18,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-time-block">
+                  25.03.2026, 21:47
+                  <span class="tx-utc-badge">UTC 20:47</span>
+                </span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Escrow — 26.03.2026 09:00</div>
+            </div>
+          </li>
+          <!-- Student UTC+10 — großer Unterschied sichtbar -->
+          <li class="wallet-tx-item">
+            <div class="wallet-tx-icon teacher_cancel">✕</div>
+            <div class="wallet-tx-body">
+              <div class="wallet-tx-row1"><span class="wallet-tx-type">Storniert (Lehrer)</span><span class="wallet-tx-amount positive">+18,00 €</span></div>
+              <div class="wallet-tx-row2">
+                <span class="wallet-tx-time-block">
+                  25.03.2026, 01:12
+                  <span class="tx-utc-badge">UTC 15:12</span>
+                </span>
+                <span class="wallet-tx-status completed">Abgeschlossen</span>
+              </div>
+              <div class="wallet-tx-desc">Stornierung — 25.03.2026 14:00</div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- DETAIL PANEL: vorher / nachher -->
+  <div class="state-row">
+    <div class="state-col">
+      <div class="state-label">State C — Detailansicht heute</div>
+      <div class="wtx-detail-panel">
+        <div class="wtx-detail-header">
+          <div class="wtx-header-icon booking">📅</div>
+          <div><div class="wtx-header-type">Buchung</div><div class="wtx-header-date">25.03.2026, 20:47</div></div>
+        </div>
+        <div class="wtx-detail-body">
+          <div class="wtx-detail-section">
+            <div class="wtx-detail-section-title">Transaktion</div>
+            <div class="wtx-detail-row highlight"><span class="wtx-detail-label">Betrag</span><span class="wtx-detail-value"><strong style="color:#065f46">+0,00 €</strong></span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Saldo danach</span><span class="wtx-detail-value">120,00 €</span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Zeitpunkt</span><span class="wtx-detail-value">25.03.2026, 20:47</span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Status</span><span class="wtx-detail-value"><span class="wallet-tx-status completed">Abgeschlossen</span></span></div>
+          </div>
+          <div class="wtx-detail-section">
+            <div class="wtx-detail-section-title">Stunde</div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Datum</span><span class="wtx-detail-value">Mi., 26. März 2026</span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Uhrzeit</span><span class="wtx-detail-value">09:00–10:00</span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Gebucht am</span><span class="wtx-detail-value">25.03.2026, 20:47</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <div class="state-label">State D — Detailansicht nach Fix (lokal + UTC + TZ)</div>
+      <div class="wtx-detail-panel">
+        <div class="wtx-detail-header">
+          <div class="wtx-header-icon booking">📅</div>
+          <div>
+            <div class="wtx-header-type">Buchung</div>
+            <div class="wtx-header-date">
+              25.03.2026, 21:47
+              <span class="tx-utc-badge">UTC 20:47</span>
+            </div>
+          </div>
+        </div>
+        <div class="wtx-detail-body">
+          <div class="wtx-detail-section">
+            <div class="wtx-detail-section-title">Transaktion</div>
+            <div class="wtx-detail-row highlight"><span class="wtx-detail-label">Betrag</span><span class="wtx-detail-value"><strong style="color:#065f46">+0,00 €</strong></span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Saldo danach</span><span class="wtx-detail-value">120,00 €</span></div>
+            <!-- NEW: Zeitpunkt row mit UTC + TZ sub-rows -->
+            <div class="wtx-detail-row" style="flex-direction:column;align-items:stretch;padding:0;gap:0;border-bottom:1px solid var(--neutral-100)">
+              <div style="display:flex;justify-content:space-between;padding:5px 0">
+                <span class="wtx-detail-label">Zeitpunkt (lokal)</span>
+                <span class="wtx-detail-value">25.03.2026, 21:47</span>
+              </div>
+              <div class="wtx-tz-row"><span class="wtx-tz-row-label">UTC</span><span class="wtx-tz-row-value">25.03.2026, 20:47</span></div>
+              <div class="wtx-tz-row" style="border-top:none"><span class="wtx-tz-row-label">Zeitzone</span><span class="wtx-tz-row-value">Europe/Berlin (UTC+1)</span></div>
+            </div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Status</span><span class="wtx-detail-value"><span class="wallet-tx-status completed">Abgeschlossen</span></span></div>
+          </div>
+          <div class="wtx-detail-section">
+            <div class="wtx-detail-section-title">Stunde</div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Datum</span><span class="wtx-detail-value">Mi., 26. März 2026</span></div>
+            <div class="wtx-detail-row"><span class="wtx-detail-label">Uhrzeit</span><span class="wtx-detail-value">09:00–10:00</span></div>
+            <!-- NEW: Gebucht am mit UTC sub-row -->
+            <div class="wtx-detail-row" style="flex-direction:column;align-items:stretch;padding:0;gap:0">
+              <div style="display:flex;justify-content:space-between;padding:5px 0">
+                <span class="wtx-detail-label">Gebucht am (lokal)</span>
+                <span class="wtx-detail-value">25.03.2026, 21:47</span>
+              </div>
+              <div class="wtx-tz-row"><span class="wtx-tz-row-label">UTC</span><span class="wtx-tz-row-value">25.03.2026, 20:47</span></div>
+              <div class="wtx-tz-row" style="border-top:none"><span class="wtx-tz-row-label">Zeitzone</span><span class="wtx-tz-row-value">Europe/Berlin (UTC+1)</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="state-label" style="margin-bottom:var(--sp-2)">Neue CSS-Klassen — wallet.css</div>
+  <div class="schema-box">
+<span class="cm">/* ── NEW: append after .wallet-tx-date ── */</span>
+<span class="ok">.wallet-tx-time-block</span> { display:flex; align-items:center; font-size:var(--text-caption); color:var(--neutral-500); }
+<span class="ok">.tx-utc-badge</span> { font-size:10px; font-weight:600; color:var(--neutral-400); background:var(--neutral-100);
+  border:1px solid var(--neutral-200); border-radius:10px; padding:1px 6px; margin-left:var(--sp-1); }
+
+<span class="cm">/* ── NEW: append after .wtx-detail-row ── */</span>
+<span class="ok">.wtx-tz-row</span> { display:flex; justify-content:space-between; padding:4px var(--sp-3);
+  background:var(--neutral-50); border-top:1px solid var(--neutral-100); font-size:var(--text-caption); }
+<span class="ok">.wtx-tz-row-label</span> { color:var(--neutral-400); font-weight:600; text-transform:uppercase; letter-spacing:.05em; font-size:10px; }
+<span class="ok">.wtx-tz-row-value</span> { color:var(--neutral-600); font-size:var(--text-caption); }
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timezone Day View — Bug Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n500:#6b7685;--n900:#0d1117;--c:#3b6ea5;--red:#dc2626;--green:#14532d;--amber:#92400e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n50);padding:20px;font-size:13px;color:var(--n900);max-width:980px;margin:0 auto;}
+h1{font-size:20px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:11px;color:var(--n500);margin-bottom:24px;}
+h2{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin:24px 0 8px;border-bottom:2px solid #d0e0f0;padding-bottom:4px;}
+p{margin-bottom:8px;line-height:1.6;}
+code{font-family:monospace;font-size:11px;background:var(--n100);padding:1px 4px;border-radius:2px;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;}
+th{background:var(--n900);color:#fff;padding:8px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+td{padding:7px 12px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.7;}
+tr:last-child td{border-bottom:none;}
+.bug{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;background:#fee2e2;color:var(--red);}
+.ok{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;background:#f0fdf4;color:var(--green);}
+.fix{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;background:#fef9ec;color:var(--amber);}
+.box{background:var(--n0);border:1px solid var(--n200);border-radius:8px;padding:14px;margin-bottom:12px;}
+.box-warn{background:#fef9ec;border-color:#f5d97e;}
+.box-ok{background:#f0fdf4;border-color:#bbf7d0;}
+ul{padding-left:18px;margin-bottom:8px;}
+li{line-height:1.8;}
+pre{background:var(--n100);border:1px solid var(--n200);border-radius:6px;padding:10px;font-size:11px;font-family:monospace;margin:8px 0 12px;line-height:1.6;}
+</style>
+</head>
+<body>
+<h1>Timezone Day View — Bug Analysis</h1>
+<div class="meta">Why changing timezone shifts the start of the slot list · 2026-03-24</div>
+
+<h2>Root Cause Summary</h2>
+<div class="box box-warn">
+  <p><strong>The 24h grid and the slot lookup are mismatched.</strong></p>
+  <p>The grid <code>allTimes[]</code> is always built as <code>["00:00", "00:30", ... "23:30"]</code> — 48 UTC strings, always starting at 00:00 UTC.</p>
+  <p>Slots are stored as UTC. <code>slotMap[t2]</code> looks up by UTC key — correct.</p>
+  <p>But <code>_tdvBuildRow(slotMap[t2], t2, dateStr)</code> converts <code>t2</code> (UTC) → local for <strong>display only</strong>.</p>
+  <p>Result: the grid always <em>starts</em> at 00:00 UTC and ends at 23:30 UTC. If teacher is UTC+5, their "real" working day starts at 05:00 UTC. The first 10 slots (00:00–04:30 UTC = previous night locally) appear at the top of the list with local times like "05:00–09:30". Everything appears shifted.</p>
+</div>
+
+<h2>Detailed Bug Table</h2>
+<table>
+<thead><tr><th>Component</th><th>What it does now</th><th>What goes wrong</th><th>Status</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>allTimes grid</strong><br><code>teacher.js ~line 631</code></td>
+  <td>Always builds <code>["00:00"..."23:30"]</code> — 48 UTC time strings</td>
+  <td>Grid always starts at 00:00 UTC. If teacher is UTC+5, "00:00 UTC" = "05:00 local" so the top of the list shows 05:00 not 00:00 locally. Looks shifted.</td>
+  <td><span class="bug">BUG</span></td>
+</tr>
+<tr>
+  <td><strong>slotMap keyed by UTC time</strong><br><code>teacher.js ~line 636</code><br><code>slotMap[slots[si2].time] = slots[si2]</code></td>
+  <td>Keys are UTC <code>"HH:MM"</code> — correct since slots store UTC</td>
+  <td>No bug here — lookup is consistent. But grid iteration uses UTC keys so order is UTC-ordered, not local-ordered.</td>
+  <td><span class="ok">OK</span></td>
+</tr>
+<tr>
+  <td><strong>Section labels</strong><br><code>teacher.js ~line 639</code><br>Nacht 00:00–05:30, Morgen 06:00–09:30…</td>
+  <td>Section boundaries hardcoded as UTC strings</td>
+  <td>If teacher is UTC+5, "Morgen" (06:00–09:30) maps to 11:00–14:30 local — wrong label for wrong time of day.</td>
+  <td><span class="bug">BUG</span></td>
+</tr>
+<tr>
+  <td><strong>_tdvBuildRow display</strong><br><code>_localTime = _tTeacherTime(time, dateStr)</code></td>
+  <td>Converts UTC row time → teacher local for display in the cell</td>
+  <td>Display is correct per-cell. But the order is still UTC-based so cells appear in wrong order (e.g. 05:00, 05:30, 06:00… shown before 00:00, 00:30…)</td>
+  <td><span class="bug">BUG — ordering wrong</span></td>
+</tr>
+<tr>
+  <td><strong>Date boundary slots</strong><br><code>getSlotsByTeacherDateSync(uid, dateStr)</code></td>
+  <td>Fetches slots where <code>slot.date === dateStr</code></td>
+  <td>If teacher is UTC+10, a slot at 22:00 local on Monday = 12:00 UTC Tuesday. It's stored as Tuesday UTC date. Teacher navigates to Monday — slot is missing. It shows on Tuesday instead.</td>
+  <td><span class="bug">BUG — cross-midnight slots missing</span></td>
+</tr>
+<tr>
+  <td><strong>allTimes ordering</strong></td>
+  <td>UTC 00:00 → 23:30 always</td>
+  <td>Local display shows times out of order: e.g. UTC+5 → local 05:00, 05:30…23:30, 00:00, 00:30…04:30 (wraps around)</td>
+  <td><span class="bug">BUG — visual wrap</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>What the fix must do</h2>
+<table>
+<thead><tr><th>#</th><th>Fix</th><th>Where</th><th>How</th></tr></thead>
+<tbody>
+<tr>
+  <td>1</td>
+  <td><strong>Build allTimes grid in local order</strong></td>
+  <td><code>teacher.js renderDayPanel()</code></td>
+  <td>Build 48 UTC times sorted by their <em>local equivalent</em>. Start from local midnight (= UTC midnight minus offset), wrap around. So UTC+5 grid starts at UTC 19:00 (= local 00:00) and ends at UTC 18:30 (= local 23:30).</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><strong>Section labels use local time ranges</strong></td>
+  <td><code>teacher.js renderDayPanel()</code></td>
+  <td>Convert section boundaries (Nacht 00:00–05:30) to UTC equivalents using teacher's TZ before comparing to <code>t2</code>. Or compare <code>_localTime</code> against local section boundaries instead.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><strong>Fetch slots from adjacent dates at boundary</strong></td>
+  <td><code>adapter-localstorage.js getSlotsByTeacherDate()</code></td>
+  <td>For non-UTC teachers, also fetch slots from prev/next UTC date and include ones whose local date matches <code>dateStr</code>. Needed for UTC+10 or UTC-10 edge cases.</td>
+</tr>
+</tbody>
+</table>
+
+<h2>Fix 1 in detail — Local-ordered grid</h2>
+<pre>/* Instead of: */
+for (var h = 0; h < 24; h++) {
+  allTimes.push(h + ':00');
+  allTimes.push(h + ':30');
+}
+
+/* Do: build UTC times ordered by local start */
+var teacherTZ     = TimezoneService.getUserTimezone(currentUser.uid);
+var offsetMinutes = TimezoneService._getOffsetMinutes(teacherTZ, dateStr); /* need to expose this */
+var localMidnightUtcMin = (0 - offsetMinutes + 1440) % 1440; /* UTC minutes = local 00:00 */
+
+/* Build 48 slots starting from local midnight in UTC */
+var allTimes = [];
+for (var i = 0; i < 48; i++) {
+  var utcMin = (localMidnightUtcMin + i * 30) % 1440;
+  var h = Math.floor(utcMin / 60);
+  var m = utcMin % 60;
+  allTimes.push((h<10?'0':'')+h+':'+(m<10?'0':'')+m);
+}</pre>
+
+<h2>Fix 2 in detail — Section labels in local time</h2>
+<pre>/* Section labels compare against _localTime not UTC t2 */
+var sections = [
+  { label: 'Nacht',      from: '00:00', to: '05:30' },
+  ...
+];
+/* When appending section label: */
+var localT2 = _tTeacherTime(t2, dateStr); /* convert UTC → local for comparison */
+if (localT2 >= sections[sc2].from && localT2 <= sections[sc2].to ...) { ... }</pre>
+
+<h2>Fix 3 in detail — Adjacent date fetch</h2>
+<pre>/* getSlotsByTeacherDate — also fetch ±1 day for boundary teachers */
+function getSlotsByTeacherDateForLocalDisplay(teacherId, localDateStr, teacherTZ) {
+  var prev = /* localDateStr - 1 day */;
+  var next = /* localDateStr + 1 day */;
+  var all  = Store.Slots.byTeacher(teacherId).filter(function(s) {
+    return s.date === localDateStr || s.date === prev || s.date === next;
+  });
+  /* Keep only slots whose local date === localDateStr */
+  return all.filter(function(s) {
+    var local = TimezoneService.utcToLocal(s.time, s.date, teacherTZ);
+    var localDate = /* adjust s.date by local.dateOffset */;
+    return localDate === localDateStr;
+  });
+}</pre>
+
+</body>
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timeout Bug — Root Cause Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;--neutral-500:#6b7685;--neutral-900:#0d1117;--ok:#f0fdf4;--ok-tx:#14532d;--bad:#fee2e2;--bad-tx:#991b1b;--warn:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;background:var(--neutral-50);padding:24px 16px;}
+h1{font-size:16px;font-weight:600;margin-bottom:4px;}
+p{font-size:12px;color:var(--neutral-500);margin-bottom:16px;}
+.tbl{width:100%;border-collapse:collapse;background:var(--neutral-0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);}
+th{background:var(--neutral-100);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);border-bottom:2px solid var(--neutral-200);}
+td{padding:8px 12px;border-bottom:1px solid var(--neutral-100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+.cat{background:var(--neutral-100);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);padding:6px 12px;border-bottom:1px solid var(--neutral-200);}
+.ok {background:var(--ok); color:var(--ok-tx); padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+.bad{background:var(--bad);color:var(--bad-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+.warn{background:var(--warn);color:var(--warn-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--neutral-100);padding:1px 4px;border-radius:3px;}
+.file{font-size:11px;color:var(--neutral-500);}
+</style>
+</head>
+<body>
+<h1>Timeout-Logik — Root Cause Analysis</h1>
+<p>Warum klicken auf "Timeout" keine sichtbare Änderung erzeugt.</p>
+
+<table class="tbl">
+<thead>
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:10%">File</th>
+  <th style="width:8%">Status</th>
+  <th style="width:35%">Problem</th>
+  <th style="width:42%">Fix</th>
+</tr>
+</thead>
+<tbody>
+
+<tr><td colspan="5" class="cat">Bug 1 — Optimistic Update liest alten Store-Wert</td></tr>
+<tr>
+  <td>1</td>
+  <td class="file">teacher.js</td>
+  <td><span class="bad">ROOT CAUSE</span></td>
+  <td>
+    Der Timeout-Button macht:<br>
+    <code>1. _tdvRenderSlots()</code> ← sofort<br>
+    <code>2. AppService.applySlotTimeout(...)</code> ← danach<br><br>
+    <code>_tdvRenderSlots()</code> liest <code>AppService.getSlotsByTeacherDateSync()</code> — zum Zeitpunkt des Aufrufs ist der Store <strong>noch nicht aktualisiert</strong>. Der Slot hat noch <code>status='available'</code>. Die UI zeigt keine Änderung.
+  </td>
+  <td>
+    Reihenfolge umkehren: zuerst speichern, dann rendern.<br>
+    <strong>Kein echtes Optimistic Update möglich</strong> solange der Adapter synchron arbeitet und <code>getSlotsByTeacherDateSync()</code> direkt aus dem Store liest.<br><br>
+    Fix: <code>applySlotTimeout</code> zuerst aufrufen, <code>_tdvRenderSlots()</code> im Callback.
+  </td>
+</tr>
+
+<tr><td colspan="5" class="cat">Bug 2 — Status-Ermittlung in _tdvBuildRow liest baseStatus statt status</td></tr>
+<tr>
+  <td>2</td>
+  <td class="file">teacher.js</td>
+  <td><span class="bad">BUG</span></td>
+  <td>
+    In <code>_tdvBuildRow()</code>:<br>
+    <code>var status = slot ? (slot.baseStatus || slot.status) : 'empty';</code><br><br>
+    <code>slot.baseStatus</code> wird <strong>zuerst</strong> gelesen. Nach <code>applyTimeout</code> ist <code>status='timeout'</code> aber <code>baseStatus='available'</code> — also zeigt die Row weiterhin "Verfügbar", weil <code>baseStatus</code> Vorrang hat.
+  </td>
+  <td>
+    Richtige Reihenfolge: zuerst <code>slot.status</code> lesen, <code>baseStatus</code> nur als Fallback wenn <code>status</code> undefined ist:<br>
+    <code>var status = slot ? (slot.status || slot.baseStatus) : 'empty';</code>
+  </td>
+</tr>
+
+<tr><td colspan="5" class="cat">Bug 3 — rowClass für timeout-avail nie gesetzt (wegen Bug 2)</td></tr>
+<tr>
+  <td>3</td>
+  <td class="file">teacher.js</td>
+  <td><span class="warn">CONSEQUENCE</span></td>
+  <td>
+    Da Bug 2 <code>status</code> immer als <code>'available'</code> liefert wenn <code>baseStatus='available'</code>, kommt der Code<br>
+    <code>rowClass += 'dv-s-timeout-avail'</code><br>
+    nie zur Ausführung → kein gelber Hintergrund.
+  </td>
+  <td>Wird automatisch behoben wenn Bug 2 gefixt ist.</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Call Chain — Vollständig verifiziert</td></tr>
+<tr>
+  <td>—</td>
+  <td class="file">teacher.js</td>
+  <td><span class="ok">OK</span></td>
+  <td><code>toBtn2.click → AppService.applySlotTimeout(slotId, cb)</code></td>
+  <td>Aufruf korrekt</td>
+</tr>
+<tr>
+  <td>—</td>
+  <td class="file">app-service.js</td>
+  <td><span class="ok">OK</span></td>
+  <td><code>_call('applySlotTimeout', [slotId, cb])</code> → findet Methode im Adapter</td>
+  <td>Methode existiert, kein Fehler</td>
+</tr>
+<tr>
+  <td>—</td>
+  <td class="file">adapter-localstorage.js</td>
+  <td><span class="ok">OK</span></td>
+  <td><code>Store.Slots.applyTimeout(slotId)</code></td>
+  <td>Methode existiert, korrekt exportiert</td>
+</tr>
+<tr>
+  <td>—</td>
+  <td class="file">store.js</td>
+  <td><span class="ok">OK</span></td>
+  <td>Setzt <code>status='timeout'</code>, lässt <code>baseStatus</code> unverändert, speichert</td>
+  <td>Logik korrekt</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Summary — 2 Fixes in teacher.js</td></tr>
+<tr>
+  <td colspan="2"><strong>Fix 1</strong></td>
+  <td><span class="bad">teacher.js</span></td>
+  <td colspan="2">
+    Alle Aktionen: <code>_tdvRenderSlots()</code> NACH dem Adapter-Call im Callback ausführen, nicht davor.<br>
+    LocalStorageAdapter ist synchron — Callback wird sofort aufgerufen, also ist "optimistic" hier dasselbe wie "nach dem Speichern".
+  </td>
+</tr>
+<tr>
+  <td colspan="2"><strong>Fix 2</strong></td>
+  <td><span class="bad">teacher.js</span></td>
+  <td colspan="2">
+    Zeile in <code>_tdvBuildRow()</code> ändern:<br>
+    <code>var status = slot ? (slot.baseStatus || slot.status) : 'empty';</code><br>
+    →<br>
+    <code>var status = slot ? (slot.status || slot.baseStatus) : 'empty';</code>
+  </td>
+</tr>
+
+</tbody>
+</table>
+</body>
+</html>

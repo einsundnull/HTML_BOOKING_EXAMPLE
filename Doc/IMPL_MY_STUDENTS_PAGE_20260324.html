@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-24">
+  <meta name="doc-type"     content="IMPL">
+  <meta name="doc-subject"  content="Meine Schüler — Standalone-Page + individuelle Preise pro Schüler">
+  <title>IMPL — Meine Schüler Page 2026-03-24</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540; --n900: #0d1117;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+      --accent: #4d7aa0; --accent-bg: #f0f3f7; --accent-bd: #bccada;
+    }
+    /* ── Page header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 820px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(255,255,255,.1); color: rgba(255,255,255,.75); border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.new { background: rgba(22,163,74,.3); border-color: rgba(22,163,74,.5); }
+    .ph-badge.mod { background: rgba(77,122,160,.3); border-color: rgba(77,122,160,.5); }
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px; padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    /* ── Callouts ── */
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid; font-size: 13px; line-height: 1.6; margin-bottom: 14px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px; background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    /* ── Tables ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left; padding: 9px 13px; font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200); vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-new { background: var(--ok-bg); }
+    tbody tr.r-mod { background: var(--info-bg); }
+    tbody tr.r-ctx { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07); padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    /* ── Code blocks ── */
+    .code-label { display: inline-block; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px; padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0; white-space: pre; display: block; line-height: 1.75; background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; } .cs { color: #86efac; } .cn { color: #fca5a5; }
+    /* ── Priority chain diagram ── */
+    .chain { display: flex; flex-direction: column; gap: 0; margin-bottom: 16px; max-width: 480px; }
+    .chain-step { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--n0); border: 1px solid var(--n200); font-size: 13px; }
+    .chain-step:first-child { border-radius: 8px 8px 0 0; }
+    .chain-step:last-child  { border-radius: 0 0 8px 8px; border-top: none; }
+    .chain-step:not(:first-child):not(:last-child) { border-top: none; }
+    .chain-prio { font-size: 10px; font-weight: 700; font-family: var(--mono); letter-spacing: .06em; background: var(--navy); color: #fff; padding: 2px 7px; border-radius: 4px; flex-shrink: 0; min-width: 30px; text-align: center; }
+    .chain-prio.p1 { background: var(--accent); }
+    .chain-prio.p2 { background: var(--n500); }
+    .chain-desc { flex: 1; color: var(--n700); }
+    .chain-desc strong { color: var(--n900); font-weight: 600; }
+    .chain-arrow { text-align: center; font-size: 18px; color: var(--n400); line-height: 1; padding: 2px 0; }
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<!-- ══ Page Header ══════════════════════════════════════════════════════ -->
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem</div>
+  <div class="ph-title">Meine Schüler — Standalone-Page &amp; individuelle Preise</div>
+  <div class="ph-sub">
+    Neue Seite <code>my-students.html</code> für Lehrer zur Schülerverwaltung und Festlegung
+    individueller Preise pro Schüler. Preis wird bei Buchung automatisch aus dem
+    <code>priceOverride</code>-Feld der Selection gelesen (Priorität über Profil-Standardpreis).
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 24. März 2026</span>
+    <span class="ph-badge new">NEU: my-students.html</span>
+    <span class="ph-badge new">NEU: my-students.js</span>
+    <span class="ph-badge mod">MOD: store.js</span>
+    <span class="ph-badge mod">MOD: adapter-localstorage.js</span>
+    <span class="ph-badge mod">MOD: app-service.js</span>
+    <span class="ph-badge mod">MOD: navbar.js</span>
+    <span class="ph-badge mod">MOD: teacher.css</span>
+    <span class="ph-badge mod">MOD: app-config.js</span>
+    <span class="ph-badge">APP_VERSION 2026-03-24-118</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ══ 1. Übersicht der Änderungen ══════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Übersicht aller Änderungen</span>
+      <span class="sec-sub">10 Punkte · 8 Dateien</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Datei</th>
+            <th>Art</th>
+            <th>Was</th>
+            <th>Funktion / Stelle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-new">
+            <td>1</td>
+            <td><code>store.js</code></td>
+            <td>NEU</td>
+            <td><code>Selections.update(sid, tid, patch)</code></td>
+            <td>Zeile 460 — nach <code>Selections.create()</code></td>
+          </tr>
+          <tr class="r-new">
+            <td>2</td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td>NEU</td>
+            <td><code>updateSelection(studentId, teacherId, patch, cb)</code></td>
+            <td>Zeile 683 — nach <code>deleteSelection()</code></td>
+          </tr>
+          <tr class="r-mod">
+            <td>3</td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td>MOD</td>
+            <td><code>bookSlot()</code> — priceOverride-Prio eingebaut</td>
+            <td>Zeile 412 — vollständig ersetzt</td>
+          </tr>
+          <tr class="r-new">
+            <td>4</td>
+            <td><code>app-service.js</code></td>
+            <td>NEU</td>
+            <td><code>AppService.updateSelection(sid, tid, patch, cb)</code></td>
+            <td>Zeile 390 — nach <code>deleteSelection()</code></td>
+          </tr>
+          <tr class="r-new">
+            <td>5</td>
+            <td><code>app-service.js</code></td>
+            <td>NEU</td>
+            <td><code>AppService.getStudentPriceForTeacherSync(sid, tid)</code></td>
+            <td>Zeile 399 — Sync-Helper, gibt effektiven Preis zurück</td>
+          </tr>
+          <tr class="r-new">
+            <td>6</td>
+            <td><code>navbar.js</code></td>
+            <td>NEU</td>
+            <td>Icon <code>'students'</code> in <code>_buildIcon()</code></td>
+            <td>Zeile ~800 — Personen-Gruppe SVG</td>
+          </tr>
+          <tr class="r-mod">
+            <td>7</td>
+            <td><code>navbar.js</code></td>
+            <td>MOD</td>
+            <td>Menüeintrag „Meine Schüler" in <code>_menuItems.teacher[]</code></td>
+            <td>Zeile 35 — nach „Kalender", vor „Wallet"</td>
+          </tr>
+          <tr class="r-new">
+            <td>8</td>
+            <td><code>teacher.css</code></td>
+            <td>NEU</td>
+            <td>Klassen <code>.ms-price-*</code>, <code>.student-booking-row</code> etc.</td>
+            <td>Ende der Datei — Block <code>MY-STUDENTS PAGE</code></td>
+          </tr>
+          <tr class="r-new">
+            <td>9</td>
+            <td><code>my-students.html</code></td>
+            <td>NEU</td>
+            <td>Standalone-Page — Shell, CSS-Injection, Chat-FAB</td>
+            <td>Neue Datei im HTML-Root</td>
+          </tr>
+          <tr class="r-new">
+            <td>10</td>
+            <td><code>my-students.js</code></td>
+            <td>NEU</td>
+            <td>Page-Logik — IIFE <code>MyStudentsPage</code>, <code>init()</code></td>
+            <td>Neue Datei in <code>js/</code></td>
+          </tr>
+          <tr class="r-mod">
+            <td>+</td>
+            <td><code>app-config.js</code></td>
+            <td>MOD</td>
+            <td>Asset-Eintrag <code>'my-students.html'</code> + Version <code>118</code></td>
+            <td><code>_PAGE_ASSETS</code> + <code>APP_VERSION</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ 2. Datenmodell ═══════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Datenmodell — Selection Schema erweitert</span>
+      <span class="sec-sub">store.js · app_selections</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Warum auf der Selection?</strong> Die Beziehung „Lehrer ↔ Schüler hat einen eigenen Preis"
+      gehört auf die Selection — nicht auf das Profil des Lehrers und nicht auf den Slot.
+      Das Schema bleibt flach und ist direkt Firestore-kompatibel.
+    </div>
+
+    <div class="code-label">store.js — app_selections Schema (vorher → nachher)</div>
+    <div class="code-block"><code><span class="cm">/* Vorher */</span>
+{ studentId: <span class="cs">'s115'</span>, teacherId: <span class="cs">'t1'</span> }
+
+<span class="cm">/* Nachher — priceOverride optional */</span>
+{ studentId: <span class="cs">'s115'</span>, teacherId: <span class="cs">'t1'</span>, priceOverride: <span class="cn">45</span> }
+
+<span class="cm">/* priceOverride: null  → kein Override, Standardpreis gilt     */</span>
+<span class="cm">/* priceOverride: 0     → gültig (Nullpreis ist möglich)         */</span>
+<span class="cm">/* priceOverride: fehlt → kein Override (Legacy-Kompatibilität)  */</span></code></div>
+
+    <div class="code-label">store.js : Zeile 460 — Selections.update()</div>
+    <div class="code-block"><code><span class="cm">/* Merge patch into an existing selection */</span>
+update: <span class="ck">function</span>(sid, tid, patch) {
+  <span class="ck">var</span> list = <span class="ck">this</span>.all().map(<span class="ck">function</span>(s) {
+    <span class="ck">if</span> (s.studentId !== sid || s.teacherId !== tid) <span class="ck">return</span> s;
+    <span class="ck">var</span> u = {};
+    <span class="ck">for</span> (<span class="ck">var</span> k <span class="ck">in</span> s)     u[k] = s[k];
+    <span class="ck">for</span> (<span class="ck">var</span> p <span class="ck">in</span> patch) u[p] = patch[p];
+    <span class="ck">return</span> u;
+  });
+  _save(KEYS.SELECTIONS, list);
+}</code></div>
+  </div>
+
+  <!-- ══ 3. Preis-Prio-Kette bei Buchung ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Preis-Prioritätskette bei Buchung</span>
+      <span class="sec-sub">adapter-localstorage.js : bookSlot() · Zeile 412</span>
+    </div>
+
+    <div class="callout c-ok">
+      <strong>Slot-Preis wird zum Buchungszeitpunkt eingefroren</strong> (<code>slot.price</code>).
+      Spätere Änderungen am Profil oder am priceOverride wirken sich nur auf <em>neue</em> Buchungen aus —
+      bestehende Buchungen bleiben unverändert.
+    </div>
+
+    <div class="chain">
+      <div class="chain-step">
+        <span class="chain-prio p1">1.</span>
+        <span class="chain-desc"><strong>Selection.priceOverride</strong> — falls für diesen Schüler gesetzt (nicht null, nicht leer)</span>
+      </div>
+      <div class="chain-step" style="border-top:none;">
+        <span class="chain-prio p2">2.</span>
+        <span class="chain-desc"><strong>Teacher-Profil pricePerHalfHour</strong> — Standardpreis, falls kein Override</span>
+      </div>
+    </div>
+
+    <div class="code-label">adapter-localstorage.js : bookSlot() — Prio-Logik (Auszug)</div>
+    <div class="code-block"><code><span class="cm">/* Schüler-spezifischen Override auf der Selection lesen */</span>
+<span class="ck">var</span> sel = slot ? Store.Selections.all().filter(<span class="ck">function</span>(s) {
+  <span class="ck">return</span> s.studentId === studentId && s.teacherId === slot.teacherId;
+})[0] : null;
+
+<span class="ck">var</span> rawPrice =
+  (sel && sel.priceOverride !== undefined &&
+   sel.priceOverride !== null && sel.priceOverride !== <span class="cs">''</span>)
+    ? parseFloat(sel.priceOverride)                       <span class="cm">/* Prio 1 */</span>
+    : (slot ? (parseFloat(ProfileStore.getPrice(slot.teacherId)) || null) : null); <span class="cm">/* Prio 2 */</span></code></div>
+  </div>
+
+  <!-- ══ 4. AppService — neue Methoden ════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <span class="sec-title">AppService — neue öffentliche Methoden</span>
+      <span class="sec-sub">app-service.js</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Methode</th><th>Signatur</th><th>Rückgabe</th><th>Zweck</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-new">
+            <td><code>updateSelection</code></td>
+            <td><code>(studentId, teacherId, patch, callback)</code></td>
+            <td><code>callback(err, true)</code></td>
+            <td>Schreibt <code>priceOverride</code> (oder andere Felder) auf eine Selection. <code>patch = { priceOverride: null }</code> setzt zurück auf Standardpreis.</td>
+          </tr>
+          <tr class="r-new">
+            <td><code>getStudentPriceForTeacherSync</code></td>
+            <td><code>(studentId, teacherId)</code></td>
+            <td><code>number</code></td>
+            <td>Gibt den effektiven Preis zurück: priceOverride wenn gesetzt, sonst Profil-Standardpreis. Wird in der UI für die Anzeige verwendet.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Beide Methoden sind in den Exports registriert</strong>:
+      <code>updateSelection</code> im Async-Block, <code>getStudentPriceForTeacherSync</code>
+      im Sync-Block von <code>AppService</code>. Der Adapter-Firestore muss beide Methoden ebenfalls implementieren, bevor auf Produktion gewechselt wird.
+    </div>
+  </div>
+
+  <!-- ══ 5. Navbar ════════════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <span class="sec-title">Navbar — neuer Eintrag &amp; Icon</span>
+      <span class="sec-sub">navbar.js · _menuItems.teacher[] · _buildIcon()</span>
+    </div>
+
+    <div class="code-label">navbar.js — _menuItems.teacher[] (Auszug)</div>
+    <div class="code-block"><code>{ label: <span class="cs">'Kalender'</span>,      href: <span class="cs">'./teacher.html'</span>,     icon: <span class="cs">'calendar'</span>,  uidParam: <span class="ck">true</span> },
+{ label: <span class="cs">'Meine Schüler'</span>, href: <span class="cs">'./my-students.html'</span>, icon: <span class="cs">'students'</span>,  uidParam: <span class="ck">true</span> },  <span class="cm">/* NEU */</span>
+{ label: <span class="cs">'Wallet'</span>,         href: <span class="cs">'./wallet.html'</span>,      icon: <span class="cs">'wallet'</span>,    uidParam: <span class="ck">true</span> },</code></div>
+
+    <div class="code-label">navbar.js — Icon 'students' (SVG, Zeile ~800)</div>
+    <div class="code-block"><code>students: <span class="cs">'&lt;svg width="15" height="15" viewBox="0 0 16 16" fill="none"&gt;'</span> +
+  <span class="cs">'&lt;circle cx="6" cy="5" r="2.5" stroke="currentColor" stroke-width="1.5"/&gt;'</span> +
+  <span class="cs">'&lt;path d="M1 13c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/&gt;'</span> +
+  <span class="cs">'&lt;circle cx="12" cy="5" r="2" stroke="currentColor" stroke-width="1.5"/&gt;'</span> +
+  <span class="cs">'&lt;path d="M13.5 11.5c1 .5 1.5 1.3 1.5 2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/&gt;'</span> +
+  <span class="cs">'&lt;/svg&gt;'</span></code></div>
+  </div>
+
+  <!-- ══ 6. my-students.js — Architektur ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <span class="sec-title">my-students.js — Architektur</span>
+      <span class="sec-sub">436 Zeilen · IIFE-Pattern · keine eigene Merge-Logik aus teacher.js importiert</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Keine Redundanz:</strong> Alle Globals aus <code>ui.js</code> werden direkt wiederverwendet —
+      <code>fmtDate</code>, <code>buildAvatarHTML</code>, <code>showProfileSheet</code>, <code>_fmtForUser</code>,
+      <code>_esc</code>, <code>buildSearchInput</code>, <code>_calcBookingBlockCounts</code>, <code>Toast</code>.
+      <code>mergeAllBookingBlocks</code> aus <code>teacher.js</code> ist <em>nicht</em> auf <code>window</code>
+      exponiert — daher hat <code>my-students.js</code> eine eigene schlanke <code>_mergeBlocks()</code>
+      (24 Zeilen, gleiche Logik).
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Funktion</th><th>Beschreibung</th><th>Wiederverwendung</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>MyStudentsPage.init()</code></td>
+            <td>Auth-Guard (<code>Auth.require('teacher')</code>), Navbar-Init, erstes Render</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td><code>_render()</code></td>
+            <td>Liest Selections via <code>getSelectionsByTeacherSync</code>, baut Suche + Karten</td>
+            <td><code>buildSearchInput</code>, <code>getSelectionsByTeacherSync</code>, <code>getDisplayNameSync</code></td>
+          </tr>
+          <tr>
+            <td><code>_buildCard(student)</code></td>
+            <td>Schüler-Karte mit Avatar, Name, Summary, Badges, aufklappbarem Detail</td>
+            <td><code>buildAvatarHTML</code>, <code>showProfileSheet</code>, <code>_calcBookingBlockCounts</code>, <code>_fmtForUser</code>, CSS-Klassen aus <code>teacher.css</code></td>
+          </tr>
+          <tr>
+            <td><code>_populateDetail()</code></td>
+            <td>Preis-Editor + Buchungsliste im aufgeklappten Bereich</td>
+            <td><code>AppService.updateSelection</code>, <code>_fmtForUser</code>, <code>Toast</code></td>
+          </tr>
+          <tr>
+            <td><code>_mergeBlocks(dateStr, slots)</code></td>
+            <td>Konsekutive Halbstunden → einen Block zusammenfassen</td>
+            <td>Eigenimplementierung (24 Zeilen) — <code>mergeAllBookingBlocks</code> nicht auf <code>window</code></td>
+          </tr>
+          <tr>
+            <td><code>_formatDateLabel(dateStr)</code></td>
+            <td>„2026-03-24" → „Dienstag, 24. Mär 2026"</td>
+            <td>Eigenimplementierung (8 Zeilen)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ 7. teacher.css — neue Klassen ════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">7</span>
+      <span class="sec-title">teacher.css — neue CSS-Klassen</span>
+      <span class="sec-sub">Block: MY-STUDENTS PAGE — Ende der Datei</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Klasse</th><th>Zweck</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-new"><td><code>.ms-price-section</code></td><td>Container für den Preis-Editor im aufgeklappten Kartenbereich</td></tr>
+          <tr class="r-new"><td><code>.ms-price-header</code></td><td>Zeile mit Label + Badges (Standardpreis / Individuell)</td></tr>
+          <tr class="r-new"><td><code>.ms-price-label</code></td><td>„Preis pro 30 Min." — semibold, flex: 1</td></tr>
+          <tr class="r-new"><td><code>.ms-price-default-badge</code></td><td>Grauer Pill „Standardpreis" — ausgeblendet wenn Override aktiv</td></tr>
+          <tr class="r-new"><td><code>.ms-price-override-badge</code></td><td>Blauer Pill „Individuell" — sichtbar wenn Override aktiv</td></tr>
+          <tr class="r-new"><td><code>.ms-price-row</code></td><td>Flex-Zeile: Input + Hint + Buttons</td></tr>
+          <tr class="r-new"><td><code>.ms-price-input</code></td><td>Zahlen-Input, 90px breit, Figtree, Focus-Ring</td></tr>
+          <tr class="r-new"><td><code>.ms-price-hint</code></td><td>„Standardpreis: X" — grau, flex: 1</td></tr>
+          <tr class="r-new"><td><code>.ms-price-actions</code></td><td>Flex-Container für Speichern / Zurücksetzen Buttons</td></tr>
+          <tr class="r-new"><td><code>.ms-price-reset.is-hidden</code></td><td>Zurücksetzen-Button versteckt solange kein Override aktiv</td></tr>
+          <tr class="r-new"><td><code>.student-booking-row</code></td><td>Einzelne Buchungszeile: Zeit · Preis · Status — flex, border-bottom</td></tr>
+          <tr class="r-new"><td><code>.student-booking-row.is-past</code></td><td>Vergangene Buchungen — opacity 0.55</td></tr>
+          <tr class="r-new"><td><code>.student-booking-row.is-confirmed</code></td><td>Bestätigte Buchungen — grüner Status-Pill</td></tr>
+          <tr class="r-new"><td><code>.student-booking-time</code></td><td>HH:MM–HH:MM, semibold, min-width 90px</td></tr>
+          <tr class="r-new"><td><code>.student-booking-price</code></td><td>Eingefrierter Slot-Preis, color-accent</td></tr>
+          <tr class="r-new"><td><code>.student-booking-status</code></td><td>Pill: grün (bestätigt) / grau (unbestätigt)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ 8. app-config.js ══════════════════════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">8</span>
+      <span class="sec-title">app-config.js — Asset-Liste &amp; Version</span>
+      <span class="sec-sub">APP_VERSION 2026-03-24-118</span>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Ladereihenfolge beachten:</strong> <code>my-students.js</code> muss nach
+      <code>wallet-panel.js</code> geladen werden (WalletPanel muss initialisiert sein, damit
+      <code>ChatPanel.init()</code> greift). <code>email.js</code> ist auf dieser Seite
+      <em>nicht</em> erforderlich — bewusst weggelassen.
+    </div>
+
+    <div class="code-label">app-config.js — _PAGE_ASSETS['my-students.html']</div>
+    <div class="code-block"><code><span class="cs">'my-students.html'</span>: {
+  css: [],
+  js: [
+    <span class="cs">'./js/currency-provider-mock.js'</span>,
+    <span class="cs">'./js/currency-service.js'</span>,
+    <span class="cs">'./js/store.js'</span>,
+    <span class="cs">'./js/profile.js'</span>,
+    <span class="cs">'./js/auth.js'</span>,
+    <span class="cs">'./js/ui.js'</span>,
+    <span class="cs">'./js/navbar.js'</span>,
+    <span class="cs">'./js/adapter-localstorage.js'</span>,
+    <span class="cs">'./js/adapter-firestore.js'</span>,
+    <span class="cs">'./js/app-service.js'</span>,
+    <span class="cs">'./js/timezone-service.js'</span>,
+    <span class="cs">'./js/wallet-core.js'</span>,
+    <span class="cs">'./js/wallet-panel.js'</span>,
+    <span class="cs">'./js/my-students.js'</span>,
+    <span class="cs">'./js/chat.js'</span>
+  ]
+}</code></div>
+  </div>
+
+  <!-- ══ 9. Migrations-Hinweis Firestore ══════════════════════════════ -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">9</span>
+      <span class="sec-title">Migrations-Hinweis — Firestore</span>
+      <span class="sec-sub">adapter-firestore.js</span>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>adapter-firestore.js muss vor Produktion ergänzt werden:</strong>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Methode</th><th>Firestore-Äquivalent</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>updateSelection(sid, tid, patch, cb)</code></td>
+            <td><code>db.collection('selections').where('studentId','==',sid).where('teacherId','==',tid).update(patch)</code></td>
+          </tr>
+          <tr>
+            <td><code>bookSlot()</code> — priceOverride-Logik</td>
+            <td>Gleiche Prio-Kette: Selection-Dokument lesen, <code>priceOverride</code> prüfen, dann Profil-Preis als Fallback</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_MY_STUDENTS_PAGE_20260324.html</span>
+    <span>APP_VERSION 2026-03-24-118</span>
+    <span>Erstellt: 2026-03-24</span>
+  </footer>
+</div>
+</body>
+</html>

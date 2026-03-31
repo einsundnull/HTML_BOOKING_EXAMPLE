@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>mockup-_buildCard-teacherCard-2026-03-24_08-25</title>
+<!--
+  MOCKUP: _buildCard (teacher business card)
+  FILE:   skiing-catalog.js : line 549 — function _buildCard(teacher, idx)
+          skiing-catalog.js : _buildSummaryHTML(), _buildPreviewHTML()
+  CSS:    skiing-catalog.css — .tc-card, .tc-summary, .tc-avatar,
+          .tc-summary-info, .tc-actions, .tc-action-btn
+  CHANGE: Redesign card layout:
+          - Full-width avatar banner at top (like a cover photo), rounded top corners
+          - Avatar circle centered/left-overlapping the banner bottom edge
+          - Name + discipline + price in a clean info block
+          - Action row unchanged (same buttons, same classes)
+          - Rating stars row (if rating exists)
+          - Language + experience chips in one row
+  NEW CSS: .tc-banner, .tc-avatar-circle, .tc-card-body
+  DATE:    2026-03-24 08:25
+-->
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --font:'Figtree',sans-serif;
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --status-confirmed-bg:#f0fdf4;--status-confirmed-tx:#14532d;
+  --danger-tx:#dc2626;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --text-caption:12px;--text-small:14px;--text-body:16px;
+  --weight-regular:400;--weight-semibold:600;
+  --shadow:0 1px 3px rgba(6,15,28,.08);
+  --shadow-lg:0 4px 16px rgba(6,15,28,.12);
+  --focus-ring:0 0 0 3px rgba(77,122,160,.3);
+  --transition:150ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#1a2535;min-height:100vh;padding:20px;display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+.col{display:flex;flex-direction:column;gap:10px;align-items:center;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:rgba(255,255,255,.4);text-align:center;}
+
+/* ── Language badge (existing) ── */
+.pv-lang-badge{display:inline-flex;align-items:center;justify-content:center;padding:1px 5px;border:1px solid var(--neutral-300);border-radius:var(--radius-sm);font-size:10px;font-weight:600;color:var(--neutral-600);}
+.tc-discipline-badge{display:inline-flex;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600;background:var(--color-50);color:var(--color-600);border:1px solid var(--color-100);}
+
+/* ════════════════════════════════════════════════════════
+   NEW CARD DESIGN
+   ════════════════════════════════════════════════════════ */
+.tc-card-new {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  width: 300px;
+  box-shadow: var(--shadow-lg);
+  transition: box-shadow var(--transition);
+}
+
+/* ── Banner — gradient background acting as cover ── */
+.tc-banner {
+  height: 72px;
+  background: linear-gradient(135deg, var(--color-700) 0%, var(--color-500) 100%);
+  position: relative;
+  flex-shrink: 0;
+}
+/* Discipline watermark in banner */
+.tc-banner-disc {
+  position: absolute;
+  right: var(--sp-3);
+  bottom: var(--sp-2);
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+/* Fav button top-right of banner */
+.tc-fav-btn-new {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,.15);
+  color: rgba(255,255,255,.7);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.tc-fav-btn-new.is-favorite { color: #f87171; background: rgba(255,255,255,.2); }
+
+/* ── Avatar circle — overlaps banner bottom ── */
+.tc-avatar-row {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  padding: 0 var(--sp-3);
+  margin-top: -24px; /* pull up to overlap banner */
+  position: relative;
+  z-index: 1;
+}
+.tc-avatar-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 3px solid var(--neutral-0);
+  object-fit: cover;
+  background: var(--neutral-100);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-300);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.tc-avatar-circle img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+
+/* Price pulled to right of avatar row */
+.tc-avatar-row-price {
+  margin-left: auto;
+  padding-bottom: 4px;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--color-500);
+  white-space: nowrap;
+}
+
+/* ── Card body ── */
+.tc-card-body {
+  padding: var(--sp-2) var(--sp-3) 0;
+}
+.tc-name-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: 3px;
+}
+.tc-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tc-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-2);
+}
+.tc-exp {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+}
+.tc-location {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+.tc-langs {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* ── Action row (same structure as existing .tc-actions) ── */
+.tc-actions-new {
+  display: flex;
+  border-top: 1px solid var(--neutral-100);
+  margin-top: var(--sp-2);
+}
+.tc-action-btn-new {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-3);
+  background: none;
+  border: none;
+  border-right: 1px solid var(--neutral-100);
+  cursor: pointer;
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+  min-height: 40px;
+}
+.tc-action-btn-new:last-child { border-right: none; }
+.tc-action-btn-new.is-connected { color: var(--status-confirmed-tx); }
+.tc-action-btn-new:hover { background: var(--neutral-50); color: var(--neutral-900); }
+</style>
+</head>
+<body>
+
+<!-- ── Collapsed: no photo ── -->
+<div class="col">
+<div class="lbl">Collapsed — kein Foto</div>
+<div class="tc-card-new">
+  <!-- Banner -->
+  <div class="tc-banner" style="background:linear-gradient(135deg,#1a3249 0%,#3a6285 100%);">
+    <span class="tc-banner-disc">Ski</span>
+    <button class="tc-fav-btn-new">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 13.5S1.5 9 1.5 5.5a3.5 3.5 0 017 0 3.5 3.5 0 017 0c0 3.5-6.5 8-6.5 8z"/></svg>
+    </button>
+  </div>
+  <!-- Avatar row -->
+  <div class="tc-avatar-row">
+    <div class="tc-avatar-circle">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+    </div>
+    <div class="tc-avatar-row-price">€45,00 / 30min</div>
+  </div>
+  <!-- Body -->
+  <div class="tc-card-body">
+    <div class="tc-name-row">
+      <span class="tc-name">t1</span>
+      <span class="tc-discipline-badge">Ski</span>
+    </div>
+    <div class="tc-meta-row">
+      <span class="tc-exp">12 J. Erfahrung</span>
+      <div class="tc-langs">
+        <span class="pv-lang-badge">DE</span>
+        <span class="pv-lang-badge">IT</span>
+      </div>
+    </div>
+  </div>
+  <!-- Actions -->
+  <div class="tc-actions-new">
+    <button class="tc-action-btn-new">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a4 4 0 10-8 0h8z"/><path d="M5 7a3 3 0 100-6 3 3 0 000 6z"/><path d="M13 4v6M10 7h6"/></svg>
+      Hinzufügen
+    </button>
+    <button class="tc-action-btn-new">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z"/></svg>
+      Nachricht
+    </button>
+    <button class="tc-action-btn-new">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Details
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ── Collapsed: with photo ── -->
+<div class="col">
+<div class="lbl">Collapsed — mit Foto</div>
+<div class="tc-card-new">
+  <div class="tc-banner" style="background:linear-gradient(135deg,#1e5c45 0%,#2b7a5a 100%);">
+    <span class="tc-banner-disc">Snowboard</span>
+    <button class="tc-fav-btn-new is-favorite">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 13.5S1.5 9 1.5 5.5a3.5 3.5 0 017 0 3.5 3.5 0 017 0c0 3.5-6.5 8-6.5 8z"/></svg>
+    </button>
+  </div>
+  <div class="tc-avatar-row">
+    <div class="tc-avatar-circle" style="background:#2b5278;">
+      <span style="font-size:18px;font-weight:600;color:#fff;">T</span>
+    </div>
+    <div class="tc-avatar-row-price">€60,00 / 30min</div>
+  </div>
+  <div class="tc-card-body">
+    <div class="tc-name-row">
+      <span class="tc-name">Teacher Name</span>
+      <span class="tc-discipline-badge" style="background:#f0fdf4;color:#14532d;border-color:#bbf7d0;">Snowboard</span>
+    </div>
+    <div class="tc-meta-row">
+      <span class="tc-exp">8 J. Erfahrung</span>
+      <span class="tc-location">
+        <svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M8 1a5 5 0 015 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.5"/></svg>
+        Innsbruck
+      </span>
+      <div class="tc-langs">
+        <span class="pv-lang-badge">DE</span>
+        <span class="pv-lang-badge">EN</span>
+        <span class="pv-lang-badge">FR</span>
+      </div>
+    </div>
+  </div>
+  <div class="tc-actions-new">
+    <button class="tc-action-btn-new is-connected">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a4 4 0 10-8 0h8z"/><path d="M5 7a3 3 0 100-6 3 3 0 000 6z"/><path d="M12 5l2 2 3-3" stroke-width="1.8"/></svg>
+      Verbunden
+    </button>
+    <button class="tc-action-btn-new">
+      <svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z"/></svg>
+      Nachricht
+    </button>
+    <button class="tc-action-btn-new">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Details
+    </button>
+  </div>
+</div>
+</div>
+
+<!-- ── Side by side comparison ── -->
+<div class="col" style="width:100%;margin-top:12px;">
+<div class="lbl">Vergleich — Alt vs. Neu</div>
+<div style="display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+
+  <!-- OLD -->
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+    <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em;">Alt</div>
+    <div style="background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:16px;overflow:hidden;width:260px;box-shadow:0 4px 16px rgba(0,0,0,.12);">
+      <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;">
+        <div style="width:64px;height:64px;border-radius:8px;background:var(--neutral-100);border:1px solid var(--neutral-200);display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="#c9d0d9" stroke-width="1.5"/></svg></div>
+        <div style="flex:1;">
+          <div style="font-size:16px;font-weight:600;color:var(--neutral-900)">t1</div>
+          <div style="font-size:12px;color:var(--neutral-500)">Ski</div>
+          <div style="font-size:12px;color:var(--neutral-400)">12 J.</div>
+          <div style="font-size:16px;font-weight:600;color:var(--color-500)">€45,00 / 30min</div>
+          <div style="display:flex;gap:4px;margin-top:4px;"><span class="pv-lang-badge">DE</span><span class="pv-lang-badge">IT</span></div>
+        </div>
+      </div>
+      <div style="display:flex;border-top:1px solid var(--neutral-100);">
+        <button style="flex:1;padding:8px;background:none;border:none;border-right:1px solid var(--neutral-100);font-size:12px;font-weight:600;color:var(--neutral-600);cursor:pointer;">Lehrer entfernen</button>
+        <button style="flex:1;padding:8px;background:none;border:none;border-right:1px solid var(--neutral-100);font-size:12px;font-weight:600;color:var(--neutral-600);cursor:pointer;">Nachricht</button>
+        <button style="flex:1;padding:8px;background:none;border:none;font-size:12px;font-weight:600;color:var(--neutral-600);cursor:pointer;">Details</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW -->
+  <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+    <div style="font-size:9px;font-weight:600;color:rgba(255,255,255,.3);text-transform:uppercase;letter-spacing:.06em;">Neu</div>
+    <div class="tc-card-new" style="width:260px;">
+      <div class="tc-banner" style="background:linear-gradient(135deg,#1a3249 0%,#3a6285 100%);height:60px;">
+        <span class="tc-banner-disc">Ski</span>
+        <button class="tc-fav-btn-new"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 13.5S1.5 9 1.5 5.5a3.5 3.5 0 017 0 3.5 3.5 0 017 0c0 3.5-6.5 8-6.5 8z"/></svg></button>
+      </div>
+      <div class="tc-avatar-row">
+        <div class="tc-avatar-circle"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2M12 11a4 4 0 100-8 4 4 0 000 8z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+        <div class="tc-avatar-row-price">€45,00 / 30min</div>
+      </div>
+      <div class="tc-card-body">
+        <div class="tc-name-row"><span class="tc-name">t1</span><span class="tc-discipline-badge">Ski</span></div>
+        <div class="tc-meta-row"><span class="tc-exp">12 J.</span><div class="tc-langs"><span class="pv-lang-badge">DE</span><span class="pv-lang-badge">IT</span></div></div>
+      </div>
+      <div class="tc-actions-new">
+        <button class="tc-action-btn-new"><svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a4 4 0 10-8 0h8z"/><path d="M5 7a3 3 0 100-6 3 3 0 000 6z"/><path d="M13 4v6M10 7h6"/></svg>Hinzufügen</button>
+        <button class="tc-action-btn-new"><svg width="13" height="13" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z"/></svg>Nachricht</button>
+        <button class="tc-action-btn-new"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Details</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,194 @@
+================================================================================
+  CANCELLATION SYSTEM — HOW IT WORKS
+  BookingSystem v1.0
+================================================================================
+
+
+OVERVIEW
+--------
+When a student cancels a booked lesson, the system automatically calculates
+what happens to the deposit based on how much notice was given. A warning
+dialog always appears BEFORE the cancellation is committed, so the student
+sees exactly what they will lose or get back.
+
+
+--------------------------------------------------------------------------------
+WHAT HAPPENS STEP BY STEP (STUDENT)
+--------------------------------------------------------------------------------
+
+1. Student clicks "Cancel" on a booked slot.
+
+2. The system immediately calculates:
+   - How many hours remain until the lesson starts
+   - What the cancellation tier is (see Tiers below)
+   - How much deposit is held in escrow
+   - How much will be refunded vs. kept by the teacher
+
+3. A warning dialog appears showing:
+   - Lesson details (teacher, time, date)
+   - Time remaining: e.g. "2d 4h remaining"
+   - Cancellation outcome: e.g. "Full Refund" / "Partial Refund" / "No Refund"
+   - Exact euro amounts: e.g. "€9.00 will be refunded"
+   - [Cancel — go back]  [Confirm cancellation]
+
+4. If the student confirms, the slot is staged (amber/pending) — NOT yet final.
+
+5. When the student clicks SAVE/DONE, the cancellation is committed:
+   - Slot is freed (available for others to book)
+   - Deposit is refunded or kept according to the tier
+   - Student wallet is updated immediately
+   - Navbar balance updates instantly
+   - Teacher receives an email notification
+
+
+--------------------------------------------------------------------------------
+CANCELLATION TIERS (default policy)
+--------------------------------------------------------------------------------
+
+The cancellation window is set per teacher in their profile.
+Default settings:
+  - Window:         48 hours
+  - Partial keeps:  50% of deposit
+  - Strict mode:    OFF
+
+TIER 1 — FULL REFUND
+  Condition:  Cancellation > 48h before lesson
+  Student:    Gets 100% of deposit back
+  Teacher:    Gets nothing
+  Example:    Deposit €9.00 → Refund €9.00
+
+TIER 2 — PARTIAL REFUND
+  Condition:  Cancellation between 24h and 48h before lesson
+  Student:    Gets 50% of deposit back (configurable)
+  Teacher:    Keeps 50% of deposit
+  Example:    Deposit €9.00 → Refund €4.50, Teacher keeps €4.50
+
+TIER 3 — NO REFUND (Forfeit)
+  Condition:  Cancellation < 24h before lesson, or lesson already started
+  Student:    Gets nothing back
+  Teacher:    Keeps 100% of deposit
+  Example:    Deposit €9.00 → Teacher keeps €9.00
+
+TIER 4 — TEACHER/ADMIN CANCEL
+  Condition:  The teacher or admin cancels (any time)
+  Student:    Always gets 100% of deposit back
+  Teacher:    Gets nothing
+  Note:       Teacher bears full responsibility for their own cancellations
+
+TIER 5 — NO ESCROW
+  Condition:  No deposit was paid (cash_on_site payment mode, or deposit waived)
+  Student:    Nothing to refund — slot is simply freed
+  Teacher:    Nothing affected
+  Note:       Slot is cancelled without any financial transaction
+
+
+--------------------------------------------------------------------------------
+WHAT HAPPENS WHEN TEACHER CANCELS
+--------------------------------------------------------------------------------
+
+1. Teacher stages the cancellation in their schedule.
+2. When saved:
+   - Slot is freed
+   - Student deposit is ALWAYS fully refunded (regardless of notice period)
+   - Student wallet updates immediately
+   - Email sent to student
+
+Teachers always bear full responsibility. There is no penalty tier for them —
+only the student's deposit protection applies.
+
+
+--------------------------------------------------------------------------------
+ADMIN OVERRIDES
+--------------------------------------------------------------------------------
+
+Admins can:
+  - Release any escrow at any time (overrides all policy)
+  - View all escrows in the Payments tab
+  - See deposit status: unpaid / held / refund_requested / refunded / forfeited
+
+Admin cancellations always trigger a full refund to the student.
+
+
+--------------------------------------------------------------------------------
+TEACHER PROFILE — POLICY SETTINGS
+--------------------------------------------------------------------------------
+
+Teachers can configure their cancellation policy in their profile under
+the Deposit section:
+
+  Cancellation window (hours)
+    How many hours before a lesson the "full refund" window closes.
+    Default: 48 hours
+    Example: Set to 72 = student gets full refund if they cancel 3+ days ahead
+
+  Partial refund at cancellation (% of deposit)
+    How much of the deposit the student keeps in the partial tier.
+    Default: 50% (student gets half back)
+    Example: Set to 0 = student gets nothing even in the middle tier
+    Example: Set to 100 = student always gets full deposit back (lenient policy)
+
+  Strict mode (checkbox)
+    If ON: no refund is ever given to the student, regardless of notice.
+    Use for: teachers with high demand / fully booked schedules.
+    Default: OFF
+
+
+--------------------------------------------------------------------------------
+ESCROW — HOW MONEY IS HELD
+--------------------------------------------------------------------------------
+
+When a student books a lesson (instant payment mode):
+  1. Deposit amount is calculated from teacher profile
+  2. Deposit is deducted from student's wallet immediately
+  3. Deposit is held in ESCROW (neither student nor teacher can spend it)
+  4. Escrow status: "held"
+
+When cancellation is processed:
+  - Full/partial refund: escrow → back to student wallet
+  - Forfeit: escrow → transferred to teacher wallet
+  - No escrow: nothing happens
+
+When lesson is confirmed (student confirms lesson happened):
+  - Deposit is released to teacher
+  - Escrow status: "released"
+
+ESCROW STATES:
+  unpaid           → deposit not yet paid
+  held             → deposit deducted from student, sitting in escrow
+  refund_requested → student/teacher initiated refund
+  refunded         → money returned to student wallet
+  forfeited        → money transferred to teacher wallet
+  released         → lesson confirmed, money released to teacher
+
+
+--------------------------------------------------------------------------------
+PAYMENT MODES
+--------------------------------------------------------------------------------
+
+INSTANT (default)
+  Deposit is charged at booking time.
+  Cancellation policy applies fully.
+
+CASH ON SITE
+  No money moves at booking time.
+  Cancellation frees the slot only — no financial transactions.
+  Cancellation policy does not apply (nothing to refund or forfeit).
+
+
+--------------------------------------------------------------------------------
+SUMMARY TABLE
+--------------------------------------------------------------------------------
+
+  Notice          | Student gets   | Teacher gets  | Applies when
+  ----------------|----------------|---------------|------------------
+  > 48h           | Full refund    | Nothing       | Default tier 1
+  24h – 48h       | 50% refund     | 50% deposit   | Default tier 2
+  < 24h           | Nothing        | Full deposit  | Default tier 3
+  Teacher cancels | Full refund    | Nothing       | Always
+  Cash on site    | N/A            | N/A           | No escrow
+  No deposit paid | N/A            | N/A           | No escrow
+
+
+================================================================================
+  END OF DOCUMENT
+================================================================================

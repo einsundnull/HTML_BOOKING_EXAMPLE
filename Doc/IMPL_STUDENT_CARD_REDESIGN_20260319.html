@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>IMPL — Student Card Redesign</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.6}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;--n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--ok-bd:#bbf7d0;
+      --info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+      --warn:#d97706;--warn-bg:#fffbeb;
+      --green-icon:#065f46;--green-bg:#f0fdf4;--green-bd:#bbf7d0;
+      --amber:#f5a623;--amber-bg:#fef3cd;--amber-tx:#7a5c00;
+    }
+    .ph{background:var(--navy);padding:28px 40px 24px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .ph-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:5px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:800px;margin-bottom:14px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.page{padding:16px}}
+    .sec{margin-bottom:44px}
+    .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--n200)}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+    .sec-title{font-size:17px;font-weight:700}
+    .callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px}
+    .c-ok{background:var(--ok-bg);border-color:var(--ok);color:#14532d}
+    .c-inf{background:var(--info-bg);border-color:var(--info);color:#1a3a6b}
+    .callout strong{font-weight:700}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr.r-new{background:var(--info-bg)}
+    tbody tr.r-old{background:#fff8f8}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+
+    /* Before / After mock */
+    .compare{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}
+    .compare-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+    .compare-label.before{color:#c0392b}
+    .compare-label.after{color:var(--ok)}
+
+    /* OLD card mock */
+    .old-row{background:#fff;border-bottom:1px solid #f0f2f5;padding:12px 16px;display:flex;flex-direction:column;gap:6px}
+    .old-top{display:flex;align-items:center;gap:10px}
+    .old-av{width:32px;height:32px;border-radius:50%;background:#e2e6eb;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#6b7685;flex-shrink:0}
+    .old-name{font-size:12px;font-weight:600;color:#0d1117}
+    .old-badges{display:flex;gap:4px;flex-wrap:wrap}
+    .old-badge{font-size:10px;color:#6b7685;display:inline-flex;align-items:center;gap:3px}
+    .old-price{font-size:10px;font-weight:600;color:#4d7aa0}
+
+    /* NEW card mock */
+    .new-card{background:#fff;border:1px solid #e2e6eb;border-radius:16px;padding:16px;margin-bottom:12px}
+    .new-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer}
+    .new-av{width:44px;height:44px;border-radius:50%;background:#dde4ed;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#3a6285;flex-shrink:0}
+    .new-name-col{flex:1;min-width:0}
+    .new-name{font-size:15px;font-weight:600;color:#0d1117}
+    .new-sub{font-size:12px;color:#6b7685}
+    .new-chevron{color:#9aa3af;flex-shrink:0}
+    .new-summary{font-size:13px;color:#505a68;margin-bottom:8px}
+    .new-badges{display:flex;flex-wrap:wrap;gap:6px}
+    .new-badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#505a68;background:#f0f2f5;border:1px solid #e2e6eb;border-radius:4px;padding:2px 8px}
+    .new-badge.pend{background:#fef3cd;border-color:#f5a623;color:#7a5c00}
+    .new-badge.conf{background:#f0fdf4;border-color:#bbf7d0;color:#14532d}
+    .new-badge-cnt{font-weight:700}
+    .new-badge-price{color:#4d7aa0;font-weight:600}
+
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Student Card Redesign</div>
+  <div class="ph-title">My Students — Card Redesign</div>
+  <div class="ph-sub">
+    Schüler-Karten in „My Students" (teacher.html) wurden von flachen Zeilen
+    auf vollwertige <code>.card</code>-Karten umgebaut — konsistent mit dem Teacher-Card-Layout in student.html.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">teacher.js · teacher.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-40</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- VORHER / NACHHER -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">Vorher / Nachher</div></div>
+    <div class="compare">
+      <div>
+        <div class="compare-label before">Vorher — flache Zeile</div>
+        <div class="old-row">
+          <div class="old-top">
+            <div class="old-av">S1</div>
+            <div style="flex:1"><div class="old-name">S1</div></div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="#9aa3af" stroke-width="1.5"/></svg>
+          </div>
+          <div class="old-badges">
+            <span class="old-badge">Alle <strong>4</strong> <span class="old-price">€495,00</span></span>
+            <span class="old-badge">Unbest. <strong>2</strong> <span class="old-price">€225,00</span></span>
+            <span class="old-badge">Best. ✓ <strong>2</strong> <span class="old-price">€270,00</span></span>
+          </div>
+        </div>
+        <ul style="font-size:12px;color:var(--n500);padding-left:16px;margin-top:8px;line-height:2">
+          <li>Kein weißer Hintergrund</li>
+          <li>Kein Border / Radius</li>
+          <li>Avatar 32px — zu klein</li>
+          <li>Name <code>text-caption</code> (12px)</li>
+          <li>Badges 10px — schwer lesbar</li>
+          <li>Kein Summary-Satz</li>
+        </ul>
+      </div>
+      <div>
+        <div class="compare-label after">Nachher — .card Layout</div>
+        <div class="new-card">
+          <div class="new-top">
+            <div class="new-av">S1</div>
+            <div class="new-name-col">
+              <div class="new-name">S1</div>
+              <div class="new-sub">Zürich</div>
+            </div>
+            <svg class="new-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5"/></svg>
+          </div>
+          <div class="new-summary">4 Buchungen · €495,00</div>
+          <div class="new-badges">
+            <span class="new-badge">Alle <span class="new-badge-cnt">4</span> <span class="new-badge-price">€495,00</span></span>
+            <span class="new-badge pend">Unbest. <span class="new-badge-cnt">2</span> <span class="new-badge-price">€225,00</span></span>
+            <span class="new-badge conf">Best. ✓ <span class="new-badge-cnt">2</span> <span class="new-badge-price">€270,00</span></span>
+          </div>
+        </div>
+        <ul style="font-size:12px;color:var(--ok);padding-left:16px;margin-top:8px;line-height:2">
+          <li>Weißes <code>.card</code> mit Border + Radius</li>
+          <li>Avatar 44px (<code>size:'md'</code>)</li>
+          <li>Name <code>text-body</code> (16px)</li>
+          <li>Untertitel: Location / Bio-Snippet</li>
+          <li>Summary-Zeile: „4 Buchungen · €495,00"</li>
+          <li>Badges mit Farb-Status (Amber / Grün)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOM STRUKTUR -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">DOM-Struktur — buildStudentRow()</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Element</th><th>Klasse(n)</th><th>Inhalt / Funktion</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>div</code></td><td><code>.card .student-card</code></td><td>Äußerster Wrapper — nutzt globale <code>.card</code> Basis (weiß, Border, Radius lg)</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-top</code></td><td>Klickbarer Header: Avatar + Name-Spalte + Chevron. <code>tabindex=0</code> für Keyboard.</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-avatar</code></td><td><code>buildAvatarHTML(uid, { size:'md', role:'student' })</code> — 44px. Klick öffnet <code>showProfileSheet()</code>.</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-name-col</code></td><td>Flex-Column: Name + optionaler Untertitel</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-name</code></td><td><code>ProfileStore.getDisplayName(uid)</code>, <code>text-body</code>, semibold</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-subtitle</code></td><td><code>profile.location</code> oder Bio-Snippet (max 40 Zeichen). Nur wenn vorhanden.</td></tr>
+          <tr class="r-new"><td><code>span</code></td><td><code>.student-chevron</code></td><td>Chevron-SVG, rotiert 180° wenn offen</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-summary</code></td><td>„4 Buchungen · €495,00" — aggregierter Überblick</td></tr>
+          <tr class="r-new"><td><code>div</code></td><td><code>.student-card-badges</code></td><td>Flex-Row mit Status-Badges (nur Badges mit val &gt; 0)</td></tr>
+          <tr class="r-new"><td><code>span</code></td><td><code>.student-card-badge [--pending | --confirmed]</code></td><td>Label + Count + Preis. Farbkodiert via Modifier.</td></tr>
+          <tr><td><code>div</code></td><td><code>.student-booking-detail</code></td><td>Unverändert — expandierbares Detail-Panel</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CSS KLASSEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Neue CSS-Klassen (teacher.css)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Eigenschaft</th><th>Token</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>.student-card</code></td><td>Basis: <code>margin-bottom: sp-3</code>, hover: <code>box-shadow</code></td><td>Erbt von <code>.card</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-top</code></td><td><code>flex, align-items:center, gap:sp-3, cursor:pointer</code></td><td>—</td></tr>
+          <tr class="r-new"><td><code>.student-card-avatar</code></td><td><code>flex-shrink:0</code></td><td>—</td></tr>
+          <tr class="r-new"><td><code>.student-card-name-col</code></td><td><code>flex:1, flex-direction:column, gap:3px</code></td><td>—</td></tr>
+          <tr class="r-new"><td><code>.student-card-name</code></td><td><code>text-body, semibold, ellipsis</code></td><td><code>--text-body, --weight-semibold</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-subtitle</code></td><td><code>text-caption, neutral-500, ellipsis</code></td><td><code>--text-caption, --neutral-500</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-summary</code></td><td><code>text-small, neutral-600</code></td><td><code>--text-small, --neutral-600</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-badges</code></td><td><code>flex, flex-wrap:wrap, gap:sp-2</code></td><td>—</td></tr>
+          <tr class="r-new"><td><code>.student-card-badge</code></td><td><code>text-caption, neutral-100 BG, border, radius-sm</code></td><td><code>--neutral-100/200</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-badge--pending</code></td><td>Amber Hintergrund + Text</td><td><code>--pending-amber-bg/bd/tx</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-badge--confirmed</code></td><td>Grün Hintergrund + Text</td><td><code>--status-confirmed-bg/bd/tx</code></td></tr>
+          <tr class="r-new"><td><code>.student-card-badge-count</code></td><td><code>font-weight:semibold</code></td><td>—</td></tr>
+          <tr class="r-new"><td><code>.student-card-badge-price</code></td><td><code>color-400, semibold</code></td><td><code>--color-400</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-ok">
+      <strong>Alte CSS-Klassen bleiben erhalten</strong> (<code>.student-row-wrapper</code>, <code>.student-row</code>, etc.) —
+      sie werden nicht mehr von <code>buildStudentRow()</code> verwendet, sind aber weiterhin in <code>teacher.css</code>
+      für eventuelle andere Stellen.
+    </div>
+  </div>
+
+  <!-- PARALLELITÄT MIT TEACHER-CARD -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Parallelität Teacher-Card ↔ Student-Card</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Aspekt</th><th>Teacher-Card (student.js)</th><th>Student-Card (teacher.js)</th></tr></thead>
+        <tbody>
+          <tr><td>Wrapper</td><td><code>.card .teacher-card</code></td><td><code>.card .student-card</code></td></tr>
+          <tr><td>Avatar-Größe</td><td><code>size:'md'</code> (44px)</td><td><code>size:'md'</code> (44px)</td></tr>
+          <tr><td>Name-Schrift</td><td><code>text-body, semibold</code></td><td><code>text-body, semibold</code></td></tr>
+          <tr><td>Untertitel</td><td>Preis in Akzentfarbe</td><td>Location / Bio-Snippet</td></tr>
+          <tr><td>Info-Zeile</td><td>„X available slots"</td><td>„X Buchungen · €YYY"</td></tr>
+          <tr><td>Klick-Aktion</td><td>Navigiert zu profile-view.html</td><td>Expandiert Buchungs-Detail</td></tr>
+          <tr><td>Avatar-Klick</td><td>Identisch mit Card-Klick</td><td><code>showProfileSheet(uid)</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GEÄNDERTE DATEIEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>js/teacher.js</code></td><td><code>buildStudentRow()</code> komplett neu: <code>.card .student-card</code> statt <code>.student-row-wrapper</code>. Avatar md statt sm. Summary-Zeile. Farbige Badge-Chips. <code>ProfileStore.getOrDefault()</code> für Untertitel.</td></tr>
+          <tr class="r-new"><td><code>css/teacher.css</code></td><td>13 neue <code>.student-card-*</code> Klassen hinzugefügt. Alte <code>.student-row-*</code> Klassen erhalten.</td></tr>
+          <tr><td><code>js/app-config.js</code></td><td><code>APP_VERSION → 2026-03-19-40</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_STUDENT_CARD_REDESIGN_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-40 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

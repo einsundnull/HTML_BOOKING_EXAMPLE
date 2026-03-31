@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Debug</title>
+  <script src="./js/app-config.js"></script>
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/debug.css">
+</head>
+<body>
+<h2>BookingSystem — Debug</h2>
+
+<h3>1. localStorage raw</h3>
+<pre id="raw"></pre>
+
+<h3>2. Store.Users.all()</h3>
+<pre id="users"></pre>
+
+<h3>3. URL Parameter</h3>
+<pre id="url"></pre>
+
+<h3>4. Auth.current()</h3>
+<pre id="authcurrent"></pre>
+
+<h3>5. Actions</h3>
+<div class="debug-btn-group">
+  <button class="debug-btn debug-btn--danger" id="btn-clear-all">⚠️ Clear ALL localStorage</button>
+  <button class="debug-btn" onclick="location.reload()">Reload</button>
+  <button class="debug-btn" onclick="location.href='./index.html'">Go to Login</button>
+</div>
+
+<!-- Custom Confirm Dialog — ersetzt window.confirm() -->
+<div class="debug-confirm-overlay" id="debug-confirm-overlay" role="dialog" aria-modal="true" aria-labelledby="debug-confirm-title">
+  <div class="debug-confirm-dialog">
+    <div class="debug-confirm-title" id="debug-confirm-title">Bestätigung erforderlich</div>
+    <div class="debug-confirm-msg" id="debug-confirm-msg"></div>
+    <div class="debug-confirm-actions">
+      <button class="debug-btn" id="debug-confirm-cancel">Abbrechen</button>
+      <button class="debug-btn debug-btn--danger" id="debug-confirm-ok">Bestätigen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ── Custom Confirm Dialog ─────────────────────────── */
+  var DebugConfirm = (function() {
+    'use strict';
+    var _overlay  = null;
+    var _msgEl    = null;
+    var _okBtn    = null;
+    var _cancelBtn = null;
+    var _onConfirm = null;
+
+    function _showError(context, err) {
+      var msg = '[DebugConfirm:' + context + '] ' + (err && err.message ? err.message : String(err));
+      var errEl = document.createElement('div');
+      errEl.className = 'err';
+      errEl.textContent = msg;
+      document.body.appendChild(errEl);
+    }
+
+    function show(message, onConfirm) {
+      try {
+        _overlay   = document.getElementById('debug-confirm-overlay');
+        _msgEl     = document.getElementById('debug-confirm-msg');
+        _okBtn     = document.getElementById('debug-confirm-ok');
+        _cancelBtn = document.getElementById('debug-confirm-cancel');
+        _onConfirm = onConfirm || function() {};
+        _msgEl.textContent = message;
+        _overlay.classList.add('is-open');
+        _okBtn.focus();
+      } catch(e) { _showError('show', e); }
+    }
+
+    function hide() {
+      try {
+        if (_overlay) _overlay.classList.remove('is-open');
+      } catch(e) { _showError('hide', e); }
+    }
+
+    function _init() {
+      try {
+        var overlay  = document.getElementById('debug-confirm-overlay');
+        var okBtn    = document.getElementById('debug-confirm-ok');
+        var cancelBtn = document.getElementById('debug-confirm-cancel');
+
+        okBtn.addEventListener('click', function() {
+          hide();
+          if (_onConfirm) _onConfirm();
+        });
+        cancelBtn.addEventListener('click', hide);
+        overlay.addEventListener('click', function(e) {
+          if (e.target === overlay) hide();
+        });
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape') hide();
+        });
+      } catch(e) { _showError('init', e); }
+    }
+
+    return { show: show, hide: hide, _init: _init };
+  }());
+
+  /* ── Page Logic ────────────────────────────────────── */
+  window.addEventListener('load', function() {
+    try {
+      DebugConfirm._init();
+
+      /* 1. Raw localStorage */
+      var rawOut = '';
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        rawOut += k + ':\n' + localStorage.getItem(k) + '\n\n';
+      }
+      document.getElementById('raw').textContent = rawOut || '(empty)';
+
+      /* 2. Store.Users */
+      try {
+        var users = Store.Users.all();
+        document.getElementById('users').innerHTML =
+          '<span class="' + (users.length ? 'ok' : 'err') + '">' + users.length + ' user(s)</span>\n'
+          + JSON.stringify(users, null, 2);
+      } catch(e) {
+        document.getElementById('users').innerHTML = '<span class="err">ERROR: ' + e.message + '</span>';
+      }
+
+      /* 3. URL */
+      document.getElementById('url').textContent =
+        'href:   ' + window.location.href + '\n'
+        + 'search: ' + window.location.search + '\n'
+        + 'uid param: ' + new URLSearchParams(window.location.search).get('uid');
+
+      /* 4. Auth.current() */
+      try {
+        var cur = Auth.current();
+        document.getElementById('authcurrent').innerHTML =
+          cur
+            ? '<span class="ok">Found: ' + JSON.stringify(cur) + '</span>'
+            : '<span class="err">null — no user found for this uid</span>';
+      } catch(e) {
+        document.getElementById('authcurrent').innerHTML = '<span class="err">ERROR: ' + e.message + '</span>';
+      }
+
+      /* 5. Clear button — custom dialog statt window.confirm() */
+      document.getElementById('btn-clear-all').addEventListener('click', function() {
+        DebugConfirm.show(
+          'Clear ALL localStorage? This resets all users and bookings.',
+          function() {
+            localStorage.clear();
+            location.reload();
+          }
+        );
+      });
+
+    } catch(e) {
+      var errEl = document.createElement('pre');
+      errEl.className = 'err';
+      errEl.textContent = 'INIT ERROR: ' + e.message;
+      document.body.prepend(errEl);
+    }
+  });
+</script>
+</body>
+</html>

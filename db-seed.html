@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DB Seed Tool v2</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:monospace;background:#0d1117;color:#e6edf3;padding:20px;font-size:13px}
+  h1{font-size:16px;font-weight:700;color:#58a6ff;margin-bottom:4px}
+  .sub{color:#8b949e;font-size:11px;margin-bottom:14px}
+  .origin-box{border-radius:6px;padding:10px 14px;margin-bottom:12px;font-size:12px;line-height:1.8}
+  .origin-ok{background:#0d2818;border:1px solid #238636;color:#3fb950}
+  .origin-warn{background:#161200;border:1px solid #d29922;color:#d29922}
+  .plan{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:12px 16px;margin-bottom:14px;font-size:12px;line-height:2;color:#c9d1d9}
+  .plan b{color:#79c0ff}
+  .btns{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .btn-main{padding:12px;background:#238636;color:#fff;font-family:monospace;font-size:14px;font-weight:700;border:none;border-radius:6px;cursor:pointer}
+  .btn-main:hover:not(:disabled){background:#2ea043}
+  .btn-main:disabled{background:#21262d;color:#484f58;cursor:default}
+  .btn-danger{padding:12px;background:#b91c1c;color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:700;cursor:pointer}
+  .btn-danger:hover:not(:disabled){background:#dc2626}
+  .btn-danger:disabled{background:#21262d;color:#484f58;cursor:default}
+  #log{background:#010409;border:1px solid #21262d;border-radius:6px;padding:14px;min-height:100px;overflow-y:auto;max-height:60vh;font-size:12px;line-height:1.75}
+  .ok{color:#3fb950}.skip{color:#8b949e}.err{color:#f85149;font-weight:700}
+  .hdr{color:#58a6ff;font-weight:700}.warn{color:#d29922}
+  .done{color:#79c0ff;font-weight:700;font-size:14px}.sep{color:#21262d}
+</style>
+<script src="./js/app-config.js"></script>
+</head>
+<body>
+<h1>⚙ DB Seed Tool v2</h1>
+<p class="sub">Muss auf <b>localhost:8081/db-seed.html</b> laufen.</p>
+<div id="origin-check" class="origin-box">Prüfe Origin…</div>
+<div class="plan">
+  <b>Lehrer:</b> T1 (Matthias Heinold), T2 · Timezone UTC+4 (Asia/Dubai) · €10/h = €5/Slot<br>
+  <b>Schüler:</b> S1 (UTC+1/Berlin), S2 (UTC+2/Helsinki), S3 (UTC+3/Moskau)<br>
+  <b>Individuelle Preise:</b> S1=€5/h (€2.50/Slot), S2=€10/h (€5/Slot), S3=€15/h (€7.50/Slot)<br>
+  <b>Selections:</b> S1↔T1 · S2↔T1 · S2↔T2 · S3↔T2<br>
+  <b>Verfügbarkeit:</b> Mo–So 12:00–17:30 Lehrerzeit (UTC+4) · recurring + 8 Wochen materialisiert<br>
+  <b>Buchungen:</b> S1+S2+S3 bei T1 · nächste Mi/Do/Fr · 14:00–15:30 Lehrerzeit (3 Slots/Tag)
+</div>
+<div class="btns">
+  <button class="btn-main" id="btn-run" onclick="runSeed()">▶ Datenbank zurücksetzen &amp; Seed v2 ausführen</button>
+  <button class="btn-danger" id="btn-reset-tx" onclick="resetTransactions()">🗑 Nur Transaktionen zurücksetzen</button>
+</div>
+<div id="log"><span class="skip">Warte auf Klick…</span></div>
+<script>
+(function(){
+  var box=document.getElementById('origin-check');
+  if(location.protocol==='file:'){box.className='origin-box origin-warn';box.textContent='⚠ WARNUNG — file:// — bitte über localhost:8081/db-seed.html öffnen.';}
+  else{box.className='origin-box origin-ok';box.textContent='✓ Origin OK — '+location.protocol+'//'+location.host;}
+})();
+var logEl=document.getElementById('log');
+function log(cls,msg){var d=document.createElement('div');d.className=cls;d.textContent=msg;logEl.appendChild(d);logEl.scrollTop=logEl.scrollHeight;}
+function sep(){log('sep','──────────────────────────────────────────────');}
+function isoNow(){return new Date().toISOString();}
+function fmtDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function addDays(base,n){var d=new Date(base);d.setDate(d.getDate()+n);return d;}
+function serial(tasks,done){var i=0;function next(err){if(err){done(err);return;}if(i>=tasks.length){done(null);return;}tasks[i++](next);}next(null);}
+
+var TZ_TEACHER='Asia/Dubai';
+var TZ_S1='Europe/Berlin';
+var TZ_S2='Europe/Helsinki';
+var TZ_S3='Europe/Moscow';
+var PRICE_TEACHER_SLOT=5;
+var PRICE_S1_SLOT=2.5;
+var PRICE_S2_SLOT=5;
+var PRICE_S3_SLOT=7.5;
+var AVAIL_TIMES_LOCAL=['12:00','12:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00','17:30'];
+var BOOKING_TIMES_LOCAL=['14:00','14:30','15:00'];
+
+function resetTransactions(){
+  var btn=document.getElementById('btn-reset-tx'),btnRun=document.getElementById('btn-run');
+  btn.disabled=true;btnRun.disabled=true;logEl.innerHTML='';
+  if(typeof AppService==='undefined'){log('err','✗ AppService fehlt');btn.disabled=false;btnRun.disabled=false;return;}
+  sep();log('hdr','RESET TRANSAKTIONEN');sep();
+  ['app_transactions','app_escrow','app_chat_messages','app_email_log'].forEach(function(k){localStorage.removeItem(k);log('ok','  ✓ '+k);});
+  try{
+    var slots=JSON.parse(localStorage.getItem('app_slots')||'[]'),n=0;
+    slots=slots.map(function(s){if(s.status==='booked'||s.status==='confirmed'){n++;return Object.assign({},s,{status:'available',baseStatus:'available',studentId:null,students:[],bookedAt:null,confirmedAt:null,cancelledAt:null,bookedByRole:null});}return s;});
+    localStorage.setItem('app_slots',JSON.stringify(slots));log('ok','  ✓ '+n+' Slots → available');
+  }catch(e){log('err','  ✗ '+e.message);}
+  try{
+    var users=JSON.parse(localStorage.getItem('app_users')||'[]'),wallets={},now=new Date().toISOString();
+    users.forEach(function(u){wallets[u.uid]={uid:u.uid,balance:500,currency:'EUR',updatedAt:now};log('ok','  ✓ '+u.uid+' → €500');});
+    localStorage.setItem('app_wallets',JSON.stringify(wallets));
+  }catch(e){log('err','  ✗ Wallets: '+e.message);}
+  sep();log('ok','✓ Reset abgeschlossen.');sep();
+  btn.disabled=false;btnRun.disabled=false;
+}
+
+function runSeed(){
+  var btn=document.getElementById('btn-run');
+  btn.disabled=true;logEl.innerHTML='';
+  if(typeof AppService==='undefined'){log('err','✗ AppService fehlt');btn.disabled=false;return;}
+  if(typeof ProfileStore==='undefined'){log('err','✗ ProfileStore fehlt');btn.disabled=false;return;}
+  if(typeof TimezoneService==='undefined'){log('err','✗ TimezoneService fehlt');btn.disabled=false;return;}
+  if(typeof ChatStore==='undefined'){log('err','✗ ChatStore fehlt');btn.disabled=false;return;}
+
+  var today=new Date();today.setHours(0,0,0,0);
+
+  // STEP 1 WIPE
+  log('hdr','STEP 1 — Datenbank löschen');sep();
+  var adminUser=null;
+  try{var ex=JSON.parse(localStorage.getItem('app_users')||'[]');for(var ai=0;ai<ex.length;ai++){if(ex[ai].role==='admin'){adminUser=ex[ai];break;}}}catch(e){}
+  ['app_users','app_slots','app_selections','app_wallets','app_transactions','app_escrow','app_profiles','app_recurring','app_bookings','app_chat_messages'].forEach(function(k){localStorage.removeItem(k);log('ok','  ✓ '+k);});
+  var seedUsers=adminUser?[adminUser]:[{uid:'admin',name:'Administrator',role:'admin'}];
+  localStorage.setItem('app_users',JSON.stringify(seedUsers));
+  log('ok','  ✓ admin wiederhergestellt');
+
+  // STEP 2 USERS
+  sep();log('hdr','STEP 2 — Benutzer');sep();
+  var USERS=[
+    {uid:'t1',name:'Matthias Heinold',role:'teacher',email:'t1@demo.local',discipline:'skiing',password:'demo123'},
+    {uid:'t2',name:'T2',role:'teacher',email:'t2@demo.local',discipline:'skiing',password:'demo123'},
+    {uid:'s1',name:'S1',role:'student',email:'s1@demo.local',discipline:'',password:'demo123'},
+    {uid:'s2',name:'S2',role:'student',email:'s2@demo.local',discipline:'',password:'demo123'},
+    {uid:'s3',name:'S3',role:'student',email:'s3@demo.local',discipline:'',password:'demo123'}
+  ];
+  var userTasks=USERS.map(function(u){return function(next){AppService.createUser(u,function(err){if(err){log('err','  ✗ '+u.uid+': '+err.message);next(err);return;}log('ok','  ✓ '+u.role+' '+u.uid+' / '+u.name);next(null);});};});
+
+  function doProfiles(next){
+    sep();log('hdr','STEP 3 — Profile + Timezones');sep();
+    var base={pricePerHalfHour:String(PRICE_TEACHER_SLOT),timezone:TZ_TEACHER,requiresDeposit:false,depositMode:'percent',depositFixed:0,depositPercent:0,paymentMode:'instant',cancellationWindow:24,cancellationPartial:0,cancellationStrict:false,certifications:[],specializations:[],terrainLevels:[],updatedAt:isoNow()};
+    ProfileStore.save('t1',Object.assign({},base,{uid:'t1',name:'Matthias Heinold',discipline:'skiing'}));
+    log('ok','  ✓ t1: €'+PRICE_TEACHER_SLOT+'/Slot · '+TZ_TEACHER);
+    ProfileStore.save('t2',Object.assign({},base,{uid:'t2',name:'T2',discipline:'skiing'}));
+    log('ok','  ✓ t2: €'+PRICE_TEACHER_SLOT+'/Slot · '+TZ_TEACHER);
+    [{uid:'s1',name:'S1',tz:TZ_S1},{uid:'s2',name:'S2',tz:TZ_S2},{uid:'s3',name:'S3',tz:TZ_S3}].forEach(function(p){
+      ProfileStore.save(p.uid,{uid:p.uid,name:p.name,timezone:p.tz,updatedAt:isoNow()});
+      log('ok','  ✓ '+p.uid+': '+p.tz);
+    });
+    next(null);
+  }
+
+  function doWallets(next){
+    sep();log('hdr','STEP 4 — Wallets €500');sep();
+    serial(['t1','t2','s1','s2','s3'].map(function(uid){return function(cb){AppService.deposit(uid,500,'Seed',function(err){if(err){log('err','  ✗ '+uid);cb(err);return;}log('ok','  ✓ '+uid+' +€500');cb(null);});};}),next);
+  }
+
+  function doSelections(next){
+    sep();log('hdr','STEP 5 — Selections + individuelle Preise');sep();
+    var defs=[{stu:'s1',tea:'t1',price:PRICE_S1_SLOT},{stu:'s2',tea:'t1',price:PRICE_S2_SLOT},{stu:'s2',tea:'t2',price:PRICE_S2_SLOT},{stu:'s3',tea:'t2',price:PRICE_S3_SLOT}];
+    serial(defs.map(function(def){return function(cb){
+      var reqMsg=ChatStore.sendServiceMessage(def.tea,def.stu,'student_request');
+      ChatStore.respondServiceRequest(reqMsg.msgId,'accepted',def.tea,def.stu);
+      AppService.createSelection(def.stu,def.tea,function(err){
+        if(err){log('err','  ✗ '+def.stu+'↔'+def.tea+': '+err.message);cb(err);return;}
+        AppService.updateSelection(def.stu,def.tea,{priceOverride:def.price},function(err2){
+          if(err2)log('warn','  ⚠ priceOverride: '+err2.message);
+          log('ok','  ✓ '+def.stu+' ↔ '+def.tea+'  €'+def.price+'/Slot (€'+(def.price*2)+'/h)');
+          cb(null);
+        });
+      });
+    };}),next);
+  }
+
+  function doAvailability(next){
+    sep();log('hdr','STEP 6 — Recurring + materialise');sep();
+    try{
+      var recList=[],recSet={};
+      ['t1','t2'].forEach(function(tid){[0,1,2,3,4,5,6].forEach(function(dow){AVAIL_TIMES_LOCAL.forEach(function(time){var key=tid+'|'+dow+'|'+time;if(!recSet[key]){recList.push({recurringId:'rec_'+tid+'_'+dow+'_'+time.replace(':',''),teacherId:tid,dayOfWeek:dow,time:time});recSet[key]=true;}});});});
+      localStorage.setItem('app_recurring',JSON.stringify(recList));
+      log('ok','  ✓ '+recList.length+' Recurring Rules');
+    }catch(e){log('err','  ✗ '+e.message);next(e);return;}
+
+    function getWeekDates(weekOffset){
+      var dow=today.getDay(),diffToMon=(dow===0)?-6:1-dow;
+      var monday=new Date(today);monday.setDate(today.getDate()+diffToMon+weekOffset*7);monday.setHours(0,0,0,0);
+      var week=[];for(var d=0;d<7;d++){var day=new Date(monday);day.setDate(monday.getDate()+d);week.push(day);}return week;
+    }
+
+    var done2=0,errMat=null;
+    ['t1','t2'].forEach(function(tid){
+      var tasks=[];
+      for(var w=0;w<8;w++){(function(wo){tasks.push(function(cb){AppService.materialiseWeek(tid,getWeekDates(wo),function(err){cb(err||null);});});})(w);}
+      serial(tasks,function(err){
+        if(err&&!errMat)errMat=err;done2++;
+        if(done2===2){
+          if(errMat){log('err','  ✗ materialise: '+errMat.message);next(errMat);return;}
+          var avCount=AppService.getAllSlotsSync().filter(function(s){return s.status==='available';}).length;
+          log('ok','  ✓ t1+t2: 8 Wochen materialisiert ('+avCount+' freie Slots)');
+          next(null);
+        }
+      });
+    });
+  }
+
+  function doBookings(next){
+    sep();log('hdr','STEP 7 — Buchungen S1+S2+S3 bei T1 (Mi/Do/Fr · 14:00–15:30 Lehrerzeit)');sep();
+
+    function nextWeekday(wd){var d=new Date(today),diff=(wd-d.getDay()+7)%7;if(diff===0)diff=7;d.setDate(d.getDate()+diff);return d;}
+    var bookingDates=[nextWeekday(3),nextWeekday(4),nextWeekday(5)];
+
+    // Convert local booking times to UTC
+    var utcTimes=BOOKING_TIMES_LOCAL.map(function(localTime){
+      var conv=TimezoneService.localToUtc(localTime,fmtDate(bookingDates[0]),TZ_TEACHER);
+      return{localTime:localTime,utcTime:conv.utcTime,dateOffset:conv.dateOffset||0};
+    });
+    log('skip','  Lehrerzeit → UTC:');
+    utcTimes.forEach(function(t){log('skip','    '+t.localTime+' → '+t.utcTime+' UTC (offset '+t.dateOffset+')');});
+
+    var bookedResults=[],bookingTasks=[];
+    ['s1','s2','s3'].forEach(function(stuId){
+      bookingDates.forEach(function(dateObj){
+        utcTimes.forEach(function(tc){
+          var baseDate=fmtDate(dateObj);
+          var dateStr=baseDate;
+          if(tc.dateOffset!==0){var adj=new Date(dateObj);adj.setDate(adj.getDate()+tc.dateOffset);dateStr=fmtDate(adj);}
+          var utcTime=tc.utcTime;
+          bookingTasks.push(function(cb){
+            var existSlot=AppService.slotExistsSync('t1',dateStr,utcTime);
+            var useSlot=(existSlot&&existSlot.status==='available')?existSlot:null;
+            function doBook(slot){
+              AppService.bookSlotWithEscrowSilent(slot.slotId,stuId,'t1',function(err2,result){
+                if(err2){log('err','  ✗ '+stuId+' '+dateStr+' '+tc.localTime+': '+err2.message);cb(null);return;}
+                var escrow=result&&result.escrow?result.escrow:null;
+                bookedResults.push({slot:slot,escrow:escrow,stuId:stuId,dateStr:dateStr});
+                log('ok','  ✓ '+stuId+' '+dateStr+' '+tc.localTime+' local ('+utcTime+' UTC)');
+                cb(null);
+              },'student');
+            }
+            if(useSlot){doBook(useSlot);}
+            else{
+              AppService.createSlot({teacherId:'t1',studentId:null,date:dateStr,time:utcTime,status:'available',baseStatus:'available'},function(err,slot){
+                if(err||!slot){log('err','  ✗ createSlot '+dateStr+' '+utcTime);cb(null);return;}
+                doBook(slot);
+              });
+            }
+          });
+        });
+      });
+    });
+
+    serial(bookingTasks,function(err){
+      if(err){next(err);return;}
+      var groups={};
+      bookedResults.forEach(function(r){if(!r.escrow)return;var key=r.stuId+'_t1_'+r.dateStr;if(!groups[key])groups[key]={slots:[],escrows:[],stuId:r.stuId,dateStr:r.dateStr};groups[key].slots.push(r.slot);groups[key].escrows.push(r.escrow);});
+      serial(Object.keys(groups).map(function(key){return function(cb2){var g=groups[key];g.slots.sort(function(a,b){return(a.time||'').localeCompare(b.time||'');});AppService.writeBlockBookingRecord(g.slots,g.escrows,'student',function(){AppService.writeBlockEscrowHold(g.slots,g.escrows,function(){log('ok','  ✓ Block TX: '+g.stuId+' '+g.dateStr+' ('+g.slots.length+' Slots)');cb2(null);});});};}),next);
+    });
+  }
+
+  function doVerify(next){
+    sep();log('hdr','STEP 8 — Verifikation');sep();
+    var slots=AppService.getAllSlotsSync();
+    var booked=slots.filter(function(s){return s.status==='booked';}).length;
+    var avail=slots.filter(function(s){return s.status==='available';}).length;
+    log('ok','  Slots: '+slots.length+' total · '+booked+' gebucht · '+avail+' frei');
+    try{var sels=JSON.parse(localStorage.getItem('app_selections')||'[]');sels.forEach(function(s){log('ok','  Selection: '+s.studentId+' ↔ '+s.teacherId+(s.priceOverride!=null?'  €'+s.priceOverride+'/Slot':''));});}catch(e){}
+    AppService.getWallet('s1',function(e1,ws1){AppService.getWallet('s2',function(e2,ws2){AppService.getWallet('s3',function(e3,ws3){AppService.getWallet('t1',function(e4,wt1){AppService.getWallet('t2',function(e5,wt2){
+      log('ok','  Wallets → s1:€'+(ws1?ws1.balance.toFixed(2):'?')+' s2:€'+(ws2?ws2.balance.toFixed(2):'?')+' s3:€'+(ws3?ws3.balance.toFixed(2):'?')+' t1:€'+(wt1?wt1.balance.toFixed(2):'?')+' t2:€'+(wt2?wt2.balance.toFixed(2):'?'));
+      sep();log('done','✅ SEED v2 ABGESCHLOSSEN');log('warn','⚠  Strg+R / ⌘R zum Neuladen');next(null);
+    });});});});});
+  }
+
+  serial(userTasks,function(err){
+    if(err){btn.disabled=false;return;}
+    serial([doProfiles,doWallets,doSelections,doAvailability,doBookings,doVerify],function(err2){
+      if(err2)log('err','✗ '+err2.message);
+      btn.disabled=false;
+    });
+  });
+}
+</script>
+</body>
+</html>

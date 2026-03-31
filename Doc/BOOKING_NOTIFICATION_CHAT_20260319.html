@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DOC — Booking Notification Chat Message</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy:    #060f1c; --navy-800: #0f2035; --color-400: #4d7aa0;
+      --n0:      #fff;    --n50: #f8f9fb;      --n100: #f0f2f5;
+      --n200:    #e2e6eb; --n500: #6b7685;     --n700: #2d3540;
+      --n900:    #0d1117;
+      --mono:    'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:      #16a34a; --ok-bg: #f0fff4;    --ok-bd: #bbf7d0;
+      --info:    #2563eb; --info-bg: #eff6ff;  --info-bd: #bfdbfe;
+      --warn:    #d97706; --warn-bg: #fffbeb;  --warn-bd: #fde68a;
+      --note-bg: #faf5ff; --note-bd: #e9d5ff;  --note-tx: #4c1d95;
+    }
+    /* ── Page header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 720px; }
+    .ph-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    /* ── Sections ── */
+    .sec { margin-bottom: 40px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-title { font-size: 17px; font-weight: 700; color: var(--n900); }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    /* ── Callouts ── */
+    .callout { padding: 11px 15px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.55; margin-bottom: 14px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: #14532d; }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: #1a3a6b; }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: #7b3500; }
+    .c-note { background: var(--note-bg); border-color: var(--note-tx); color: var(--note-tx); }
+    .callout strong { font-weight: 700; }
+    /* ── Code blocks ── */
+    .code-block {
+      background: var(--navy); border-radius: 8px; padding: 16px 18px;
+      overflow-x: auto; margin-bottom: 14px;
+    }
+    .code-block code {
+      font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+      white-space: pre; display: block; line-height: 1.7;
+    }
+    .code-block code .cm { color: #64748b; }
+    .code-block code .ck { color: #93c5fd; }
+    .code-block code .cs { color: #86efac; }
+    .code-block code .cn { color: #fde68a; }
+    .code-block code .cb { color: #f0abfc; }
+    .code-label {
+      display: inline-block; background: rgba(255,255,255,.1); color: rgba(255,255,255,.6);
+      font-family: var(--mono); font-size: 10px; font-weight: 700;
+      letter-spacing: .07em; text-transform: uppercase; padding: 3px 10px;
+      border-radius: 4px 4px 0 0; margin-bottom: -1px;
+    }
+    /* ── Tables ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 9px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    /* ── Flow diagram ── */
+    .flow { display: flex; flex-direction: column; gap: 0; margin-bottom: 14px; }
+    .flow-step {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 12px 14px; background: var(--n0); border: 1px solid var(--n200);
+      border-bottom: none; position: relative;
+    }
+    .flow-step:first-child { border-radius: 8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .flow-num {
+      width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+      color: #fff; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px;
+    }
+    .flow-content { flex: 1; }
+    .flow-title { font-weight: 700; color: var(--n900); margin-bottom: 3px; font-size: 13px; }
+    .flow-desc  { font-size: 12px; color: var(--n500); line-height: 1.5; }
+    /* ── File change table rows ── */
+    tbody tr.r-new  { background: #f0fff4; }
+    tbody tr.r-mod  { background: #fffbeb; }
+    tbody tr.r-none { background: var(--n0); }
+    .badge { display: inline-flex; padding: 2px 8px; border-radius: 999px; font-size: 10px;
+             font-weight: 700; white-space: nowrap; }
+    .b-new  { background: var(--ok-bg);   color: #14532d; border: 1px solid var(--ok-bd); }
+    .b-mod  { background: var(--warn-bg); color: #7b3500; border: 1px solid var(--warn-bd); }
+    .b-type { background: var(--info-bg); color: #1e3a8a; border: 1px solid var(--info-bd); }
+    /* ── UI Preview mockup ── */
+    .preview-wrap { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 14px; }
+    .preview-phone {
+      background: #1a1a2e; border-radius: 16px; padding: 16px;
+      width: 260px; flex-shrink: 0;
+    }
+    .preview-label { font-family: var(--mono); font-size: 10px; color: rgba(255,255,255,.4);
+                     letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+    .mock-card {
+      background: #fff; border-radius: 10px; overflow: hidden;
+      border: 1px solid #e2e6eb;
+    }
+    .mock-label {
+      background: #f0f3f7; padding: 7px 12px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10px; font-weight: 700; color: #2b4d6b;
+      text-transform: uppercase; letter-spacing: .05em;
+      border-bottom: 1px solid #e2e6eb;
+    }
+    .mock-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .mock-who { font-size: 11px; color: #505a68; }
+    .mock-block {
+      background: #f8f9fb; border-radius: 5px; padding: 7px 8px;
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .mock-date { font-size: 11px; font-weight: 700; color: #0d1117; }
+    .mock-row { display: flex; align-items: center; font-size: 11px; color: #2d3540; gap: 6px; }
+    .mock-meta { color: #9aa3af; flex: 1; }
+    .mock-amt  { font-family: monospace; font-weight: 700; color: #2b4d6b; font-size: 11px; }
+    .mock-divider { height: 1px; background: #e2e6eb; margin: 2px 0; }
+    .mock-total {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 11px; color: #6b7685; font-weight: 700;
+    }
+    .mock-total-amt { font-family: monospace; color: #1a3249; font-size: 12px; }
+    .mock-footer { display: flex; justify-content: flex-end; padding-top: 6px;
+                   border-top: 1px solid #f0f2f5; }
+    .mock-btn {
+      font-size: 10px; color: #2b4d6b; background: none; border: none;
+      cursor: pointer; font-weight: 700; display: flex; align-items: center; gap: 3px;
+    }
+    /* overlay mockup */
+    .mock-overlay-card {
+      background: #fff; border-radius: 12px 12px 0 0; overflow: hidden;
+      border: 1px solid #e2e6eb; margin-top: 8px;
+    }
+    .mock-overlay-hdr {
+      display: flex; align-items: center; gap: 8px; padding: 10px 12px 8px;
+      border-bottom: 1px solid #e2e6eb;
+    }
+    .mock-overlay-icon {
+      width: 26px; height: 26px; background: #f0f3f7; border-radius: 5px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; color: #2b4d6b;
+    }
+    .mock-overlay-title { font-size: 12px; font-weight: 700; color: #0d1117; flex: 1; }
+    .mock-overlay-x { font-size: 13px; color: #9aa3af; }
+    .mock-overlay-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+    .mock-parties { background: #f8f9fb; border-radius: 5px; padding: 7px 8px;
+                    display: flex; flex-direction: column; gap: 3px; }
+    .mock-party { display: flex; justify-content: space-between; font-size: 10px; }
+    .mock-party-lbl { color: #9aa3af; text-transform: uppercase; letter-spacing: .04em; }
+    .mock-party-val { font-weight: 700; color: #0d1117; }
+    .mock-sec-date { font-size: 10px; font-weight: 700; color: #2b4d6b;
+                     text-transform: uppercase; letter-spacing: .04em;
+                     padding-bottom: 4px; border-bottom: 1px solid #f0f2f5; }
+    .mock-sl-row { display: flex; align-items: center; gap: 6px; padding: 3px 4px; font-size: 10px; }
+    .mock-sl-time { font-family: monospace; font-weight: 700; color: #0d1117; min-width: 80px; }
+    .mock-sl-dur  { color: #9aa3af; flex: 1; }
+    .mock-sl-amt  { font-family: monospace; font-weight: 700; color: #2b4d6b; }
+    .mock-total-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: #060f1c; border-radius: 5px; padding: 7px 8px;
+      font-size: 10px; color: #8fa9c0; font-weight: 700;
+    }
+    .mock-total-val { font-family: monospace; color: #fff; font-size: 12px; }
+    .mock-wallet-btn {
+      width: 100%; padding: 8px; background: #4d7aa0; color: #fff;
+      border: none; border-radius: 5px; font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer;
+    }
+    .mock-overlay-footer { padding: 8px 12px 10px; border-top: 1px solid #e2e6eb; }
+    /* ── Two-column layout ── */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 14px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .col-card {
+      background: var(--n0); border: 1px solid var(--n200); border-radius: 8px;
+      padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    }
+    .col-card-title { font-size: 12px; font-weight: 700; color: var(--n900);
+                      text-transform: uppercase; letter-spacing: .05em; }
+    .col-card p { font-size: 13px; color: var(--n700); line-height: 1.55; }
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Feature Documentation · BookingSystem</div>
+  <div class="ph-title">Booking Notification — Chat Service Message</div>
+  <div class="ph-sub">
+    Strukturierte, gebündelte Buchungsbenachrichtigung im Chat.
+    Ersetzt die alten Freitext-Nachrichten durch eine klickbare Service-Card
+    mit Preis, Zeitblöcken und Wallet-Overlay.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">4 Dateien geändert</span>
+    <span class="ph-badge">chat.js · student.js · teacher.js · chat.css</span>
+    <span class="ph-badge">Typ: booking_notification</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- MOTIVATION -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Motivation &amp; Problem</div>
+    </div>
+    <div class="callout c-warn">
+      <strong>Vorher:</strong> Buchungen wurden als einfache Textnachrichten gesendet
+      (<code>📅 Neue Buchung: Do., 19. März 2026, 14:00–16:30 (5 Slots)</code>).
+      Pro Datum eine eigene Nachricht → mehrere Buchungen an verschiedenen Tagen = mehrere separate Nachrichten.
+      Kein Preis, kein Wallet-Link, nicht klickbar.
+    </div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-card-title">❌ Alt</div>
+        <p>Zwei separate Textnachrichten für zwei Buchungsdaten.<br>Kein Preis, kein Detail-Link.</p>
+        <div style="margin-top:8px;background:#f0f2f5;border-radius:6px;padding:10px 12px;font-family:monospace;font-size:11px;color:#2d3540;line-height:1.8">
+          📅 Neue Buchung: Do., 19. März 2026, 14:00–16:30 (5 Slots)<br>
+          📅 Neue Buchung: Do., 26. März 2026, 14:00–16:30 (5 Slots)<br>
+          📅 Neue Buchung: Do., 19. März 2026, 17:30–18:30 (2 Slots)
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-card-title">✅ Neu</div>
+        <p>Eine strukturierte Service-Card pro Speichervorgang. Alle Daten gebündelt. Preis sichtbar. Klickbar → Overlay → Wallet.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- UI PREVIEW -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">UI — Vorschau</div>
+      <span class="sec-sub">Chat-Card &amp; Detail-Overlay</span>
+    </div>
+    <div class="preview-wrap">
+
+      <!-- Chat card -->
+      <div class="preview-phone">
+        <div class="preview-label">Chat — Service Card</div>
+        <div class="mock-card">
+          <div class="mock-label">
+            <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><rect x="1" y="2" width="14" height="13" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M5 1v2M11 1v2M1 6h14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Neue Buchung
+          </div>
+          <div class="mock-body">
+            <div class="mock-who">Anna Müller hat bei Max Mustermann gebucht</div>
+            <div class="mock-block">
+              <div class="mock-date">Do., 19. März 2026</div>
+              <div class="mock-row">
+                <span>14:00–16:30</span>
+                <span class="mock-meta">5 Slots</span>
+                <span class="mock-amt">€62,50</span>
+              </div>
+            </div>
+            <div class="mock-block">
+              <div class="mock-date">Do., 26. März 2026</div>
+              <div class="mock-row">
+                <span>14:00–16:30</span>
+                <span class="mock-meta">5 Slots</span>
+                <span class="mock-amt">€62,50</span>
+              </div>
+            </div>
+            <div class="mock-divider"></div>
+            <div class="mock-total">
+              <span>10 Slots · Gesamt</span>
+              <span class="mock-total-amt">€125,00</span>
+            </div>
+            <div class="mock-footer">
+              <button class="mock-btn">Details ›</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Overlay -->
+      <div class="preview-phone">
+        <div class="preview-label">Details-Overlay (nach Klick)</div>
+        <div class="mock-overlay-card">
+          <div class="mock-overlay-hdr">
+            <div class="mock-overlay-icon">📅</div>
+            <div class="mock-overlay-title">Buchungsdetails</div>
+            <span class="mock-overlay-x">✕</span>
+          </div>
+          <div class="mock-overlay-body">
+            <div class="mock-parties">
+              <div class="mock-party"><span class="mock-party-lbl">Lehrer</span><span class="mock-party-val">Max Mustermann</span></div>
+              <div class="mock-party"><span class="mock-party-lbl">Schüler</span><span class="mock-party-val">Anna Müller</span></div>
+              <div class="mock-party"><span class="mock-party-lbl">Preis / Slot</span><span class="mock-party-val">€12,50</span></div>
+            </div>
+            <div>
+              <div class="mock-sec-date">Do., 19. März 2026</div>
+              <div class="mock-sl-row"><span class="mock-sl-time">14:00</span><span class="mock-sl-dur">30 min</span><span class="mock-sl-amt">€12,50</span></div>
+              <div class="mock-sl-row"><span class="mock-sl-time">14:30</span><span class="mock-sl-dur">30 min</span><span class="mock-sl-amt">€12,50</span></div>
+              <div class="mock-sl-row"><span class="mock-sl-time">15:00</span><span class="mock-sl-dur">30 min</span><span class="mock-sl-amt">€12,50</span></div>
+              <div style="font-size:10px;color:#9aa3af;padding:2px 4px;font-style:italic">+ 2 weitere Slots…</div>
+            </div>
+            <div>
+              <div class="mock-sec-date">Do., 26. März 2026</div>
+              <div class="mock-sl-row"><span class="mock-sl-time">14:00</span><span class="mock-sl-dur">30 min</span><span class="mock-sl-amt">€12,50</span></div>
+              <div style="font-size:10px;color:#9aa3af;padding:2px 4px;font-style:italic">+ 4 weitere Slots…</div>
+            </div>
+            <div class="mock-total-row">
+              <span>10 Slots</span>
+              <span class="mock-total-val">€125,00</span>
+            </div>
+          </div>
+          <div class="mock-overlay-footer">
+            <button class="mock-wallet-btn">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><rect x="1" y="4" width="14" height="10" rx="1.5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="10.5" r="1" fill="currentColor"/></svg>
+              Im Wallet anzeigen
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- MESSAGE SCHEMA -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Message-Schema (localStorage)</div>
+      <span class="sec-sub">app_chat_messages</span>
+    </div>
+    <div class="code-label">booking_notification message object</div>
+    <div class="code-block"><code><span class="cm">// Gespeichert in localStorage unter 'app_chat_messages'</span>
+{
+  <span class="ck">msgId</span>:            <span class="cs">"uuid-..."</span>,
+  <span class="ck">conversationKey</span>:  <span class="cs">"studentId_teacherId"</span>,    <span class="cm">// sortiert</span>
+  <span class="ck">senderId</span>:         <span class="cs">"uid-des-buchenden"</span>,       <span class="cm">// Student oder Teacher</span>
+  <span class="ck">receiverId</span>:       <span class="cs">"uid-des-empfaengers"</span>,
+  <span class="ck">text</span>:             <span class="cs">""</span>,
+  <span class="ck">type</span>:             <span class="cs">"booking_notification"</span>,
+  <span class="ck">isService</span>:        <span class="cb">true</span>,
+  <span class="ck">serviceEvent</span>:    <span class="cs">"booking_notification"</span>,
+  <span class="ck">teacherId</span>:        <span class="cs">"uid-teacher"</span>,
+  <span class="ck">studentId</span>:        <span class="cs">"uid-student"</span>,
+
+  <span class="ck">bookingSnapshot</span>: {
+    <span class="ck">actorId</span>:         <span class="cs">"uid-buchender"</span>,
+    <span class="ck">actorRole</span>:       <span class="cs">"student"</span>,              <span class="cm">// 'student' | 'teacher'</span>
+    <span class="ck">teacherId</span>:       <span class="cs">"uid-teacher"</span>,
+    <span class="ck">teacherName</span>:     <span class="cs">"Max Mustermann"</span>,
+    <span class="ck">studentId</span>:       <span class="cs">"uid-student"</span>,
+    <span class="ck">studentName</span>:     <span class="cs">"Anna Müller"</span>,
+    <span class="ck">currency</span>:        <span class="cs">"EUR"</span>,                  <span class="cm">// immer EUR (locked at booking)</span>
+    <span class="ck">pricePerSlot</span>:    <span class="cn">12.50</span>,                  <span class="cm">// aus AppService.getTeacherPriceSync()</span>
+    <span class="ck">totalSlots</span>:      <span class="cn">10</span>,
+    <span class="ck">totalAmount</span>:     <span class="cn">125.00</span>,
+
+    <span class="ck">blocks</span>: [
+      {
+        <span class="ck">date</span>:       <span class="cs">"2026-03-19"</span>,           <span class="cm">// ISO — für Sortierung</span>
+        <span class="ck">dateLabel</span>:  <span class="cs">"Do., 19. März 2026"</span>,
+        <span class="ck">timeStart</span>:  <span class="cs">"14:00"</span>,
+        <span class="ck">timeEnd</span>:    <span class="cs">"16:30"</span>,
+        <span class="ck">slotCount</span>:  <span class="cn">5</span>,
+        <span class="ck">slotIds</span>:    [<span class="cs">"uuid-1"</span>, <span class="cs">"uuid-2"</span>, <span class="cm">/* ... */</span>],
+        <span class="ck">slotTimes</span>:  [{ <span class="ck">time</span>: <span class="cs">"14:00"</span> }, { <span class="ck">time</span>: <span class="cs">"14:30"</span> }, <span class="cm">/* ... */</span>],
+        <span class="ck">amount</span>:     <span class="cn">62.50</span>
+      },
+      <span class="cm">// ... weiterer Block für 26. März</span>
+    ],
+
+    <span class="ck">allSlotIds</span>:  [<span class="cs">"uuid-1"</span>, <span class="cm">/* alle Slot-IDs flach */</span>]
+  },
+
+  <span class="ck">readStatus</span>:  <span class="cs">"sent"</span>,
+  <span class="ck">edited</span>:      <span class="cb">false</span>,
+  <span class="ck">deleted</span>:     <span class="cb">false</span>,
+  <span class="ck">createdAt</span>:   <span class="cs">"2026-03-19T17:54:00.000Z"</span>
+}</code></div>
+  </div>
+
+  <!-- BATCHING LOGIC -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Batching-Logik — Vorher / Nachher</div>
+    </div>
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-card-title">❌ Alt — Gruppierung nach (partner, date)</div>
+        <div class="code-block" style="margin:0"><code style="font-size:11px"><span class="cm">// Key = teacherId + '_' + date</span>
+<span class="cm">// Ergebnis: 1 Nachricht pro Datum</span>
+<span class="cm">// 2 Daten = 2 Nachrichten</span>
+
+ChatStore.send(uid, partner,
+  <span class="cs">'📅 Neue Buchung: ...'</span>,
+  <span class="cs">'text'</span>     <span class="cm">// plain text</span>
+);</code></div>
+      </div>
+      <div class="col-card">
+        <div class="col-card-title">✅ Neu — Gruppierung nach partner</div>
+        <div class="code-block" style="margin:0"><code style="font-size:11px"><span class="cm">// Key = teacherId (nur Partner)</span>
+<span class="cm">// Ergebnis: 1 Nachricht, n blocks[]</span>
+<span class="cm">// 2 Daten = 1 Nachricht mit 2 Blöcken</span>
+
+ChatStore.sendBookingNotification(
+  uid, partner, snapshot
+);</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIGGER FLOW -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Trigger-Flow — beide Richtungen</div>
+    </div>
+    <div class="callout c-info">
+      Die Nachricht wird in <strong>beide Richtungen</strong> gesendet: Student bucht → Teacher empfängt.
+      Teacher bucht für Student → Student empfängt. Jeweils der Buchende ist <code>senderId</code>.
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:14px">
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#0d1117;margin-bottom:10px">Trigger A — Student bucht</div>
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-num">1</div>
+            <div class="flow-content">
+              <div class="flow-title">student.js — saveDayChanges()</div>
+              <div class="flow-desc">User drückt Speichern. <code>pendingDayChanges</code> enthält die gebuchten Slots.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">2</div>
+            <div class="flow-content">
+              <div class="flow-title">bookSlotWithEscrowSilent() async</div>
+              <div class="flow-desc">Slots werden in localStorage gebucht. Preis wird via <code>getTeacherPriceSync()</code> synchron gelesen <em>vor</em> dem async Teil.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">3</div>
+            <div class="flow-content">
+              <div class="flow-title">notifGroups aufbauen</div>
+              <div class="flow-desc">Alle gebuchten Slots werden nach <code>teacherId → date → slots[]</code> gruppiert. <code>slotIds</code> und <code>slotTimes</code> werden je Slot gesammelt.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">4</div>
+            <div class="flow-content">
+              <div class="flow-title">ChatStore.sendBookingNotification()</div>
+              <div class="flow-desc"><code>sender = student.uid</code>, <code>receiver = teacher.uid</code>, <code>actorRole = 'student'</code>. Alle Daten im Snapshot.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#0d1117;margin-bottom:10px">Trigger B — Teacher bucht für Student</div>
+        <div class="flow">
+          <div class="flow-step">
+            <div class="flow-num">1</div>
+            <div class="flow-content">
+              <div class="flow-title">teacher.js — saveBookingGrid()</div>
+              <div class="flow-desc"><code>pendingBookings</code> enthält die Zuordnungen Student → Slot.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">2</div>
+            <div class="flow-content">
+              <div class="flow-title">bookSlotWithEscrowSilent() async</div>
+              <div class="flow-desc">Identisch wie Student-Flow. Preis aus eigenem Profil per <code>getTeacherPriceSync(currentUser.uid)</code>.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">3</div>
+            <div class="flow-content">
+              <div class="flow-title">notifByStu aufbauen</div>
+              <div class="flow-desc">Erst <code>bookGroups</code> nach <code>stuId_date</code>, dann re-gruppiert nach <code>stuId</code> only → alle Daten in einem <code>blocks[]</code>.</div>
+            </div>
+          </div>
+          <div class="flow-step">
+            <div class="flow-num">4</div>
+            <div class="flow-content">
+              <div class="flow-title">ChatStore.sendBookingNotification()</div>
+              <div class="flow-desc"><code>sender = teacher.uid</code>, <code>receiver = student.uid</code>, <code>actorRole = 'teacher'</code>.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE & CURRENCY -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Preis &amp; Währungskonvertierung</div>
+    </div>
+    <div class="callout c-note">
+      <strong>Wichtig:</strong> Beträge im Snapshot sind immer in <strong>EUR</strong> gespeichert
+      (Systemwährung). Die Anzeige im Chat wird in der <em>displayCurrency des eingeloggten Users</em>
+      gerendert — via <code>_fmtForUser(amountEUR, uid)</code>.
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Schicht</th><th>Wert</th><th>Funktion</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Snapshot (gespeichert)</strong></td>
+            <td><code>pricePerSlot: 12.50</code>, <code>totalAmount: 125.00</code></td>
+            <td>Immer EUR. <code>AppService.getTeacherPriceSync()</code> → liest Profil-Preis und konvertiert zu EUR via <code>CurrencyService.convertSync()</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>Card-Rendering</strong></td>
+            <td><code>_fmtForUser(amount, actorUid)</code></td>
+            <td>Konvertiert EUR → displayCurrency des Viewers. Fallback auf EUR wenn Cache kalt.</td>
+          </tr>
+          <tr>
+            <td><strong>Overlay-Rendering</strong></td>
+            <td>lokale <code>fmt()</code> Funktion</td>
+            <td>Gleiche Logik: <code>_fmtForUser</code> → <code>fmtPrice</code> → Hardcode-Fallback. Dreistufig.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- OVERLAY -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Detail-Overlay — _showBookingNotifOverlay()</div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Element</th><th>Inhalt</th><th>Verhalten</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>.cbn-overlay-backdrop</code></td>
+            <td>Halbtransparentes Overlay über gesamten Viewport</td>
+            <td>Klick auf Backdrop → schließt Overlay. CSS-Transition opacity + translateY.</td>
+          </tr>
+          <tr>
+            <td><code>.cbn-overlay-panel</code></td>
+            <td>Bottom Sheet, max-height 85vh, scrollbar</td>
+            <td>Animiert von unten rein. Border-radius oben. <code>role="dialog"</code>, <code>aria-modal="true"</code>.</td>
+          </tr>
+          <tr>
+            <td>Parties-Block</td>
+            <td>Lehrer, Schüler, Preis/Slot</td>
+            <td>Statisch. Liest aus <code>bookingSnapshot</code>.</td>
+          </tr>
+          <tr>
+            <td>Pro Block (Datum)</td>
+            <td>Datums-Header + eine Zeile je Slot-Zeit</td>
+            <td>Rendert <code>block.slotTimes[]</code> wenn vorhanden, sonst Fallback auf Zeitrange + Slot-Anzahl.</td>
+          </tr>
+          <tr>
+            <td>Total-Row</td>
+            <td>Gesamtslots · Gesamtbetrag</td>
+            <td>Navy-Background. Konvertierter Betrag via <code>fmt()</code>.</td>
+          </tr>
+          <tr>
+            <td><strong>[Im Wallet anzeigen →]</strong></td>
+            <td>Primary Button, volle Breite</td>
+            <td>1. Schließt Overlay. 2. Prüft ob <code>WalletPanel.scrollToTx()</code> verfügbar → klickt <code>nav-wallet</code> + scrollt zu erstem Slot. Fallback: navigiert zu <code>wallet.html?uid=...&amp;highlightSlot=...</code>.</td>
+          </tr>
+          <tr>
+            <td>ESC-Taste</td>
+            <td>—</td>
+            <td>Schließt Overlay. Event-Listener wird nach close entfernt.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Geänderte Dateien</div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Typ</th><th>Status</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-mod">
+            <td><code>js/chat.js</code></td>
+            <td><span class="badge b-type">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>ChatI18n:</strong> 14 neue Keys (<code>bookingNotif*</code>).<br>
+              <strong>ChatStore:</strong> <code>sendBookingNotification()</code> hinzugefügt + in public API exposed.<br>
+              <strong>_renderMessages:</strong> <code>booking_notification</code> in Typ-Router aufgenommen.<br>
+              <strong>_buildListItem:</strong> Preview-Text für <code>booking_notification</code>.<br>
+              <strong>_buildServiceMsg:</strong> Neuer Rendering-Block für <code>serviceEvent === 'booking_notification'</code>.<br>
+              <strong>_showBookingNotifOverlay():</strong> Neue Funktion — Bottom-Sheet-Overlay mit Slot-Details und Wallet-Button.
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>js/student.js</code></td>
+            <td><span class="badge b-type">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>saveDayChanges():</strong> Alter <code>bookGroups</code>-Loop (für E-Mail) bleibt unverändert.
+              Neuer <code>notifGroups</code>-Block dahinter: gruppiert nach <code>teacherId</code> only,
+              baut <code>blocks[]</code> mit <code>slotIds</code> + <code>slotTimes</code>,
+              sendet via <code>ChatStore.sendBookingNotification()</code>.
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>js/teacher.js</code></td>
+            <td><span class="badge b-type">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>saveBookingGrid() / onAllDone():</strong> <code>bookGroups.slots</code>
+              wird jetzt mit <code>slotId</code> und <code>date</code> angereichert.
+              Neuer <code>notifByStu</code>-Re-Grouping-Block: zuerst per <code>stuId_date</code>,
+              dann per <code>stuId</code> only → alle Daten in einem Snapshot.
+              Sendet via <code>ChatStore.sendBookingNotification()</code>.
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>css/chat.css</code></td>
+            <td><span class="badge b-type">CSS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td>
+              <strong>Neue Klassen:</strong><br>
+              <code>.chat-booking-notif-card</code> — Service-Card mit blauem Top-Border.<br>
+              <code>.chat-booking-notif-*</code> — Body, Block, Date, Row, Meta, Amount, Divider, Total, Footer, Button.<br>
+              <code>.cbn-overlay-backdrop</code> — Fixed Backdrop mit Opacity-Transition.<br>
+              <code>.cbn-overlay-panel</code> — Bottom Sheet, translateY-Animation.<br>
+              <code>.cbn-overlay-*</code> — Handle, Header, Icon, Title, Close, Body, Parties, Section, Slot-Row, Total, Footer, Wallet-Button.
+            </td>
+          </tr>
+          <tr class="r-mod">
+            <td><code>js/app-config.js</code></td>
+            <td><span class="badge b-type">JS</span></td>
+            <td><span class="badge b-mod">Geändert</span></td>
+            <td><code>APP_VERSION</code> auf <code>2026-03-19-4</code> erhöht → Browser-Cache für alle geänderten Dateien wird invalidiert.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- I18N -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">i18n — Neue Keys (Namespace: chat)</div>
+    </div>
+    <div class="callout c-info">
+      Alle Keys sind im <code>ChatI18n.de</code>-Objekt in <code>chat.js</code> definiert.
+      Namespace entspricht dem Dateinamen <code>chat</code> gemäß Guideline.
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Key</th><th>Deutsch (Standard)</th></tr></thead>
+        <tbody>
+          <tr><td><code>bookingNotifLabel</code></td><td>Neue Buchung</td></tr>
+          <tr><td><code>bookingNotifByStudent</code></td><td>{student} hat bei {teacher} gebucht</td></tr>
+          <tr><td><code>bookingNotifByTeacher</code></td><td>{teacher} hat für {student} gebucht</td></tr>
+          <tr><td><code>bookingNotifSlots</code></td><td>Slots</td></tr>
+          <tr><td><code>bookingNotifTotal</code></td><td>Gesamt</td></tr>
+          <tr><td><code>bookingNotifDetailsBtn</code></td><td>Details</td></tr>
+          <tr><td><code>bookingNotifWalletBtn</code></td><td>Im Wallet anzeigen</td></tr>
+          <tr><td><code>bookingNotifOverlayTitle</code></td><td>Buchungsdetails</td></tr>
+          <tr><td><code>bookingNotifClose</code></td><td>Schließen</td></tr>
+          <tr><td><code>bookingNotifTeacher</code></td><td>Lehrer</td></tr>
+          <tr><td><code>bookingNotifStudent</code></td><td>Schüler</td></tr>
+          <tr><td><code>bookingNotifPrice</code></td><td>Preis / Slot</td></tr>
+          <tr><td><code>bookingNotifBlockTotal</code></td><td>Gesamt</td></tr>
+          <tr><td><code>bookingNotifPreview</code></td><td>📅 Neue Buchung</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CSS CLASSES -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Neue CSS-Klassen</div>
+    </div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr><td><code>.chat-booking-notif-card</code></td><td>Service-Card-Wrapper. Erbt von <code>.chat-service-card</code>. Fügt <code>border-top: 3px solid var(--color-400)</code> hinzu.</td></tr>
+          <tr><td><code>.chat-booking-notif-body</code></td><td>Flex-Column-Body mit Gap für alle inneren Elemente.</td></tr>
+          <tr><td><code>.chat-booking-notif-who</code></td><td>Kleiner Beschreibungstext wer für wen gebucht hat.</td></tr>
+          <tr><td><code>.chat-booking-notif-block</code></td><td>Grau hinterlegter Block pro Datum.</td></tr>
+          <tr><td><code>.chat-booking-notif-date</code></td><td>Datum-Label (semibold, navy).</td></tr>
+          <tr><td><code>.chat-booking-notif-row</code></td><td>Zeile: Zeit + Meta + Betrag nebeneinander.</td></tr>
+          <tr><td><code>.chat-booking-notif-meta</code></td><td>Slot-Anzahl in gedämpfter Farbe.</td></tr>
+          <tr><td><code>.chat-booking-notif-amount</code></td><td>Monospace, semibold, navy-farben.</td></tr>
+          <tr><td><code>.chat-booking-notif-divider</code></td><td>1px Trennlinie vor Total-Zeile.</td></tr>
+          <tr><td><code>.chat-booking-notif-total</code></td><td>Gesamtzeile: space-between, semibold.</td></tr>
+          <tr><td><code>.chat-booking-notif-total-amt</code></td><td>Größerer Monospace-Betrag rechts.</td></tr>
+          <tr><td><code>.chat-booking-notif-footer</code></td><td>Flex-End, Trennlinie oben.</td></tr>
+          <tr><td><code>.chat-booking-notif-details-btn</code></td><td>Ghost-Button "Details ›" rechts in der Card.</td></tr>
+          <tr><td><code>.cbn-overlay-backdrop</code></td><td>Fixed Backdrop. Opacity-Transition. <code>z-index: 2000</code>.</td></tr>
+          <tr><td><code>.cbn-overlay-panel</code></td><td>Bottom Sheet. <code>translateY(100%)</code> → <code>translateY(0)</code> bei <code>.is-open</code>.</td></tr>
+          <tr><td><code>.cbn-overlay-handle</code></td><td>Grauer Drag-Handle oben.</td></tr>
+          <tr><td><code>.cbn-overlay-header</code></td><td>Icon + Titel + Schließen-Button.</td></tr>
+          <tr><td><code>.cbn-overlay-body</code></td><td>Scrollbarer Inhalt, flex-column.</td></tr>
+          <tr><td><code>.cbn-overlay-parties</code></td><td>Grau hinterlegter Lehrer/Schüler/Preis-Block.</td></tr>
+          <tr><td><code>.cbn-overlay-section</code></td><td>Block pro Datum im Overlay.</td></tr>
+          <tr><td><code>.cbn-overlay-slot-row</code></td><td>Zeile pro 30-Min-Slot: Zeit · Dauer · Betrag.</td></tr>
+          <tr><td><code>.cbn-overlay-total</code></td><td>Navy-hinterlegte Gesamtzeile am Ende des Body.</td></tr>
+          <tr><td><code>.cbn-overlay-footer</code></td><td>Footer mit Wallet-Button.</td></tr>
+          <tr><td><code>.cbn-wallet-btn</code></td><td>Volle Breite, primary, mit Wallet-Icon.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WALLET BUTTON LOGIC -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">"Im Wallet anzeigen" — Navigationslogik</div>
+    </div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Overlay schließen</div>
+          <div class="flow-desc">Immer zuerst. Overlay wird mit Animation geschlossen.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">WalletPanel verfügbar? (same-page Panel)</div>
+          <div class="flow-desc">Check: <code>typeof WalletPanel !== 'undefined' &amp;&amp; typeof WalletPanel.scrollToTx === 'function'</code>.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3a</div>
+        <div class="flow-content">
+          <div class="flow-title">✅ Ja → In-Page-Navigation</div>
+          <div class="flow-desc">
+            <code>document.getElementById('nav-wallet').click()</code> → öffnet Wallet-Tab.<br>
+            Nach 350ms: <code>WalletPanel.scrollToTx(null, firstSlotId, actorUid)</code> → scrollt zur ersten Buchungs-TX.
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3b</div>
+        <div class="flow-content">
+          <div class="flow-title">❌ Nein → Seitennavigation</div>
+          <div class="flow-desc">
+            Navigiert zu <code>wallet.html?uid=...&amp;highlightSlot=firstSlotId</code>.<br>
+            Der <code>highlightSlot</code>-Parameter kann von <code>wallet.js</code> ausgelesen werden,
+            um die relevante TX direkt zu öffnen.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURAL NOTES -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Architektur-Anmerkungen</div>
+    </div>
+    <div class="callout c-ok">
+      <strong>Keine Store.*-Direktzugriffe.</strong> Alle Datenzugriffe laufen über <code>AppService.*</code> und <code>ProfileStore.*</code> — konform mit <code>Guideline_Architecture</code>.
+    </div>
+    <div class="callout c-ok">
+      <strong>Keine inline styles.</strong> Alle Styles in <code>chat.css</code>. Keine <code>style="..."</code> Attribute im gerenderten HTML — konform mit STYLE-GUIDE.
+    </div>
+    <div class="callout c-ok">
+      <strong>Kein ES6+.</strong> Kein <code>let</code>/<code>const</code>, keine Arrow-Functions, keine Template-Literals, kein <code>?.</code>/<code>??</code> — konform mit JS-Guideline.
+    </div>
+    <div class="callout c-note">
+      <strong>Preis-Timing:</strong> <code>getTeacherPriceSync()</code> wird synchron <em>vor</em> dem async
+      <code>bookSlotWithEscrowSilent()</code> aufgerufen. Das ist korrekt — zu diesem Zeitpunkt ist der
+      Preis im Lehrerprofil verfügbar. Der Preis, der <em>tatsächlich</em> auf dem Slot gespeichert wird,
+      kann minimal abweichen falls ein zweiter bookSlot-Aufruf gleichzeitig läuft, aber für die
+      Benachrichtigungs-Anzeige ist das akzeptabel. Der echte TX-Betrag ist immer in der Wallet sichtbar.
+    </div>
+    <div class="callout c-note">
+      <strong>Rückwärtskompatibilität:</strong> Alte <code>text</code>-Nachrichten mit dem
+      <code>📅 Neue Buchung:</code>-Format bleiben unverändert lesbar — der <code>_buildTextBubble</code>-Renderer
+      ist nicht geändert. Nur neue Buchungen erzeugen <code>booking_notification</code>-Messages.
+    </div>
+  </div>
+
+  <footer>
+    <span>BOOKING_NOTIFICATION_CHAT_20260319.html · BookingSystem</span>
+    <span>Erstellt: 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

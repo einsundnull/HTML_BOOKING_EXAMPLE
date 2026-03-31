@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TX Detail — Field Analysis</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+    --green:#3fb950;--red:#f85149;--amber:#d29922;--accent:#58a6ff;--purple:#bc8cff;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:13px;line-height:1.65;padding:28px 20px 80px;max-width:1200px;margin:0 auto}
+  h1{font-family:'IBM Plex Mono',monospace;font-size:17px;font-weight:600;margin-bottom:4px}
+  .sub{color:var(--muted);font-size:11px;margin-bottom:28px}
+  .sh{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-bottom:12px;
+    display:flex;align-items:center;gap:10px;margin-top:32px}
+  .sh::after{content:'';flex:1;height:1px;background:var(--border)}
+  .tw{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);text-align:left;padding:7px 12px;
+    background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:6px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.02)}
+  tr.shown  td:first-child{border-left:3px solid var(--green)}
+  tr.hidden td:first-child{border-left:3px solid var(--red)}
+  tr.missing td:first-child{border-left:3px solid var(--amber)}
+  code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:rgba(255,255,255,.07);
+    padding:1px 5px;border-radius:4px;color:var(--purple)}
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap}
+  .ok  {background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+  .no  {background:rgba(248,81,73,.12);color:var(--red);border:1px solid rgba(248,81,73,.25)}
+  .miss{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  .note{color:var(--muted);font-size:11px}
+</style>
+</head>
+<body>
+
+<h1>TX Detail — Vollständige Feld-Analyse</h1>
+<p class="sub">Was in einer Transaktion gespeichert ist · Was aktuell angezeigt wird · Was fehlt</p>
+
+<!-- BASE FIELDS -->
+<div class="sh">1 — Basis-Felder (alle TX-Typen)</div>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Typ</th><th>Beschreibung</th><th>Aktuell sichtbar</th><th>Im Detail zeigen</th></tr></thead>
+<tbody>
+<tr class="shown"><td><code>txId</code></td><td>string</td><td>Eindeutige TX-ID</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja — für Support/Debug</span></td></tr>
+<tr class="shown"><td><code>uid</code></td><td>string</td><td>Wallet-Inhaber UID</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja — mit Name aufgelöst</span></td></tr>
+<tr class="shown"><td><code>type</code></td><td>string</td><td>TX-Typ (booking, escrow_hold…)</td><td><span class="b ok">✓ Als Label</span></td><td><span class="b ok">✓ Raw + Label</span></td></tr>
+<tr class="shown"><td><code>amount</code></td><td>number</td><td>Betrag mit Vorzeichen</td><td><span class="b ok">✓ Ja</span></td><td><span class="b ok">✓ Ja</span></td></tr>
+<tr class="shown"><td><code>balance</code></td><td>number</td><td>Saldo nach TX</td><td><span class="b ok">✓ Ja</span></td><td><span class="b ok">✓ Ja</span></td></tr>
+<tr class="shown"><td><code>description</code></td><td>string</td><td>Freitext-Beschreibung</td><td><span class="b ok">✓ Gekürzt</span></td><td><span class="b ok">✓ Vollständig</span></td></tr>
+<tr class="shown"><td><code>status</code></td><td>string</td><td>completed / pending / failed</td><td><span class="b ok">✓ Als Badge</span></td><td><span class="b ok">✓ Ja</span></td></tr>
+<tr class="shown"><td><code>createdAt</code></td><td>ISO string</td><td>Zeitpunkt der TX</td><td><span class="b ok">✓ Datum</span></td><td><span class="b ok">✓ Datum + Uhrzeit</span></td></tr>
+<tr class="shown"><td><code>relatedUid</code></td><td>string</td><td>Gegenpartei UID</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja — Name + UID</span></td></tr>
+</tbody></table></div>
+
+<!-- META FIELDS -->
+<div class="sh">2 — Meta-Felder (buchungsbezogene TX)</div>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>TX-Typen</th><th>Beschreibung</th><th>Aktuell sichtbar</th><th>Im Detail zeigen</th></tr></thead>
+<tbody>
+<tr class="shown"><td><code>meta.slotDate</code></td><td>booking, escrow_hold, refund…</td><td>Datum der Stunde</td><td><span class="b ok">✓ In Meta-Zeile</span></td><td><span class="b ok">✓ Vollständig formatiert</span></td></tr>
+<tr class="hidden"><td><code>meta.slotTime</code></td><td>booking, escrow_hold…</td><td>Uhrzeit der Stunde (Beginn)</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja</span></td></tr>
+<tr class="hidden"><td><code>meta.slotTimeEnd</code></td><td>booking (block)</td><td>Uhrzeit Ende (Block)</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja — "14:00–15:30"</span></td></tr>
+<tr class="hidden"><td><code>meta.slotCount</code></td><td>booking (block)</td><td>Anzahl Slots im Block</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "3 Slots"</span></td></tr>
+<tr class="hidden"><td><code>meta.slotId</code></td><td>einzelne TX</td><td>Slot-ID</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Für Support</span></td></tr>
+<tr class="hidden"><td><code>meta.slotIds[]</code></td><td>booking (block)</td><td>Slot-IDs des Blocks</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Anzahl + aufklappbar</span></td></tr>
+<tr class="shown"><td><code>meta.teacherId</code></td><td>alle buchungsbez.</td><td>Lehrer UID</td><td><span class="b ok">✓ Name in Meta-Zeile</span></td><td><span class="b ok">✓ Name + UID</span></td></tr>
+<tr class="shown"><td><code>meta.studentId</code></td><td>alle buchungsbez.</td><td>Schüler UID</td><td><span class="b ok">✓ Name in Meta-Zeile</span></td><td><span class="b ok">✓ Name + UID</span></td></tr>
+<tr class="hidden"><td><code>meta.fullAmount</code></td><td>booking, escrow_hold</td><td>Gesamtpreis der Stunde(n)</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "€135,00 gesamt"</span></td></tr>
+<tr class="hidden"><td><code>meta.depositAmount</code></td><td>booking, escrow_hold</td><td>Deposit-Betrag</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "€27,00 Deposit"</span></td></tr>
+<tr class="hidden"><td><code>meta.depositType</code></td><td>booking, escrow_hold</td><td>'fixed' oder 'percent'</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "20% Deposit" oder "Fix €20"</span></td></tr>
+<tr class="hidden"><td><code>meta.depositPercent</code></td><td>booking, escrow_hold</td><td>Deposit-Prozentsatz</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Kombiniert mit depositType</span></td></tr>
+<tr class="hidden"><td><code>meta.paymentMode</code></td><td>booking, escrow_hold</td><td>'instant' oder 'cash_on_site'</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "Online" / "Bar vor Ort"</span></td></tr>
+<tr class="hidden"><td><code>meta.requiresDeposit</code></td><td>booking</td><td>Ob Deposit erforderlich war</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Ja/Nein</span></td></tr>
+<tr class="hidden"><td><code>meta.bookedAt</code></td><td>booking, escrow_hold</td><td>Zeitpunkt der ursprünglichen Buchung</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Datum + Uhrzeit</span></td></tr>
+<tr class="hidden"><td><code>meta.escrowId</code></td><td>escrow TX</td><td>Escrow-ID</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Für Support</span></td></tr>
+<tr class="shown"><td><code>meta.cancellationTier</code></td><td>cancellation, refund</td><td>Stornierungstier</td><td><span class="b ok">✓ In Meta-Zeile</span></td><td><span class="b ok">✓ Mit Erklärung</span></td></tr>
+<tr class="shown"><td><code>meta.cancelledAt</code></td><td>cancellation</td><td>Stornierungszeitpunkt</td><td><span class="b ok">✓ In Meta-Zeile</span></td><td><span class="b ok">✓ Vollständig</span></td></tr>
+<tr class="hidden"><td><code>meta.noEscrowReason</code></td><td>cancellation (no_escrow)</td><td>Grund warum kein Escrow</td><td><span class="b no">✗ Nein</span><td><span class="b ok">✓ "Bar vor Ort" etc.</span></td></tr>
+<tr class="hidden"><td><code>meta.oldDate / oldTime</code></td><td>move</td><td>Ursprüngliches Datum/Uhrzeit</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "Di. 17.03 14:00 → Mi. 18.03 14:00"</span></td></tr>
+<tr class="hidden"><td><code>meta.newDate / newTime</code></td><td>move</td><td>Neues Datum/Uhrzeit</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ Kombiniert mit oldDate</span></td></tr>
+<tr class="hidden"><td><code>meta.initiatorRole</code></td><td>move, booking</td><td>'student' oder 'teacher'</td><td><span class="b no">✗ Nein</span></td><td><span class="b ok">✓ "Verschoben durch: Schüler"</span></td></tr>
+</tbody></table></div>
+
+<!-- MISSING TX TYPES -->
+<div class="sh">3 — Fehlende TX-Typ-Labels und Icons</div>
+<div class="tw"><table>
+<thead><tr><th>TX-Typ</th><th>Icon vorhanden</th><th>i18n-Label vorhanden</th><th>Fix</th></tr></thead>
+<tbody>
+<tr class="shown"><td><code>deposit</code></td><td><span class="b ok">✓ ↑</span></td><td><span class="b ok">✓ Einzahlung</span></td><td>—</td></tr>
+<tr class="shown"><td><code>withdrawal</code></td><td><span class="b ok">✓ ↓</span></td><td><span class="b ok">✓ Auszahlung</span></td><td>—</td></tr>
+<tr class="shown"><td><code>escrow_hold</code></td><td><span class="b ok">✓ ⏸</span></td><td><span class="b ok">✓ Treuhand — Reserviert</span></td><td>—</td></tr>
+<tr class="shown"><td><code>escrow_release</code></td><td><span class="b ok">✓ ▶</span></td><td><span class="b ok">✓ Treuhand — Freigegeben</span></td><td>—</td></tr>
+<tr class="shown"><td><code>refund</code></td><td><span class="b ok">✓ ↩</span></td><td><span class="b ok">✓ Rückerstattung</span></td><td>—</td></tr>
+<tr class="shown"><td><code>cancellation</code></td><td><span class="b ok">✓ ✕</span></td><td><span class="b ok">✓ Stornierung</span></td><td>—</td></tr>
+<tr class="shown"><td><code>transfer</code></td><td><span class="b ok">✓ ⇄</span></td><td><span class="b ok">✓ Überweisung</span></td><td>—</td></tr>
+<tr class="missing"><td><code>booking</code></td><td><span class="b miss">✗ fehlt → '·'</span></td><td><span class="b miss">✗ fehlt → raw "booking"</span></td><td>Icon: 📋 oder ✓ · Label: "Buchung"</td></tr>
+<tr class="missing"><td><code>move</code></td><td><span class="b miss">✗ fehlt → '·'</span></td><td><span class="b miss">✗ fehlt → raw "move"</span></td><td>Icon: ↔ · Label: "Verschiebung"</td></tr>
+<tr class="missing"><td><code>teacher_cancel</code></td><td><span class="b miss">✗ fehlt → '·'</span></td><td><span class="b miss">✗ fehlt → raw "teacher_cancel"</span></td><td>Icon: ✕ · Label: "Lehrer-Storno"</td></tr>
+<tr class="missing"><td><code>lesson_confirmed</code></td><td><span class="b miss">✗ fehlt → '·'</span></td><td><span class="b miss">✗ fehlt → raw "lesson_confirmed"</span></td><td>Icon: ✔ · Label: "Stunde bestätigt"</td></tr>
+</tbody></table></div>
+
+<!-- WHAT TO BUILD -->
+<div class="sh">4 — Was gebaut werden muss</div>
+<div class="tw"><table>
+<thead><tr><th>Feature</th><th>Beschreibung</th></tr></thead>
+<tbody>
+<tr><td><strong>TX-Detail-Sheet</strong></td>
+  <td>Klick auf TX-Item öffnet ein Bottom-Sheet / Modal mit allen Feldern aus Tabellen 1+2.
+  Layout: Header (Typ-Badge + Betrag), Body (alle Meta-Felder in Label:Wert-Paaren), Footer (TX-ID für Support).</td></tr>
+<tr><td><strong>Icons + Labels</strong></td>
+  <td>4 fehlende TX-Typen (booking, move, teacher_cancel, lesson_confirmed) in <code>TX_ICONS</code>
+  und <code>wallet.json</code> nachtragen.</td></tr>
+<tr><td><strong>Description ungekürzt</strong></td>
+  <td>Im List-Item description auf ~60 Zeichen kürzen mit "…", im Detail vollständig zeigen.</td></tr>
+<tr><td><strong>Zeitspanne bei Block-TX</strong></td>
+  <td>Bei <code>booking</code>-TX mit <code>meta.slotCount > 1</code>: Uhrzeit als "14:00–15:30 (3 Slots)" anzeigen.</td></tr>
+</tbody></table></div>
+
+</body>
+</html>

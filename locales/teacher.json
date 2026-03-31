@@ -1,0 +1,14 @@
+{
+  "gridModeVisibility":       "Sichtbarkeit",
+  "gridVisStudentLabel":      "Schüler:",
+  "gridVisAddStudent":        "+ Schüler",
+  "gridVisSearchPlaceholder": "Name suchen…",
+  "gridVisNoStudents":        "Kein Schüler gefunden",
+  "gridVisEmptyHint":         "Schüler auswählen, um Sichtbarkeit anzuzeigen",
+  "gridVisLegendVisible":     "Sichtbar",
+  "gridVisLegendHidden":      "Gesperrt",
+  "gridVisLegendAutoBl":      "Auto-BL",
+  "gridVisLegendNewOnly":     "Nur Neue",
+  "gridVisLegendBooked":      "Gebucht",
+  "gridVisLegendRecurring":   "Wiederkehrend"
+}

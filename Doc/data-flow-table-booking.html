@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Flow Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;--neutral-500:#6b7685;--neutral-900:#0d1117;--ok:#f0fdf4;--ok-tx:#14532d;--bad:#fee2e2;--bad-tx:#991b1b;--warn:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;background:var(--neutral-50);padding:24px 16px;}
+h1{font-size:16px;font-weight:600;margin-bottom:4px;}
+p{font-size:12px;color:var(--neutral-500);margin-bottom:16px;line-height:1.6;}
+.tbl{width:100%;border-collapse:collapse;background:var(--neutral-0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:24px;}
+th{background:var(--neutral-100);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);border-bottom:2px solid var(--neutral-200);}
+td{padding:8px 12px;border-bottom:1px solid var(--neutral-100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+.cat{background:var(--neutral-100);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);padding:6px 12px;border-bottom:1px solid var(--neutral-200);}
+.ok {display:inline-block;background:var(--ok);color:var(--ok-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.bad{display:inline-block;background:var(--bad);color:var(--bad-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{display:inline-block;background:var(--warn);color:var(--warn-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--neutral-100);padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+<h1>Data Flow — Student reads / Teacher writes</h1>
+<p>Was der Student liest, was der Teacher schreibt, und warum das neue applySlotTimeout() das falsche Tool ist.</p>
+
+<table class="tbl">
+<thead><tr>
+  <th style="width:20%">Feld im Slot</th>
+  <th style="width:25%">Student liest</th>
+  <th style="width:25%">Teacher Day Panel schreibt</th>
+  <th style="width:30%">Teacher Day View schreibt (neu)</th>
+</tr></thead>
+<tbody>
+<tr><td colspan="4" class="cat">slot.status — das einzige Feld das zählt</td></tr>
+<tr>
+  <td><code>slot.status</code></td>
+  <td><span class="ok">✓ Einziges Feld</span><br>
+    <code>'available'</code> → buchbar<br>
+    <code>'recurring'</code> → buchbar<br>
+    <code>'booked'</code> → belegt<br>
+    <code>'timeout'</code> → nicht buchbar<br>
+    <code>'disabled'</code> → nicht buchbar<br><br>
+    Student liest <strong>niemals</strong> <code>baseStatus</code></td>
+  <td><span class="ok">✓ Schreibt status korrekt</span><br>
+    <code>setSlotAvailability('timeout')</code><br>
+    → <code>status = 'timeout'</code><br>
+    → <code>baseStatus = 'timeout'</code><br><br>
+    Beide Felder identisch → einfach, konsistent</td>
+  <td><span class="bad">✗ Schreibt anders</span><br>
+    <code>applySlotTimeout()</code><br>
+    → <code>status = 'timeout'</code><br>
+    → <code>baseStatus = 'available'</code> (unverändert)<br><br>
+    Neues Konzept das sonst niemand versteht</td>
+</tr>
+<tr>
+  <td><code>slot.baseStatus</code></td>
+  <td><span class="bad">✗ Nie gelesen</span><br>
+    Student ignoriert <code>baseStatus</code> vollständig</td>
+  <td><span class="ok">✓ Day Panel liest baseStatus</span><br>
+    <code>buildAvailabilityCard</code>:<br>
+    <code>var base = slot.baseStatus || slot.status</code><br>
+    → bestimmt welche Buttons gezeigt werden</td>
+  <td><span class="bad">✗ Produziert inkonsistenten Zustand</span><br>
+    <code>baseStatus='available'</code> + <code>status='timeout'</code><br>
+    → Day Panel liest 'available' → zeigt falsche Buttons</td>
+</tr>
+</tbody>
+</table>
+
+<table class="tbl">
+<thead><tr>
+  <th style="width:20%">Operation</th>
+  <th style="width:20%">Week Grid (existing)</th>
+  <th style="width:20%">Day Panel (existing)</th>
+  <th style="width:20%">Day View (new)</th>
+  <th style="width:20%">Korrekt?</th>
+</tr></thead>
+<tbody>
+<tr><td colspan="5" class="cat">Timeout setzen</td></tr>
+<tr>
+  <td>Timeout auf verfügbarem Slot</td>
+  <td><code>setSlotAvailability('timeout')</code><br>status=timeout, baseStatus=timeout</td>
+  <td><code>applySlotTimeout()</code><br>status=timeout, baseStatus=available</td>
+  <td><code>applySlotTimeout()</code><br>status=timeout, baseStatus=available</td>
+  <td><span class="ok">Week Grid ✓</span><br><span class="bad">Day Panel ✗</span><br><span class="bad">Day View ✗</span></td>
+</tr>
+<tr>
+  <td>Timeout aufheben</td>
+  <td><code>setSlotAvailability('available')</code><br>status=available, baseStatus=available</td>
+  <td><code>removeSlotTimeout()</code><br>status=baseStatus (varies)</td>
+  <td><code>removeSlotTimeout()</code><br>status=baseStatus (varies)</td>
+  <td><span class="ok">Week Grid ✓</span><br><span class="bad">Day Panel ✗</span><br><span class="bad">Day View ✗</span></td>
+</tr>
+<tr>
+  <td>Slot verfügbar machen</td>
+  <td><code>setSlotAvailability('available')</code></td>
+  <td><code>setSlotAvailability('available')</code></td>
+  <td><code>setSlotAvailability('available')</code></td>
+  <td><span class="ok">Alle ✓</span></td>
+</tr>
+<tr>
+  <td>Slot deaktivieren</td>
+  <td><code>setSlotAvailability('timeout')</code> (remove mode)</td>
+  <td><code>setSlotAvailability('disabled')</code></td>
+  <td><code>setSlotAvailability('disabled')</code></td>
+  <td><span class="ok">Day Panel + Day View ✓</span></td>
+</tr>
+</tbody>
+</table>
+
+<table class="tbl">
+<thead><tr>
+  <th style="width:30%">Schlussfolgerung</th>
+  <th style="width:70%">Detail</th>
+</tr></thead>
+<tbody>
+<tr><td colspan="2" class="cat">Root Cause</td></tr>
+<tr>
+  <td><span class="bad">applySlotTimeout() ist falsch</span></td>
+  <td>
+    <code>applySlotTimeout()</code> und <code>removeSlotTimeout()</code> wurden neu eingeführt mit einem Konzept (status ≠ baseStatus für Timeout), das der Rest des Systems nicht versteht. Student, Week Grid und Day Panel kennen dieses Konzept nicht.<br><br>
+    Das bestehende <code>setSlotAvailability('timeout')</code> war korrekt: setzt status=timeout UND baseStatus=timeout. Alle Views, der Student, das Week Grid — alle verstehen das.
+  </td>
+</tr>
+<tr>
+  <td><span class="ok">Fix</span></td>
+  <td>
+    <strong>Day View und Day Panel</strong> sollen beide <code>setSlotAvailability('timeout')</code> verwenden — exakt wie das Week Grid.<br><br>
+    <code>applySlotTimeout()</code> und <code>removeSlotTimeout()</code> können entfernt oder ignoriert werden.<br><br>
+    Für "Aufheben": <code>setSlotAvailability('available')</code> — exakt wie das Week Grid.<br><br>
+    Das "Verfügbar war, jetzt Timeout" Konzept braucht kein eigenes Datenbankfeld — es reicht slot.status zu lesen.
+  </td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

@@ -1,0 +1,407 @@
+Minimal Design Cheat Sheet
+
+1. Text / Microcopy
+
+Kurz, direkt, aktiv formulieren.
+
+Bedeutung nicht kürzen, sondern klarer formulieren.
+
+Unnötige Wörter entfernen.
+
+Handlungsverben verwenden.
+
+
+Beispiele:
+
+Apply (nicht: Submit your application)
+
+Get started (nicht: Click here to get started)
+
+Your details (nicht: Please enter your details)
+
+Saved (nicht: Successfully saved!)
+
+Something went wrong — try again
+
+
+
+---
+
+2. Farben
+
+Grundregeln
+
+Nur eine Hue verwenden (hier: Navy).
+
+Farben entstehen nur durch Tints (heller) und Shades (dunkler).
+
+Keine zusätzlichen Farbtöne einführen.
+
+Keine Gradients.
+
+Nur flache Farben.
+
+
+Basisfarbe
+
+#060f1c
+
+
+Farbrollen
+
+50–200 → Hintergründe / Flächen
+
+300 → Disabled
+
+400 → Accent / Interaktion
+
+500 → Hover
+
+600 → Active
+
+700–900 → dunkle UI / Navigation / Headlines
+
+
+Neutralfarben
+
+neutral-0 → Weiß
+
+neutral-50–100 → Background
+
+neutral-200–300 → Borders / Divider
+
+neutral-500–600 → Muted Text
+
+neutral-700 → Body Text
+
+neutral-900 → Headings
+
+
+60-30-10 Regel
+
+60% Neutral → Hintergründe
+
+30% dunkle Farben → Text / Navigation
+
+10% Accent → Buttons / Links / Fokus
+
+
+
+---
+
+3. Typography
+
+Font
+
+Figtree
+
+
+Gewichte
+
+400 — Regular
+
+600 — Semibold
+
+
+Größen
+
+48px → Hero / Display
+
+24px → Heading
+
+16px → Body
+
+12px → Caption
+
+
+Regeln
+
+Max 4 Größen
+
+Max 2 Gewichte
+
+Nie 3 Gewichte verwenden
+
+Größen durch 4 oder 8 teilbar
+
+
+
+---
+
+4. Spacing (8-pt Grid)
+
+Grundregel
+
+Alle Abstände sind Vielfache von 4 oder 8.
+
+Scale
+
+4px → sehr kleine Abstände
+
+8px → kleine UI-Gaps
+
+16px → innerhalb einer Gruppe
+
+24px → Card Padding
+
+32px → zwischen Gruppen
+
+48px → Section (mobile)
+
+64px → Section (desktop)
+
+96px → große Layout-Trennung
+
+128px → Hero Spacing
+
+
+Gruppierungslogik
+
+16px → gleiche Gruppe
+
+32px → verschiedene Komponenten
+
+64px+ → unterschiedliche Sections
+
+
+
+---
+
+5. Layout
+
+Grid
+
+12-Column Grid
+
+
+Typische Layouts:
+
+Full width → 12
+
+Content + Sidebar → 8 / 4
+
+Zwei Spalten → 6 / 6
+
+Hero Text → 8 Spalten
+
+
+Container
+
+max-width: 1280px
+
+padding: 32px
+
+
+Textausrichtung
+
+Body Text linksbündig
+
+Center nur für kurze Hero Headlines
+
+
+
+---
+
+6. Kontrast & Oberflächen
+
+Body Text ≥ 4.5:1 Kontrast
+
+Headings nie grau
+
+Muted Text nur für sekundäre Inhalte
+
+
+Cards
+
+1px Border statt Shadow
+
+
+Shadow (falls nötig)
+
+0 1px 3px rgba(6,15,28,0.08)
+
+Tiefe entsteht durch:
+
+Spacing
+
+Kontrast
+
+Layout
+
+
+Nicht durch:
+
+Gradients
+
+Texturen
+
+starke Shadows
+
+
+
+---
+
+7. Interaktive Elemente
+
+Jedes Element braucht:
+
+Default
+
+Hover
+
+Active
+
+Focus
+
+Disabled
+
+
+Hover
+
+Eine Stufe dunkler
+(z. B. color-400 → color-500)
+
+Focus Ring
+
+sichtbar
+
+Accent-Farbe
+
+nie entfernen
+
+
+
+---
+
+8. Buttons
+
+Varianten:
+
+Primary → Hauptaktion
+
+Secondary → Alternative
+
+Ghost → Navigation / Tertiary
+
+
+Button-Copy
+
+Primary: Verb + Objekt
+
+Get started
+
+Save changes
+
+
+Secondary:
+
+Cancel
+
+Go back
+
+
+Ghost:
+
+View all
+
+Skip
+
+
+
+
+---
+
+9. Icons
+
+Eine Icon-Library verwenden
+
+Größen:
+
+16px
+
+24px
+
+
+
+Regeln
+
+Icons bei wichtigen Aktionen mit Textlabel
+
+Emojis sind nicht erlaubt
+
+Erlaubt sind nur kleine SVG-Icons
+
+
+
+---
+
+10. Design Tokens
+
+Alle Werte als CSS Tokens definieren.
+
+Keine Hardcoded Values.
+
+Tokens für:
+
+Farben
+
+Typography
+
+Spacing
+
+Radius
+
+Shadow
+
+Focus
+
+Animation
+
+
+
+---
+
+11. Breakpoints
+
+480px → Phones
+
+768px → Tablets
+
+1024px → Small Desktop
+
+1280px → Desktop
+
+1536px → Wide Screen
+
+
+Section Spacing
+
+Mobile → 48px
+
+Tablet → 64px
+
+Desktop → 96px
+
+
+
+---
+
+Wichtigste Regeln (Kurzfassung)
+
+Eine Farbe, viele Tints/Shades
+
+Figtree 400 / 600
+
+4 Schriftgrößen
+
+Spacing = Vielfache von 4 oder 8
+
+60-30-10 Farbverteilung
+
+12-Column Grid
+
+Keine Gradients
+
+Keine Emojis
+
+Nur kleine SVG Icons

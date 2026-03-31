@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — Dialoge &amp; Overlays</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+</head>
+<body>
+
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <!-- Desktop links -->
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-dot" style="background:#b45309;" aria-hidden="true"></span><span class="label">Audit</span>
+    </a></li>
+  </ul>
+  <!-- Mobile hamburger -->
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+<!-- Mobile nav drawer -->
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-mobile-dot" style="background:#b45309;"></span>Audit
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<main class="gl-page">
+  <div class="gl-container">
+
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:var(--neg-badge);" aria-hidden="true"></span>
+        Guideline · Dialoge &amp; Overlays
+      </div>
+      <h1 class="gl-page-title">Dialoge &amp; Overlays</h1>
+      <p class="gl-page-subtitle">
+        Regeln für alle modalen Fenster, Drawer, Alerts und Overlays. Browser-Dialoge sind verboten.
+        Jeder Dialog ist ein eigenständiges Objekt mit sichtbarer Fehlerbehandlung.
+        Diese Datei konsolidiert §5 aus <em>Guideline_Layout_and_Styling</em> und §10 aus <em>GUIDELINES_JS</em>.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-hard">🔴 Hard-Rule</span>
+        <span class="gl-badge gl-badge-arch">🟢 Arch-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">Stand: März 2026</span>
+      </div>
+    </header>
+
+    <!-- ── 1. KERNREGELN ──────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-core">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-core">1. Kernregeln</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-warn">
+        <strong>Keine Browser-Dialoge.</strong> <code style="font-family:var(--font-mono);">window.alert()</code>,
+        <code style="font-family:var(--font-mono);">window.confirm()</code> und <code style="font-family:var(--font-mono);">window.prompt()</code>
+        sind ohne Ausnahme verboten. Sie sind nicht themebar, blockieren den Rendering-Thread und entsprechen nicht dem Projekt-Styling.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alle Dialoge und Overlays entsprechen dem Styling der Hauptseite</div>
+            <div class="gl-rule-desc">Tokens, Komponenten-Klassen, Schrift — alles folgt dem Projekt-Design. Kein generisches Browser-Styling, keine abweichenden Farben oder Fonts.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Dialog nutzt Projekt-Tokens */</span>
+.dialog {
+  background: <span class="c-val">var(--bg-surface)</span>;
+  border: <span class="c-val">1px solid var(--border)</span>;
+  border-radius: <span class="c-val">var(--radius-lg)</span>;
+  box-shadow: <span class="c-val">var(--shadow-md)</span>;
+  font-family: <span class="c-val">var(--font)</span>;
+  padding: <span class="c-val">var(--sp-4)</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialoge und Overlays sind immer eigenständige Objekte (IIFE oder Object-Literal)</div>
+            <div class="gl-rule-desc">Kein Inline-Dialog-Code in der Hauptseite. Jeder Dialog kapselt seinen Zustand und seine Logik.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Jeder Dialog ist ein eigenes Objekt */</span>
+<span class="c-key">var</span> ConfirmDialog = (<span class="c-key">function</span>() {
+  <span class="c-val">'use strict'</span>;
+  <span class="c-key">var</span> _overlay = <span class="c-val">null</span>;
+
+  <span class="c-key">function</span> show(opts) { <span class="c-cmt">/* title, message, onConfirm, onCancel */</span> }
+  <span class="c-key">function</span> hide() { }
+  <span class="c-key">function</span> _showError(context, err) { <span class="c-cmt">/* PFLICHT */</span> }
+
+  <span class="c-key">return</span> { show: show, hide: hide };
+}());</code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Standalone-Dialoge als eigene HTML-Dateien in <code style="font-family:var(--font-mono);font-size:13px;">/dialogs/</code></div>
+            <div class="gl-rule-desc">Komplexe Dialoge (Filterschublade, komplexe Formulare) als eigenständige <code style="font-family:var(--font-mono);font-size:12px;">.html</code>-Datei in <code style="font-family:var(--font-mono);font-size:12px;">/dialogs/</code>. Sie laden <code style="font-family:var(--font-mono);font-size:12px;">app-config.js</code> als erstes Script und versionieren alle Assets mit <code style="font-family:var(--font-mono);font-size:12px;">?v=${APP_VERSION}</code>.</div>
+            <div class="gl-code-block"><code>HTML/
+└── dialogs/
+    ├── <span class="c-ok">catalog-filter-drawer.html</span>   <span class="c-cmt">← eigenständig</span>
+    ├── <span class="c-ok">confirm-dialog.html</span>
+    └── <span class="c-ok">booking-dialog.html</span>
+
+<span class="c-cmt">Jede Dialog-HTML lädt zuerst app-config.js:</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"../js/app-config.js"</span><span class="c-key">&gt;&lt;/script&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"../js/ui.js?v=..."</span><span class="c-key">&gt;&lt;/script&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">ESC-Taste + Klick außerhalb schließt jeden Dialog</div>
+            <div class="gl-rule-desc">Kein Dialog ohne diese beiden Schließmechanismen. Zusätzlich immer ein sichtbarer Schließen-Button (X oder "Abbrechen").</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Pflicht-Handler für jeden Dialog */</span>
+document.addEventListener(<span class="c-val">'keydown'</span>, <span class="c-key">function</span>(e) {
+  <span class="c-key">if</span> (e.key === <span class="c-val">'Escape'</span>) { Dialog.hide(); }
+});
+overlay.addEventListener(<span class="c-val">'click'</span>, <span class="c-key">function</span>(e) {
+  <span class="c-key">if</span> (e.target === overlay) { Dialog.hide(); }
+});</code></div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. FEHLERBEHANDLUNG ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-errors">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-errors">2. Fehlerbehandlung in Overlays</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-warn">
+        <strong>Das größte Debugging-Problem bei Overlays:</strong> Fehler die im Overlay-Code auftreten sind in der Browser-Konsole oft schwer zu finden oder bleiben ganz unsichtbar. Jeder Overlay-Fehler muss im UI sichtbar gemacht werden.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Jeder Dialog implementiert <code style="font-family:var(--font-mono);font-size:13px;">_showError(context, err)</code></div>
+            <div class="gl-rule-desc">
+              Pflicht-Methode in jedem Dialog-Objekt. Zeigt den Fehler als sichtbares Element — nicht nur in der Konsole.
+              Minimale Implementierung: Fehler via <code style="font-family:var(--font-mono);font-size:12px;">Toast.error()</code> anzeigen.
+              Bevorzugte Implementierung: Fehler-Element innerhalb des Dialogs einblenden.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Pflicht: _showError in jedem Dialog */</span>
+<span class="c-key">function</span> _showError(context, err) {
+  <span class="c-key">var</span> msg = <span class="c-val">'['</span> + context + <span class="c-val">'] '</span> + (err &amp;&amp; err.message ? err.message : String(err));
+
+  <span class="c-cmt">/* Option A: Toast (Minimum) */</span>
+  Toast.error(msg);
+
+  <span class="c-cmt">/* Option B: Fehler-Element im Dialog (bevorzugt) */</span>
+  <span class="c-key">var</span> errEl = document.getElementById(<span class="c-val">'dialog-error'</span>);
+  <span class="c-key">if</span> (errEl) {
+    errEl.textContent = msg;
+    errEl.classList.remove(<span class="c-val">'is-hidden'</span>);
+  }
+}</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Jede asynchrone Overlay-Operation in try/catch mit _showError</div>
+            <div class="gl-rule-desc">Kein stiller Fail. AppService-Callbacks immer auf Fehler prüfen und _showError aufrufen.</div>
+            <div class="gl-code-block"><code><span class="c-key">function</span> _loadData() {
+  <span class="c-key">try</span> {
+    AppService.getTeachers(<span class="c-key">function</span>(err, teachers) {
+      <span class="c-key">if</span> (err) {
+        _showError(<span class="c-val">'_loadData'</span>, err);
+        <span class="c-key">return</span>;
+      }
+      _render(teachers);
+    });
+  } <span class="c-key">catch</span>(e) {
+    _showError(<span class="c-val">'_loadData:catch'</span>, e);
+  }
+}
+
+<span class="c-bad">/* ❌ Verboten: Fehler verschlucken */</span>
+<span class="c-bad">AppService.getTeachers(function(err, data) {</span>
+<span class="c-bad">  if (err) return;  /* err wird ignoriert — verboten */</span>
+<span class="c-bad">});</span></code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · Guideline_Architecture</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fehler-Element im Dialog-HTML als eigenes Element</div>
+            <div class="gl-rule-desc">Jedes Dialog-HTML enthält ein vorbereitetes Fehler-Element das standardmäßig verborgen ist und bei Bedarf eingeblendet wird.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">&lt;!-- Pflicht-Element in jedem Dialog-HTML --&gt;</span>
+<span class="c-key">&lt;div</span>
+  id=<span class="c-val">"dialog-error"</span>
+  class=<span class="c-val">"dialog-error-msg is-hidden"</span>
+  role=<span class="c-val">"alert"</span>
+  aria-live=<span class="c-val">"polite"</span>
+<span class="c-key">&gt;&lt;/div&gt;</span>
+
+<span class="c-cmt">/* CSS */</span>
+.dialog-error-msg {
+  background: <span class="c-val">var(--hard-bg)</span>;
+  border: <span class="c-val">1px solid var(--hard-border)</span>;
+  border-radius: <span class="c-val">var(--radius-sm)</span>;
+  color: <span class="c-val">var(--hard-text)</span>;
+  font-size: <span class="c-val">var(--text-small)</span>;
+  padding: <span class="c-val">var(--sp-2) var(--sp-3)</span>;
+  margin-top: <span class="c-val">var(--sp-2)</span>;
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. STANDARD-DIALOG TEMPLATE ───────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-template">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-template">3. Standard-Dialog-Template</h2>
+      </div>
+
+      <div class="gl-callout gl-callout-ok">
+        <strong>Modal.show() aus ui.js</strong> ist der Standard-Weg für einfache Bestätigungs- und Informationsdialoge.
+        Nur für komplexe Dialoge (Formulare, Filterschubladen) wird ein eigenständiges Dialog-Objekt erstellt.
+      </div>
+
+      <div class="gl-code-block"><code><span class="c-cmt">/* Einfacher Dialog via Modal.show() (ui.js) */</span>
+<span class="c-key">var</span> dialog = Modal.show({
+  title:      <span class="c-val">'Buchung stornieren'</span>,
+  bodyHTML:   <span class="c-val">'&lt;p&gt;Möchtest du diese Buchung wirklich stornieren?&lt;/p&gt;'</span>,
+  footerHTML: <span class="c-val">'&lt;button class="btn btn-ghost" data-action="cancel"&gt;Abbrechen&lt;/button&gt;'</span> +
+              <span class="c-val">'&lt;button class="btn btn-danger" data-action="confirm"&gt;Stornieren&lt;/button&gt;'</span>
+});
+
+<span class="c-cmt">/* Dialog-HTML-Struktur (für standalone Dialoge) */</span>
+<span class="c-key">&lt;div</span> class=<span class="c-val">"modal-overlay"</span> role=<span class="c-val">"dialog"</span> aria-modal=<span class="c-val">"true"</span> aria-labelledby=<span class="c-val">"modal-title"</span><span class="c-key">&gt;</span>
+  <span class="c-key">&lt;div</span> class=<span class="c-val">"modal"</span><span class="c-key">&gt;</span>
+    <span class="c-key">&lt;div</span> class=<span class="c-val">"modal-header"</span><span class="c-key">&gt;</span>
+      <span class="c-key">&lt;h2</span> id=<span class="c-val">"modal-title"</span> data-i18n=<span class="c-val">"dialogTitle"</span><span class="c-key">&gt;&lt;/h2&gt;</span>
+      <span class="c-key">&lt;button</span> class=<span class="c-val">"btn btn-ghost"</span> id=<span class="c-val">"modal-close"</span> aria-label=<span class="c-val">"Schließen"</span> data-i18n-aria=<span class="c-val">"dialogClose"</span><span class="c-key">&gt;</span>✕<span class="c-key">&lt;/button&gt;</span>
+    <span class="c-key">&lt;/div&gt;</span>
+    <span class="c-key">&lt;div</span> class=<span class="c-val">"modal-body"</span><span class="c-key">&gt;</span>
+      <span class="c-key">&lt;div</span> id=<span class="c-val">"dialog-error"</span> class=<span class="c-val">"dialog-error-msg is-hidden"</span> role=<span class="c-val">"alert"</span> aria-live=<span class="c-val">"polite"</span><span class="c-key">&gt;&lt;/div&gt;</span>
+      <span class="c-cmt">&lt;!-- Inhalt --&gt;</span>
+    <span class="c-key">&lt;/div&gt;</span>
+    <span class="c-key">&lt;div</span> class=<span class="c-val">"modal-footer"</span><span class="c-key">&gt;</span>
+      <span class="c-key">&lt;button</span> class=<span class="c-val">"btn btn-ghost"</span> data-i18n=<span class="c-val">"cancelBtn"</span><span class="c-key">&gt;</span>Abbrechen<span class="c-key">&lt;/button&gt;</span>
+      <span class="c-key">&lt;button</span> class=<span class="c-val">"btn btn-primary"</span> data-i18n=<span class="c-val">"confirmBtn"</span><span class="c-key">&gt;</span>Bestätigen<span class="c-key">&lt;/button&gt;</span>
+    <span class="c-key">&lt;/div&gt;</span>
+  <span class="c-key">&lt;/div&gt;</span>
+<span class="c-key">&lt;/div&gt;</span></code></div>
+
+    </section>
+
+    <!-- ── 4. ACCESSIBILITY ───────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-a11y">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-a11y">4. Accessibility-Anforderungen</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">ARIA-Attribute: role="dialog", aria-modal="true", aria-labelledby</div>
+            <div class="gl-rule-desc">Jeder Dialog-Wrapper trägt diese drei Attribute. Das Fehlen macht den Dialog für Screen Reader unsichtbar.</div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Focus-Management: Focus geht beim Öffnen in den Dialog, beim Schließen zurück</div>
+            <div class="gl-rule-desc">Beim Öffnen: <code style="font-family:var(--font-mono);font-size:12px;">firstFocusable.focus()</code>. Beim Schließen: <code style="font-family:var(--font-mono);font-size:12px;">triggerElement.focus()</code>. Tab-Trap innerhalb des offenen Dialogs.</div>
+            <div class="gl-code-block"><code><span class="c-key">function</span> show() {
+  _overlay.classList.remove(<span class="c-val">'is-hidden'</span>);
+  <span class="c-key">var</span> firstBtn = _overlay.querySelector(<span class="c-val">'button, input, [tabindex="0"]'</span>);
+  <span class="c-key">if</span> (firstBtn) { firstBtn.focus(); }
+}
+
+<span class="c-key">function</span> hide() {
+  _overlay.classList.add(<span class="c-val">'is-hidden'</span>);
+  <span class="c-key">if</span> (_trigger) { _trigger.focus(); } <span class="c-cmt">/* zurück zum Auslöser */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fehler-Element mit role="alert" und aria-live="polite"</div>
+            <div class="gl-rule-desc">Das Fehler-Element wird von Screen Readern automatisch vorgelesen wenn es eingeblendet wird — ohne dass der Focus wechseln muss.</div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE · Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 5. i18n IN DIALOGEN ────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-i18n">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-i18n">5. i18n in Dialogen</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialog-Texte im Namespace der aufrufenden Seite</div>
+            <div class="gl-rule-desc">
+              Auch wenn ein Dialog eine eigene HTML-Datei hat — seine Texte leben in der <code style="font-family:var(--font-mono);font-size:12px;">locales/[aufrufende-seite].json</code>.
+              Kein separates <code style="font-family:var(--font-mono);font-size:12px;">dialog.json</code>.
+            </div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Aufrufende Seite</th><th>Dialog-Texte in</th></tr></thead>
+              <tbody>
+                <tr><td>student.html</td><td class="ok">locales/student.json</td></tr>
+                <tr><td>skiing-catalog.html</td><td class="ok">locales/skiing-catalog.json</td></tr>
+                <tr><td>teacher.html</td><td class="ok">locales/teacher.json</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialog-Keys mit kontextuellem Prefix (dialogConfirm*, dialogBooking*…)</div>
+            <div class="gl-rule-desc">Dialog-spezifische Keys bekommen einen Prefix der sie von Seiten-Keys unterscheidet. Flache Hierarchie bleibt erhalten.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* student.json — Dialog-Keys mit Prefix */</span>
+{
+  <span class="c-key">"pageTitle"</span>:              <span class="c-val">"Mein Dashboard"</span>,
+  <span class="c-key">"dialogCancelTitle"</span>:      <span class="c-val">"Buchung stornieren"</span>,
+  <span class="c-key">"dialogCancelMessage"</span>:    <span class="c-val">"Möchtest du wirklich stornieren?"</span>,
+  <span class="c-key">"dialogCancelConfirmBtn"</span>: <span class="c-val">"Stornieren"</span>,
+  <span class="c-key">"dialogCancelAbortBtn"</span>:   <span class="c-val">"Abbrechen"</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 6. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-dlg-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-dlg-forbidden">6. Verbotene Muster</h2>
+        <span class="gl-section-count">4 Einträge</span>
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">window.alert()</code> / <code style="font-family:var(--font-mono);font-size:13px;">window.confirm()</code> / <code style="font-family:var(--font-mono);font-size:13px;">window.prompt()</code></div>
+            <div class="gl-rule-desc">Nicht themebar, blockiert Rendering, nicht i18n-kompatibel. Immer <code style="font-family:var(--font-mono);font-size:12px;">Modal.show()</code> oder eigenes Dialog-Objekt.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fehler nur in console.error() loggen — ohne sichtbare UI-Ausgabe</div>
+            <div class="gl-rule-desc">Console-Logs sind für Entwickler, nicht für Users. Jeder Fehler der im Dialog auftritt, muss auch im UI sichtbar werden.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · Layout</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialog-Code direkt in der Hauptseite inline</div>
+            <div class="gl-rule-desc">Dialog-Logik gehört in ein eigenständiges Objekt oder eine eigenständige Datei — nicht als Inline-Code in teacher.js, student.js etc.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dialog ohne ESC-Schließung oder ohne Schließen-Button</div>
+            <div class="gl-rule-desc">Jeder Dialog muss via ESC-Taste, Klick auf Backdrop und einen sichtbaren Button schließbar sein.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_DIALOGS.html · Stand: März 2026 · Konsolidiert aus: Guideline_Layout_and_Styling.txt (§5), GUIDELINES_JS.md (§10)</span>
+      <span class="gl-footer-text">← <a href="GUIDELINE_NEW_STYLING.html">Zurück zum Anfang</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+</body>
+</html>

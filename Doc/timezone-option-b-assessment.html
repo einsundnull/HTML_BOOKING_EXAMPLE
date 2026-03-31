@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timezone Option B — Full Impact Assessment</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n500:#6b7685;--n900:#0d1117;--c:#3b6ea5;--red:#dc2626;--green:#14532d;--amber:#92400e;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n50);padding:20px;font-size:13px;color:var(--n900);max-width:960px;margin:0 auto;}
+h1{font-size:20px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:11px;color:var(--n500);margin-bottom:24px;}
+h2{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--c);margin:24px 0 8px;border-bottom:2px solid #d0e0f0;padding-bottom:4px;}
+h3{font-size:13px;font-weight:600;margin:12px 0 6px;}
+p{margin-bottom:8px;line-height:1.6;}
+code{font-family:monospace;font-size:11px;background:var(--n100);padding:1px 4px;border-radius:2px;}
+pre{background:var(--n100);border:1px solid var(--n200);border-radius:6px;padding:12px;font-size:11px;font-family:monospace;overflow-x:auto;margin-bottom:12px;line-height:1.6;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;}
+th{background:var(--n900);color:#fff;padding:7px 12px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;}
+td{padding:6px 12px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.7;}
+tr:last-child td{border-bottom:none;}
+.pill{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-weight:600;}
+.new{background:#dbeafe;color:#1e40af;}
+.change{background:#fef9ec;color:var(--amber);}
+.critical{background:#fee2e2;color:var(--red);}
+.arch{background:#f0fdf4;color:var(--green);}
+.box{background:var(--n0);border:1px solid var(--n200);border-radius:8px;padding:14px;margin-bottom:12px;}
+.box-warn{background:#fef9ec;border-color:#f5d97e;}
+.box-ok{background:#f0fdf4;border-color:#bbf7d0;}
+.box-info{background:#eff6ff;border-color:#bfdbfe;}
+ul{padding-left:18px;margin-bottom:8px;}
+li{line-height:1.8;}
+</style>
+</head>
+<body>
+<h1>Timezone Option B — Full Impact Assessment</h1>
+<div class="meta">Store all times as UTC minutes-from-midnight · 2026-03-24</div>
+
+<h2>1 — What "Store as UTC" means concretely</h2>
+<div class="box box-info">
+  <p>Current: <code>slot.time = "09:00"</code> (naive local string, assumed teacher TZ)</p>
+  <p>Option B: <code>slot.utcMinutes = 480</code> — minutes since UTC midnight (09:00 UTC = 480)</p>
+  <p>Or alternatively: <code>slot.time = "09:00"</code> always means UTC, teacher's profile TZ determines display conversion.</p>
+  <p><strong>Key insight:</strong> The <em>format</em> of <code>"HH:MM"</code> can stay — we just redefine its meaning from "teacher local" to "UTC". All arithmetic still works. Only the display layer changes.</p>
+</div>
+
+<h2>2 — Every place that must change</h2>
+<table>
+<thead><tr><th>File</th><th>What changes</th><th>References</th><th>Effort</th></tr></thead>
+<tbody>
+<tr>
+  <td><strong>store.js</strong><br><code>slotEndTime()</code><br><code>slotTimesInRange()</code></td>
+  <td>These do pure arithmetic on <code>"HH:MM"</code> strings — still work identically in UTC. <strong>No change needed.</strong></td>
+  <td>line 78–95</td>
+  <td><span class="pill arch">NO CHANGE</span></td>
+</tr>
+<tr>
+  <td><strong>adapter-localstorage.js</strong><br><code>createSlot()</code><br><code>createSlotRange()</code></td>
+  <td>When teacher creates a slot at "09:00", must convert from teacher TZ → UTC before storing. Needs <code>TimezoneService</code> at creation time.</td>
+  <td>line 303, 312</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>adapter-localstorage.js</strong><br>Recurring rules<br><code>app_recurring[].time</code></td>
+  <td>Recurring slots store <code>dayOfWeek + time</code>. If time is UTC, materialising a recurring rule must also account for DST changes (a "09:00 UTC" recurring slot may display as 10:00 or 11:00 locally depending on DST). Recurring rules need to store teacher-local time and convert at materialise-time.</td>
+  <td>line 385–410</td>
+  <td><span class="pill critical">MEDIUM — DST edge case</span></td>
+</tr>
+<tr>
+  <td><strong>teacher.js</strong><br>All display of <code>slot.time</code></td>
+  <td>Convert UTC → teacher TZ for display. ~11 display points.</td>
+  <td>lines 992, 996, 1357, 2095, 2132, 2150, 2173, 2278, 3308, 3314</td>
+  <td><span class="pill change">MEDIUM</span></td>
+</tr>
+<tr>
+  <td><strong>teacher.js</strong><br>Booking form dropdowns<br><code>allTimes</code> grid</td>
+  <td>The 48-slot grid <code>["00:00"…"23:30"]</code> is shown as teacher-local times but must map to UTC slots. Dropdown must display local times but submit UTC values.</td>
+  <td>lines 612–634, 982–1051</td>
+  <td><span class="pill change">MEDIUM</span></td>
+</tr>
+<tr>
+  <td><strong>teacher.js</strong><br>Time comparisons<br><code>s.time >= fromValue</code></td>
+  <td>Range filtering using string comparison still works — all times are UTC, comparison is consistent. <strong>No change needed.</strong></td>
+  <td>line 1051, 1140</td>
+  <td><span class="pill arch">NO CHANGE</span></td>
+</tr>
+<tr>
+  <td><strong>teacher.js</strong><br><code>slotMap[slot.time]</code></td>
+  <td>The day view builds a <code>slotMap</code> keyed by time string. If times are UTC, the 48-slot grid must also be built in UTC. Teacher inputs local time → lookup must convert to UTC key first.</td>
+  <td>lines 618, 2517</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>student.js</strong><br>Day view slot display</td>
+  <td>Convert UTC slot time → student TZ for display. ~10 display points.</td>
+  <td>~line 400, 124</td>
+  <td><span class="pill change">MEDIUM</span></td>
+</tr>
+<tr>
+  <td><strong>ui.js</strong><br><code>buildBookingBlock()</code><br>time range labels</td>
+  <td>Block header shows "09:00–10:30". Must convert UTC → viewer TZ. Need <code>opts.viewerTZ</code> passed from all callers.</td>
+  <td>lines 374, 2116, 2228</td>
+  <td><span class="pill change">MEDIUM</span></td>
+</tr>
+<tr>
+  <td><strong>adapter-localstorage.js</strong><br>Escrow snapshots<br><code>slotTime</code>, <code>slotTimeStart</code></td>
+  <td>Escrow stores time snapshots for receipts. These must also be converted for display.</td>
+  <td>lines 853, 995, 1263, 1275</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>chat.js</strong><br>Service messages with times</td>
+  <td>Chat messages embed times (<code>msg.time</code>, <code>snap.slotTimeStart</code>). Must display in reader's TZ.</td>
+  <td>lines 1268, 1327, 1360, 1414</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>dashboard.js</strong></td>
+  <td>Time shown in booking dialogs. Convert UTC → teacher TZ.</td>
+  <td>~line 600</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>financial.js</strong></td>
+  <td>Booking list times. Convert UTC → teacher TZ.</td>
+  <td>line 828</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+<tr>
+  <td><strong>profile.js</strong></td>
+  <td>Add <code>timezone</code> field to profile schema + UI picker.</td>
+  <td>line 280</td>
+  <td><span class="pill change">SMALL</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>3 — The DST problem with recurring slots</h2>
+<div class="box box-warn">
+  <h3>⚠ Recurring rules need special handling</h3>
+  <p>A teacher sets a recurring slot: "Every Monday at 09:00 my local time (Europe/Berlin)".</p>
+  <p>In winter (UTC+1): stored as <code>"08:00"</code> UTC. In summer (UTC+2): stored as <code>"07:00"</code> UTC.</p>
+  <p><strong>Solution:</strong> Recurring rules always store <em>teacher-local</em> time (<code>"09:00"</code>). When <code>materialiseWeek()</code> creates actual slots, it converts local → UTC using the teacher's timezone + the specific date (to get correct DST offset). Materialised slot stores UTC. This is correct and standard.</p>
+</div>
+
+<h2>4 — New file: timezone-service.js</h2>
+<pre>/* Core functions needed for Option B */
+
+TimezoneService.localToUtc(timeStr, dateStr, ianaTimezone)
+  // "09:00", "2026-03-24", "Europe/Berlin" → "08:00" (UTC)
+
+TimezoneService.utcToLocal(timeStr, dateStr, ianaTimezone)
+  // "08:00", "2026-03-24", "Europe/Berlin" → "09:00" (local display)
+
+TimezoneService.getUserTimezone(uid)
+  // ProfileStore.get(uid).timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+
+TimezoneService.formatOffset(ianaTimezone, dateStr)
+  // "Europe/Berlin", "2026-06-01" → "UTC+2"
+
+TimezoneService.toStorageKey(ianaTimezone)
+  // "Europe/Berlin" → "Europe_Berlin"  (Firebase-safe, for future use)</pre>
+
+<h2>5 — Migration of existing data</h2>
+<div class="box box-warn">
+  <h3>⚠ Existing slots have no timezone context</h3>
+  <p>All current slots store naive <code>"HH:MM"</code> — we don't know which timezone they were created in.</p>
+  <p><strong>Migration strategy:</strong> On first launch after update, run a one-time migration:</p>
+  <ul>
+    <li>For each existing slot: read teacher's <em>current</em> profile timezone (or browser TZ as fallback)</li>
+    <li>Convert <code>slot.time</code> from that TZ → UTC and overwrite</li>
+    <li>Mark migration complete with a version flag in localStorage</li>
+  </ul>
+  <p>This is imperfect (if teacher already changed TZ before migration), but it's a one-time operation and the best we can do for historical data.</p>
+</div>
+
+<h2>6 — Implementation order</h2>
+<table>
+<thead><tr><th>#</th><th>Step</th><th>Files</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Create <code>timezone-service.js</code> with core conversion functions</td><td>New file</td></tr>
+<tr><td>2</td><td>Add <code>timezone</code> field to ProfileStore + profile UI picker</td><td>profile.js</td></tr>
+<tr><td>3</td><td>Add <code>.tz-offset-badge</code> CSS class</td><td>components.css</td></tr>
+<tr><td>4</td><td>Update <code>createSlot()</code> / <code>createSlotRange()</code> to store UTC</td><td>adapter-localstorage.js</td></tr>
+<tr><td>5</td><td>Update <code>materialiseWeek()</code> — recurring local → UTC at materialise time</td><td>adapter-localstorage.js + store.js</td></tr>
+<tr><td>6</td><td>Write one-time data migration function</td><td>adapter-localstorage.js</td></tr>
+<tr><td>7</td><td>Teacher display: all <code>slot.time</code> renders → UTC→teacher TZ</td><td>teacher.js</td></tr>
+<tr><td>8</td><td>Student display: all <code>slot.time</code> renders → UTC→student TZ</td><td>student.js</td></tr>
+<tr><td>9</td><td><code>buildBookingBlock()</code> — add <code>opts.viewerTZ</code></td><td>ui.js + all callers</td></tr>
+<tr><td>10</td><td>Escrow, chat, dashboard, financial display fixes</td><td>chat.js, dashboard.js, financial.js</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

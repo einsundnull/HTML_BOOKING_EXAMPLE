@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Day Panel Bug Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;--neutral-500:#6b7685;--neutral-900:#0d1117;--ok:#f0fdf4;--ok-tx:#14532d;--bad:#fee2e2;--bad-tx:#991b1b;--warn:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;background:var(--neutral-50);padding:24px 16px;}
+h1{font-size:16px;font-weight:600;margin-bottom:4px;}
+p{font-size:12px;color:var(--neutral-500);margin-bottom:16px;line-height:1.5;}
+.tbl{width:100%;border-collapse:collapse;background:var(--neutral-0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:24px;}
+th{background:var(--neutral-100);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);border-bottom:2px solid var(--neutral-200);}
+td{padding:8px 12px;border-bottom:1px solid var(--neutral-100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+.cat{background:var(--neutral-100);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);padding:6px 12px;border-bottom:1px solid var(--neutral-200);}
+.ok {display:inline-block;background:var(--ok);color:var(--ok-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.bad{display:inline-block;background:var(--bad);color:var(--bad-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{display:inline-block;background:var(--warn);color:var(--warn-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--neutral-100);padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+<h1>Day Panel — buildAvailabilityCard Bugs</h1>
+<p>Dieselbe baseStatus-Priorität-Bug wie zuvor in _tdvBuildRow — aber nie gefixt in buildAvailabilityCard. Betrifft: Verfügbarkeit-Tab, Add-Slots-Modus (existing slots).</p>
+
+<table class="tbl">
+<thead>
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:12%">Funktion / File</th>
+  <th style="width:8%">Status</th>
+  <th style="width:35%">Problem</th>
+  <th style="width:40%">Fix</th>
+</tr>
+</thead>
+<tbody>
+
+<tr><td colspan="5" class="cat">Bug 1 — Status-Priorität (identisch zu dem in _tdvBuildRow)</td></tr>
+<tr>
+  <td>1</td>
+  <td><code>buildAvailabilityCard()</code><br>teacher.js</td>
+  <td><span class="bad">ROOT CAUSE</span></td>
+  <td>
+    <code>var base = slot.baseStatus || slot.status;</code><br><br>
+    Nach <code>applySlotTimeout()</code>:<br>
+    <code>status = 'timeout'</code><br>
+    <code>baseStatus = 'available'</code><br><br>
+    → <code>base = 'available'</code><br>
+    → Zeigt "Frei" + Buttons "Deaktivieren"/"Timeout"<br>
+    → Sieht aus als wäre nichts passiert
+  </td>
+  <td>
+    <code>var base = slot.status || slot.baseStatus;</code><br><br>
+    <code>status</code> muss Vorrang haben — genau wie der Fix in <code>_tdvBuildRow</code> (bereits gemacht, aber hier vergessen).
+  </td>
+</tr>
+
+<tr><td colspan="5" class="cat">Bug 2 — Konsequenz: modClass nie 'timeout' nach applySlotTimeout</td></tr>
+<tr>
+  <td>2</td>
+  <td><code>buildAvailabilityCard()</code><br>teacher.js</td>
+  <td><span class="warn">CONSEQUENCE</span></td>
+  <td>
+    <code>var modClass = base === 'timeout' ? ' avail-row-timeout' : '';</code><br><br>
+    Da Bug 1 <code>base = 'available'</code> liefert, wird <code>avail-row-timeout</code> nie gesetzt → keine gelbe Zeile.
+  </td>
+  <td>Automatisch behoben wenn Bug 1 gefixt.</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Bug 3 — Konsequenz: "Aktivieren"-Branch für timeout nie erreicht</td></tr>
+<tr>
+  <td>3</td>
+  <td><code>buildAvailabilityCard()</code><br>teacher.js</td>
+  <td><span class="warn">CONSEQUENCE</span></td>
+  <td>
+    <code>if (b === 'timeout') { removeSlotTimeout() }</code><br><br>
+    <code>b</code> kommt von <code>base</code> (Bug 1) → immer <code>'available'</code> nach applySlotTimeout.<br>
+    → Branch <code>disabled || timeout</code> nie erreicht → "Aktivieren" Button fehlt.
+  </td>
+  <td>Automatisch behoben wenn Bug 1 gefixt.</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Bug 4 — Add-Slots-Modus: _buildFullDayRow delegiert an buildAvailabilityCard</td></tr>
+<tr>
+  <td>4</td>
+  <td><code>_buildFullDayRow()</code><br>teacher.js</td>
+  <td><span class="bad">BUG</span></td>
+  <td>
+    <code>return buildAvailabilityCard(slot);</code> für existing slots.<br>
+    → Erbt alle 3 Bugs von buildAvailabilityCard.
+  </td>
+  <td>Automatisch behoben wenn Bug 1 gefixt (buildAvailabilityCard wird korrekt).</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Vergleich: _tdvBuildRow vs buildAvailabilityCard</td></tr>
+<tr>
+  <td>—</td>
+  <td><code>_tdvBuildRow</code></td>
+  <td><span class="ok">FIXED</span></td>
+  <td><code>slot.status || slot.baseStatus</code> ← korrekt</td>
+  <td>Bereits gefixt in vorherigem Schritt</td>
+</tr>
+<tr>
+  <td>—</td>
+  <td><code>buildAvailabilityCard</code></td>
+  <td><span class="bad">NOT FIXED</span></td>
+  <td><code>slot.baseStatus || slot.status</code> ← falsch</td>
+  <td>Muss gleich gefixt werden</td>
+</tr>
+
+<tr><td colspan="5" class="cat">Einziger Fix: 1 Zeile in teacher.js</td></tr>
+<tr>
+  <td colspan="2"><strong>Fix</strong></td>
+  <td><span class="bad">teacher.js</span></td>
+  <td>Zeile in <code>buildAvailabilityCard()</code>:<br>
+  <code>var base = slot.baseStatus || slot.status;</code></td>
+  <td>→ <code>var base = slot.status || slot.baseStatus;</code></td>
+</tr>
+
+</tbody>
+</table>
+</body>
+</html>

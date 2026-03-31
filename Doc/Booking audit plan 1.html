@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Booking Audit Plan 1 — Fortschritt</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;--muted:#8b949e;
+    --dim:#484f58;--green:#3fb950;--red:#f85149;--amber:#d29922;--accent:#58a6ff;--purple:#bc8cff;}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:13.5px;line-height:1.65;padding:36px 28px 80px;max-width:1300px;margin:0 auto}
+  h1{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:36px}
+  .sec{margin-bottom:40px}
+  .sh{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-bottom:14px;
+    display:flex;align-items:center;gap:10px}
+  .sh::after{content:'';flex:1;height:1px;background:var(--border)}
+  .tw{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 13px;
+    background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:7px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.018)}
+  tr.done td:first-child{border-left:3px solid var(--green)}
+  tr.open td:first-child{border-left:3px solid var(--amber)}
+  code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:rgba(255,255,255,.07);
+    padding:1px 5px;border-radius:4px;color:var(--purple)}
+  .file{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px}
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;white-space:nowrap}
+  .ok{background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+  .wa{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:36px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:4px}
+</style>
+</head>
+<body>
+
+<h1>Booking Audit Plan 1 — Fortschritts-Dokumentation</h1>
+<p class="sub">Implementiert in dieser Session · Stand: 17.03.2026</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Phasen abgeschlossen</div>
+    <div class="stat-value" style="color:var(--green)">4 / 4</div></div>
+  <div class="stat"><div class="stat-label">Neue TX-Typen</div>
+    <div class="stat-value" style="color:var(--accent)">4</div></div>
+  <div class="stat"><div class="stat-label">Geänderte Dateien</div>
+    <div class="stat-value" style="color:var(--purple)">7</div></div>
+  <div class="stat"><div class="stat-label">Syntax-Fehler</div>
+    <div class="stat-value" style="color:var(--green)">0</div></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Phase 1 — Slot-Schema: neue Zeitstempel-Felder</div>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Änderung</th><th>Status</th></tr></thead>
+<tbody>
+<tr class="done"><td><span class="file">store.js</span> <code>bookSlot()</code></td>
+  <td>Setzt <code>bookedAt: isoNow()</code> beim Buchen eines Slots. War vorher nicht vorhanden.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><span class="file">store.js</span> <code>cancelBooking(slotId, role)</code></td>
+  <td>Nimmt jetzt optionalen <code>cancelledBy</code>-Parameter (student/teacher/admin).
+    Setzt <code>cancelledAt + cancelledBy</code> auf dem Slot.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><span class="file">store.js</span> <code>Slots.markMoved()</code></td>
+  <td>Neue Methode: setzt <code>movedFrom: {date, time}</code> + <code>movedAt</code> auf
+    dem neuen Slot nach einer Verschiebung.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Phase 2 — Neue Adapter-Funktionen (adapter-localstorage.js)</div>
+<div class="tw"><table>
+<thead><tr><th>Funktion</th><th>TX-Typ</th><th>Beschreibung</th><th>Status</th></tr></thead>
+<tbody>
+<tr class="done"><td><code>cancelSlotBookingAs(slotId, role, cb)</code></td>
+  <td>—</td>
+  <td>Wie <code>cancelSlotBooking</code>, übergibt aber <code>role</code> an
+    <code>Store.Slots.cancelBooking</code> damit <code>cancelledBy</code> gespeichert wird.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>writeBookingRecord(slotId, stuId, tId, escrow, cb)</code></td>
+  <td><code>booking</code></td>
+  <td>Schreibt je einen TX beim Schüler UND beim Lehrer für jede Buchung —
+    auch bei <code>cash_on_site</code> ohne Deposit. Enthält alle Buchungsdetails im
+    <code>meta</code>-Objekt: <code>fullAmount, depositAmount, depositType,
+    depositPercent, paymentMode, requiresDeposit, bookedAt, escrowId</code>.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>writeMoveRecord(oldSlot, newSlot, initiatorId, role, cb)</code></td>
+  <td><code>move</code></td>
+  <td>Schreibt je einen TX für Initiator UND Gegenpartei bei einer Verschiebung.
+    Meta: <code>slotIdOld, slotIdNew, oldDate, oldTime, newDate, newTime,
+    teacherId, studentId, price, initiatorRole, movedAt</code>.
+    Ruft intern <code>Store.Slots.markMoved()</code> auf.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>writeTeacherCancelRecord(slotId, stuId, tId, policy, cb)</code></td>
+  <td><code>teacher_cancel</code></td>
+  <td>Schreibt einen TX beim Lehrer wenn er eine Buchung storniert.
+    Ergänzt den bestehenden Schüler-Refund-TX. Meta enthält:
+    <code>depositRefunded, cancellationTier: 'teacher_cancel', cancelledAt</code>.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>confirmLesson()</code> — erweitert</td>
+  <td><code>lesson_confirmed</code></td>
+  <td>Schreibt zusätzlich zum Lehrer-TX (<code>escrow_release</code>) jetzt auch
+    einen <code>lesson_confirmed</code>-TX beim Schüler. Vorher hatte der Schüler
+    keine sichtbare Buchungsbestätigung in seiner Historie.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>getAllTransactions(opts, cb)</code></td>
+  <td>—</td>
+  <td>Admin-Funktion: gibt ALLE TXs zurück, filterbar nach
+    <code>uid, types[], dateFrom, dateTo, slotDateFrom, slotDateTo,
+    teacherId, studentId, counterpartId</code>. Basis für den Admin-Audit-Screen.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>getBookingHistory(uid, opts, cb)</code></td>
+  <td>—</td>
+  <td>User-Funktion: gibt alle buchungsrelevanten TXs für einen User zurück
+    (booking, move, cancellation, escrow_hold, refund, escrow_release,
+    teacher_cancel, lesson_confirmed). Filterbar nach dateFrom/dateTo/counterpartId.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Phase 3 — AppService-Integration und Move-Detection</div>
+<div class="tw"><table>
+<thead><tr><th>Was</th><th>Datei</th><th>Beschreibung</th><th>Status</th></tr></thead>
+<tbody>
+<tr class="done"><td><code>bookSlotWithEscrow()</code> — erweitert</td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Ruft jetzt nach jeder erfolgreichen Buchung <code>writeBookingRecord()</code> auf —
+    sowohl bei instant-Zahlung (nach <code>payDeposit</code>) als auch bei
+    <code>cash_on_site</code> / <code>requiresDeposit=false</code>.
+    Vorher: Buchung ohne cash_on_site-Eintrag im Audit-Log.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td><code>cancelSlotWithPolicy()</code> — erweitert</td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Nutzt jetzt <code>cancelSlotBookingAs(slotId, actorRole)</code> statt
+    <code>cancelSlotBooking(slotId)</code> damit <code>cancelledBy</code> im Slot
+    gespeichert wird. Bei <code>teacher_cancel</code>-Tier wird zusätzlich
+    <code>writeTeacherCancelRecord()</code> aufgerufen.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Move-Detection in <code>saveBookingChanges()</code></td>
+  <td><span class="file">teacher.js</span></td>
+  <td>In <code>onAllDone()</code>: erkennt cancel+book-Paare für denselben Schüler
+    als Verschiebung und ruft <code>AppService.writeMoveRecord()</code> auf.
+    Vorher: Move = silent cancel + book ohne Audit-Eintrag.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Move-Detection in <code>commitDayChanges()</code></td>
+  <td><span class="file">student.js</span></td>
+  <td>Gleiche Logik wie teacher.js: cancel+book-Paare für denselben Lehrer
+    werden als Verschiebung erkannt und geloggt.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Neue Exports: <code>getAllTransactions, getBookingHistory,
+    writeBookingRecord, writeMoveRecord</code></td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Alle 4 neuen Adapter-Funktionen sind über AppService erreichbar.
+    Firestore-Adapter bekommt in der nächsten Session Stubs.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Phase 4 — Admin Audit Screen (admin.html + admin.js)</div>
+<div class="tw"><table>
+<thead><tr><th>Feature</th><th>Implementiert</th><th>Status</th></tr></thead>
+<tbody>
+<tr class="done"><td>Tab "Audit Log" in admin.html</td>
+  <td>Neuer Tab-Button + <code>admin-tab-audit</code> Panel. Tab-Switching in admin.js
+    verdrahtet: zeigt/versteckt Panel, ruft <code>renderAuditLog()</code> beim ersten Öffnen.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Filter-Bar</td>
+  <td>7 Filter: Freitext (Name/UID/Beschreibung), Rolle (Alle/Schüler/Lehrer),
+    Ereignis-Typ (11 Optionen), TX-Datum von/bis, Stundendatum.
+    Suche mit 120ms Debounce. "Zurücksetzen"-Button.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Audit-Tabelle (13 Spalten)</td>
+  <td>Zeitpunkt · Benutzer + UID · Rolle · Ereignis-Badge · Betrag (farbig) · Saldo ·
+    Stundendatum+Uhrzeit · Gegenpartei · Preis/Stunde · Deposit + Typ/% ·
+    Zahlungsmodus · Storno-Tier · Beschreibung</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Aufklapp-Detail-Zeile</td>
+  <td>Klick auf Zeile öffnet alle 22 Meta-Felder in einer expandierten Zeile:
+    TX-ID, Slot-ID, Escrow-ID, alle Deposit-Details, Timestamps, Move-Daten, etc.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Summary-Bar</td>
+  <td>Zeigt Anzahl Einträge + Summe Zuflüsse + Summe Abflüsse für die aktuelle
+    Filterauswahl. Wird bei jedem Filterwechsel aktualisiert.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>CSV-Export</td>
+  <td>Exportiert die gefilterte Ansicht als UTF-8 CSV (BOM für Excel-Kompatibilität).
+    20 Spalten. Dateiname: <code>audit-log-JJJJ-MM-TT.csv</code>.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+<tr class="done"><td>Refresh-Button</td>
+  <td>Lädt <code>getAllTransactions({})</code> neu und wendet aktive Filter an.</td>
+  <td><span class="b ok">✓ Done</span></td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Neue TX-Typen — Gesamtübersicht</div>
+<div class="tw"><table>
+<thead><tr><th>Typ</th><th>Auslöser</th><th>TX beim</th><th>Betrag</th><th>Key-Meta-Felder</th></tr></thead>
+<tbody>
+<tr class="done"><td><code>booking</code></td>
+  <td>Jede Buchung (instant + cash_on_site)</td>
+  <td>Schüler + Lehrer</td>
+  <td>0 (Geld via escrow_hold separat)</td>
+  <td>fullAmount, depositAmount, depositType, depositPercent, paymentMode, requiresDeposit, bookedAt</td></tr>
+<tr class="done"><td><code>move</code></td>
+  <td>Bestätigte Verschiebung (cancel+book-Paar)</td>
+  <td>Initiator + Gegenpartei</td>
+  <td>0</td>
+  <td>oldDate, oldTime, newDate, newTime, initiatorRole, movedAt</td></tr>
+<tr class="done"><td><code>teacher_cancel</code></td>
+  <td>Lehrer storniert eine Buchung</td>
+  <td>Lehrer</td>
+  <td>0</td>
+  <td>depositRefunded, cancellationTier, cancelledAt</td></tr>
+<tr class="done"><td><code>lesson_confirmed</code></td>
+  <td>Stunde bestätigt (confirmLesson)</td>
+  <td>Schüler</td>
+  <td>0</td>
+  <td>slotDate, slotTime, teacherId, fullAmount, depositAmount</td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Geänderte Dateien</div>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Was geändert</th></tr></thead>
+<tbody>
+<tr><td><span class="file">store.js</span></td>
+  <td>bookSlot: bookedAt · cancelBooking: cancelledAt/By · Slots.markMoved() neu</td></tr>
+<tr><td><span class="file">adapter-localstorage.js</span></td>
+  <td>cancelSlotBookingAs · writeBookingRecord · writeMoveRecord · writeTeacherCancelRecord ·
+    getAllTransactions · getBookingHistory · confirmLesson +lesson_confirmed TX · Exports</td></tr>
+<tr><td><span class="file">app-service.js</span></td>
+  <td>bookSlotWithEscrow: writeBookingRecord · cancelSlotWithPolicy: cancelSlotBookingAs +
+    writeTeacherCancelRecord · Wrapper-Funktionen + Exports für alle neuen Funktionen</td></tr>
+<tr><td><span class="file">teacher.js</span></td>
+  <td>saveBookingChanges onAllDone: Move-Detection + writeMoveRecord</td></tr>
+<tr><td><span class="file">student.js</span></td>
+  <td>commitDayChanges onAllDone: Move-Detection + writeMoveRecord</td></tr>
+<tr><td><span class="file">admin.js</span></td>
+  <td>Tab-Switching +audit · renderAuditLog · _auditLoad · _auditApplyFilters ·
+    _auditRender · _auditToggleDetail · _auditDetailHTML · _auditExportCSV</td></tr>
+<tr><td><span class="file">admin.html</span></td>
+  <td>Tab-Button "Audit Log" · admin-tab-audit Panel mit Filter-Bar +
+    Summary + Tabelle (13 Spalten)</td></tr>
+</tbody></table></div>
+</div>
+
+
+<div class="sec">
+<div class="sh">Noch offen (nächste Session)</div>
+<div class="tw"><table>
+<thead><tr><th>Punkt</th><th>Beschreibung</th></tr></thead>
+<tbody>
+<tr class="open"><td>Firestore-Adapter Stubs</td>
+  <td>adapter-firestore.js braucht Stubs für: <code>cancelSlotBookingAs,
+    writeBookingRecord, writeMoveRecord, writeTeacherCancelRecord,
+    getAllTransactions, getBookingHistory</code></td></tr>
+<tr class="open"><td>Schüler/Lehrer Buchungshistorie-Ansicht</td>
+  <td><code>getBookingHistory(uid, opts)</code> ist implementiert aber noch nicht
+    in teacher.js / student.js genutzt. Geplant: eigener Tab im Wallet-Panel
+    oder eigener Screen "Meine Buchungen / Transaktionen".</td></tr>
+<tr class="open"><td>wallet.js TX-Anzeige: neue Typen</td>
+  <td>wallet-core.js <code>TX_ICONS</code> kennt booking/move/teacher_cancel/lesson_confirmed
+    noch nicht. Neue Icons + Farbgebung eintragen.</td></tr>
+</tbody></table></div>
+</div>
+
+</body>
+</html>

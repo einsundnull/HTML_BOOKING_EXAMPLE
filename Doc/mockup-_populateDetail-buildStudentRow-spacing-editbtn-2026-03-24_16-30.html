@@ -1,0 +1,330 @@
+<!--
+  MOCKUP: _populateDetail + buildStudentRow
+  FILE:   my-students.js : line 186 — function _populateDetail(detail, student, ...)
+          teacher.js     : line 499 — function buildStudentRow(student, bookedSlots)
+  CSS:    teacher.css — .ms-price-section (margin-bottom),
+                        .student-card-top, .student-card-edit-btn (NEW)
+  CHANGE: 1) Abstand zwischen .ms-price-section und erstem .all-bookings-day-divider
+             Fix: margin-top auf .student-booking-detail .all-bookings-day-divider:first-child
+          2) Edit-Button (Stift) in buildStudentRow → öffnet my-students.html?uid=...
+             Neues Element .student-card-edit-btn in .student-card-top zwischen Chevron und rechtem Rand
+  DATE:   2026-03-24 16:30
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Spacing + Edit Button</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens 1:1 aus tokens.css ── */
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#ffffff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-800:#1a2130;--neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-regular:400;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(6,15,28,0.08);
+  --focus-ring:0 0 0 3px rgba(77,122,160,0.30);
+  --transition:150ms ease;
+  --pending-amber-bg:#fef3cd;--pending-amber-bd:#f5d97e;--pending-amber-tx:#7a5c00;
+  --status-confirmed-bg:#f0fdf4;--status-confirmed-bd:#bbf7d0;--status-confirmed-tx:#14532d;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--font); background:#e8ecf0; padding:24px 16px 64px; }
+
+/* ── Mockup scaffold ── */
+.mock-page { max-width:420px; margin:0 auto; display:flex; flex-direction:column; gap:48px; }
+.mock-state-label { font-size:10px; font-weight:var(--weight-semibold); color:var(--neutral-400); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+.mock-note { font-size:12px; color:var(--neutral-500); margin-bottom:14px; line-height:1.5; background:var(--neutral-100); border-radius:var(--radius-sm); padding:8px 12px; border-left:3px solid var(--color-300); }
+.mock-note strong { color:var(--neutral-700); }
+.mock-section-title { font-size:13px; font-weight:var(--weight-semibold); color:var(--neutral-700); margin:0 0 8px; padding:10px 0 8px; border-bottom:2px solid var(--neutral-200); }
+
+/* ── Existing classes 1:1 from teacher.css ── */
+.card { background:var(--neutral-0); border:1px solid var(--neutral-200); border-radius:var(--radius-lg); padding:var(--sp-4); box-shadow:var(--shadow); }
+.student-card { overflow:hidden; }
+
+.student-card-top { display:flex; align-items:center; gap:var(--sp-3); margin-bottom:var(--sp-3); cursor:pointer; }
+.student-card-avatar { flex-shrink:0; width:44px; height:44px; border-radius:50%; background:var(--color-100); color:var(--color-700); font-size:14px; font-weight:var(--weight-semibold); display:flex; align-items:center; justify-content:center; }
+.student-card-name-col { flex:1; min-width:0; display:flex; flex-direction:column; gap:var(--sp-1); }
+.student-card-name { font-size:var(--text-body); font-weight:var(--weight-semibold); color:var(--neutral-900); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.student-card-subtitle { font-size:var(--text-caption); color:var(--neutral-500); }
+.student-chevron { color:var(--neutral-400); flex-shrink:0; display:flex; align-items:center; transition:transform var(--transition); }
+.student-chevron.is-open { transform:rotate(180deg); }
+.student-card-summary { font-size:var(--text-small); color:var(--neutral-600); margin-bottom:var(--sp-2); }
+.student-card-badges { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.student-card-badge { display:inline-flex; align-items:center; gap:4px; font-size:var(--text-caption); color:var(--neutral-600); background:var(--neutral-100); border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:2px var(--sp-2); white-space:nowrap; }
+.student-card-badge--pending { background:var(--pending-amber-bg); border-color:var(--pending-amber-bd); color:var(--pending-amber-tx); }
+.student-card-badge-count { font-weight:var(--weight-semibold); }
+.student-card-badge-price { color:var(--color-400); font-weight:var(--weight-semibold); }
+
+.student-booking-detail { display:block; margin-top:var(--sp-3); }
+
+.ms-price-section { border:1px solid var(--neutral-200); border-radius:var(--radius-md); padding:var(--sp-3); margin-bottom:var(--sp-3); background:var(--neutral-50); }
+.ms-price-header { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-2); }
+.ms-price-label { font-size:var(--text-caption); font-weight:var(--weight-semibold); color:var(--neutral-700); flex:1; }
+.ms-price-default-badge { font-size:10px; font-weight:var(--weight-semibold); padding:1px 6px; border-radius:99px; background:var(--neutral-200); color:var(--neutral-600); }
+.ms-price-row { display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; }
+.ms-price-input { font-family:var(--font); font-size:var(--text-caption); font-weight:var(--weight-semibold); border:1px solid var(--neutral-200); border-radius:var(--radius-sm); padding:var(--sp-1) var(--sp-2); background:var(--neutral-0); width:80px; color:var(--neutral-900); }
+.ms-price-hint { font-size:var(--text-caption); color:var(--neutral-400); flex:1; white-space:nowrap; }
+.ms-price-actions { display:flex; gap:var(--sp-2); }
+.btn { font-family:var(--font); font-size:var(--text-small); font-weight:var(--weight-semibold); padding:var(--sp-2) var(--sp-3); border-radius:var(--radius-sm); border:1px solid transparent; cursor:pointer; display:inline-flex; align-items:center; gap:var(--sp-1); }
+.btn-sm { font-size:var(--text-caption); padding:5px var(--sp-3); }
+.btn-primary { background:var(--color-900); color:var(--neutral-0); border-color:var(--color-900); }
+.btn-ghost { background:transparent; color:var(--neutral-600); }
+
+.all-bookings-day-divider { font-size:var(--text-caption); font-weight:var(--weight-semibold); color:var(--neutral-500); text-transform:uppercase; letter-spacing:.06em; padding:var(--sp-2) 0 var(--sp-1); border-bottom:1px solid var(--neutral-200); margin-bottom:var(--sp-2); margin-top:var(--sp-4); }
+.student-booking-row { display:flex; align-items:center; gap:var(--sp-3); padding:var(--sp-2) 0; border-bottom:1px solid var(--neutral-100); font-size:var(--text-caption); }
+.student-booking-time { font-weight:var(--weight-semibold); color:var(--neutral-800); white-space:nowrap; min-width:90px; }
+.student-booking-price { font-weight:var(--weight-semibold); color:var(--color-400); flex:1; }
+.student-booking-status { font-size:10px; font-weight:var(--weight-semibold); padding:1px 6px; border-radius:99px; background:var(--neutral-100); color:var(--neutral-500); border:1px solid var(--neutral-200); }
+
+/* ════════════════════════════════════════════
+   CHANGE 1 — VORHER: kein Abstand zwischen
+   ms-price-section und day-divider
+   ════════════════════════════════════════════ */
+.before-spacing .all-bookings-day-divider { margin-top:0; }
+
+/* ════════════════════════════════════════════
+   CHANGE 1 — NACHHER (FIX)
+   NEW: teacher.css — append after
+   .student-booking-detail.is-open rule
+   ════════════════════════════════════════════ */
+.student-booking-detail .all-bookings-day-divider:first-child {
+  margin-top: var(--sp-3);
+}
+
+/* ════════════════════════════════════════════
+   CHANGE 2 — NEW: .student-card-edit-btn
+   NEW: teacher.css — append after
+   .student-chevron.is-open rule
+   ════════════════════════════════════════════ */
+.student-card-edit-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-200);
+  background: transparent;
+  color: var(--neutral-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+  text-decoration: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .student-card-edit-btn:hover {
+    background: var(--color-50);
+    border-color: var(--color-300);
+    color: var(--color-500);
+  }
+}
+</style>
+</head>
+<body>
+<div class="mock-page">
+
+  <!-- ══════════════════════════════════════════════
+       ÄNDERUNG 1 — Abstand: Vorher / Nachher
+  ══════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-section-title">Änderung 1 — Abstand Preis-Box → Buchungsliste</div>
+
+    <div class="mock-state-label">Vorher — kein Abstand</div>
+    <div class="mock-note">
+      <strong>Problem:</strong> <code>.ms-price-section</code> (margin-bottom: 16px) sitzt direkt
+      auf dem ersten <code>.all-bookings-day-divider</code> — kein visueller Trenner.
+    </div>
+    <div class="card student-card">
+      <div class="student-card-top">
+        <div class="student-card-avatar">S1</div>
+        <div class="student-card-name-col">
+          <div class="student-card-name">s1</div>
+        </div>
+        <span class="student-chevron is-open">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+      <div class="student-card-summary">4 Buchungen · €675,00</div>
+      <div class="student-card-badges">
+        <span class="student-card-badge">Alle <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+        <span class="student-card-badge student-card-badge--pending">Unbest. <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+      </div>
+      <!-- Detail panel -->
+      <div class="student-booking-detail before-spacing">
+        <!-- Price section -->
+        <div class="ms-price-section">
+          <div class="ms-price-header">
+            <span class="ms-price-label">Preis pro 30 Min.</span>
+            <span class="ms-price-default-badge">Standardpreis</span>
+          </div>
+          <div class="ms-price-row">
+            <input class="ms-price-input" type="number" value="45">
+            <span class="ms-price-hint">Standardpreis: 45</span>
+            <div class="ms-price-actions">
+              <button class="btn btn-sm btn-primary">Speichern</button>
+            </div>
+          </div>
+        </div>
+        <!-- Booking list — kein margin-top -->
+        <div class="all-bookings-day-divider">Montag, 23. Mär 2026</div>
+        <div class="student-booking-row">
+          <span class="student-booking-time">01:30–02:00</span>
+          <span class="student-booking-price">€45,00</span>
+          <span class="student-booking-status">Unbest.</span>
+        </div>
+        <div class="student-booking-row">
+          <span class="student-booking-time">02:00–02:30</span>
+          <span class="student-booking-price">€45,00</span>
+          <span class="student-booking-status">Unbest.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="mock-state-label">Nachher — mit Abstand (var(--sp-3) = 16px)</div>
+    <div class="mock-note">
+      <strong>Fix:</strong> <code>.student-booking-detail .all-bookings-day-divider:first-child { margin-top: var(--sp-3) }</code>
+      — gibt dem ersten Datums-Divider 16px Abstand zur Preis-Box.
+    </div>
+    <div class="card student-card">
+      <div class="student-card-top">
+        <div class="student-card-avatar">S1</div>
+        <div class="student-card-name-col">
+          <div class="student-card-name">s1</div>
+        </div>
+        <span class="student-chevron is-open">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+      <div class="student-card-summary">4 Buchungen · €675,00</div>
+      <div class="student-card-badges">
+        <span class="student-card-badge">Alle <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+        <span class="student-card-badge student-card-badge--pending">Unbest. <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+      </div>
+      <!-- Detail panel -->
+      <div class="student-booking-detail">
+        <div class="ms-price-section">
+          <div class="ms-price-header">
+            <span class="ms-price-label">Preis pro 30 Min.</span>
+            <span class="ms-price-default-badge">Standardpreis</span>
+          </div>
+          <div class="ms-price-row">
+            <input class="ms-price-input" type="number" value="45">
+            <span class="ms-price-hint">Standardpreis: 45</span>
+            <div class="ms-price-actions">
+              <button class="btn btn-sm btn-primary">Speichern</button>
+            </div>
+          </div>
+        </div>
+        <!-- Booking list — margin-top via :first-child rule -->
+        <div class="all-bookings-day-divider" style="margin-top:var(--sp-3)">Montag, 23. Mär 2026</div>
+        <div class="student-booking-row">
+          <span class="student-booking-time">01:30–02:00</span>
+          <span class="student-booking-price">€45,00</span>
+          <span class="student-booking-status">Unbest.</span>
+        </div>
+        <div class="student-booking-row">
+          <span class="student-booking-time">02:00–02:30</span>
+          <span class="student-booking-price">€45,00</span>
+          <span class="student-booking-status">Unbest.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════
+       ÄNDERUNG 2 — Edit-Button in teacher.js card
+  ══════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-section-title">Änderung 2 — Edit-Button in buildStudentRow (teacher.js)</div>
+
+    <div class="mock-state-label">Vorher — kein Edit-Button</div>
+    <div class="mock-note">
+      <strong>Problem:</strong> In der teacher.html My-Students-Ansicht gibt es keine Möglichkeit,
+      den individuellen Preis eines Schülers direkt zu öffnen.
+    </div>
+    <div class="card student-card">
+      <div class="student-card-top">
+        <div class="student-card-avatar">S1</div>
+        <div class="student-card-name-col">
+          <div class="student-card-name">s1</div>
+        </div>
+        <span class="student-chevron">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+      </div>
+      <div class="student-card-summary">4 Buchungen · €675,00</div>
+      <div class="student-card-badges">
+        <span class="student-card-badge">Alle <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+        <span class="student-card-badge student-card-badge--pending">Unbest. <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+      </div>
+    </div>
+
+    <br>
+    <div class="mock-state-label">Nachher — Edit-Button (Stift) im card-top</div>
+    <div class="mock-note">
+      <strong>Fix:</strong> Neues <code>&lt;a class="student-card-edit-btn"&gt;</code> als letztes
+      Element in <code>.student-card-top</code> — vor dem Chevron. Klick → <code>my-students.html?uid=...</code>.
+      Stoppt Propagation damit der Karten-Toggle nicht ausgelöst wird.
+    </div>
+
+    <!-- State: beide Karten mit Edit-Button, s2 ausgeklappt -->
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <div class="card student-card">
+        <div class="student-card-top">
+          <div class="student-card-avatar">S1</div>
+          <div class="student-card-name-col">
+            <div class="student-card-name">s1</div>
+          </div>
+          <!-- NEW: edit button -->
+          <a class="student-card-edit-btn" title="Preis bearbeiten" href="#" onclick="return false;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-9 9H2v-3L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <span class="student-chevron">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+        <div class="student-card-summary">4 Buchungen · €675,00</div>
+        <div class="student-card-badges">
+          <span class="student-card-badge">Alle <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+          <span class="student-card-badge student-card-badge--pending">Unbest. <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€675,00</span></span>
+        </div>
+      </div>
+
+      <div class="card student-card">
+        <div class="student-card-top">
+          <div class="student-card-avatar">S2</div>
+          <div class="student-card-name-col">
+            <div class="student-card-name">s2</div>
+          </div>
+          <a class="student-card-edit-btn" title="Preis bearbeiten" href="#" onclick="return false;">
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M11 2l3 3-9 9H2v-3L11 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <span class="student-chevron">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </span>
+        </div>
+        <div class="student-card-summary">4 Buchungen · €495,00</div>
+        <div class="student-card-badges">
+          <span class="student-card-badge">Alle <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€495,00</span></span>
+          <span class="student-card-badge student-card-badge--pending">Unbest. <span class="student-card-badge-count">4</span> <span class="student-card-badge-price">€495,00</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

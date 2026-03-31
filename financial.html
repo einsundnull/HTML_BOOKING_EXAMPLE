@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Finanzplaner — BookingSystem</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <script src="./js/app-config.js"></script>
+  <script>
+    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/wallet.css',
+        './css/financial.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+<div class="app-shell">
+
+  <div id="navbar-root"></div>
+
+  <main class="page" id="fin-page">
+    <div class="fin-page is-hidden" id="fin-content">
+
+      <!-- Header -->
+      <div class="fin-page-header">
+        <div>
+          <div class="fin-page-title">Finanzplaner</div>
+          <div class="fin-page-subtitle" id="fin-subtitle">Deine Einnahmen auf einen Blick</div>
+        </div>
+        <button class="btn btn-secondary btn-sm fin-refresh-btn" id="fin-refresh-btn">↻ Aktualisieren</button>
+      </div>
+
+      <!-- Wallet Hero -->
+      <div class="fin-wallet-hero">
+        <div>
+          <div class="fin-wallet-hero-label">Aktuelles Guthaben</div>
+          <div>
+            <span class="fin-wallet-hero-amount" id="fin-wallet-amount">—</span>
+            <span class="fin-wallet-hero-currency">€</span>
+          </div>
+        </div>
+        <div class="fin-wallet-hero-icon">💳</div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="fin-kpi-grid">
+        <div class="fin-kpi-card fin-kpi--confirmed" data-kpi="confirmed" title="Klicken zum Filtern" tabindex="0" role="button">
+          <div class="fin-kpi-label">Verdient &amp; ausgezahlt</div>
+          <div class="fin-kpi-value" id="fin-confirmed-val">—</div>
+          <div class="fin-kpi-sub" id="fin-confirmed-sub">— Stunden</div>
+          <div class="fin-kpi-icon">★</div>
+        </div>
+        <div class="fin-kpi-card fin-kpi--held" data-kpi="held" title="Klicken zum Filtern" tabindex="0" role="button">
+          <div class="fin-kpi-label">Deposit gehalten</div>
+          <div class="fin-kpi-value" id="fin-held-val">—</div>
+          <div class="fin-kpi-sub" id="fin-held-sub">— Slots</div>
+          <div class="fin-kpi-icon">⏸</div>
+        </div>
+        <div class="fin-kpi-card fin-kpi--pending" data-kpi="pending" title="Klicken zum Filtern" tabindex="0" role="button">
+          <div class="fin-kpi-label">F&auml;llig bei Best&auml;tigung</div>
+          <div class="fin-kpi-value" id="fin-pending-val">—</div>
+          <div class="fin-kpi-sub" id="fin-pending-sub">— Slots</div>
+          <div class="fin-kpi-icon">→</div>
+        </div>
+        <div class="fin-kpi-card fin-kpi--future" data-kpi="future" title="Klicken zum Filtern" tabindex="0" role="button">
+          <div class="fin-kpi-label">Geplanter Umsatz</div>
+          <div class="fin-kpi-value" id="fin-future-val">—</div>
+          <div class="fin-kpi-sub" id="fin-future-sub">— Slots</div>
+          <div class="fin-kpi-icon">📅</div>
+        </div>
+        <div class="fin-kpi-card fin-kpi--refund" data-kpi="refund" title="Klicken zum Filtern" tabindex="0" role="button">
+          <div class="fin-kpi-label">Ausstehende Refunds</div>
+          <div class="fin-kpi-value" id="fin-refund-val">—</div>
+          <div class="fin-kpi-sub" id="fin-refund-sub">— offen</div>
+          <div class="fin-kpi-icon">↩</div>
+        </div>
+      </div>
+
+      <!-- Monthly Chart -->
+      <div class="fin-section">
+        <div class="fin-section-header">
+          <div class="fin-section-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="8" width="3" height="7" rx="1" fill="currentColor"/><rect x="6" y="5" width="3" height="10" rx="1" fill="currentColor"/><rect x="11" y="2" width="3" height="13" rx="1" fill="currentColor"/></svg>
+            Monatliche Einnahmen
+          </div>
+          <span id="fin-chart-total" class="fin-chart-total"></span>
+        </div>
+        <div class="fin-months-grid" id="fin-months-grid">
+          <div class="fin-empty">Lade Daten…</div>
+        </div>
+        <div class="fin-chart-legend">
+          <div class="fin-legend-item"><div class="fin-legend-dot fin-legend-dot--confirmed"></div>Bestätigt</div>
+          <div class="fin-legend-item"><div class="fin-legend-dot fin-legend-dot--booked"></div>Gebucht (unbestätigt)</div>
+        </div>
+      </div>
+
+      <!-- Top Students -->
+      <div class="fin-section">
+        <div class="fin-section-header">
+          <div class="fin-section-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="6" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/><path d="M1 14c0-2.761 2.239-5 5-5s5 2.239 5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 7l1 1 3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Top Sch&uuml;ler
+          </div>
+        </div>
+        <ul class="fin-top-list" id="fin-top-students">
+          <li class="fin-empty">Keine Buchungen gefunden.</li>
+        </ul>
+      </div>
+
+      <!-- Bookings -->
+      <div class="fin-section" id="fin-bk-section">
+        <div class="fin-section-header">
+          <div class="fin-section-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="1" y="3" width="14" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/><path d="M1 7h14M5 1v4M11 1v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            Buchungen
+          </div>
+        </div>
+        <div class="fin-filter-bar" id="fin-bk-filter">
+          <button class="fin-filter-chip active" data-fin-bk="all">Alle</button>
+          <button class="fin-filter-chip" data-fin-bk="booked">Unbestätigt</button>
+          <button class="fin-filter-chip" data-fin-bk="confirmed">Bestätigt ✓</button>
+          <button class="fin-filter-chip" data-fin-bk="future">Zukünftig</button>
+          <button class="fin-filter-chip" data-fin-bk="past">Vergangen</button>
+          <button class="fin-filter-chip" data-fin-bk="held">⏸ Deposit</button>
+          <button class="fin-filter-chip" data-fin-bk="pending">→ Fällig</button>
+          <button class="fin-filter-chip" data-fin-bk="refund">↩ Refund</button>
+        </div>
+        <div class="fin-date-row">
+          <div class="fin-date-sub-row">
+            <label class="fin-date-label">Von</label>
+            <input type="date" class="fin-date-input" id="fin-bk-date-from" />
+          </div>
+          <div class="fin-date-sub-row">
+            <label class="fin-date-label">Bis</label>
+            <input type="date" class="fin-date-input" id="fin-bk-date-to" />
+            <button class="btn btn-ghost btn-sm fin-date-reset is-hidden" id="fin-bk-date-reset" aria-label="Datumsfilter zurücksetzen">✕</button>
+          </div>
+        </div>
+        <div class="fin-bk-header-row">
+          <span class="fin-bk-active-label" id="fin-bk-active-label"></span>
+          <span class="fin-bk-count" id="fin-bk-count"></span>
+        </div>
+        <ul class="wallet-tx-list fin-booking-list" id="fin-bk-list">
+          <li class="wallet-history-empty fin-empty" id="fin-bk-empty">Keine Buchungen.</li>
+        </ul>
+      </div>
+
+      <!-- Transactions -->
+      <div class="fin-section">
+        <div class="fin-section-header">
+          <div class="fin-section-title">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Transaktionshistorie
+          </div>
+        </div>
+        <div class="fin-filter-bar" id="fin-tx-filter">
+          <button class="fin-filter-chip active" data-fin-tx="all">Alle</button>
+          <button class="fin-filter-chip" data-fin-tx="escrow_release">▶ Freigabe</button>
+          <button class="fin-filter-chip" data-fin-tx="escrow_hold">⏸ Deposit</button>
+          <button class="fin-filter-chip" data-fin-tx="deposit">↑ Einzahlung</button>
+          <button class="fin-filter-chip" data-fin-tx="withdrawal">↓ Auszahlung</button>
+        </div>
+        <div class="fin-date-row">
+          <div class="fin-date-sub-row">
+            <label class="fin-date-label">Von</label>
+            <input type="date" class="fin-date-input" id="fin-tx-date-from" />
+          </div>
+          <div class="fin-date-sub-row">
+            <label class="fin-date-label">Bis</label>
+            <input type="date" class="fin-date-input" id="fin-tx-date-to" />
+            <button class="btn btn-ghost btn-sm fin-date-reset is-hidden" id="fin-tx-date-reset" aria-label="Datumsfilter zurücksetzen">✕</button>
+          </div>
+        </div>
+        <ul class="wallet-tx-list" id="fin-tx-list">
+          <li class="wallet-history-empty fin-empty" id="fin-tx-empty">Keine Transaktionen.</li>
+        </ul>
+      </div>
+
+    </div><!-- /fin-content -->
+
+    <div id="fin-error" class="fin-error is-hidden">
+      Kein Zugriff — bitte als Lehrer einloggen.
+    </div>
+  </main>
+</div>
+
+<div class="chat-fab-anchor">
+  <button class="chat-fab" id="chat-fab" aria-label="Chat">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+<script>
+window.addEventListener('load', function() {
+  if (typeof ChatPanel !== 'undefined') ChatPanel.init();
+});
+</script>
+</body>
+</html>

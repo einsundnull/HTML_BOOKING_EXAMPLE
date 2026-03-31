@@ -1,0 +1,664 @@
+  Premium UI Design Guide                                                                                                                                                                                                                                                                                                                                                                                   ---                                                                                                                                                                                                  Philosophy                                                                                                                                                                                                                                                                                                                                                                                                Premium interfaces are defined by re traint. Ev ry element earns its place. The goal is not to impress — it is to make the user feel immediately capable. Stripe, Linear, Vercel, and Apple all      share the same discipline: they remove u til no hing can be removed, then they stop.                                                                                                                                                                                                                                                                                                                      ---                                                                                                                                                                                                  1. Copywriting                                                                                                                                                                                                                                                                                                                                                                                            Premium interfaces speak with confidence and brevity. Long labels signal uncertainty. Short labels signal mastery.                                                                                                                                                                                                                                                                                        Rules:                                                                                                                                                                                                                                                                                                                                                                                                    - CTAs: maximum 3 words. Prefe  verbs. (Get started, Save, Continue, Done)                                                                                                                           - Navigation  1 word where possible  (Pricing, Docs, Blog)                                                                                                                                           - Headlines: lead with the outcome, not the feature                                                                                                                                                  - No filler words: remove Please, Just, Simply, Click here                                                                                                                                           - No passive constructions: Your file was saved → Saved                                                                                                                                              - Error messages: say what happened and what to do. Not what failed intern lly.
+  - Never truncate meaning to hit a word count. Rewrite instead.                                                                                                                                                                                                                                                                                                                                            ┌────────────────────────────────────────────┬──────────────────────────────────┐                                                                                                                    │                   Avoid                    │           Use instead            │                                                                                                                    ├────────────────────────────────────────────┼──────────────────────────────────┤                                                                                                                    │ Submit your application                    │ Apply                            │                                                                                                                    ├────────────────────────────────────────────┼──────────────────────────────────┤                                                                                                                    │ Click here to get started                  │ Get started                      │                                                                                                                    ├────────────────────────────────────────────┼──────────────────────────────────┤                                                                                                                    │ Please enter your details                  │ Your details                     │
+  ├────────────────────────────────────────────┼──────────────────────────────────┤
+  │ Successfully saved!                        │ Saved                            │
+  ├────────────────────────────────────────────┼──────────────────────────────────┤
+  │ There was an error processing your request │ Something went wrong — try again │
+  └────────────────────────────────────────────┴──────────────────────────────────┘
+
+  ---
+  2. Color System
+
+  Based on Eric D. Kennedy's single-hue scale methodology and the 60-30-10 rule.
+
+  Core principle: Never mix unrelated hues. Build all color from one base using tints (add white) and shades (add black), adjusting saturation as lightness changes.
+
+  Base color: #060f1c — HSL 216, 65%, 7% — deep navy
+
+  Tint & Shade Scale
+
+  Lighter tints reduce saturation. Darker shades hold or slightly increase it. This keeps the scale from looking washed out at the top or muddy at the bottom.
+
+  ┌───────────┬─────────┬───────────────┬────────────────────┐
+  │   Token   │   Hex   │      HSL      │        Use         │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-50  │ #f3f5fb │ 216, 30%, 97% │ Page backgrounds   │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-100 │ #e5eaf5 │ 216, 35%, 92% │ Surface, cards     │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-200 │ #c8d3ec │ 216, 42%, 83% │ Borders, dividers  │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-300 │ #99b0db │ 216, 48%, 68% │ Disabled states    │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-400 │ #5b87cc │ 216, 54%, 52% │ Interactive accent │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-500 │ #2a5fa8 │ 216, 60%, 38% │ Hover state        │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-600 │ #1a3e73 │ 216, 63%, 26% │ Active state       │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-700 │ #102449 │ 216, 64%, 17% │ Dark UI elements   │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-800 │ #0a1830 │ 216, 65%, 11% │ Headers, nav       │
+  ├───────────┼─────────┼───────────────┼────────────────────┤
+  │ color-900 │ #060f1c │ 216, 65%, 7%  │ Base / near-black  │
+  └───────────┴─────────┴───────────────┴────────────────────┘
+
+  Neutral Scale (desaturated, slightly cool)
+
+  ┌─────────────┬─────────┬────────────────────┐
+  │    Token    │   Hex   │        Use         │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-0   │ #ffffff │ Pure white         │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-50  │ #f8f9fa │ Default background │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-100 │ #f1f3f5 │ Subtle surface     │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-200 │ #e9ecef │ Borders            │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-300 │ #dee2e6 │ Dividers           │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-400 │ #ced4da │ Placeholder text   │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-500 │ #adb5bd │ Muted text         │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-600 │ #868e96 │ Secondary text     │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-700 │ #495057 │ Body text          │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-800 │ #343a40 │ Strong text        │
+  ├─────────────┼─────────┼────────────────────┤
+  │ neutral-900 │ #212529 │ Heading text       │
+  └─────────────┴─────────┴────────────────────┘
+
+  60-30-10 Distribution
+
+  ┌───────────────┬─────┬─────────────────────────────────────────────────┬─────────────────────────────────────────────┐
+  │     Role      │  %  │                     Tokens                      │                  Examples                   │
+  ├───────────────┼─────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Neutral       │ 60% │ neutral-0 — neutral-100                         │ Page bg, card surfaces, white space         │
+  ├───────────────┼─────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Complementary │ 30% │ color-800, color-900, neutral-700 — neutral-900 │ Text, nav bar, footer, sidebar              │
+  ├───────────────┼─────┼─────────────────────────────────────────────────┼─────────────────────────────────────────────┤
+  │ Brand accent  │ 10% │ color-400, color-500                            │ CTAs, links, focus rings, active indicators │
+  └───────────────┴─────┴─────────────────────────────────────────────────┴─────────────────────────────────────────────┘
+
+  No gradients. Use flat, single-value fills only. Depth is created through spacing and contrast, not color blending.
+
+  ---
+  3. Typography
+
+  Font family: Figtree — geometric, clean, approachable. Load via Google Fonts.
+
+  @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap');
+  font-family: 'Figtree', sans-serif;
+
+  4-2 Principle
+
+  Max 4 sizes. Max 2 weights.
+
+  ┌──────────────┬──────┬─────────────┬──────────────┬──────────────────────────────┐
+  │    Token     │ Size │ Line height │    Weight    │             Use              │
+  ├──────────────┼──────┼─────────────┼──────────────┼──────────────────────────────┤
+  │ text-display │ 48px │ 56px        │ 600 Semibold │ Hero headlines               │
+  ├──────────────┼──────┼─────────────┼──────────────┼──────────────────────────────┤
+  │ text-heading │ 24px │ 32px        │ 600 Semibold │ Section titles, card titles  │
+  ├──────────────┼──────┼─────────────┼──────────────┼──────────────────────────────┤
+  │ text-body    │ 16px │ 24px        │ 400 Regular  │ Body copy, descriptions      │
+  ├──────────────┼──────┼─────────────┼──────────────┼──────────────────────────────┤
+  │ text-caption │ 12px │ 16px        │ 400 Regular  │ Labels, metadata, timestamps │
+  └──────────────┴──────┴─────────────┴──────────────┴──────────────────────────────┘
+
+  All sizes are divisible by 8 or 4.
+
+  Weight usage:
+  - 400 Regular — body, captions, secondary content
+  - 600 Semibold — headings, CTAs, navigation, emphasis
+
+  Never use 3 weights. Never approximate a third weight by using opacity.
+
+  ---
+  4. Spacing — 8pt Grid System
+
+  Every spacing value must be divisible by 8 or 4. No exceptions.
+
+  Base Scale
+
+  ┌─────────┬───────┬───────────────────────────────────────┐
+  │  Token  │ Value │                  Use                  │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-1 │ 4px   │ Icon padding, tight inline gaps       │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-2 │ 8px   │ Between label and icon, input padding │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-3 │ 16px  │ Between elements within one group     │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-4 │ 24px  │ Internal card padding                 │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-5 │ 32px  │ Between separate groups / sections    │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-6 │ 48px  │ Section top/bottom padding (mobile)   │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-7 │ 64px  │ Section top/bottom padding (desktop)  │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-8 │ 96px  │ Major layout separation               │
+  ├─────────┼───────┼───────────────────────────────────────┤
+  │ space-9 │ 128px │ Hero vertical rhythm                  │
+  └─────────┴───────┴───────────────────────────────────────┘
+
+  Grouping Rule
+
+  The spacing between elements communicates their relationship. Use it consistently:
+
+  - 16px — elements within the same group (label above input, icon next to text)
+  - 32px — between distinct groups or components (one card to another, one form section to the next)
+  - 64px+ — between page-level sections
+
+  The eye reads proximity as relationship. If two things are 32px apart they belong to the same logical area. If they are 64px apart they are in different sections.
+
+  Application Examples
+
+  Button padding:    16px vertical,  24px horizontal
+  Card padding:      24px all sides
+  Form field gap:    16px (same group)
+  Form section gap:  32px (different group)
+  Nav item gap:      24px
+  Section gap:       64px
+  Container max-w:   1280px, centered
+
+  ---
+  5. Premium Design Patterns (Researched)
+
+  These are consistent across Stripe, Linear, Vercel, Apple, Framer:
+
+  Layout
+  - One primary action per section. Never compete with yourself.
+  - Left-aligned text is more readable than centered body copy. Reserve center-alignment for short hero headlines only.
+  - Use a 12-column grid. Content lives in 8 of those columns on desktop.
+
+  Visual Weight
+  - High contrast between text and background. Never drop below 4.5:1 for body text.
+  - Use neutral-900 or color-900 for headings. Never grey for primary headings.
+  - Muted text (neutral-500) only for truly secondary content.
+
+  Surfaces & Depth
+  - No drop shadows with heavy blur. If you use a shadow, keep it subtle: 0 1px 3px rgba(6,15,28,0.08).
+  - Cards: a 1px border in neutral-200 reads cleaner than a shadow on white.
+  - Flat backgrounds. Depth comes from spacing and contrast, not texture or gradient.
+
+  Interactive States
+  - Every interactive element needs: default, hover, active, focus, disabled.
+  - Focus ring: 2px solid color-400 with 2px offset — always visible, never suppressed.
+  - Hover: shift one step down the color scale (color-400 → color-500).
+
+  Icons
+  - Use a single icon library. Never mix styles.
+  - Size: 16px or 24px. Both are divisible by 8.
+  - Icons are always paired with a text label on primary actions.
+
+  ---
+  6. Quick Reference — Do / Don't
+
+  ┌──────────────────────────────────┬──────────────────────────────────┐
+  │                Do                │              Don't               │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Use Figtree 400 and 600 only     │ Use 3 or more font weights       │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Space with multiples of 4 or 8   │ Use 15px, 22px, 7px              │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Use flat single-fill colors      │ Use gradients or color overlays  │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Write Get started                │ Write Click here to get started  │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Use one accent color (color-400) │ Introduce a second hue           │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Build tints from #060f1c         │ Use an unrelated color           │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Group related items at 16px      │ Place unrelated items 16px apart │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Separate sections at 64px+       │ Crowd sections together          │
+  └──────────────────────────────────┴──────────────────────────────────┘
+
+  ---
+  This guide is intentionally minimal. That restraint is the point.
+
+✻ Crunched for 1m 13s
+
+> weiter
+
+● ---
+  7. CSS Design Tokens
+
+  Implement the entire system as CSS custom properties. Every value in the codebase references a token — never a raw value.
+
+  /* typography/figtree.css */
+  @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap');
+
+  /* ─── Base Reset ─────────────────────────────────── */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ─── Tokens ─────────────────────────────────────── */
+  :root {
+
+    /* Color — Brand Scale */
+    --color-50:  #f3f5fb;
+    --color-100: #e5eaf5;
+    --color-200: #c8d3ec;
+    --color-300: #99b0db;
+    --color-400: #5b87cc;
+    --color-500: #2a5fa8;
+    --color-600: #1a3e73;
+    --color-700: #102449;
+    --color-800: #0a1830;
+    --color-900: #060f1c;
+
+    /* Color — Neutral Scale */
+    --neutral-0:   #ffffff;
+    --neutral-50:  #f8f9fa;
+    --neutral-100: #f1f3f5;
+    --neutral-200: #e9ecef;
+    --neutral-300: #dee2e6;
+    --neutral-400: #ced4da;
+    --neutral-500: #adb5bd;
+    --neutral-600: #868e96;
+    --neutral-700: #495057;
+    --neutral-800: #343a40;
+    --neutral-900: #212529;
+
+    /* Color — Semantic Aliases (60-30-10) */
+    --bg-base:        var(--neutral-50);   /* 60% — page background */
+    --bg-surface:     var(--neutral-0);    /* 60% — cards, modals */
+    --bg-subtle:      var(--neutral-100);  /* 60% — hover bg, tags */
+    --text-primary:   var(--color-900);    /* 30% — headings */
+    --text-secondary: var(--neutral-700);  /* 30% — body */
+    --text-muted:     var(--neutral-500);  /* 30% — captions, meta */
+    --text-disabled:  var(--neutral-400);  /* 30% — disabled */
+    --border-default: var(--neutral-200);  /* 30% — card borders */
+    --border-strong:  var(--neutral-300);  /* 30% — input borders */
+    --accent:         var(--color-400);    /* 10% — brand CTAs */
+    --accent-hover:   var(--color-500);    /* 10% — hover */
+    --accent-active:  var(--color-600);    /* 10% — active/pressed */
+
+    /* Typography */
+    --font-family: 'Figtree', sans-serif;
+
+    --text-display: 48px;
+    --text-heading: 24px;
+    --text-body:    16px;
+    --text-caption: 12px;
+
+    --leading-display: 56px;
+    --leading-heading: 32px;
+    --leading-body:    24px;
+    --leading-caption: 16px;
+
+    --weight-regular:  400;
+    --weight-semibold: 600;
+
+    /* Spacing — 8pt Grid */
+    --space-1:  4px;
+    --space-2:  8px;
+    --space-3:  16px;
+    --space-4:  24px;
+    --space-5:  32px;
+    --space-6:  48px;
+    --space-7:  64px;
+    --space-8:  96px;
+    --space-9:  128px;
+
+    /* Semantic Spacing */
+    --gap-inner:    var(--space-3);  /* within a group: 16px */
+    --gap-between:  var(--space-5);  /* between groups: 32px */
+    --gap-section:  var(--space-7);  /* between sections: 64px */
+
+    /* Border */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+
+    /* Shadow */
+    --shadow-sm: 0 1px 3px rgba(6, 15, 28, 0.08);
+    --shadow-md: 0 4px 16px rgba(6, 15, 28, 0.10);
+
+    /* Focus Ring */
+    --focus-ring: 0 0 0 3px rgba(91, 135, 204, 0.35);
+
+    /* Transition */
+    --duration-fast: 120ms;
+    --duration-base: 200ms;
+    --easing-base: ease;
+  }
+
+  ---
+  8. Component Specifications
+
+  Button
+
+  Three variants — primary, secondary, ghost. One size per context.
+
+  .btn {
+    font-family: var(--font-family);
+    font-size: var(--text-body);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-body);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-4);   /* 8px 24px */
+    border-radius: var(--radius-md);
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--easing-base),
+                border-color var(--duration-fast) var(--easing-base);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  /* Primary — 10% brand */
+  .btn-primary {
+    background: var(--accent);
+    color: var(--neutral-0);
+    border-color: var(--accent);
+  }
+  .btn-primary:hover  { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .btn-primary:active { background: var(--accent-active); border-color: var(--accent-active); }
+
+  /* Secondary — 30% complementary */
+  .btn-secondary {
+    background: var(--neutral-0);
+    color: var(--text-primary);
+    border-color: var(--border-strong);
+  }
+  .btn-secondary:hover  { background: var(--bg-subtle); }
+  .btn-secondary:active { background: var(--neutral-200); }
+
+  /* Ghost — no fill */
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: transparent;
+  }
+  .btn-ghost:hover  { background: var(--bg-subtle); color: var(--text-primary); }
+  .btn-ghost:active { background: var(--neutral-200); }
+
+  /* Disabled — all variants */
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  /* Focus — all variants */
+  .btn:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-ring);
+  }
+
+  Copy rules for buttons:
+  - Primary: action verb + noun if needed (Get started, Save changes, Continue)
+  - Secondary: explicit but lighter (Cancel, Go back, Learn more)
+  - Ghost: navigation or tertiary (View all, Skip)
+
+  ---
+  Input Field
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);           /* label to input: 8px */
+  }
+
+  .field-label {
+    font-family: var(--font-family);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-caption);
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .field-input {
+    font-family: var(--font-family);
+    font-size: var(--text-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+    color: var(--text-primary);
+    background: var(--neutral-0);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);  /* 8px 16px */
+    width: 100%;
+    transition: border-color var(--duration-fast) var(--easing-base),
+                box-shadow var(--duration-fast) var(--easing-base);
+  }
+
+  .field-input::placeholder { color: var(--text-muted); }
+
+  .field-input:hover  { border-color: var(--neutral-400); }
+
+  .field-input:focus-visible {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: var(--focus-ring);
+  }
+
+  .field-input:disabled {
+    background: var(--neutral-100);
+    color: var(--text-disabled);
+    cursor: not-allowed;
+  }
+
+  .field-hint {
+    font-size: var(--text-caption);
+    color: var(--text-muted);
+    line-height: var(--leading-caption);
+  }
+
+  ---
+  Card
+
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);           /* 24px */
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-inner);             /* 16px between inner elements */
+  }
+
+  .card-title {
+    font-size: var(--text-heading);
+    font-weight: var(--weight-semibold);
+    line-height: var(--leading-heading);
+    color: var(--text-primary);
+  }
+
+  .card-body {
+    font-size: var(--text-body);
+    font-weight: var(--weight-regular);
+    line-height: var(--leading-body);
+    color: var(--text-secondary);
+  }
+
+  ---
+  Navigation
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-3) var(--space-5);   /* 16px 32px */
+    background: var(--neutral-0);
+    border-bottom: 1px solid var(--border-default);
+    height: 64px;                              /* divisible by 8 */
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);                       /* 24px between items */
+    list-style: none;
+  }
+
+  .nav-link {
+    font-size: var(--text-body);
+    font-weight: var(--weight-regular);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--duration-fast) var(--easing-base);
+  }
+
+  .nav-link:hover        { color: var(--text-primary); }
+  .nav-link.is-active    { color: var(--text-primary); font-weight: var(--weight-semibold); }
+  .nav-link:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-sm); }
+
+  ---
+  9. Layout System
+
+  .container {
+    width: 100%;
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: var(--space-5);  /* 32px — divisible by 8 */
+  }
+
+  /* 12-column grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-4);             /* 24px column gap */
+  }
+
+  /* Section rhythm */
+  .section {
+    padding-block: var(--space-7);   /* 64px top & bottom */
+  }
+
+  .section + .section {
+    padding-top: 0;                  /* sections stack flush, padding handles space */
+  }
+
+  Column usage rules:
+  - Full-width content: 12 of 12 columns
+  - Primary content + sidebar: 8 + 4
+  - Two equal columns: 6 + 6
+  - Hero text (desktop): 8 of 12, centered
+
+  ---
+  10. Responsive Breakpoints
+
+  All breakpoints are divisible by 8.
+
+  ┌──────────┬────────┬───────────────────┐
+  │  Token   │ Value  │      Context      │
+  ├──────────┼────────┼───────────────────┤
+  │ --bp-sm  │ 480px  │ Large phones      │
+  ├──────────┼────────┼───────────────────┤
+  │ --bp-md  │ 768px  │ Tablets           │
+  ├──────────┼────────┼───────────────────┤
+  │ --bp-lg  │ 1024px │ Small desktops    │
+  ├──────────┼────────┼───────────────────┤
+  │ --bp-xl  │ 1280px │ Standard desktops │
+  ├──────────┼────────┼───────────────────┤
+  │ --bp-2xl │ 1536px │ Wide screens      │
+  └──────────┴────────┴───────────────────┘
+
+  Section padding scales with viewport:
+
+  ┌────────────┬───────────────┐
+  │ Breakpoint │ --gap-section │
+  ├────────────┼───────────────┤
+  │ Mobile     │ 48px          │
+  ├────────────┼───────────────┤
+  │ Tablet     │ 64px          │
+  ├────────────┼───────────────┤
+  │ Desktop    │ 96px          │
+  └────────────┴───────────────┘
+
+  ---
+  11. Transitions & Motion
+
+  Premium interfaces move quietly. Motion communicates state change — never personality.
+
+  /* Use these only */
+  --duration-fast: 120ms;   /* hover states, icon swaps */
+  --duration-base: 200ms;   /* panels, dropdowns */
+  --easing-base: ease;
+
+  Rules:
+  - Color and opacity transitions: 120ms ease
+  - Elements entering the screen (modals, drawers): 200ms ease
+  - Never animate layout properties (width, height, top) — animate transform and opacity instead
+  - No bounce, spring, or elastic easings — these undermine credibility
+
+  ---
+  This completes the full system. Every value traces back to a token. Every token traces back to a rule. That traceability is what keeps a premium interface consistent as it grows.
+
+######
+
+ #: 1
+  Feature: viewport-fit=cover
+  Problem: Safe Area (env()) liefert sonst immer 0
+  Fix: <meta viewport content="..., viewport-fit=cover">
+  ────────────────────────────────────────
+  #: 2
+  Feature: -webkit-text-size-adjust
+  Problem: iOS dreht Schriftgröße bei Landscape-Wechsel automatisch
+  Fix: -webkit-text-size-adjust: 100% auf html
+  ────────────────────────────────────────
+  #: 3
+  Feature: scroll-behavior: smooth
+  Problem: iOS Safari erst ab 15.4, vorher ignoriert
+  Fix: In @media (prefers-reduced-motion: no-preference) eingebettet
+  ────────────────────────────────────────
+  #: 4
+  Feature: -webkit-tap-highlight-color
+  Problem: Blauer/grauer Flash bei jedem Tap auf iOS & Android
+  Fix: transparent global im Reset gesetzt
+  ────────────────────────────────────────
+  #: 5
+  Feature: :hover Sticky-Problem
+  Problem: Hover "klebt" nach Tap auf Touch-Screens
+  Fix: Alle Hover-States in @media (hover: hover) and (pointer: fine), :active übernimmt Touch-Feedback
+  ────────────────────────────────────────
+  #: 6
+  Feature: position: -webkit-sticky
+  Problem: iOS Safari < 13 benötigt Prefix
+  Fix: Beide Varianten geschrieben
+  ────────────────────────────────────────
+  #: 7
+  Feature: env(safe-area-inset-*)
+  Problem: iPhone Notch / Dynamic Island überlappt Nav und Footer
+  Fix: Nav: padding-top: var(--safe-top), Footer: calc(space + safe-bottom)
+  ────────────────────────────────────────
+  #: 8
+  Feature: touch-action: manipulation
+  Problem: 300ms Tap-Delay auf iOS, Double-Tap-Zoom
+  Fix: Auf .btn gesetzt (iOS 9.3+)
+  ────────────────────────────────────────
+  #: 9
+  Feature: Logical Properties Fallback
+  Problem: padding-inline, padding-block, margin-inline erst ab iOS 14.1
+  Fix: Physikalische Properties zuerst, Logical als Überschreibung
+  ────────────────────────────────────────
+  #: 10
+  Feature: grid-gap → gap
+  Problem: gap in CSS Grid erst ab iOS 12 stabil
+  Fix: Beide geschrieben: grid-gap + gap
+  ────────────────────────────────────────
+  #: 11
+  Feature: :focus-visible Fallback
+  Problem: iOS Safari erst ab 15.4
+  Fix: @supports not selector(:focus-visible) mit :focus Fallback
+  ────────────────────────────────────────
+  #: 12
+  Feature: overflow: clip Hinweis
+  Problem: overflow: hidden bricht position: sticky
+  Fix: Als Kommentar bei .video-wrapper dokumentiert

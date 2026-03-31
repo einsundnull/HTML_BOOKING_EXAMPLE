@@ -1,0 +1,279 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           myBio Style System                                ║
+║                           Beschreibung 2026                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ÜBERSICHT                                                                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Das myBio Style System basiert auf CSS Custom Properties (Design Tokens) und
+unterstützt Light- und Dark-Theme. Die Architektur folgt modernen Best Practices:
+- Token-basiertes Design System
+- 8pt Grid für Spacing
+- Flache i18n Hierarchie
+- Responsive First
+- Accessibility First (a11y)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DESIGN TOKENS                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[Color Scale - Brand]
+50  ─ #f3f5fb  (helles Blau, Background-Tint)
+100 ─ #e5eaf5
+200 ─ #c8d3ec
+300 ─ #99b0db
+400 ─ #5b87cc  (Accent, primäres Blau)
+500 ─ #2a5fa8
+600 ─ #1a3e73
+700 ─ #102449
+800 ─ #0a1830
+900 ─ #060f1c  (dunkelstes Blau, fast Schwarz)
+
+[Color Scale - Neutral]
+0   ─ #ffffff  (pure White)
+50  ─ #f8f9fa
+100 ─ #f1f3f5
+200 ─ #e9ecef
+300 ─ #dee2e6
+400 ─ #ced4da
+500 ─ #adb5bd
+600 ─ #868e96
+700 ─ #495057
+800 ─ #343a40
+900 ─ #212529
+
+[Semantic Aliases - Light Theme]
+--bg-base        = #f8f9fa  (sehr helles Grau, Haupt-Hintergrund)
+--bg-surface     = #ffffff  (Weiß, Cards/Sections)
+--bg-subtle      = #f1f3f5  (Hover-States)
+--text-primary   = #060f1c  (fast Schwarz, Überschriften)
+--text-secondary = #495057  (Dunkelgrau, Fließtext)
+--text-muted     = #adb5bd  (Grau, Labels/Footer)
+--border-default = #e9ecef
+--border-strong  = #dee2e6
+--accent         = #5b87cc  (Blau, Primary Buttons)
+
+[Semantic Aliases - Dark Theme (60-30-10 Regel, invertiert)]
+--bg-base        = #060f1c  (fast Schwarz)
+--bg-surface     = #0a1830  (dunkles Blau)
+--bg-subtle      = #102449  (mittel-dunkles Blau)
+--text-primary   = #f3f5fb  (fast Weiß)
+--text-secondary = #c8d3ec  (helles Blau-Grau)
+--text-muted     = #99b0db  (mittleres Blau-Grau)
+--border-default = #102449
+--border-strong  = #1a3e73
+--accent         = #5b87cc  (Blau, Primary Buttons)
+
+[Typography]
+--font-family     = 'Figtree', sans-serif
+--text-display    = 48px   (Hero Headlines)
+--text-heading    = 24px   (Section Titles)
+--text-body       = 16px   (Body Text)
+--text-caption    = 12px   (Labels, Footer)
+
+--leading-display = 56px
+--leading-heading = 32px
+--leading-body    = 24px
+--leading-caption = 16px
+
+--weight-regular  = 400
+--weight-semibold = 600
+
+[Spacing - 8pt Grid]
+--space-1 = 4px
+--space-2 = 8px
+--space-3 = 16px   (--gap-inner)
+--space-4 = 24px
+--space-5 = 32px   (--gap-between)
+--space-6 = 48px
+--space-7 = 64px   (--gap-section)
+--space-8 = 96px
+--space-9 = 128px
+
+[Border Radius]
+--radius-sm = 4px   (Tags, Inputs)
+--radius-md = 8px   (Buttons)
+--radius-lg = 16px  (Cards, Video)
+
+[Transitions]
+--duration-fast = 120ms  (Hover States)
+--duration-base = 200ms  (Drawer, Page Transitions)
+--easing-base   = ease
+
+[Safe Area Insets]
+--safe-top/bottom/left/right = env(safe-area-inset-*, 0px)
+(Support für iPhone Notch / Dynamic Island)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ KOMPONENTEN                                                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+[Navigation]
+- Sticky positioning (top: 0)
+- Min-height: 64px
+- Background: --bg-surface
+- Border-bottom: 1px solid --border-default
+
+[Container]
+- Max-width: 1280px
+- Padding: --space-5 (32px)
+
+[Hero Section]
+- Padding: --space-9 (128px) vertical
+- Grid: 12 columns
+- Content span: columns 1-9 (desktop)
+- Display text scales down on tablet (40px) and mobile (32px)
+
+[Cards]
+- Background: --bg-surface
+- Border: 1px solid --border-default
+- Border-radius: --radius-lg (16px)
+- Padding: --space-4 (24px)
+- Gap: --gap-inner (16px)
+
+[Buttons]
+.btn-primary  : Accent background, weiße Text (Dark: --color-900)
+.btn-secondary: Transparent/Weiß, Border-Styling
+.btn-ghost    : Transparent, für Close-Buttons
+
+- Padding: --space-2 (8px) vertical, --space-4 (24px) horizontal
+- Border-radius: --radius-md (8px)
+- Transition: --duration-fast (120ms)
+
+[Drawer / Sidebar]
+- Fixed position, right-aligned
+- Width: 480px (mobile: 100%)
+- Transform: translateX(100%) → translateX(0) für Animation
+- Backdrop: rgba(0, 0, 0, 0.72) dark, rgba(6, 15, 28, 0.55) light
+- Z-index: 300 (backdrop: 200)
+
+[Tags]
+- Font-size: --text-caption (12px)
+- Background: --bg-subtle
+- Border: 1px solid --border-default
+- Border-radius: --radius-sm (4px)
+- Padding: --space-1 (4px) vertical, --space-2 (8px) horizontal
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ RESPONSIVE BREAKPOINTS                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Desktop (> 1024px)
+- Hero: grid-column 1-9
+- Facts Grid: 3 columns
+- About Grid: 2 columns
+- Display: 48px
+
+Tablet (768px - 1024px)
+- Hero: full width
+- Display: 40px
+- Facts: 2 columns
+- About: 1 column
+
+Mobile (< 768px)
+- Display: 32px
+- Hero padding: --space-7 (64px)
+- Facts: 2 columns
+- About: 1 column
+- Footer: stacked, center-aligned
+
+Small Mobile (< 480px)
+- Container padding: --space-3 (16px)
+- Facts: 1 column
+- Hero Actions: stacked
+- Drawer: 100% width
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ DATEISTRUKTUR                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+HTML-Dateien (Content)
+├── index-premium.html         (Light Theme Landing Page)
+├── index-premium-dark.html    (Dark Theme Landing Page)
+├── profile.html               (Light Theme Formular)
+├── profile-dark.html          (Dark Theme Video Card)
+├── profile-dark-bio.html      (Dark Theme Bio Formular)
+├── profile-dark-edit.html     (Dark Theme Profil Editor)
+├── index - Kopie.html         (Light Theme Video Card)
+
+CSS-Dateien (Styling)
+├── index-premium.css          (Light Theme Styles)
+├── index-premium-dark.css     (Dark Theme Styles)
+├── profile.css
+├── profile-dark.css
+├── profile-dark-bio.css
+├── profile-dark-edit.css
+├── index-kopie.css
+
+JavaScript-Dateien (Verhalten)
+├── index-premium.js           (i18n + Drawer)
+├── index-premium-dark.js      (i18n + Drawer)
+├── profile.js                 (i18n + Formular-Speicherung)
+├── profile-dark.js            (i18n + Wave Animation)
+├── profile-dark-bio.js        (i18n + Formular-Laden/Speichern)
+├── profile-dark-edit.js       (Sidebar, Char-Counter, Upload, Reviews)
+├── index-kopie.js
+├── i18n.js                    (Konsolidierte i18n)
+└── template-loader.js         (Template Loading System)
+
+Templates (Standalone HTML)
+├── template-nav.html
+├── template-nav-dark.html
+├── template-footer.html
+├── template-footer-dark.html
+├── template-card.html
+├── template-form-card.html
+├── template-field.html
+├── drawer.html
+└── drawer-dark.html
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ i18n STRUCTUR                                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Flache Hierarchie (1 Ebene) mit Namespace-Prefix:
+
+nav.*       - Navigation (brand, about, video, contact)
+hero.*      - Hero Section (eyebrow, headline, sub, cta.*)
+facts.*     - Facts Grid (age.*, job.*, move.*)
+about.*     - About Cards (who.*, bring.*)
+video.*     - Video Section (title, sub)
+contact.*   - Contact Section (title, body, cta)
+footer.*    - Footer (left, right)
+drawer.*    - Drawer/Modal (title, close, profile.*, daily.*, wishes.*)
+card.*      - Generic Card (title, body)
+formcard.*  - Form Card (title)
+field.*     - Form Field (label, placeholder)
+profile.*   - Profile Form (basic.*, name.*, etc.)
+edit.*      - Edit Profile (title, save, cancel, char)
+notify.*    - Notifications (success, error)
+
+Verfügbare Sprachen: de (Deutsch), en (Englisch)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ACCESSIBILITY FEATURES                                                      │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+- Semantic HTML (nav, section, footer, aside)
+- ARIA Labels (aria-label, aria-labelledby, aria-modal)
+- Focus Management (focus-visible, Tab-Trap im Drawer)
+- Keyboard Navigation (Escape zum Schließen, Tab für Navigation)
+- Screen Reader Support (role="dialog", aria-hidden)
+- Color Contrast (WCAG AA kompatibel)
+- Reduced Motion Support (prefers-reduced-motion)
+- Safe Area Insets (iPhone Notch Support)
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ANIMATIONS                                                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+- Hover States: 120ms transition, ease
+- Drawer Slide-in: 200ms transition, ease
+- Wave Animation (profile-dark.css): SVG Path Animation
+- Smooth Scroll (prefers-reduced-motion: no-preference)
+
+═══════════════════════════════════════════════════════════════════════════════
+ENDE DER BESCHREIBUNG
+═══════════════════════════════════════════════════════════════════════════════

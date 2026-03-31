@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRUD Audit — All Functions</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;--n900:#0d1117;--c400:#4d7aa0;--c100:#dde4ed;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:11px;background:var(--n50);padding:16px;}
+h1{font-size:17px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:10px;color:var(--n500);margin-bottom:20px;}
+h2{font-size:12px;font-weight:600;color:var(--c400);margin:24px 0 6px;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--c100);padding-bottom:3px;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px;font-size:10px;}
+th{background:var(--n900);color:var(--n0);padding:6px 8px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+td{padding:5px 8px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.5;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--n50);}
+.fn{font-family:monospace;font-size:10px;font-weight:600;color:var(--n900);}
+.file{font-family:monospace;font-size:9px;color:var(--c400);}
+.c{display:inline-block;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:600;white-space:nowrap;}
+.create{background:#f0fdf4;color:#14532d;}
+.read{background:#eff6ff;color:#1e40af;}
+.update{background:#fef9ec;color:#7a5c00;}
+.delete{background:#fee2e2;color:#991b1b;}
+.ok{background:#f0fdf4;color:#14532d;}
+.viol{background:#fee2e2;color:#991b1b;}
+.dup{background:#fef9ec;color:#7a5c00;}
+.dead{background:#f3f4f6;color:#6b7280;}
+.layer{font-size:9px;color:var(--n500);}
+.note{font-size:10px;color:var(--n500);}
+.cat{background:var(--n100);font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);padding:4px 8px;border-bottom:1px solid var(--n200);}
+</style>
+</head>
+<body>
+
+<h1>CRUD Audit — Complete Function Inventory</h1>
+<div class="meta">Generated 2026-03-23 · Legend: <span class="c ok">OK</span> correct layer access · <span class="c viol">VIOLATION</span> consumer bypasses service · <span class="c dup">REDUNDANT</span> duplicate logic · <span class="c dead">DEAD</span> unused function</div>
+
+<!-- ══════════════ SERVICE LAYER ══════════════ -->
+<h2>1. AppService — Users (app_users)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getUser(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:57</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Async wrapper.</td></tr>
+<tr><td class="fn">getAllUsers(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:63</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getUsersByRole(role, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:70</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">createUser(data, cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:77</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">deleteUser(uid, cb)</td><td><span class="c delete">D</span></td><td class="file">app-service.js:96</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">updateUser(uid, patch, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:100</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getUserSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:915</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Sync shortcut for render paths.</td></tr>
+<tr><td class="fn">getUsersByRoleSync(role)</td><td><span class="c read">R</span></td><td class="file">app-service.js:916</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">Store.Users.byUid(uid)</td><td><span class="c read">R</span></td><td class="file">profile.js:276,330</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">ProfileStore.getDefault() calls Store.Users directly. Should use AppService.getUserSync().</td></tr>
+<tr><td class="fn">Store.Users.byRole('teacher')</td><td><span class="c read">R</span></td><td class="file">catalog-seed.js:248</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Seed script bypasses service layer.</td></tr>
+<tr><td class="fn">Store.Users.create(teacher)</td><td><span class="c create">C</span></td><td class="file">catalog-seed.js:265</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Seed script bypasses service layer.</td></tr>
+<tr><td class="fn">Store.Users.delete(uid)</td><td><span class="c delete">D</span></td><td class="file">catalog-seed.js:308</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Seed script bypasses service layer.</td></tr>
+</tbody>
+</table>
+
+<h2>2. AppService — Profiles (app_profiles)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getProfile(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:111</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getProfileOrDefault(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:118</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">saveProfile(uid, data, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:126</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getDisplayName(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:133</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getProfilePhoto(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:140</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">ProfileStore.getDisplayName(uid)</td><td><span class="c read">R</span></td><td class="file">teacher.js:297,771,971,1062,1155…</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Used ~20× in teacher.js and student.js. AppService.getDisplayName() exists but is async. Acceptable only if a sync version AppService.getDisplayNameSync() were added; otherwise needs refactor.</td></tr>
+<tr><td class="fn">ProfileStore.getOrDefault(uid)</td><td><span class="c read">R</span></td><td class="file">teacher.js:263</td><td class="layer">Store direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">AppService.getProfileOrDefault() exists and should be used.</td></tr>
+<tr><td class="fn">localStorage.getItem('app_profiles')</td><td><span class="c read">R</span></td><td class="file">catalog-seed.js:276,310</td><td class="layer">localStorage direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Seed script writes profiles directly. Should go via AppService.saveProfile().</td></tr>
+<tr><td class="fn">localStorage.setItem('app_profiles')</td><td><span class="c update">U</span></td><td class="file">catalog-seed.js:292,315</td><td class="layer">localStorage direct</td><td><span class="c viol">VIOLATION</span></td><td></td></tr>
+<tr><td class="fn">getTeachersWithProfiles(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:171</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Joins users + profiles. Correct pattern.</td></tr>
+</tbody>
+</table>
+
+<h2>3. AppService — Slots (app_slots)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">createSlot(data, cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:227</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">createSlotRange(tid,date,start,end,status,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:238</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotById(slotId, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:182</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByTeacher(tid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:189</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByTeacherDate(tid, date, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:197</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByStudent(sid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:204</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getAllSlots(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:211</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getAllSlotsSync()</td><td><span class="c read">R</span></td><td class="file">app-service.js:908</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByTeacherSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:909</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByTeacherDateSync(uid,date)</td><td><span class="c read">R</span></td><td class="file">app-service.js:910</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSlotsByStudentSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:911</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">updateSlot(slotId, patch, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:246</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">setSlotAvailability(slotId, base, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:254</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">applySlotTimeout(slotId, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:262</td><td class="layer">Service</td><td><span class="c dead">DEAD</span></td><td class="note">No callers found in consumer code. All timeout ops now use setSlotAvailability('timeout').</td></tr>
+<tr><td class="fn">removeSlotTimeout(slotId, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:269</td><td class="layer">Service</td><td><span class="c dead">DEAD</span></td><td class="note">No callers found in consumer code.</td></tr>
+<tr><td class="fn">bookSlot(slotId, sid, cb, role)</td><td><span class="c update">U</span></td><td class="file">app-service.js:278</td><td class="layer">Service</td><td><span class="c dup">REDUNDANT</span></td><td class="note">Books slot without escrow. Called from chat.js:1825 and student.js:2799 (SDV confirm). Should always use bookSlotWithEscrowSilent. Missing deposit deduction.</td></tr>
+<tr><td class="fn">bookSlotWithEscrowSilent(slotId,sid,tid,cb,role)</td><td><span class="c update">U</span></td><td class="file">app-service.js:576</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Correct function. Books + creates escrow + deducts deposit silently.</td></tr>
+<tr><td class="fn">bookSlotWithEscrow(slotId,sid,tid,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:635</td><td class="layer">Service</td><td><span class="c dup">REDUNDANT</span></td><td class="note">Like Silent but shows UI confirmation dialog. No callers found in consumer code — superseded by bookSlotWithEscrowSilent.</td></tr>
+<tr><td class="fn">cancelSlotBooking(slotId, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:285</td><td class="layer">Service</td><td><span class="c dup">REDUNDANT</span></td><td class="note">Cancels without policy check / refund. Used in teacher.js:1626, 2680 and student.js:2801. Should use cancelSlotWithPolicy() to apply refund rules correctly.</td></tr>
+<tr><td class="fn">cancelSlotWithPolicy(slotId,role,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:827</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Correct: computes refund tier, applies deposit logic.</td></tr>
+<tr><td class="fn">cancelBlockWithPolicy(slots,role,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:1073</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Multi-slot cancel with policy. Used in ui.js:1654.</td></tr>
+<tr><td class="fn">deleteSlot(slotId, cb)</td><td><span class="c delete">D</span></td><td class="file">app-service.js:292</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Removes availability slot (no booking). Correct usage.</td></tr>
+<tr><td class="fn">releaseSlot(slotId, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:301</td><td class="layer">Service</td><td><span class="c dup">REDUNDANT</span></td><td class="note">Alias of cancelSlotBooking without escrow handling. Used in dashboard.js:664 and teacher.js:2170. Unclear difference from cancelSlotBooking — should be consolidated.</td></tr>
+<tr><td class="fn">confirmSlot(slotId, cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:668</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Marks booked → confirmed + releases escrow.</td></tr>
+</tbody>
+</table>
+
+<h2>4. AppService — Recurring (app_recurring)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getRecurringByTeacher(tid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:312</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">recurringExists(tid, dow, time, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:321</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">recurringExistsSync(uid,dow,time)</td><td><span class="c read">R</span></td><td class="file">app-service.js:923</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">createRecurring(tid,dow,time,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:330</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">deleteRecurringByDayTime(tid,dow,time,cb)</td><td><span class="c delete">D</span></td><td class="file">app-service.js:339</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">materialiseWeek(tid,weekDates,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:347</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Creates slots from recurring rules. Idempotent.</td></tr>
+</tbody>
+</table>
+
+<h2>5. AppService — Selections (app_selections)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getSelectionsByStudent(sid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:358</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSelectionsByTeacher(tid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:365</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSelectionsByStudentSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:919</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getSelectionsByTeacherSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:920</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">createSelection(sid,tid,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:373</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">deleteSelection(sid,tid,cb)</td><td><span class="c delete">D</span></td><td class="file">app-service.js:381</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>6. AppService — Favorites (app_favorites)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getFavoritesByStudent(sid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:390</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getFavoriteTeacherIdsSync(sid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:413</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">addFavorite(sid,tid,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:398</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">removeFavorite(sid,tid,cb)</td><td><span class="c delete">D</span></td><td class="file">app-service.js:406</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>7. AppService — Wallet & Transactions</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getWallet(uid, cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:466</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getWalletSync(uid)</td><td><span class="c read">R</span></td><td class="file">app-service.js:926</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getAllWallets(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:472</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">deposit(uid,amount,desc,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:537</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">withdraw(uid,amount,desc,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:549</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getTransactions(uid,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:558</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getAllTransactions(opts,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:561</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getBookingHistory(uid,opts,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:564</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">calcDepositInfo(tid,amount,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:480</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td class="note">Reads teacher profile to compute deposit. Pure calculation, no write.</td></tr>
+<tr><td class="fn">checkPendingAffordability(slots,sid,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:499</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>8. AppService — Escrow (app_escrow)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">createEscrow(slotId,sid,tid,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:619</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getAllEscrows(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:618</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getEscrowBySlot(slotId,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:620</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getEscrowsByStudent(uid,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:621</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">getEscrowsByTeacher(uid,cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:622</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">adminReleaseEscrow(escrowId,admin,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:623</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">payDeposit(escrowId,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:624</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">requestDepositRefund(escrowId,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:625</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">releaseDeposit(escrowId,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:626</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">forfeitDeposit(escrowId,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:627</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">confirmLesson(escrowId,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:628</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">writeBookingRecord(slotId,sid,tid,escrow,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:567</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">writeBlockBookingRecord(slots,escrows,role,cb)</td><td><span class="c create">C</span></td><td class="file">app-service.js:598</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">writeBlockEscrowHold(slots,escrows,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:601</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>9. ChatStore — Messages (app_chat_messages)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">ChatStore.send(sid,rid,text,type)</td><td><span class="c create">C</span></td><td class="file">chat.js:201</td><td class="layer">ChatStore</td><td><span class="c ok">OK</span></td><td class="note">ChatStore is its own service layer for messages. No AppService wrapper exists — acceptable.</td></tr>
+<tr><td class="fn">ChatStore.getConversation(a,b)</td><td><span class="c read">R</span></td><td class="file">chat.js:165</td><td class="layer">ChatStore</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">ChatStore.sendBookingNotification(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:1389, student.js:640</td><td class="layer">ChatStore direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Consumer code calls ChatStore directly. Should be triggered inside bookSlotWithEscrowSilent or a dedicated notification method on AppService.</td></tr>
+<tr><td class="fn">ChatStore.sendMoveNotification(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:1175, student.js:455</td><td class="layer">ChatStore direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Same issue — should be called inside AppService.writeMoveRecord().</td></tr>
+<tr><td class="fn">ChatStore.sendBookingRequest(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:2001</td><td class="layer">ChatStore direct</td><td><span class="c viol">VIOLATION</span></td><td></td></tr>
+<tr><td class="fn">ChatStore.getRequestStatus(…)</td><td><span class="c read">R</span></td><td class="file">student.js:793,831</td><td class="layer">ChatStore direct</td><td><span class="c viol">VIOLATION</span></td><td></td></tr>
+<tr><td class="fn">ChatStore.sendServiceMessage(…)</td><td><span class="c create">C</span></td><td class="file">student.js:1035</td><td class="layer">ChatStore direct</td><td><span class="c viol">VIOLATION</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>10. EmailService (app_email_log)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">EmailService.onBookingCreated(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:1309, student.js:555</td><td class="layer">EmailService direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Consumer code fires emails directly. Should be triggered inside AppService.bookSlotWithEscrowSilent().</td></tr>
+<tr><td class="fn">EmailService.onBookingCancelled(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:1320, student.js:566</td><td class="layer">EmailService direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Same — should live inside cancelSlotWithPolicy().</td></tr>
+<tr><td class="fn">EmailService.onBookingMoved(…)</td><td><span class="c create">C</span></td><td class="file">teacher.js:1179, student.js:459</td><td class="layer">EmailService direct</td><td><span class="c viol">VIOLATION</span></td><td class="note">Should live inside AppService.writeMoveRecord().</td></tr>
+<tr><td class="fn">EmailService.onRequestReceived(…)</td><td><span class="c create">C</span></td><td class="file">student.js:1036</td><td class="layer">EmailService direct</td><td><span class="c viol">VIOLATION</span></td><td></td></tr>
+</tbody>
+</table>
+
+<h2>11. GuestSettings (app_guest_settings)</h2>
+<table>
+<thead><tr><th>Function</th><th>CRUD</th><th>File : line</th><th>Layer</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="fn">getGuestCurrency(cb)</td><td><span class="c read">R</span></td><td class="file">app-service.js:151</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+<tr><td class="fn">setGuestCurrency(code,cb)</td><td><span class="c update">U</span></td><td class="file">app-service.js:159</td><td class="layer">Service</td><td><span class="c ok">OK</span></td><td></td></tr>
+</tbody>
+</table>
+
+<!-- Summary -->
+<h2>Summary — Violations &amp; Redundancies</h2>
+<table>
+<thead><tr><th>#</th><th>Category</th><th>Count</th><th>Files affected</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="c viol">VIOLATION</span> Direct Store.Users access</td><td>4</td><td class="file">profile.js, catalog-seed.js</td><td class="note">profile.js → AppService.getUserSync(). catalog-seed.js → AppService.createUser() / deleteUser(). Seed scripts may be exempt as bootstrap tooling.</td></tr>
+<tr><td>2</td><td><span class="c viol">VIOLATION</span> Direct ProfileStore access</td><td>~25</td><td class="file">teacher.js, student.js, admin.js</td><td class="note">Add AppService.getDisplayNameSync() + AppService.getProfileSync() to avoid async wrapping. All ProfileStore calls in consumer code migrate to these two methods.</td></tr>
+<tr><td>3</td><td><span class="c viol">VIOLATION</span> Direct localStorage (app_profiles)</td><td>4</td><td class="file">catalog-seed.js</td><td class="note">Use AppService.saveProfile(). Acceptable as seed-only bootstrap.</td></tr>
+<tr><td>4</td><td><span class="c viol">VIOLATION</span> Direct ChatStore in consumer</td><td>5</td><td class="file">teacher.js, student.js</td><td class="note">Move sendBookingNotification + sendMoveNotification into AppService.bookSlotWithEscrowSilent() and writeMoveRecord(). Consumer code must never call ChatStore directly.</td></tr>
+<tr><td>5</td><td><span class="c viol">VIOLATION</span> Direct EmailService in consumer</td><td>4</td><td class="file">teacher.js, student.js</td><td class="note">Move all email triggers into service layer methods (bookSlotWithEscrowSilent, cancelSlotWithPolicy, writeMoveRecord). Consumer fires action → service handles side effects.</td></tr>
+<tr><td>6</td><td><span class="c dup">REDUNDANT</span> bookSlot vs bookSlotWithEscrowSilent</td><td>2 callers</td><td class="file">chat.js:1825, student.js:2799</td><td class="note">Replace bookSlot() calls with bookSlotWithEscrowSilent(). bookSlot() missing deposit deduction.</td></tr>
+<tr><td>7</td><td><span class="c dup">REDUNDANT</span> bookSlotWithEscrow (non-silent)</td><td>0 callers</td><td class="file">app-service.js:635</td><td class="note">Delete function — superseded by bookSlotWithEscrowSilent.</td></tr>
+<tr><td>8</td><td><span class="c dup">REDUNDANT</span> cancelSlotBooking vs cancelSlotWithPolicy</td><td>3 callers</td><td class="file">teacher.js:1626,2680, student.js:2801</td><td class="note">Replace with cancelSlotWithPolicy(). cancelSlotBooking skips refund logic.</td></tr>
+<tr><td>9</td><td><span class="c dup">REDUNDANT</span> releaseSlot vs cancelSlotBooking</td><td>2 callers</td><td class="file">dashboard.js:664, teacher.js:2170</td><td class="note">Consolidate into one cancel function. Difference between releaseSlot and cancelSlotBooking is unclear.</td></tr>
+<tr><td>10</td><td><span class="c dead">DEAD</span> applySlotTimeout / removeSlotTimeout</td><td>0 callers</td><td class="file">app-service.js:262,269</td><td class="note">Delete both. Replaced by setSlotAvailability('timeout').</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

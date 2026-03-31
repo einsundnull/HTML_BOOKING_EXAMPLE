@@ -1,0 +1,379 @@
+/* ══════════════════════════════════════════════════════════
+   MY-STUDENTS PAGE — Dedicated stylesheet
+   Extracted from teacher.css to ensure correct loading
+   on my-students.html independently of teacher.css cache.
+══════════════════════════════════════════════════════════ */
+
+/* ══════════════════════════════════════════════════════════
+   STUDENT CARD  .student-card-*
+══════════════════════════════════════════════════════════ */
+
+.student-card-edit-btn {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--neutral-200);
+  background: transparent;
+  color: var(--neutral-400);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .student-card-edit-btn:hover {
+    background: var(--color-50);
+    border-color: var(--color-300);
+    color: var(--color-500);
+  }
+}
+
+.student-card {
+  margin-bottom: var(--sp-3);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .student-card:hover { box-shadow: var(--shadow); }
+}
+
+.student-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  cursor: pointer;
+}
+.student-card-top:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.student-card-avatar { flex-shrink: 0; }
+
+.student-card-name-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.student-card-name {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-card-subtitle {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.student-card-summary {
+  font-size: var(--text-small);
+  color: var(--neutral-600);
+  margin-bottom: var(--sp-2);
+}
+
+.student-card-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.student-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-caption);
+  color: var(--neutral-600);
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--sp-2);
+  white-space: nowrap;
+}
+
+.student-card-badge--pending {
+  background: var(--pending-amber-bg);
+  border-color: var(--pending-amber-bd, var(--pending-amber));
+  color: var(--pending-amber-tx);
+}
+
+.student-card-badge--confirmed {
+  background: var(--status-confirmed-bg);
+  border-color: var(--status-confirmed-bd);
+  color: var(--status-confirmed-tx);
+}
+
+.student-card-badge-count { font-weight: var(--weight-semibold); }
+.student-card-badge-price { color: var(--color-400); font-weight: var(--weight-semibold); }
+
+.student-chevron          { color: var(--neutral-500); transition: transform var(--transition); display: flex; align-items: center; flex-shrink: 0; }
+.student-chevron.is-open  { transform: rotate(180deg); }
+
+/* ══════════════════════════════════════════════════════════
+   BOOKING DETAIL PANEL  .student-booking-detail
+══════════════════════════════════════════════════════════ */
+
+.student-booking-detail         { display: none; }
+.student-booking-detail.is-open { display: flex; flex-direction: column; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); border-top: 1px solid var(--neutral-200); }
+
+.student-booking-detail .all-bookings-day-divider:first-child { margin-top: var(--sp-3); }
+.student-bookings-empty { padding: var(--sp-2) var(--sp-4); font-size: var(--text-caption); }
+
+.student-booking-detail .all-booking-block-wrapper {
+  margin-bottom: 0;
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  border-top: none;
+  border-bottom: 1px solid var(--color-200);
+}
+.student-booking-detail .all-booking-block-wrapper:last-child { border-bottom: none; }
+
+.student-date-divider {
+  padding-left: var(--sp-4);
+  padding-right: var(--sp-4);
+  margin-top: var(--sp-2);
+}
+
+/* ── Day divider ── */
+.all-bookings-day-divider {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: var(--sp-2) 0 var(--sp-1);
+  border-bottom: 1px solid var(--neutral-200);
+  margin-bottom: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+.all-bookings-day-divider:first-child { margin-top: 0; }
+.all-bookings-day-divider-past {
+  color: var(--neutral-300);
+  border-bottom-color: var(--neutral-100);
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOOKING ROWS  .student-booking-row
+══════════════════════════════════════════════════════════ */
+
+.student-booking-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  font-size: var(--text-caption);
+}
+.student-booking-row:last-child { border-bottom: none; }
+.student-booking-row.is-past    { opacity: 0.55; }
+
+.student-booking-time {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-800);
+  white-space: nowrap;
+  min-width: 90px;
+}
+.student-booking-price {
+  font-weight: var(--weight-semibold);
+  color: var(--color-400);
+  flex: 1;
+}
+.student-booking-status {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  padding: 1px 6px;
+  border-radius: 99px;
+}
+.student-booking-row.is-confirmed .student-booking-status {
+  background: var(--status-confirmed-bg);
+  color: var(--status-confirmed-tx);
+  border: 1px solid var(--status-confirmed-bd);
+}
+.student-booking-row:not(.is-confirmed) .student-booking-status {
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+  border: 1px solid var(--neutral-200);
+}
+
+/* ══════════════════════════════════════════════════════════
+   PRICE EDITOR  .ms-price-*
+   IMPL_MY_STUDENTS_PAGE_20260324
+══════════════════════════════════════════════════════════ */
+
+.ms-price-section {
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  background: var(--neutral-50);
+}
+.ms-price-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+}
+.ms-price-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-700);
+  flex: 1;
+}
+.ms-price-default-badge {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--neutral-200);
+  color: var(--neutral-600);
+}
+.ms-price-override-badge {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  padding: 1px 6px;
+  border-radius: 99px;
+  background: var(--color-100);
+  color: var(--color-700);
+  border: 1px solid var(--color-200);
+}
+.ms-price-default-badge.is-hidden,
+.ms-price-override-badge.is-hidden { display: none; }
+
+.ms-price-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+.ms-price-input {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--neutral-0);
+  width: 90px;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.ms-price-input:focus {
+  outline: none;
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+.ms-price-hint {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  flex: 1;
+  white-space: nowrap;
+}
+.ms-price-actions  { display: flex; gap: var(--sp-2); align-items: center; }
+.ms-price-reset.is-hidden { display: none; }
+
+/* ══════════════════════════════════════════════════════════
+   ACCORDION  .ms-accordion-*
+   IMPL_MY_STUDENTS_ACCORDION_20260329
+══════════════════════════════════════════════════════════ */
+
+.ms-accordion { border: 1px solid var(--neutral-200); border-radius: var(--radius-md); background: var(--neutral-0); overflow: hidden; transition: box-shadow var(--transition); }
+.ms-accordion.is-open { box-shadow: var(--shadow); }
+.ms-accordion-header { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-3); cursor: pointer; user-select: none; transition: background var(--transition); }
+@media (hover: hover) and (pointer: fine) { .ms-accordion-header:hover { background: var(--neutral-50); } }
+.ms-accordion-header:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.ms-accordion-icon          { width: 30px; height: 30px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+.ms-accordion-icon-price    { background: var(--color-50);          color: var(--color-400); }
+.ms-accordion-icon-bookings { background: var(--status-pending-bg); color: var(--status-pending-tx); }
+.ms-accordion-title   { flex: 1; font-size: var(--text-small); font-weight: var(--weight-semibold); color: var(--neutral-800); }
+.ms-accordion-meta    { font-size: var(--text-caption); color: var(--neutral-400); white-space: nowrap; flex-shrink: 0; }
+.ms-accordion-chevron { color: var(--neutral-400); flex-shrink: 0; display: flex; align-items: center; transition: transform var(--transition); }
+.ms-accordion.is-open .ms-accordion-chevron { transform: rotate(180deg); }
+.ms-accordion-body              { display: none; border-top: 1px solid var(--neutral-100); padding: var(--sp-3); }
+.ms-accordion.is-open .ms-accordion-body { display: block; }
+
+/* ══════════════════════════════════════════════════════════
+   GRID NAVIGATION BUTTON  .ms-btn-grid
+   IMPL_MY_STUDENTS_ACCORDION_20260329
+══════════════════════════════════════════════════════════ */
+
+.ms-btn-grid {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3);
+  background: var(--color-900);
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-family: var(--font);
+  text-decoration: none;
+  color: inherit;
+  transition: background var(--transition), box-shadow var(--transition);
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+}
+@media (hover: hover) and (pointer: fine) { .ms-btn-grid:hover { background: var(--color-800); box-shadow: var(--shadow-lg); } }
+.ms-btn-grid:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.ms-btn-grid-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.85);
+}
+.ms-btn-grid-text  { flex: 1; text-align: left; min-width: 0; }
+.ms-btn-grid-title { display: block; font-size: var(--text-small); font-weight: var(--weight-semibold); color: var(--neutral-0); }
+.ms-btn-grid-sub   { display: block; font-size: var(--text-caption); color: rgba(255, 255, 255, 0.45); margin-top: 2px; }
+.ms-btn-grid-chip  {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 99px;
+  padding: 2px 8px 2px 4px;
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  color: rgba(255, 255, 255, 0.80);
+  flex-shrink: 0;
+}
+.ms-btn-grid-chip-av {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-500);
+  color: var(--neutral-0);
+  font-size: 9px;
+  font-weight: var(--weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ms-btn-grid-arrow { color: rgba(255, 255, 255, 0.30); flex-shrink: 0; font-size: 20px; line-height: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   EMPTY STATE HINT  .ms-empty-hint
+   V-04 FIX: replaces inline style.marginTop = '24px'
+══════════════════════════════════════════════════════════ */
+
+.ms-empty-hint {
+  margin-top: var(--sp-6);
+}

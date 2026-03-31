@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>IMPL — Admin User-Detail: TX-Detail Sheet</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.6}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--ok-bd:#bbf7d0;
+      --info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+      --err:#c0392b;--err-bg:#fff5f5;--err-bd:#fecaca;
+      --warn:#d97706;--warn-bg:#fffbeb;
+    }
+    .ph{background:var(--navy);padding:28px 40px 24px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .ph-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:5px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:820px;margin-bottom:14px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .ph-badge.fix{background:rgba(220,38,38,.3);border-color:rgba(220,38,38,.5)}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.page{padding:16px}}
+    .sec{margin-bottom:44px}
+    .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--n200)}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+    .sec-title{font-size:17px;font-weight:700}
+    .callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px}
+    .c-ok{background:var(--ok-bg);border-color:var(--ok);color:#14532d}
+    .c-inf{background:var(--info-bg);border-color:var(--info);color:#1a3a6b}
+    .c-err{background:var(--err-bg);border-color:var(--err);color:#7f1d1d}
+    .callout strong{font-weight:700}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr.r-new{background:var(--info-bg)}
+    tbody tr.r-fix{background:var(--err-bg)}
+    tbody tr.r-ctx{background:var(--n50)}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+    .code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0}
+    .code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:14px}
+    .code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0}
+    .cm{color:#64748b}.ck{color:#93c5fd}.cs{color:#86efac}.cv{color:#fde68a}.co{color:#f9a8d4}
+
+    /* Pipeline diagram */
+    .pipe{display:flex;flex-direction:column;gap:0;margin-bottom:20px}
+    .pipe-step{display:grid;grid-template-columns:180px 1fr;border:1px solid var(--n200);border-bottom:none;background:var(--n0)}
+    .pipe-step:first-child{border-radius:8px 8px 0 0}
+    .pipe-step:last-child{border-bottom:1px solid var(--n200);border-radius:0 0 8px 8px}
+    .pipe-step.hi{background:var(--ok-bg)}
+    .pipe-step.err{background:var(--err-bg)}
+    .pipe-step.ctx{background:var(--n50)}
+    .pipe-left{padding:10px 14px;border-right:1px solid var(--n200);display:flex;flex-direction:column;gap:3px}
+    .pipe-file{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--n400)}
+    .pipe-fn{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--navy)}
+    .pipe-right{padding:10px 14px;font-size:12px;color:var(--n500);line-height:1.5}
+    .pipe-arrow{text-align:center;padding:3px 0;font-size:16px;color:var(--n400)}
+
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Admin</div>
+  <div class="ph-title">User-Detail: Vollständige Transaktionsdetails</div>
+  <div class="ph-sub">
+    Klick auf eine Transaktion in der Admin-Detailansicht öffnet jetzt dasselbe
+    TX-Detail-Bottomsheet wie im Wallet des Users — kein redundanter Code.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge fix">2 Bugs behoben</span>
+    <span class="ph-badge">user-detail.js · app-config.js</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-47</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ROOT CAUSE -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">Root Causes</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Bug</th><th>Datei</th><th>Ursache</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>1</td>
+            <td><strong>Kein Click-Handler</strong></td>
+            <td><code>user-detail.js</code></td>
+            <td><code>_buildTxItem()</code> baute das <code>&lt;li&gt;</code>-Element ohne jeglichen <code>addEventListener</code>. Klick hatte keine Wirkung.</td>
+          </tr>
+          <tr class="r-fix">
+            <td>2</td>
+            <td><strong><code>wallet-core.js</code> nicht geladen</strong></td>
+            <td><code>app-config.js</code></td>
+            <td><code>WalletCore</code> fehlte in der Script-Liste von <code>user-detail.html</code>. Selbst mit Click-Handler wäre <code>WalletCore.showTxDetail</code> <code>undefined</code> gewesen.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALL PIPELINE -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">Vollständige Call-Pipeline</div></div>
+
+    <div class="pipe">
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">Browser</div><div class="pipe-fn">admin.html → Detail-Button</div></div>
+        <div class="pipe-right">Admin klickt „Detail" bei einem User → navigiert zu <code>user-detail.html?uid=t1</code></div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">app-config.js</div><div class="pipe-fn">Script-Injection</div></div>
+        <div class="pipe-right">Lädt alle Scripts für <code>user-detail.html</code> in definierter Reihenfolge (siehe Abschnitt 4)</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">window.addEventListener('load')</div></div>
+        <div class="pipe-right"><code>CurrencyService.onReady()</code> → <code>_initUserDetail()</code> → <code>Navbar.init('admin')</code> → <code>_load()</code></div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_load()</div></div>
+        <div class="pipe-right">Liest <code>?uid=</code> → speichert in <code>_uid</code> (Modul-global). Lädt async: Wallet, Transaktionen, Escrows.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_renderTransactions(txs)</div></div>
+        <div class="pipe-right">Iteriert über TX-Array. Ruft für jede TX <code>_buildTxItem(tx)</code> auf.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_buildTxItem(tx) ← NEU</div></div>
+        <div class="pipe-right">
+          Baut <code>.wallet-tx-item</code> DOM-Element. <strong>Neu:</strong> registriert <code>click</code>-Handler via IIFE-Closure um TX-Objekt zu kapseln.<br><br>
+          <code>li.addEventListener('click', function() { WalletCore.showTxDetail(t, _uid); });</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><div class="pipe-file">wallet-core.js</div><div class="pipe-fn">WalletCore.showTxDetail(tx, uid)</div></div>
+        <div class="pipe-right">
+          Öffentlicher Export. Ruft <code>loadI18n(cb)</code> → XHR auf <code>./locales/wallet.json</code> → dann <code>_showTxDetail(tx, i18n, uid)</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><div class="pipe-file">wallet-core.js</div><div class="pipe-fn">_showTxDetail(tx, i18n, uid)</div></div>
+        <div class="pipe-right">
+          Baut das Bottom-Sheet DOM: Typ, Betrag (+/-), Saldo, Zeitpunkt, Status, Beschreibung, Wallet-Inhaber, Gegenpartei, Stunden-Daten, Deposit-Info, Storno-Tier, IDs.<br>
+          Hängt an <code>document.body</code>. Animiert mit <code>requestAnimationFrame(→ .is-open)</code>.
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">wallet-core.js</div><div class="pipe-fn">_loadRelatedTxs()</div></div>
+        <div class="pipe-right">Async: lädt verwandte TXs des gleichen Slots via <code>AppService.getTransactions(uid, cb)</code>. Klick auf Related-TX → <code>_showTxDetail()</code> rekursiv.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GEÄNDERTE DATEIEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Geänderte Dateien &amp; Funktionen</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion / Stelle</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-new">
+            <td><code>js/user-detail.js</code></td>
+            <td><code>_buildTxItem(tx)</code></td>
+            <td>
+              <code>li.style.cursor = 'pointer'</code> hinzugefügt.<br>
+              Click-Handler registriert via IIFE-Closure:<br>
+              <code>(function(t){ li.addEventListener('click', function(){ WalletCore.showTxDetail(t, _uid); }); })(tx);</code><br><br>
+              <strong>Wichtig:</strong> <code>_uid</code> ist die Modul-Variable (gesetzt in <code>_load()</code> beim Initialisieren). Sie entspricht dem User dessen Wallet gerade angezeigt wird — identisch mit <code>tx.uid</code>.
+            </td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/app-config.js</code></td>
+            <td><code>'user-detail.html'</code> Script-Liste</td>
+            <td>
+              <code>adapter-firestore.js</code> hinzugefügt (vor app-service.js)<br>
+              <code>wallet-core.js</code> hinzugefügt (nach navbar.js, vor user-detail.js)
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SCRIPT-LADEREIHENFOLGE -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Script-Ladereihenfolge — user-detail.html (vollständig)</div></div>
+
+    <div class="callout c-inf">
+      <strong>Zwingend.</strong> Jedes Script hängt von den Objekten der davor geladenen ab.
+      <code>wallet-core.js</code> braucht <code>AppService</code>, <code>ProfileStore</code> und <code>CurrencyService</code> — alle müssen vorher geladen sein.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>#</th><th>Datei</th><th>Exponiert</th><th>Benötigt</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><code>currency-provider-mock.js</code></td><td><code>CurrencyProviderMock</code></td><td>—</td><td>war vorhanden</td></tr>
+          <tr><td>2</td><td><code>currency-service.js</code></td><td><code>CurrencyService</code></td><td><code>CurrencyProviderMock</code></td><td>war vorhanden</td></tr>
+          <tr><td>3</td><td><code>store.js</code></td><td><code>Store</code>, <code>ProfileStore</code></td><td>—</td><td>war vorhanden</td></tr>
+          <tr><td>4</td><td><code>profile.js</code></td><td><code>ProfileStore.*</code></td><td><code>Store</code></td><td>war vorhanden</td></tr>
+          <tr><td>5</td><td><code>adapter-localstorage.js</code></td><td><code>LocalStorageAdapter</code></td><td><code>Store</code>, <code>ProfileStore</code></td><td>war vorhanden</td></tr>
+          <tr class="r-new"><td>6</td><td><code>adapter-firestore.js</code></td><td><code>FirestoreAdapter</code></td><td>—</td><td>NEU hinzugefügt</td></tr>
+          <tr><td>7</td><td><code>app-service.js</code></td><td><code>AppService</code></td><td><code>LocalStorageAdapter</code>, <code>FirestoreAdapter</code></td><td>war vorhanden</td></tr>
+          <tr><td>8</td><td><code>auth.js</code></td><td><code>Auth</code></td><td><code>Store</code></td><td>war vorhanden</td></tr>
+          <tr><td>9</td><td><code>ui.js</code></td><td><code>Modal</code>, <code>Toast</code>, <code>_fmtForUser</code></td><td><code>AppService</code></td><td>war vorhanden</td></tr>
+          <tr><td>10</td><td><code>navbar.js</code></td><td><code>Navbar</code></td><td><code>Auth</code>, <code>ProfileStore</code></td><td>war vorhanden</td></tr>
+          <tr class="r-new"><td>11</td><td><code>wallet-core.js</code></td><td><code>WalletCore</code> inkl. <code>showTxDetail(tx, uid)</code></td><td><code>AppService</code>, <code>ProfileStore</code>, <code>CurrencyService</code>, <code>_fmtForUser</code> (ui.js)</td><td>NEU hinzugefügt</td></tr>
+          <tr><td>12</td><td><code>user-detail.js</code></td><td>—</td><td>Alle obigen, insbes. <code>WalletCore</code></td><td>geändert</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BETEILIGTE FUNKTIONEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Alle beteiligten Funktionen</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Datei</th><th>Signatur</th><th>Rolle</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>_buildTxItem</code></td><td><code>user-detail.js</code></td><td><code>(tx) → HTMLElement</code></td><td>Baut TX-Zeile + <strong>neuer Click-Handler</strong></td></tr>
+          <tr class="r-ctx"><td><code>_renderTransactions</code></td><td><code>user-detail.js</code></td><td><code>(txs[]) → void</code></td><td>Iteriert TXs, ruft <code>_buildTxItem</code> auf</td></tr>
+          <tr class="r-ctx"><td><code>_load</code></td><td><code>user-detail.js</code></td><td><code>() → void</code></td><td>Setzt <code>_uid</code>, lädt async alle Daten</td></tr>
+          <tr class="r-ctx"><td><code>WalletCore.showTxDetail</code></td><td><code>wallet-core.js</code></td><td><code>(tx, uid) → void</code></td><td>Öffentlicher Export → ruft <code>loadI18n</code> → <code>_showTxDetail</code></td></tr>
+          <tr class="r-ctx"><td><code>loadI18n</code></td><td><code>wallet-core.js</code></td><td><code>(cb) → void</code></td><td>XHR auf <code>./locales/wallet.json</code>, cached nach erstem Laden</td></tr>
+          <tr class="r-ctx"><td><code>_showTxDetail</code></td><td><code>wallet-core.js</code></td><td><code>(tx, i18n, uid) → void</code></td><td>Rendert Bottom-Sheet komplett, hängt an <code>document.body</code></td></tr>
+          <tr class="r-ctx"><td><code>_loadRelatedTxs</code></td><td><code>wallet-core.js</code></td><td><code>(tx, uid, i18n, cb) → void</code></td><td>Async TX-Lookup für Related-Section</td></tr>
+          <tr class="r-ctx"><td><code>AppService.getTransactions</code></td><td><code>app-service.js</code></td><td><code>(uid, cb) → void</code></td><td>Liefert alle TXs des Users — für Related-TX Loader</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CSS -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">6</span><div class="sec-title">CSS-Voraussetzungen</div></div>
+
+    <div class="callout c-ok">
+      <strong>Keine neuen CSS-Dateien nötig.</strong> <code>wallet.css</code> war bereits in <code>user-detail.html</code> geladen
+      und enthält alle benötigten Klassen des Bottom-Sheets.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>CSS-Datei</th><th>Enthält</th><th>Geladen in user-detail.html</th></tr></thead>
+        <tbody>
+          <tr><td><code>css/wallet.css</code></td><td><code>.wtx-detail-backdrop</code>, <code>.wtx-detail-panel</code>, <code>.wtx-detail-*</code>, <code>.wallet-tx-item</code>, alle Bottom-Sheet-Animationen</td><td>✅ war bereits geladen</td></tr>
+          <tr><td><code>css/components.css</code></td><td><code>.btn</code>, <code>.form-*</code>, <code>.modal-*</code></td><td>✅ war bereits geladen</td></tr>
+          <tr><td><code>css/tokens.css</code></td><td>Alle Design-Tokens (<code>--neutral-*</code>, <code>--color-*</code>, etc.)</td><td>✅ war bereits geladen</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WARUM _uid UND NICHT tx.uid -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">7</span><div class="sec-title">Warum <code>_uid</code> und nicht <code>tx.uid</code>?</div></div>
+
+    <div class="callout c-inf">
+      Beide Werte sind in diesem Kontext gleich: <code>_uid</code> ist der User auf der Admin-Detailseite,
+      und alle geladenen TXs gehören diesem User (<code>tx.uid === _uid</code>). <br><br>
+      <strong>Dennoch wird <code>_uid</code> verwendet</strong>, weil <code>WalletCore._showTxDetail()</code> <code>uid</code>
+      für drei Zwecke nutzt: (1) Währungsformatierung via <code>_fmtForUser(amount, uid)</code>,
+      (2) Related-TX Lookup via <code>AppService.getTransactions(uid, cb)</code>,
+      (3) Bestimmung des Kontakt-Empfängers im TX-Inquiry-Dialog. Alle drei Fälle
+      erwarten den Wallet-Inhaber — das ist <code>_uid</code>.
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_USER_DETAIL_TX_SHEET_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-47 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Admin — Booking System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="./js/app-config.js"></script>
+  <script>
+    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/wallet.css',
+        './css/admin.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <main class="page">
+
+    <div class="page-header">
+      <h2>Admin</h2>
+      <p>Userverwaltung und Zahlungsfreigaben.</p>
+    </div>
+
+    <!-- ── User stats row ── -->
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">Lehrer</div><div class="stat-value" id="stat-teachers">—</div></div>
+      <div class="stat-card"><div class="stat-label">Schüler</div><div class="stat-value" id="stat-students">—</div></div>
+      <div class="stat-card"><div class="stat-label">Buchungen</div><div class="stat-value" id="stat-bookings">—</div></div>
+      <div class="stat-card"><div class="stat-label">Offene Escrows</div><div class="stat-value" id="stat-escrows">—</div></div>
+    </div>
+
+    <!-- ── Financial Summary Panel ── -->
+    <div class="fin-summary-panel">
+      <div class="fin-summary-header">
+        <span class="fin-summary-title">Finanzübersicht</span>
+        <button class="btn btn-secondary btn-sm" id="fin-refresh-btn">↻ Aktualisieren</button>
+      </div>
+      <div class="fin-cards-grid">
+        <div class="fin-card fin-card--confirmed">
+          <div class="fin-card-label">Bestätigt &amp; ausgezahlt</div>
+          <div class="fin-card-value" id="fin-confirmed-val">—</div>
+          <div class="fin-card-sub" id="fin-confirmed-sub">— Stunden</div>
+          <div class="fin-card-icon">★</div>
+        </div>
+        <div class="fin-card fin-card--held">
+          <div class="fin-card-label">Deposit gehalten</div>
+          <div class="fin-card-value" id="fin-held-val">—</div>
+          <div class="fin-card-sub" id="fin-held-sub">— Slots</div>
+          <div class="fin-card-icon">⏸</div>
+        </div>
+        <div class="fin-card fin-card--pending">
+          <div class="fin-card-label">F&auml;llig bei Best&auml;tigung</div>
+          <div class="fin-card-value" id="fin-pending-val">—</div>
+          <div class="fin-card-sub" id="fin-pending-sub">— Slots</div>
+          <div class="fin-card-icon">→</div>
+        </div>
+        <div class="fin-card fin-card--future">
+          <div class="fin-card-label">Geplanter Umsatz</div>
+          <div class="fin-card-value" id="fin-future-val">—</div>
+          <div class="fin-card-sub" id="fin-future-sub">— zuk&uuml;nftige Slots</div>
+          <div class="fin-card-icon">📅</div>
+        </div>
+        <div class="fin-card fin-card--wallet">
+          <div class="fin-card-label">Wallet Gesamtguthaben</div>
+          <div class="fin-card-value" id="fin-wallet-val">—</div>
+          <div class="fin-card-sub" id="fin-wallet-sub">— Benutzer</div>
+          <div class="fin-card-icon">💳</div>
+        </div>
+        <div class="fin-card fin-card--refund">
+          <div class="fin-card-label">Ausstehende Refunds</div>
+          <div class="fin-card-value" id="fin-refund-val">—</div>
+          <div class="fin-card-sub" id="fin-refund-sub">— offen</div>
+          <div class="fin-card-icon">↩</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main tabs -->
+    <div class="admin-main-tabs">
+      <button class="admin-tab-btn active" data-main-tab="users">Benutzer</button>
+      <button class="admin-tab-btn" data-main-tab="payments">Zahlungen</button>
+      <button class="admin-tab-btn" data-main-tab="audit">Audit Log</button>
+    </div>
+
+    <!-- ── Tab: Benutzer ── -->
+    <div id="admin-tab-users">
+      <div class="admin-grid">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Benutzer erstellen</div><div class="card-description">Lehrer oder Schüler anlegen.</div></div>
+          </div>
+          <form id="create-form" novalidate>
+          <div class="form-stack">
+            <div class="form-group">
+              <label class="form-label" for="f-uid">UID</label>
+              <input class="form-input" type="text" id="f-uid" placeholder="z.B. t1, s2" autocapitalize="none" spellcheck="false" />
+              <span class="form-error-msg is-hidden" id="e-uid"></span>
+              <span class="form-hint">Eindeutiger Bezeichner — wird zum Anmelden verwendet.</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="f-name">Name</label>
+              <input class="form-input" type="text" id="f-name" placeholder="Vollständiger Name" />
+              <span class="form-error-msg is-hidden" id="e-name"></span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Rolle</label>
+              <div class="custom-dropdown" id="dd-role" data-dropdown-id="f-role">
+                <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" data-dropdown-trigger="f-role">
+                  <span class="custom-dropdown-label" data-dropdown-label="f-role">Rolle wählen…</span>
+                  <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <ul class="custom-dropdown-list" role="listbox" data-dropdown-list="f-role">
+                  <li class="custom-dropdown-item" role="option" data-value="" aria-selected="false">Rolle wählen…</li>
+                  <li class="custom-dropdown-item" role="option" data-value="teacher" aria-selected="false">Lehrer</li>
+                  <li class="custom-dropdown-item" role="option" data-value="student" aria-selected="false">Schüler</li>
+                </ul>
+              </div>
+              <span class="form-error-msg is-hidden" id="e-role"></span>
+            </div>
+            <div class="form-group is-hidden" id="discipline-group">
+              <label class="form-label">Fachbereich</label>
+              <div class="custom-dropdown" id="dd-discipline" data-dropdown-id="f-discipline">
+                <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false" data-dropdown-trigger="f-discipline">
+                  <span class="custom-dropdown-label" data-dropdown-label="f-discipline">Fachbereich wählen…</span>
+                  <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <ul class="custom-dropdown-list" role="listbox" data-dropdown-list="f-discipline">
+                  <li class="custom-dropdown-item" role="option" data-value="" aria-selected="false">Fachbereich wählen…</li>
+                  <li class="custom-dropdown-item" role="option" data-value="ski" aria-selected="false">Ski-Instruktor</li>
+                  <li class="custom-dropdown-item" role="option" data-value="snowboard" aria-selected="false">Snowboard-Instruktor</li>
+                  <li class="custom-dropdown-item" role="option" data-value="paragliding" aria-selected="false">Paragliding-Instruktor</li>
+                  <li class="custom-dropdown-item" role="option" data-value="climbing" aria-selected="false">Kletter-Instruktor</li>
+                  <li class="custom-dropdown-item" role="option" data-value="diving" aria-selected="false">Tauch-Instruktor</li>
+                </ul>
+              </div>
+            </div>
+            <button class="btn btn-primary btn-self-start" id="create-btn" type="submit">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                <path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+              Benutzer erstellen
+            </button>
+          </div>
+          </form>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Benutzer</div><div class="card-description">Alle Lehrer und Schüler.</div></div>
+            <div class="segmented">
+              <button class="segmented-btn active" data-tab="teacher">Lehrer</button>
+              <button class="segmented-btn" data-tab="student">Schüler</button>
+            </div>
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead><tr><th>UID</th><th>Name</th><th>Info</th><th>Aktionen</th></tr></thead>
+              <tbody id="user-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Tab: Zahlungen ── -->
+    <div id="admin-tab-payments" class="is-hidden">
+
+      <!-- Sub-Tabs -->
+      <div class="admin-subtab-bar">
+        <button class="admin-subtab-btn active" data-subtab="escrows">Escrow-Transfers</button>
+        <button class="admin-subtab-btn" data-subtab="all-tx">Alle Transaktionen</button>
+        <button class="admin-subtab-btn" data-subtab="bookings">Buchungsübersicht</button>
+      </div>
+
+      <!-- ── Escrow-Transfers ── -->
+      <div id="admin-subtab-escrows">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Escrow-Transfers</div>
+              <div class="card-description">Hinterlegte Zahlungen — Admin gibt frei damit der Betrag ans Lehrer-Wallet geht.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="escrow-refresh-btn">↻ Aktualisieren</button>
+          </div>
+          <div class="admin-escrow-filters" id="escrow-filters">
+            <button class="filter-chip active" data-escrow-filter="held">Ausstehend</button>
+            <button class="filter-chip" data-escrow-filter="released">Freigegeben</button>
+            <button class="filter-chip" data-escrow-filter="all">Alle</button>
+          </div>
+          <div id="escrow-list">
+            <p class="wallet-history-empty" id="escrow-empty">Keine Escrows gefunden.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Alle Transaktionen ── -->
+      <div id="admin-subtab-all-tx" class="is-hidden">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Alle Transaktionen</div>
+              <div class="card-description">Vollständige Übersicht aller Wallet-Bewegungen zwischen Lehrern und Schülern.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="alltx-refresh-btn">↻ Aktualisieren</button>
+          </div>
+
+          <!-- Type chips -->
+          <div class="admin-escrow-filters" id="alltx-type-filter">
+            <button class="filter-chip active" data-tx-type="all">Alle</button>
+            <button class="filter-chip" data-tx-type="deposit">↑ Einzahlung</button>
+            <button class="filter-chip" data-tx-type="withdrawal">↓ Auszahlung</button>
+            <button class="filter-chip" data-tx-type="escrow_hold">⏸ Deposit</button>
+            <button class="filter-chip" data-tx-type="escrow_release">▶ Freigabe</button>
+            <button class="filter-chip" data-tx-type="refund">↩ Refund</button>
+            <button class="filter-chip" data-tx-type="cancellation">✕ Storno</button>
+            <button class="filter-chip" data-tx-type="lesson_confirmed">★ Bestätigt</button>
+          </div>
+
+          <!-- Date + party filters -->
+          <div class="alltx-filter-row">
+            <label class="wf-label">Von</label>
+            <input type="date" class="wf-date" id="alltx-from" />
+            <label class="wf-label">Bis</label>
+            <input type="date" class="wf-date" id="alltx-to" />
+          </div>
+          <div class="alltx-filter-row">
+            <label class="wf-label">Lehrer:</label>
+            <div class="custom-dropdown alltx-party-dd" id="alltx-teacher-dd">
+              <button type="button" class="custom-dropdown-trigger" id="alltx-teacher-trigger">
+                <span class="custom-dropdown-label" id="alltx-teacher-label">Alle Lehrer</span>
+                <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" id="alltx-teacher-list" role="listbox"></ul>
+            </div>
+            <label class="wf-label">Schüler:</label>
+            <div class="custom-dropdown alltx-party-dd" id="alltx-student-dd">
+              <button type="button" class="custom-dropdown-trigger" id="alltx-student-trigger">
+                <span class="custom-dropdown-label" id="alltx-student-label">Alle Schüler</span>
+                <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" id="alltx-student-list" role="listbox"></ul>
+            </div>
+          </div>
+          <div class="alltx-filter-row alltx-summary-row">
+            <span class="alltx-count-badge" id="alltx-count"></span>
+            <span class="alltx-volume" id="alltx-volume"></span>
+            <button class="filter-chip filter-chip-reset is-hidden" id="alltx-reset">✕ Zurücksetzen</button>
+          </div>
+
+          <ul class="wallet-tx-list" id="alltx-list">
+            <li class="wallet-history-empty" id="alltx-empty">Keine Transaktionen gefunden.</li>
+          </ul>
+        </div>
+      </div>
+      <!-- ── Buchungsübersicht ── -->
+      <div id="admin-subtab-bookings" class="is-hidden">
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Buchungsübersicht</div>
+              <div class="card-description">Alle Buchungen — Lehrer, Schüler, Slots, Preise, Status.</div>
+            </div>
+            <button class="btn btn-secondary btn-sm" id="bookings-refresh-btn">↻ Aktualisieren</button>
+          </div>
+          <!-- Filters -->
+          <div class="admin-escrow-filters" id="bookings-status-filter">
+            <button class="filter-chip active" data-booking-status="all">Alle</button>
+            <button class="filter-chip" data-booking-status="booked">Unbestätigt</button>
+            <button class="filter-chip" data-booking-status="confirmed">Bestätigt ✓</button>
+          </div>
+          <div class="alltx-filter-row">
+            <label class="wf-label">Lehrer:</label>
+            <div class="custom-dropdown alltx-party-dd" id="bk-teacher-dd">
+              <button type="button" class="custom-dropdown-trigger" id="bk-teacher-trigger">
+                <span class="custom-dropdown-label" id="bk-teacher-label">Alle Lehrer</span>
+                <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" id="bk-teacher-list" role="listbox"></ul>
+            </div>
+            <label class="wf-label">Schüler:</label>
+            <div class="custom-dropdown alltx-party-dd" id="bk-student-dd">
+              <button type="button" class="custom-dropdown-trigger" id="bk-student-trigger">
+                <span class="custom-dropdown-label" id="bk-student-label">Alle Schüler</span>
+                <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" id="bk-student-list" role="listbox"></ul>
+            </div>
+          </div>
+          <div class="alltx-filter-row">
+            <label class="wf-label">Von</label>
+            <input type="date" class="wf-date" id="bk-from" />
+            <label class="wf-label">Bis</label>
+            <input type="date" class="wf-date" id="bk-to" />
+          </div>
+          <div class="alltx-filter-row alltx-summary-row">
+            <span class="alltx-count-badge" id="bk-count"></span>
+            <span class="alltx-volume" id="bk-volume"></span>
+            <button class="filter-chip filter-chip-reset is-hidden" id="bk-reset">✕ Zurücksetzen</button>
+          </div>
+          <ul class="wallet-tx-list" id="bk-list">
+            <li class="wallet-history-empty" id="bk-empty">Keine Buchungen gefunden.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ AUDIT LOG TAB ══════════════════════════════════════ -->
+    <div id="admin-tab-audit" class="is-hidden">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Audit Log</div>
+            <div class="card-description">Lückenlose Dokumentation aller Buchungen, Verschiebungen, Stornierungen und Zahlungen.</div>
+          </div>
+          <div class="audit-header-row">
+            <button class="btn btn-secondary btn-sm" id="audit-export-btn">⬇ CSV</button>
+            <button class="btn btn-secondary btn-sm" id="audit-refresh-btn">↻</button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="admin-escrow-filters" id="audit-filters">
+          <input class="form-input" id="audit-search" type="text"
+            placeholder="Name oder UID suchen…" class="audit-filter-input audit-filter-input--wide">
+          <select class="form-input" id="audit-filter-role" class="audit-filter-input">
+            <option value="all">Alle Rollen</option>
+            <option value="student">Schüler</option>
+            <option value="teacher">Lehrer</option>
+          </select>
+          <select class="form-input" id="audit-filter-type" class="audit-filter-input audit-filter-input--medium">
+            <option value="all">Alle Ereignisse</option>
+            <option value="booking">Buchung</option>
+            <option value="move">Verschiebung</option>
+            <option value="cancellation">Stornierung</option>
+            <option value="teacher_cancel">Lehrer-Storno</option>
+            <option value="escrow_hold">Deposit hinterlegt</option>
+            <option value="refund">Rückerstattung</option>
+            <option value="escrow_release">Deposit freigegeben</option>
+            <option value="lesson_confirmed">Stunde bestätigt</option>
+            <option value="deposit">Einzahlung</option>
+            <option value="withdrawal">Auszahlung</option>
+          </select>
+          <input class="form-input" id="audit-date-from" type="date"
+            class="audit-filter-input" title="Ereignis ab">
+          <input class="form-input" id="audit-date-to" type="date"
+            class="audit-filter-input" title="Ereignis bis">
+          <input class="form-input" id="audit-slot-date" type="date"
+            class="audit-filter-input" title="Stundendatum">
+          <button class="btn btn-ghost btn-sm" id="audit-clear-btn" class="audit-filter-btn">✕ Zurücksetzen</button>
+        </div>
+
+        <!-- Summary bar -->
+        <div id="audit-summary" class="audit-summary is-hidden"></div>
+
+        <!-- Table -->
+        <div class="table-wrapper">
+          <table class="table" id="audit-table">
+            <thead>
+              <tr>
+                <th class="col-ts">Zeitpunkt</th>
+                <th class="col-user">Benutzer</th>
+                <th class="col-role">Rolle</th>
+                <th class="col-event">Ereignis</th>
+                <th class="col-amount">Betrag</th>
+                <th class="col-balance">Saldo</th>
+                <th class="col-slotdate">Stundendatum</th>
+                <th class="col-counterpart">Gegenpartei</th>
+                <th class="col-amount">Preis/Std</th>
+                <th class="col-deposit">Deposit</th>
+                <th class="col-paymode">Zahlungsart</th>
+                <th class="col-tier">Storno-Tier</th>
+                <th>Beschreibung</th>
+              </tr>
+            </thead>
+            <tbody id="audit-tbody">
+              <tr><td colspan="13" class="table-empty-cell" id="audit-empty">Lade…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+</div>
+</body>
+</html>

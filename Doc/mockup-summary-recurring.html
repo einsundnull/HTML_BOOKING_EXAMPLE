@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Summary Panel Recurring</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c400:#4d7aa0;--c100:#dde4ed;--c700:#1a3249;--c900:#060f1c;
+  --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+  --ok-bg:#f0fdf4;--ok-tx:#14532d;
+  --warn-bg:#fef9ec;--warn-tx:#7a5c00;
+  --bad-bg:#fee2e2;--bad-tx:#991b1b;
+  --font:'Figtree',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n100);padding:20px 10px;display:flex;gap:14px;flex-wrap:wrap;justify-content:center;align-items:flex-end;}
+.col{display:flex;flex-direction:column;gap:6px;width:270px;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);text-align:center;}
+.badge-ok{display:inline-block;background:var(--ok-bg);color:var(--ok-tx);padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;text-align:center;}
+.badge-warn{display:inline-block;background:var(--warn-bg);color:var(--warn-tx);padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;text-align:center;}
+.badge-bad{display:inline-block;background:var(--bad-bg);color:var(--bad-tx);padding:1px 6px;border-radius:3px;font-size:10px;font-weight:600;text-align:center;}
+
+/* Summary panel — matches real implementation */
+.summary{
+  background:var(--n0);
+  border:1px solid var(--n200);
+  border-radius:10px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.12);
+  overflow:hidden;
+  font-size:12px;
+}
+.slot-lines{padding:10px 12px 0;}
+.slot-row{display:flex;justify-content:space-between;padding:3px 0;color:var(--n700);}
+.slot-time{font-family:monospace;font-size:11px;}
+
+/* Toggle row */
+.toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 12px;cursor:pointer;
+  border-top:1px solid var(--n100);
+  border-bottom:1px solid var(--n100);
+}
+.toggle-left{display:flex;align-items:center;gap:8px;}
+.toggle-count{color:var(--n500);font-size:11px;}
+.toggle-total{font-weight:700;font-size:13px;color:var(--c900);}
+.chevron{font-size:10px;color:var(--n400);}
+
+/* Status rows */
+.status-row{padding:6px 12px;font-size:11px;}
+.s-ok{background:var(--ok-bg);color:var(--ok-tx);}
+.s-warn{background:var(--warn-bg);color:var(--warn-tx);}
+.s-bad{background:var(--bad-bg);color:var(--bad-tx);}
+
+/* Recurring button inside summary */
+.recur-trigger{
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  width:calc(100% - 24px);margin:8px 12px;padding:8px;
+  background:var(--n0);color:var(--c700);
+  border:1.5px solid var(--c400);border-radius:6px;
+  font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;
+}
+
+/* Expanded recurring section */
+.recur-section{
+  margin:0 12px 10px;
+  background:var(--n50);border:1px solid var(--n200);border-radius:7px;padding:10px;
+}
+.recur-title{font-size:11px;font-weight:600;color:var(--n700);margin-bottom:7px;}
+.recur-toggle{display:flex;border:1px solid var(--n200);border-radius:5px;overflow:hidden;margin-bottom:8px;}
+.rt{flex:1;padding:5px;font-size:10px;font-weight:600;border:none;cursor:pointer;font-family:var(--font);}
+.rt.on{background:var(--c400);color:#fff;}
+.rt.off{background:var(--n0);color:var(--n500);}
+.rlabel{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);margin-bottom:3px;}
+.rinput{width:100%;padding:6px 8px;border:1px solid var(--n200);border-radius:5px;font-family:var(--font);font-size:12px;}
+.rcheck{width:100%;margin-top:6px;padding:7px;background:var(--n100);border:1px solid var(--n200);border-radius:5px;font-family:var(--font);font-size:11px;font-weight:600;color:var(--n700);cursor:pointer;}
+
+/* Result rows */
+.rrow{display:flex;align-items:center;gap:5px;padding:2px 0;font-size:10px;}
+.dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.d-ok{background:#16a34a;}.d-no{background:var(--n200);}.d-warn{background:#f59e0b;}.d-bad{background:#dc2626;}
+
+/* FAB */
+.fab{display:flex;border-radius:999px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,0.25);margin:0 auto;width:fit-content;}
+.fd{background:#dc2626;color:#fff;border:none;padding:11px 18px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border-right:1px solid rgba(255,255,255,0.2);}
+.fs{background:#16a34a;color:#fff;border:none;padding:11px 18px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.fs.blocked{background:#9ca3af;}
+.badge-n{background:rgba(255,255,255,0.25);border-radius:10px;padding:1px 6px;font-size:11px;}
+</style>
+</head>
+<body>
+
+<!-- State 1: Default — recurring button visible at bottom -->
+<div class="col">
+  <div class="lbl">State 1 — Default</div>
+  <div class="badge-ok">Genug Guthaben</div>
+  <div class="summary">
+    <div class="slot-lines">
+      <div class="slot-row"><span class="slot-time">15:00–15:30</span><span>€90,00</span></div>
+      <div class="slot-row"><span class="slot-time">15:30–16:00</span><span>€90,00</span></div>
+      <div class="slot-row"><span class="slot-time">16:00–16:30</span><span>€90,00</span></div>
+    </div>
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <span class="toggle-count">3 Slots</span>
+        <span class="toggle-total">€270,00</span>
+      </div>
+      <span class="chevron">▲</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <!-- Recurring button at bottom -->
+    <button class="recur-trigger">↻ &nbsp;Regelmäßig buchen</button>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs">✓ Done <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+<!-- State 2: Expanded, not yet checked -->
+<div class="col">
+  <div class="lbl">State 2 — Expanded</div>
+  <div class="badge-ok">Genug Guthaben</div>
+  <div class="summary">
+    <div class="toggle-row" style="border-top:none;">
+      <div class="toggle-left">
+        <span class="toggle-count">3 Slots</span>
+        <span class="toggle-total">€270,00</span>
+      </div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <div class="recur-section">
+      <div class="recur-title">↻ Regelmäßig buchen</div>
+      <div class="recur-toggle">
+        <button class="rt on">Anzahl Wochen</button>
+        <button class="rt off">Von–Bis Datum</button>
+      </div>
+      <div class="rlabel">Wochen im Voraus</div>
+      <input class="rinput" type="number" value="4">
+      <button class="rcheck">Verfügbarkeit prüfen</button>
+    </div>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs">✓ Done <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+<!-- State 3: All available, enough funds -->
+<div class="col">
+  <div class="lbl">State 3 — All bookable</div>
+  <div class="badge-ok">4/4 · Genug Guthaben</div>
+  <div class="summary">
+    <div class="toggle-row" style="border-top:none;">
+      <div class="toggle-left"><span class="toggle-count">3 Slots</span><span class="toggle-total">€270,00</span></div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <div class="recur-section">
+      <div class="recur-title">↻ 4 von 4 Terminen verfügbar</div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 03.04 · 15:00–16:30 · €54 Dep.</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 10.04 · 15:00–16:30 · €54 Dep.</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 17.04 · 15:00–16:30 · €54 Dep.</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 24.04 · 15:00–16:30 · €54 Dep.</span></div>
+      <div class="status-row s-ok" style="border-radius:4px;margin-top:5px;">✓ Guthaben €5050 · Deposit €216 gedeckt</div>
+    </div>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs" style="background:var(--c400)">✓ Done + 4 Wieder. <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+<!-- State 4: Partial funds -->
+<div class="col">
+  <div class="lbl">State 4 — Partial funds</div>
+  <div class="badge-warn">⚠ Depot reicht für 2/4</div>
+  <div class="summary">
+    <div class="toggle-row" style="border-top:none;">
+      <div class="toggle-left"><span class="toggle-count">3 Slots</span><span class="toggle-total">€270,00</span></div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <div class="recur-section">
+      <div class="recur-title">⚠ Depot reicht für 2 von 4 Terminen</div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 03.04 · €54 Dep. ✓</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 10.04 · €54 Dep. ✓</span></div>
+      <div class="rrow"><span class="dot d-warn"></span><span style="background:#fef9ec;color:#7a5c00;padding:0 3px;border-radius:2px">Fr 17.04 · Guthaben reicht nicht</span></div>
+      <div class="rrow"><span class="dot d-warn"></span><span style="background:#fef9ec;color:#7a5c00;padding:0 3px;border-radius:2px">Fr 24.04 · Guthaben reicht nicht</span></div>
+      <div class="status-row s-warn" style="border-radius:4px;margin-top:5px;">⚠ Guthaben €50 · reicht für 2 Termine</div>
+    </div>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs" style="background:var(--c400)">✓ Done + 2 mögl. <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+<!-- State 5: No funds at all for recurring -->
+<div class="col">
+  <div class="lbl">State 5 — No funds</div>
+  <div class="badge-bad">✗ Kein Guthaben</div>
+  <div class="summary">
+    <div class="toggle-row" style="border-top:none;">
+      <div class="toggle-left"><span class="toggle-count">3 Slots</span><span class="toggle-total">€270,00</span></div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <div class="recur-section">
+      <div class="recur-title">✗ Keine Wiederholung möglich</div>
+      <div class="rrow"><span class="dot d-bad"></span><span style="background:#fee2e2;color:#991b1b;padding:0 3px;border-radius:2px">Fr 03.04 · Guthaben reicht nicht</span></div>
+      <div class="rrow"><span class="dot d-bad"></span><span style="background:#fee2e2;color:#991b1b;padding:0 3px;border-radius:2px">Fr 10.04 · Guthaben reicht nicht</span></div>
+      <div class="rrow"><span class="dot d-bad"></span><span style="background:#fee2e2;color:#991b1b;padding:0 3px;border-radius:2px">Fr 17.04 · Guthaben reicht nicht</span></div>
+      <div class="rrow"><span class="dot d-bad"></span><span style="background:#fee2e2;color:#991b1b;padding:0 3px;border-radius:2px">Fr 24.04 · Guthaben reicht nicht</span></div>
+      <div class="status-row s-bad" style="border-radius:4px;margin-top:5px;">✗ Guthaben: €12 — nicht ausreichend</div>
+    </div>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs">✓ Done <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+<!-- State 6: Some slots unavailable (teacher) -->
+<div class="col">
+  <div class="lbl">State 6 — Teacher unavailable</div>
+  <div class="badge-warn">⚠ 3/4 verfügbar</div>
+  <div class="summary">
+    <div class="toggle-row" style="border-top:none;">
+      <div class="toggle-left"><span class="toggle-count">3 Slots</span><span class="toggle-total">€270,00</span></div>
+      <span class="chevron">▼</span>
+    </div>
+    <div class="status-row s-ok">✓ Guthaben: €5050,00</div>
+    <div class="status-row s-ok">✓ Deposit: €54,00 gedeckt</div>
+    <div class="recur-section">
+      <div class="recur-title">↻ 3 von 4 Terminen verfügbar</div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 03.04 · €54 Dep.</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 10.04 · €54 Dep.</span></div>
+      <div class="rrow"><span class="dot d-no"></span><span style="color:#9aa3af">Fr 17.04 · nicht verfügbar</span></div>
+      <div class="rrow"><span class="dot d-ok"></span><span>Fr 24.04 · €54 Dep.</span></div>
+      <div class="status-row s-ok" style="border-radius:4px;margin-top:5px;">✓ Guthaben ausreichend für 3 Termine</div>
+    </div>
+  </div>
+  <div class="fab">
+    <button class="fd">✕ Dismiss</button>
+    <button class="fs" style="background:var(--c400)">✓ Done + 3 Wieder. <span class="badge-n">3</span></button>
+  </div>
+</div>
+
+</body>
+</html>

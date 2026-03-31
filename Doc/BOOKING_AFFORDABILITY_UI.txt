@@ -1,0 +1,81 @@
+Here is what I understand and the full concept:
+
+---
+
+## What I understand
+
+When a student **stages** bookings (pending, not yet saved), they see the FAB pill `✓ Save (3) / ✗ Dismiss`. Right now it only shows a count. You want:
+
+1. **Summary** — what is being staged, and what it costs in total
+2. **Warning** — if the total cost exceeds either the wallet balance OR the required deposit, show a clear warning before the student hits Save
+
+---
+
+## The Two Warning Triggers
+
+| Trigger | When | Severity |
+|---|---|---|
+| **Exceeds wallet balance** | `pendingCost > wallet.balance` | 🔴 Hard warning — student cannot pay at all |
+| **Exceeds deposit** | `pendingCost > depositAmount` (per block) | 🟡 Soft warning — deposit would be insufficient |
+| **`paymentMode = cash_on_site`** | Teacher requires no upfront payment | ✅ No warning needed |
+| **`requiresDeposit = false`** | Teacher waives deposit | ✅ No warning needed |
+
+---
+
+## Concept: Where to show it
+
+**Location:** Directly above the FAB pill (Save/Dismiss), as a compact panel that appears whenever there are pending-book items. Not a modal — it must be always visible as the user scrolls and adds slots.
+
+```
+┌─────────────────────────────────────┐
+│  3 neue Buchungen                   │
+│  14:30 – 15:00  Matthias  €45,00   │
+│  15:00 – 15:30  Matthias  €45,00   │
+│  16:00 – 16:30  Matthias  €45,00   │
+│  ─────────────────────────────────  │
+│  Gesamt: €135,00                    │
+│  ⚠ Wallet: €80,00 — Nicht genug    │  ← red if over
+│  Deposit benötigt: €50,00  ✓       │  ← green if covered
+└─────────────────────────────────────┘
+   [✗ Dismiss]        [✓ Save (3)]
+```
+
+---
+
+## Concept: Logic flow
+
+```
+1. pendingDayChanges changes (add/undo)
+   ↓
+2. Calculate pendingCost:
+   sum all { action='book' } × slot.price (or profile price)
+   ↓
+3. Load wallet async → AppService.getWallet(studentId, cb)
+   ↓
+4. For each unique teacherId in pending:
+   Load profile → calc deposit for pendingCost of THAT teacher's slots
+   ↓
+5. Compare:
+   A. pendingCost > wallet.balance  → 🔴 "Guthaben reicht nicht aus"
+   B. pendingCost > depositAmount   → 🟡 "Deposit wird überschritten"
+   C. paymentMode = cash_on_site    → No warning
+   D. requiresDeposit = false       → No warning, just show total
+   ↓
+6. Render summary panel above FAB
+   Show per-slot lines + total + warning badge
+   Disable Save button if 🔴 (wallet insufficient)
+   Keep Save enabled but show warning if 🟡 (deposit warning only)
+```
+
+---
+
+## Key Design Decisions to confirm
+
+| Question | Options |
+|---|---|
+| **Should Save be blocked** if wallet insufficient? | Block (disable button) OR warn but allow |
+| **Where exactly** does the summary appear? | Above FAB pill / Sticky bottom drawer / Inline above slot list |
+| **Teacher side** — does teacher also see a warning when staging a booking for a student? | Yes (check student wallet) / No (teacher doesn't need wallet check) |
+| **Multiple teachers** in one pending set? | Currently not possible — `activeTeacherId` is always one teacher per day view |
+
+Shall I implement it?

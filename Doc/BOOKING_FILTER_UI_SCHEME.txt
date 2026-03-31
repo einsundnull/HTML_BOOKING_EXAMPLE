@@ -1,0 +1,110 @@
+ALL BOOKINGS — Zeitfilter UI-Vorschläge
+════════════════════════════════════════
+
+Ziel: Vergangene / Laufende / Zukünftige Buchungen filtern,
+ohne das Interface zu überladen.
+
+
+══════════════════════════════════════════════════
+  OPTION A — Segmented Control (Empfehlung)
+  Kompakt, sofort verständlich, kein Extra-Klick.
+══════════════════════════════════════════════════
+
+╔══════════════════════════════════════════════╗
+║  Schedule        All bookings               ║
+╠══════════════════════════════════════════════╣
+║                                              ║
+║  STUDENT                                     ║
+║  ┌──────────────────────────────────┐        ║
+║  │ s1                            ▼  │        ║
+║  └──────────────────────────────────┘        ║
+║                                              ║
+║  ┌─────────┬──────────┬──────────┐           ║
+║  │Vergangen│ Aktuell  │Kommende  │           ║
+║  └─────────┴────━━━━━━┴──────────┘           ║
+║                  ▲ aktiv (unterstrichen)      ║
+║                                              ║
+║  THURSDAY, 12 MARCH 2026                     ║
+║  ┌──────────────────────────────────────┐    ║
+║  │ Thu 12 Mar  11:00–14:00  s1  ⇄ Move │    ║
+║  └──────────────────────────────────────┘    ║
+║  ...                                         ║
+╚══════════════════════════════════════════════╝
+
+Verhalten:
+- "Vergangen"  → Buchungen vor heute
+- "Aktuell"    → Heute (default)
+- "Kommende"   → Buchungen ab morgen
+- Gleicher Stil wie die View-Nav-Tabs oben
+- Filter erinnert sich, solange man auf der Seite ist
+
+
+══════════════════════════════════════════════════
+  OPTION B — Inline-Chips (Toggle-Buttons)
+  Platzsparend, mehrere gleichzeitig möglich.
+══════════════════════════════════════════════════
+
+╔══════════════════════════════════════════════╗
+║  Schedule        All bookings               ║
+╠══════════════════════════════════════════════╣
+║                                              ║
+║  STUDENT           ┌────────────────────┐    ║
+║  ┌──────────┐      │ ○ Vergangen       │    ║
+║  │ s1     ▼ │      │ ● Aktuell+Kommend │    ║
+║  └──────────┘      └────────────────────┘    ║
+║                                              ║
+║  THURSDAY, 12 MARCH 2026                     ║
+║  ...                                         ║
+╚══════════════════════════════════════════════╝
+
+Verhalten:
+- 2 Toggles: "Vergangen" an/aus, "Aktuell+Kommend" an/aus
+- Default: nur "Aktuell+Kommend" aktiv
+- Beide aktiv = alles sichtbar
+- Nachteil: weniger intuitiv als Option A
+
+
+══════════════════════════════════════════════════
+  OPTION C — Dropdown-Filter
+  Minimaler Platz, aber ein Extra-Klick nötig.
+══════════════════════════════════════════════════
+
+╔══════════════════════════════════════════════╗
+║  Schedule        All bookings               ║
+╠══════════════════════════════════════════════╣
+║                                              ║
+║  STUDENT                     ZEITRAUM        ║
+║  ┌──────────────────┐   ┌───────────────┐    ║
+║  │ s1             ▼ │   │ Kommende    ▼ │    ║
+║  └──────────────────┘   └───────────────┘    ║
+║                          ├─ Alle          │   ║
+║                          ├─ Vergangen     │   ║
+║                          ├─ Heute         │   ║
+║                          └─ Kommende ◄────┘   ║
+║                                              ║
+║  THURSDAY, 12 MARCH 2026                     ║
+║  ...                                         ║
+╚══════════════════════════════════════════════╝
+
+Verhalten:
+- Dropdown neben Student-Filter
+- Optionen: Alle / Vergangen / Heute / Kommende
+- Default: "Kommende"
+- Vorteil: passt in bestehende Toolbar
+- Nachteil: versteckt hinter Klick
+
+
+══════════════════════════════════════════════════
+  EMPFEHLUNG
+══════════════════════════════════════════════════
+
+Option A (Segmented Control) ist am besten weil:
+- Sofort sichtbar ohne Extra-Klick
+- Konsistent mit dem Tab-Stil der App
+- 3 klare Zustände, kein Rätselraten
+- Leicht erweiterbar (z.B. "Diese Woche")
+- Funktioniert gut auf Mobile (volle Breite)
+
+Für die My-Students-Section könnte der gleiche
+Filter wiederverwendet werden, entweder pro Student
+oder global für alle Students.

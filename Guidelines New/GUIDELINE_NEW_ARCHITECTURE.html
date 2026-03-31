@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — Architektur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+</head>
+<body>
+
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <!-- Desktop links -->
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-dot" style="background:#b45309;" aria-hidden="true"></span><span class="label">Audit</span>
+    </a></li>
+  </ul>
+  <!-- Mobile hamburger -->
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+<!-- Mobile nav drawer -->
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-mobile-dot" style="background:#b45309;"></span>Audit
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<main class="gl-page">
+  <div class="gl-container">
+
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:var(--arch-badge);" aria-hidden="true"></span>
+        Guideline · Architektur
+      </div>
+      <h1 class="gl-page-title">Architektur</h1>
+      <p class="gl-page-subtitle">
+        Strukturelle und technische Regeln des Projekts. Das System ist derzeit als
+        <strong>Mockup im Browser (localStorage)</strong> implementiert und so angelegt,
+        dass der Wechsel auf Firestore oder eine andere Datenbank mit <strong>minimalen Code-Änderungen</strong>
+        an einer einzigen Stelle erfolgt. Diese Architektur-Entscheidungen sind nicht verhandelbar.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-arch">🟢 Arch-Rule</span>
+        <span class="gl-badge gl-badge-soft">🔵 Soft-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">Stand: März 2026</span>
+      </div>
+    </header>
+
+    <!-- ── MOCKUP → PRODUKTION ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-migration">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-migration">Mockup-Strategie &amp; Migrationspfad</h2>
+      </div>
+
+      <div class="gl-callout gl-callout-ok" style="margin-bottom:var(--sp-3);">
+        <strong>Kernversprechen der Architektur:</strong> Wechsel von localStorage auf Firestore (oder jede andere Datenbank) = eine einzige Zeile Code-Änderung in <code style="font-family:var(--font-mono);">app-config.js</code>. Kein Consumer-Code wird dabei angefasst.
+      </div>
+
+      <!-- Layer diagram -->
+      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-3);">
+        <div style="font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--sp-2);">Schichten-Architektur</div>
+        <div class="gl-layers">
+          <div class="gl-layer gl-layer-ui">
+            <strong>Consumer / UI-Layer</strong> — teacher.js · student.js · admin.js · skiing-catalog.js …
+            <br><span style="font-size:11px;opacity:0.7;">Ruft ausschließlich AppService.* auf. Kennt keine DB-Details. Ändert sich bei Migration nie.</span>
+          </div>
+          <div class="gl-layer-arrow">↓ AppService.method(params, callback)</div>
+          <div class="gl-layer gl-layer-service">
+            <strong>AppService</strong> — app-service.js
+            <br><span style="font-size:11px;opacity:0.7;">Definiert die API. Enthält keine Implementierungslogik. Delegiert an aktiven Adapter.</span>
+          </div>
+          <div class="gl-layer-arrow">↓ delegates to AppAdapter (= eine Zeile in app-config.js)</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-2);">
+            <div class="gl-layer gl-layer-adapter">
+              <strong>LocalStorageAdapter</strong> (Mockup)
+              <br><span style="font-size:11px;opacity:0.7;">Wraps Store.* + ProfileStore.* · Synchron, aber Callback-Interface ist async-kompatibel.</span>
+            </div>
+            <div class="gl-layer gl-layer-adapter" style="opacity:0.55;border:1px dashed #a5d5b0;">
+              <strong>FirestoreAdapter</strong> (Produktion)
+              <br><span style="font-size:11px;opacity:0.7;">Identische Signaturen. Aktivieren = eine Zeile in app-config.js auskommentieren.</span>
+            </div>
+          </div>
+          <div class="gl-layer-arrow">↓ nur Adapter darf direkt zugreifen</div>
+          <div class="gl-layer gl-layer-store">
+            <strong>Store / ProfileStore / ChatStore</strong> — store.js · profile.js · chat.js
+            <br><span style="font-size:11px;opacity:0.7;">Persistenz via localStorage. Wird bei Produktion durch Firestore-Collections ersetzt.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gl-callout gl-callout-info">
+        <strong>Migrations-Checkliste (wenn es soweit ist):</strong>
+        Firebase SDK einbinden · adapter-firestore.js vollständig implementieren ·
+        Seed-Daten importieren · <code style="font-family:var(--font-mono);">app-config.js</code>: eine Zeile ändern ·
+        End-to-End-Test aller Consumer-Seiten · adapter-localstorage.js + catalog-seed.js entfernen.
+        <strong>Kein Consumer-Code wird angefasst.</strong>
+      </div>
+    </section>
+
+    <!-- ── 1. NO-BUILD ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-nobuild">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-nobuild">1. No-Build-Strategie</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-info">
+        <strong>Strategische Entscheidung:</strong> Kein Webpack, kein Vite, kein Babel, kein Transpiler.
+        Maximale Browser-Kompatibilität ohne Build-Pipeline. Diese Entscheidung zieht alle folgenden Syntax-Regeln nach sich.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">ES5-Syntax — var, function(){}, String-Konkatenation</div>
+            <div class="gl-rule-desc">Keine modernen Syntax-Features ohne Transpiler. Begründung: Direktausführung im Browser ohne Build-Schritt.</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Richtig</th><th>Verboten</th></tr></thead>
+              <tbody>
+                <tr><td class="ok">var x = 1;</td><td class="bad">let x · const x</td></tr>
+                <tr><td class="ok">function foo() {}</td><td class="bad">() =&gt; {}</td></tr>
+                <tr><td class="ok">'Hallo ' + name</td><td class="bad">`Hallo ${name}`</td></tr>
+                <tr><td class="ok">if (x == null)</td><td class="bad">x?.y · x ?? y</td></tr>
+                <tr><td class="ok">x['key']</td><td class="bad">{ key } (Destructuring)</td></tr>
+                <tr><td class="ok">Array.prototype.concat.apply([], arr)</td><td class="bad">...arr (Spread)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Kein import / export — IIFE-Pattern für alle Module</div>
+            <div class="gl-rule-desc">Module kapseln ihren Scope via IIFE und exponieren ein öffentliches Interface als globale Variable. Kein globaler Scope-Pollution.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Jedes .js-Modul folgt diesem Pattern */</span>
+<span class="c-key">var</span> MyModule = (<span class="c-key">function</span>() {
+  <span class="c-val">'use strict'</span>;
+
+  <span class="c-key">var</span> _private = <span class="c-val">null</span>;
+
+  <span class="c-key">function</span> _privateMethod() { <span class="c-cmt">/* intern */</span> }
+  <span class="c-key">function</span> publicMethod() { <span class="c-cmt">/* extern */</span> }
+
+  <span class="c-key">return</span> {
+    publicMethod: publicMethod
+  };
+}());</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · STYLE-GUIDE</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">HTML, CSS und JS immer in getrennten Dateien</div>
+            <div class="gl-rule-desc">Keine <code style="font-family:var(--font-mono);font-size:12px;">&lt;style&gt;</code>-Tags im HTML-Body. Keine <code style="font-family:var(--font-mono);font-size:12px;">&lt;script&gt;</code>-Blöcke außerhalb von <code style="font-family:var(--font-mono);font-size:12px;">&lt;head&gt;</code>. Ausnahme: <code style="font-family:var(--font-mono);font-size:12px;">&lt;template&gt;</code>-Elemente in HTML.</div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE · Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">HTML-Escaping bei jedem User-Daten-Output in innerHTML</div>
+            <div class="gl-rule-desc">Die <code style="font-family:var(--font-mono);font-size:12px;">_esc(str)</code>-Funktion ist Pflicht bei jedem String, der aus User-Daten stammt und in innerHTML landet. XSS-Schutz ohne Framework.</div>
+            <div class="gl-code-block"><code><span class="c-key">function</span> _esc(str) {
+  <span class="c-key">return</span> String(str || <span class="c-val">''</span>)
+    .replace(<span class="c-val">/&amp;/g</span>, <span class="c-val">'&amp;amp;'</span>)
+    .replace(<span class="c-val">/&lt;/g</span>, <span class="c-val">'&amp;lt;'</span>)
+    .replace(<span class="c-val">/&gt;/g</span>, <span class="c-val">'&amp;gt;'</span>)
+    .replace(<span class="c-val">/"/g</span>,  <span class="c-val">'&amp;quot;'</span>)
+    .replace(<span class="c-val">/'/g</span>,  <span class="c-val">'&amp;#39;'</span>);
+}</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. ADAPTER-PATTERN ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-adapter">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-adapter">2. Adapter-Pattern &amp; Datenzugriff</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Consumer-Code greift NIEMALS direkt auf Store.* / localStorage zu</div>
+            <div class="gl-rule-desc">
+              Der einzige erlaubte Zugriffspunkt für Daten im Consumer-Code ist <code style="font-family:var(--font-mono);font-size:12px;">AppService.*</code>.
+              <code style="font-family:var(--font-mono);font-size:12px;">Store.*</code> und <code style="font-family:var(--font-mono);font-size:12px;">ProfileStore.*</code> darf ausschließlich <code style="font-family:var(--font-mono);font-size:12px;">adapter-localstorage.js</code> aufrufen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  AppService.getTeachersWithProfiles(function(err, teachers) {
+      if (err) { Toast.error(err.message); return; }
+      /* teachers verwenden */
+    });</span>
+
+<span class="c-bad">❌  var teachers = Store.Users.byRole('teacher');       /* verboten */</span>
+<span class="c-bad">❌  var profile  = ProfileStore.getOrDefault(uid);      /* verboten */</span>
+<span class="c-bad">❌  var raw = JSON.parse(localStorage.getItem('x'));    /* verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Guideline_Architecture · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alles ist async — function(err, result) überall, ausnahmslos</div>
+            <div class="gl-rule-desc">
+              Auch wenn <code style="font-family:var(--font-mono);font-size:12px;">LocalStorageAdapter</code> intern synchron arbeitet — der Consumer-Code verlässt sich nie auf Synchronizität.
+              Beim Wechsel auf Firestore sind die Callbacks dann asynchron, ohne dass Consumer-Code geändert wird.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Richtig: immer Node.js-Callback-Konvention */</span>
+AppService.getUser(uid, <span class="c-key">function</span>(err, user) {
+  <span class="c-key">if</span> (err) { Toast.error(<span class="c-val">'Fehler: '</span> + err.message); <span class="c-key">return</span>; }
+  <span class="c-cmt">/* user sicher verwenden */</span>
+});
+
+<span class="c-cmt">/* Erfolgs-Callback */</span>
+callback(<span class="c-val">null</span>, result);
+<span class="c-cmt">/* Fehler-Callback */</span>
+callback(<span class="c-key">new</span> Error(<span class="c-val">'Beschreibung'</span>), <span class="c-val">null</span>);</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Der Adapter-Swap: eine Zeile in app-config.js</div>
+            <div class="gl-rule-desc">Das ist der vollständige Migrations-Aufwand auf Code-Ebene. Kein Suchen &amp; Ersetzen. Kein Consumer-Refactoring.</div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* app-config.js — einzige Datei die das Backend bestimmt */</span>
+<span class="c-key">var</span> APP_VERSION = <span class="c-val">'2026-03-19-1'</span>;
+
+<span class="c-cmt">/* MOCKUP (Entwicklung) */</span>
+<span class="c-ok">var AppAdapter = LocalStorageAdapter;</span>
+
+<span class="c-cmt">/* PRODUKTION — einfach diese eine Zeile auskommentieren: */</span>
+<span class="c-cmt">/* var AppAdapter = FirestoreAdapter; */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Guideline_Architecture · GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Fehler niemals verschlucken — Adapter muss immer callback(err, null) liefern</div>
+            <div class="gl-rule-desc">Kein stiller Fail. Wenn eine Operation fehlschlägt, ist es Aufgabe des Consumers, den Fehler sichtbar zu machen (Toast, Modal oder Fehler-Element im Dialog).</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. DATENSCHEMA ─────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-schema">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-schema">3. Datenschema — Firestore-kompatibel</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-info">
+        <strong>Warum Firestore-kompatibel von Anfang an?</strong> Wenn das Schema heute sauber modelliert ist,
+        kann Firestore morgen als Drop-in genutzt werden. Jede localStorage-Collection entspricht direkt einer Firestore-Collection.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Flache Arrays als Collections — kein tief verschachteltes JSON</div>
+            <div class="gl-rule-desc">Max. 1 Ebene Verschachtelung. Collections sind Arrays von flachen Objekten — genau wie Firestore-Collections. Keine <code style="font-family:var(--font-mono);font-size:12px;">profile.teaching.levels.beginner.active</code>-Strukturen.</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Richtig</th><th>Verboten</th></tr></thead>
+              <tbody>
+                <tr><td class="ok">[{uid, name, role}, …]</td><td class="bad">{uid: {name, role}, …}</td></tr>
+                <tr><td class="ok">languages: ['de', 'en']</td><td class="bad">language_de: true, language_en: true</td></tr>
+                <tr><td class="ok">Codes: 'de', 'beginner'</td><td class="bad">Klartexte: 'Deutsch', 'Anfänger'</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Bestehende Schemas sind unveränderlich</div>
+            <div class="gl-rule-desc">
+              User · Slot · Recurring · Selection · Profile — diese Schemas dürfen nicht umbenannt oder restrukturiert werden.
+              Neue Felder dürfen addiert werden (additive change), bestehende Felder nicht umbenannt (breaking change).
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Unveränderliche Kern-Schemas */</span>
+User:      { uid, name, role, email, password, discipline }
+Slot:      { slotId, teacherId, studentId|null, date, time, status, baseStatus }
+Recurring: { recurringId, teacherId, dayOfWeek, time }
+Selection: { studentId, teacherId }
+Wallet:    { uid, balance, currency, updatedAt }
+Tx:        { txId, uid, type, amount, balance, description, status, createdAt, relatedUid }</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Neue Entitäten VOR Implementierung in CRUD_SERVICE_REFERENCE_v2.md dokumentieren</div>
+            <div class="gl-rule-desc">Kein wildes Hinzufügen von Feldern oder Collections. Schema-Entscheidungen zuerst dokumentieren, dann implementieren.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Seed-Daten isoliert in Seed-Dateien — nie in Consumer- oder Store-Code</div>
+            <div class="gl-rule-desc">Testdaten gehören ausschließlich in <code style="font-family:var(--font-mono);font-size:12px;">catalog-seed.js</code> oder gleichwertige Feature-Seed-Dateien. Seed prüft immer zuerst ob Daten existieren.</div>
+            <div class="gl-code-block"><code>AppService.getTeachers(<span class="c-key">function</span>(err, teachers) {
+  <span class="c-key">if</span> (err || teachers.length &gt; 0) <span class="c-key">return</span>; <span class="c-cmt">/* bereits geseeded */</span>
+  <span class="c-cmt">/* Seed-Daten einfügen */</span>
+});</code></div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 4. LADEREIHENFOLGE ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-loadorder">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-loadorder">4. Ladereihenfolge &amp; Asset-Versioning</h2>
+        <span class="gl-section-count">5 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Feste Script-Ladereihenfolge — app-config.js immer zuerst</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">app-config.js</code> definiert <code style="font-family:var(--font-mono);font-size:12px;">APP_VERSION</code> und <code style="font-family:var(--font-mono);font-size:12px;">AppAdapter</code>.
+              Kein anderes Script darf geladen werden bevor app-config.js verfügbar ist.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">&lt;!-- Pflicht-Reihenfolge für jede HTML-Seite --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/app-config.js"</span><span class="c-key">&gt;&lt;/script&gt;</span>           <span class="c-cmt">&lt;!-- 0. IMMER ZUERST --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/store.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>        <span class="c-cmt">&lt;!-- 1. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/auth.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>         <span class="c-cmt">&lt;!-- 2. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/profile.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>      <span class="c-cmt">&lt;!-- 3. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/ui.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>           <span class="c-cmt">&lt;!-- 4. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/navbar.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>       <span class="c-cmt">&lt;!-- 5. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/adapter-localstorage.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span> <span class="c-cmt">&lt;!-- 6. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/app-service.js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>   <span class="c-cmt">&lt;!-- 7. --&gt;</span>
+<span class="c-key">&lt;script</span> src=<span class="c-val">"js/[seite].js?v=APP_VER"</span><span class="c-key">&gt;&lt;/script&gt;</span>      <span class="c-cmt">&lt;!-- 8. Seiten-spezifisch --&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Guideline_Architecture · Cache-Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Assets werden ausschließlich über <code style="font-family:var(--font-mono);font-size:13px;">app-config.js</code> injiziert — niemals hardcoded in HTML</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">app-config.js</code> enthält die Asset-Listen pro Seite (<code style="font-family:var(--font-mono);font-size:12px;">_PAGE_ASSETS</code>)
+              und injiziert alle <code style="font-family:var(--font-mono);font-size:12px;">&lt;link&gt;</code> und <code style="font-family:var(--font-mono);font-size:12px;">&lt;script&gt;</code> Tags dynamisch mit <code style="font-family:var(--font-mono);font-size:12px;">APP_VERSION</code>.
+              Jede HTML-Seite enthält im <code style="font-family:var(--font-mono);font-size:12px;">&lt;head&gt;</code> ausschließlich: Meta-Tags, Google-Fonts-Link, und
+              <code style="font-family:var(--font-mono);font-size:12px;">&lt;script src="./js/app-config.js"&gt;&lt;/script&gt;</code> ohne <code style="font-family:var(--font-mono);font-size:12px;">?v=</code>.
+              Wenn neue CSS- oder JS-Dateien hinzukommen, werden sie in <code style="font-family:var(--font-mono);font-size:12px;">_PAGE_ASSETS</code> in app-config.js eingetragen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* ❌ Verboten — hardcoded ?v= in HTML: */</span>
+<span class="c-bad">&lt;link rel="stylesheet" href="./css/tokens.css?v=2026-03-19-1"&gt;</span>
+<span class="c-bad">&lt;script src="./js/student.js?v=2026-03-19-1"&gt;&lt;/script&gt;</span>
+
+<span class="c-cmt">/* ✅ Korrekt — nur app-config.js in HTML: */</span>
+<span class="c-ok">&lt;script src="./js/app-config.js"&gt;&lt;/script&gt;</span>
+
+<span class="c-cmt">/* ✅ Assets in app-config.js/_PAGE_ASSETS pflegen: */</span>
+<span class="c-key">'student.html'</span>: {
+  css: [<span class="c-val">'./css/tokens.css'</span>, <span class="c-val">'./css/student.css'</span>, ...],
+  js:  [<span class="c-val">'./js/student.js'</span>, ...]
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Cache-Guideline · aktualisiert 2026-03-19</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">APP_VERSION bei JEDER inhaltlichen Änderung an .js oder .css erhöhen</div>
+            <div class="gl-rule-desc">Format: <code style="font-family:var(--font-mono);font-size:12px;">YYYY-MM-DD-{increment}</code>. Zwei Änderungen am selben Tag: <code style="font-family:var(--font-mono);font-size:12px;">2026-03-19-1</code> → <code style="font-family:var(--font-mono);font-size:12px;">2026-03-19-2</code>. APP_VERSION definiert ausschließlich in app-config.js (SSOT). Durch <code style="font-family:var(--font-mono);font-size:12px;">_injectAssets()</code> gilt die neue Version automatisch für alle Seiten — kein manuelles Suchen und Ersetzen in HTML-Dateien.</div>
+          </div>
+          <span class="gl-rule-source">Cache-Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">CSS-Ladereihenfolge: tokens → base → components → navbar → [page-specific]</div>
+            <div class="gl-rule-desc">Token-Verfügbarkeit muss für alle nachfolgenden Stylesheets garantiert sein. <code style="font-family:var(--font-mono);font-size:12px;">login.css</code> nur auf Seiten die AuthModal oder Google-Picker nutzen.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">"Bitte Cache leeren" als Workaround</div>
+            <div class="gl-rule-desc">Wenn Nutzer oder Entwickler Cache leeren müssen, ist das ein Architektur-Fehler. Lösung: APP_VERSION erhöhen. Kein Hinweis in README, kein Hinweis in Commit-Messages.</div>
+          </div>
+          <span class="gl-rule-source">Cache-Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 5. SERVICE-API KONVENTIONEN ───────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-api">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-api">5. AppService — Methoden-Konventionen</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Einheitliches Namensschema für alle AppService-Methoden</div>
+            <div class="gl-rule-desc">Neue Methoden folgen immer diesem Schema:</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Operation</th><th>Schema</th><th>Beispiel</th></tr></thead>
+              <tbody>
+                <tr><td>Einzelnes Objekt lesen</td><td><code style="font-family:var(--font-mono);">get[Entity](id, cb)</code></td><td>getUser(uid, cb)</td></tr>
+                <tr><td>Liste lesen</td><td><code style="font-family:var(--font-mono);">get[Entities](cb)</code></td><td>getTeachers(cb)</td></tr>
+                <tr><td>Kombinierte Abfrage</td><td><code style="font-family:var(--font-mono);">get[A]With[B](cb)</code></td><td>getTeachersWithProfiles(cb)</td></tr>
+                <tr><td>Erstellen</td><td><code style="font-family:var(--font-mono);">create[Entity](data, cb)</code></td><td>createUser(data, cb)</td></tr>
+                <tr><td>Aktualisieren</td><td><code style="font-family:var(--font-mono);">update[Entity](id, patch, cb)</code></td><td>updateProfile(uid, patch, cb)</td></tr>
+                <tr><td>Löschen</td><td><code style="font-family:var(--font-mono);">delete[Entity](id, cb)</code></td><td>deleteUser(uid, cb)</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Vor jeder Implementierung: Codebase prüfen, Best Practice recherchieren</div>
+            <div class="gl-rule-desc">
+              Pflicht-Schritte vor neuem Code:
+              1. Gibt es bereits eine Funktion/CSS-Klasse/Template die wiederverwendet werden kann?
+              2. Ist die neue Entität in CRUD_SERVICE_REFERENCE_v2.md dokumentiert?
+              3. Gibt es bereits eine AppService-Methode für diesen Zugriff?
+              4. Best Practice für die Aufgabe recherchieren.
+            </div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS · Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 6. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-arch-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-arch-forbidden">6. Verbotene Muster</h2>
+        <span class="gl-section-count">4 Einträge</span>
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Direkter Store.* / localStorage-Zugriff im Consumer-Code</div>
+            <div class="gl-rule-desc">Macht die Firestore-Migration unmöglich. Immer AppService.* nutzen.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Asset-Referenzen ohne <code style="font-family:var(--font-mono);font-size:13px;">?v=...</code></div>
+            <div class="gl-rule-desc">Browser cached alte Datei. Gilt für JS, CSS und alle statischen Ressourcen.</div>
+          </div>
+          <span class="gl-rule-source">Cache-Guideline</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Seed-Daten in Consumer- oder Store-Dateien</div>
+            <div class="gl-rule-desc">Testdaten gehören isoliert in Seed-Dateien. Kein Test-Code in Produktions-Code.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Tief verschachtelte Objekte im Datenschema (&gt;1 Ebene)</div>
+            <div class="gl-rule-desc">Nicht Firestore-kompatibel. Flache Strukturen, Array-Felder, Codes statt Klartexte.</div>
+          </div>
+          <span class="gl-rule-source">GUIDELINES_JS</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_ARCHITECTURE.html · Stand: März 2026 · Ersetzt: Guideline_Architecture.txt, GUIDELINES_JS.md, ARCHITECTURAL_GUIDELINES_Cache_Strategy.md</span>
+      <span class="gl-footer-text">→ <a href="GUIDELINE_NEW_I18N.html">Weiter: i18n</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+</body>
+</html>

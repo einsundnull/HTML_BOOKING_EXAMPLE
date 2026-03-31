@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>mockup-dayTabNav-navbarHide-2026-03-24_11-10</title>
+<!--
+  MOCKUP: day-sticky-header — navbar-hide aware top position + tab spacing
+  FILE:   base.css  — .day-sticky-header.is-sticky (top: 52px → 0 when navbar hidden)
+          teacher.css — #section-daypanel .day-tab-nav (padding-top restored)
+          navbar.js — _bindScrollBehavior: dispatch event when navbar hides/shows
+          ui.js     — checkDayNavStickyShared: listen to navbar-hide event, adjust top
+  CHANGE:
+    1. Tab spacing: restore padding-top: var(--sp-3) between nav bar and tabs
+       (was removed in previous implementation — user wants it back)
+    2. Navbar-aware sticky top:
+       - When navbar visible: .day-sticky-header.is-sticky { top: 52px }
+       - When navbar hidden:  .day-sticky-header.is-sticky { top: 0 }
+       - CSS transition so it slides smoothly
+       Implemented by: navbar.js dispatches CustomEvent('navbar-hide-change', {detail:{hidden}})
+       ui.js listens + adds/removes .navbar-is-hidden class on body
+       base.css: body.navbar-is-hidden .day-sticky-header.is-sticky { top: 0 }
+  DATE:   2026-03-24 11:10
+-->
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --font:'Figtree',sans-serif;
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --pending-amber:#f5a623;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;
+  --text-caption:12px;--text-small:14px;--text-body:16px;
+  --weight-semibold:600;--weight-regular:400;
+  --transition:150ms ease;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#d0d7e0;padding:14px;display:flex;gap:16px;flex-wrap:wrap;justify-content:center;}
+
+.col{display:flex;flex-direction:column;align-items:center;gap:6px;}
+.lbl{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#505a68;text-align:center;}
+
+/* Phone shell */
+.phone{width:310px;height:600px;background:var(--neutral-50);border-radius:12px;overflow:hidden;
+  box-shadow:0 4px 20px rgba(0,0,0,.15);display:flex;flex-direction:column;position:relative;}
+
+/* Fixed navbar */
+.navbar{height:52px;background:var(--neutral-900);display:flex;align-items:center;
+  padding:0 12px;gap:8px;flex-shrink:0;z-index:100;position:relative;
+  transition:transform 200ms ease;}
+.navbar.is-hidden{transform:translateY(-100%);}
+.navbar-logo{font-size:13px;font-weight:600;color:#fff;}
+.navbar-wallet{margin-left:auto;font-size:11px;color:rgba(255,255,255,.6);
+  border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:3px 8px;}
+.navbar-ham{width:28px;height:28px;background:transparent;border:1px solid rgba(255,255,255,.2);
+  border-radius:6px;color:rgba(255,255,255,.6);display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;margin-left:6px;flex-shrink:0;}
+.navbar-ham span{display:block;width:14px;height:1.5px;background:currentColor;border-radius:1px;}
+
+/* Scroll area */
+.scroll{flex:1;overflow-y:auto;position:relative;}
+.scroll::-webkit-scrollbar{width:2px;}
+.scroll::-webkit-scrollbar-thumb{background:var(--neutral-200);}
+
+/* Calendar stub */
+.cal-stub{background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:8px;
+  margin:8px;padding:10px;font-size:11px;color:var(--neutral-400);text-align:center;
+  height:120px;display:flex;align-items:center;justify-content:center;}
+
+/* ══════════════════════════════════════════════════
+   sticky header — the combined unit
+   ══════════════════════════════════════════════════ */
+/* Nav bar */
+.day-nav-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--color-900);color:var(--neutral-0);
+  padding:8px 12px;gap:10px;width:100%;
+}
+.day-nav-btn{width:30px;height:30px;background:rgba(255,255,255,.08);border:none;
+  border-radius:4px;color:#fff;display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:12px;}
+.day-nav-label{flex:1;text-align:center;font-size:13px;font-weight:600;color:#fff;
+  white-space:nowrap;}
+
+/* Tab bar — WITH spacing restored */
+.day-tab-nav{
+  display:flex;gap:2px;
+  border-bottom:1px solid var(--neutral-200);
+  padding-top:12px;  /* ← spacing restored as requested */
+  background:var(--neutral-50);
+}
+.day-tab-btn{font-family:var(--font);font-size:12px;font-weight:600;
+  padding:6px 12px;border:none;border-bottom:2px solid transparent;
+  background:transparent;color:var(--neutral-500);cursor:pointer;margin-bottom:-1px;}
+.day-tab-btn.active{color:var(--neutral-900);border-bottom-color:var(--color-400);}
+
+/* STICKY HEADER WRAPPER */
+.day-sticky-header{
+  position:sticky;
+  top:0;      /* sticky in scroll container = glues to top of visible area */
+  z-index:90;
+  background:var(--neutral-50);
+  transition:box-shadow var(--transition);
+}
+.day-sticky-header.is-sticky{
+  box-shadow:0 2px 8px rgba(6,15,28,.12);
+}
+
+/* Slot rows */
+.slot-row{display:flex;align-items:center;min-height:58px;
+  border-bottom:1px solid var(--neutral-100);padding:0 10px;gap:8px;
+  background:var(--neutral-0);position:relative;}
+.slot-row::before{content:'';position:absolute;left:0;top:10px;bottom:10px;
+  width:3px;border-radius:0 2px 2px 0;background:var(--neutral-200);}
+.slot-time{display:flex;flex-direction:column;align-items:flex-end;width:52px;flex-shrink:0;}
+.slot-ts{font-family:monospace;font-size:14px;font-weight:600;color:var(--neutral-700);}
+.slot-te{font-family:monospace;font-size:11px;color:var(--neutral-400);}
+.slot-sep{width:1px;height:28px;background:var(--neutral-200);flex-shrink:0;margin:0 2px;}
+.slot-info{flex:1;font-size:12px;color:var(--neutral-400);font-style:italic;}
+.slot-btns{display:flex;gap:4px;flex-shrink:0;}
+.slot-btn{font-size:11px;font-weight:600;padding:5px 8px;border-radius:4px;
+  border:1px solid var(--neutral-200);background:var(--neutral-0);
+  color:var(--neutral-600);white-space:nowrap;}
+.sec-label{padding:3px 12px;font-size:10px;font-weight:600;color:var(--neutral-400);
+  text-transform:uppercase;letter-spacing:.06em;background:var(--neutral-50);
+  border-top:1px solid var(--neutral-100);border-bottom:1px solid var(--neutral-100);}
+</style>
+</head>
+<body>
+
+<!-- ── STATE A: Navbar visible, header scrolled into sticky position ── -->
+<div class="col">
+<div class="lbl">Navbar sichtbar<br>+ Tabs mit Abstand</div>
+<div class="phone">
+  <div class="navbar">
+    <span class="navbar-logo">BookingSystem</span>
+    <span class="navbar-wallet">€45,00</span>
+    <div class="navbar-ham"><span></span><span></span><span></span></div>
+  </div>
+  <div class="scroll">
+    <div class="cal-stub">📅 Kalender — März 2026</div>
+    <!-- sentinel (height 0) -->
+    <div style="height:0"></div>
+    <!-- sticky header: nav bar + tabs with gap -->
+    <div class="day-sticky-header is-sticky">
+      <div class="day-nav-bar">
+        <button class="day-nav-btn">«</button>
+        <button class="day-nav-btn">‹</button>
+        <span class="day-nav-label">Di., 24. März 2026</span>
+        <button class="day-nav-btn">›</button>
+        <button class="day-nav-btn">»</button>
+      </div>
+      <!-- spacing: 12px top padding between nav bar and tab underline -->
+      <div class="day-tab-nav">
+        <button class="day-tab-btn active">Verfügbarkeit</button>
+        <button class="day-tab-btn">Verfügbarkeit 2</button>
+        <button class="day-tab-btn">Buchungen</button>
+      </div>
+    </div>
+    <div class="sec-label">Nacht</div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:00</span><span class="slot-te">–00:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:30</span><span class="slot-te">–01:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:00</span><span class="slot-te">–01:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:30</span><span class="slot-te">–02:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">02:00</span><span class="slot-te">–02:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ── STATE B: Navbar HIDDEN (scrolled away), sticky header moves to top:0 ── -->
+<div class="col">
+<div class="lbl">Navbar versteckt<br>→ Header at top:0</div>
+<div class="phone">
+  <!-- Navbar slides up out of view -->
+  <div class="navbar is-hidden"></div>
+  <div class="scroll" style="margin-top:-52px;"> <!-- compensate for navbar space -->
+    <!-- sticky header now at top:0 — acts as the new top bar -->
+    <div class="day-sticky-header is-sticky" style="position:sticky;top:0;">
+      <div class="day-nav-bar">
+        <button class="day-nav-btn">«</button>
+        <button class="day-nav-btn">‹</button>
+        <span class="day-nav-label">Di., 24. März 2026</span>
+        <button class="day-nav-btn">›</button>
+        <button class="day-nav-btn">»</button>
+      </div>
+      <div class="day-tab-nav">
+        <button class="day-tab-btn active">Verfügbarkeit</button>
+        <button class="day-tab-btn">Verfügbarkeit 2</button>
+        <button class="day-tab-btn">Buchungen</button>
+      </div>
+    </div>
+    <div class="sec-label">Nacht</div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:00</span><span class="slot-te">–00:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:30</span><span class="slot-te">–01:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:00</span><span class="slot-te">–01:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:30</span><span class="slot-te">–02:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">02:00</span><span class="slot-te">–02:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">02:30</span><span class="slot-te">–03:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">03:00</span><span class="slot-te">–03:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+  </div>
+</div>
+</div>
+
+<!-- ── STATE C: Navbar reappears (user scrolls up) ── -->
+<div class="col">
+<div class="lbl">Navbar kommt zurück<br>→ Header zurück top:52px</div>
+<div class="phone">
+  <div class="navbar">
+    <span class="navbar-logo">BookingSystem</span>
+    <span class="navbar-wallet">€45,00</span>
+    <div class="navbar-ham"><span></span><span></span><span></span></div>
+  </div>
+  <div class="scroll">
+    <!-- sticky header back to top:52px (below navbar) -->
+    <div class="day-sticky-header is-sticky" style="position:sticky;top:0;">
+      <div class="day-nav-bar">
+        <button class="day-nav-btn">«</button>
+        <button class="day-nav-btn">‹</button>
+        <span class="day-nav-label">Di., 24. März 2026</span>
+        <button class="day-nav-btn">›</button>
+        <button class="day-nav-btn">»</button>
+      </div>
+      <div class="day-tab-nav">
+        <button class="day-tab-btn active">Verfügbarkeit</button>
+        <button class="day-tab-btn">Verfügbarkeit 2</button>
+        <button class="day-tab-btn">Buchungen</button>
+      </div>
+    </div>
+    <div class="sec-label">Nacht</div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:00</span><span class="slot-te">–00:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">00:30</span><span class="slot-te">–01:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:00</span><span class="slot-te">–01:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">01:30</span><span class="slot-te">–02:00</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+    <div class="slot-row"><div class="slot-time"><span class="slot-ts">02:00</span><span class="slot-te">–02:30</span></div><div class="slot-sep"></div><div class="slot-info">Kein Slot angelegt</div><div class="slot-btns"><span class="slot-btn">Hinzufügen</span><span class="slot-btn">Timeout</span></div></div>
+  </div>
+</div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,560 @@
+================================================================================
+GUIDELINE — ARCHITEKTUR
+BookingSystem | Stand: März 2026
+================================================================================
+
+INHALTSVERZEICHNIS
+  1.  Architektur-Übersicht
+  2.  Adapter-Pattern & Datenzugriff
+  3.  Modul-Hierarchie
+  4.  Datenbankschema (alle Tabellen & Felder)
+  5.  Alle Datenzugriff-Funktionen
+  6.  HTML-Seiten Übersicht
+  7.  Komplette Projektzusammenfassung
+  8.  Asset Versioning & Cache-Strategie
+
+────────────────────────────────────────────────────────────────────────────────
+1. ARCHITEKTUR-ÜBERSICHT
+────────────────────────────────────────────────────────────────────────────────
+
+  Kein Server. Kein Framework. Alles läuft im Browser via localStorage.
+  Eine Zeile in app-config.js tauscht das Backend aus (Adapter-Swap).
+
+  SCHICHTEN:
+  ┌─────────────────────────────────────────────────────┐
+  │  UI-Layer     teacher.js / student.js / admin.js    │
+  │               landing.js / skiing-catalog.js        │
+  ├─────────────────────────────────────────────────────┤
+  │  Service      AppService.*   (app-service.js)       │  ← EINZIGER Zugriffspunkt
+  ├─────────────────────────────────────────────────────┤
+  │  Adapter      LocalStorageAdapter (adapter-localstorage.js)
+  │               [swap-fähig → FirestoreAdapter etc.]  │
+  ├─────────────────────────────────────────────────────┤
+  │  Store        Store.* (store.js)                    │  ← nur Adapter darf zugreifen
+  │               ProfileStore (profile.js)             │
+  │               ChatStore (chat.js)                   │
+  │  Persistenz   localStorage                          │
+  └─────────────────────────────────────────────────────┘
+
+  EISERNE REGEL:
+    Consumer-Code (teacher.js, student.js usw.) darf NIEMALS direkt auf
+    Store.*, ProfileStore.*, localStorage zugreifen.
+    Immer nur über AppService.*(callback) — mit Node.js-Callback-Konvention:
+      function(err, result) { ... }
+
+  ADAPTER-SWAP (eine Zeile):
+    // app-config.js
+    var AppAdapter = LocalStorageAdapter;  // ← hier tauschen (z.B. FirestoreAdapter)
+
+────────────────────────────────────────────────────────────────────────────────
+2. ADAPTER-PATTERN & DATENZUGRIFF
+────────────────────────────────────────────────────────────────────────────────
+
+  AppService delegiert alle Calls an AppAdapter (= LocalStorageAdapter).
+  LocalStorageAdapter ist die EINZIGE Datei die Store.* und ProfileStore.*
+  direkt aufrufen darf.
+
+  Callbacks sind synchron im LocalStorageAdapter — aber im Consumer-Code
+  NIEMALS auf Synchronizität verlassen. FirestoreAdapter ruft async auf.
+
+  Fehlerbehandlung:
+    Jeder AppService-Call liefert (err, result).
+    err === null → success, result enthält Daten.
+    err !== null → Fehlerobjekt, result === null.
+    Overlays/Dialoge loggen Fehler via try/catch und zeigen
+    sichtbare Fehlermeldungen (kein stiller Fail).
+
+────────────────────────────────────────────────────────────────────────────────
+3. MODUL-HIERARCHIE
+────────────────────────────────────────────────────────────────────────────────
+
+  KERN-BIBLIOTHEKEN (immer in dieser Reihenfolge laden):
+    1. store.js            Store.Users / Slots / Recurring / Selections
+    2. auth.js             Auth.current / login / logout / loginByEmail / loginByGoogle
+    3. profile.js          ProfileStore.get/save/getDefault/getDisplayName
+    4. ui.js               Toast / Modal / Navbar-Hilfsfunktionen
+    5. navbar.js           Navbar.init(page, options)
+    6. adapter-localstorage.js  LocalStorageAdapter
+    7. app-service.js      AppService.* (delegiert an AppAdapter)
+
+  SEITEN-SPEZIFISCH (jede Seite lädt nur was sie braucht):
+    admin.js               Admin-Verwaltung
+    teacher.js             Lehrer-Dashboard
+    student.js             Schüler-Dashboard
+    landing.js             Landing Page + AuthModal
+    skiing-catalog.js      Katalog + Filter
+    catalog-filter-drawer.js  Filterschublade
+    wallet-panel.js        Wallet-Panel (embedded in teacher/student)
+    wallet.js              Wallet-Standalone-Seite
+    chat.js                Chat-Overlay
+    profile.js             ProfileStore + ProfileEdit + ProfileView
+
+  DIALOGE (Standalone HTML, eigene Objekte):
+    dialogs/catalog-filter-drawer.html
+
+────────────────────────────────────────────────────────────────────────────────
+4. DATENBANKSCHEMA (localStorage-Schlüssel & alle Felder)
+────────────────────────────────────────────────────────────────────────────────
+
+  KEY: app_users       Typ: Array
+  ─────────────────────────────
+  Felder pro User-Objekt:
+    uid           String   Eindeutige Kennung. Format: "admin", "t1", "s1" etc.
+                           Bei Selbstregistrierung auto-generiert (t<n>, s<n>)
+    name          String   Anzeigename
+    role          String   "admin" | "teacher" | "student"
+    email         String   E-Mail-Adresse (optional, für Login & Kontakt)
+    password      String   Klartext-Passwort (Mock — kein Hashing, kein echtes Auth)
+    discipline    String   Beruf/Disziplin des Lehrers:
+                           "ski" | "paragliding" | "diving" | "tourguide" | ""
+                           (nur relevant wenn role === "teacher")
+
+  Hinweis: Admin-Account (uid="admin") wird beim ersten Start auto-geseedet.
+           Admin kann nicht gelöscht werden.
+
+
+  KEY: app_profiles    Typ: Objekt (uid → Profil-Objekt)
+  ─────────────────────────────────────────────────────
+  Felder pro Profil-Objekt (hauptsächlich für Lehrer, Students haben Basis-Felder):
+    uid               String   Referenz zu app_users.uid
+    name              String   Anzeigename (hat Vorrang vor app_users.name)
+    age               String   Alter
+    gender            String   Geschlecht
+    location          String   Wohnort / Einsatzgebiet
+    bio               String   Freitextbeschreibung
+    photo             String   Base64-kodiertes Profilbild (kann groß sein)
+    pricePerHalfHour  String   Preis pro 30 Minuten (€)
+    experienceYears   String   Jahre Erfahrung
+    languages         Array    Gesprochene Sprachen ["de","en","fr"...]
+    lessonTypes       Array    Unterrichtstypen z.B. ["Einzelstunde","Gruppenunterricht"]
+    audience          Array    Zielgruppe z.B. ["Kinder","Erwachsene"]
+    ageFrom           String   Mindestalter der Schüler
+    ageTo             String   Maximalalter der Schüler
+    levels            Array    Schwierigkeitsgrade z.B. ["Anfänger","Fortgeschritten"]
+    maxGroupSize      String   Max. Teilnehmer pro Gruppe
+    terrain           Array    Gelände/Umgebung z.B. ["Piste","Freeride","Halfpipe"]
+    certifications    Array    Zertifizierungen z.B. ["SAS Level 1","PADI Divemaster"]
+    specializations   Array    Spezialgebiete z.B. ["Kinder","Racing","Tiefschnee"]
+    email             String   Kontakt-E-Mail (sichtbar im Profil wenn emailVisible=true)
+    emailVisible      Boolean  E-Mail öffentlich anzeigen
+    phone             String   Telefonnummer
+    phoneVisible      Boolean  Telefon öffentlich anzeigen
+    instagram         String   Instagram-Handle (@username)
+    website           String   Website-URL
+    updatedAt         String   ISO-8601 Timestamp letzter Speicherung
+
+
+  KEY: app_slots       Typ: Array
+  ─────────────────────────────
+  Repräsentiert einen einzelnen 30-Minuten-Slot im Kalender.
+  Felder pro Slot-Objekt:
+    slotId        String   UUID (auto-generiert)
+    teacherId     String   Referenz zu app_users.uid (role=teacher)
+    studentId     String|null  Referenz zu app_users.uid (role=student), null wenn frei
+    date          String   Datum im Format "YYYY-MM-DD"
+    time          String   Startzeit im Format "HH:MM" (24h)
+    status        String   "available" | "booked" | "disabled" | "timeout"
+    baseStatus    String   Status ohne Buchung: "available" | "disabled" | "timeout"
+                           Wird beim Stornieren wiederhergestellt.
+
+  Status-Logik:
+    available  → frei buchbar
+    booked     → gebucht (studentId ist gesetzt)
+    disabled   → vom Lehrer blockiert (nicht buchbar)
+    timeout    → abgelaufen (vergangener Slot, nicht mehr buchbar)
+    baseStatus → wird beim Stornieren als Ziel-Status gesetzt
+
+
+  KEY: app_recurring   Typ: Array
+  ─────────────────────────────
+  Wiederkehrende Verfügbarkeitsregeln (wöchentlich).
+  Felder pro Recurring-Objekt:
+    recurringId   String   UUID (auto-generiert)
+    teacherId     String   Referenz zu app_users.uid (role=teacher)
+    dayOfWeek     Number   0=Montag, 1=Dienstag, ..., 6=Sonntag
+    time          String   Uhrzeit "HH:MM" (24h)
+
+  Materialisation:
+    Recurring.materialiseWeek(tid, weekDates) erstellt fehlende app_slots-Einträge
+    für eine komplette Woche (7 Date-Objekte Mo–So).
+    Bestehende Slots werden NICHT überschrieben.
+
+
+  KEY: app_selections  Typ: Array
+  ─────────────────────────────
+  Welcher Schüler hat welchen Lehrer ausgewählt (Lehrerbindung).
+  Felder:
+    studentId     String   Referenz zu app_users.uid (role=student)
+    teacherId     String   Referenz zu app_users.uid (role=teacher)
+
+  Hinweis: Selections sind die Voraussetzung für Buchungen.
+           Ein Student kann nur bei ausgewählten Lehrern buchen.
+
+
+  KEY: app_chat_messages  Typ: Array
+  ─────────────────────────────────
+  Alle Chatnachrichten aller Konversationen.
+  Felder pro Message-Objekt:
+    msgId           String   UUID (auto-generiert)
+    conversationKey String   "uid1_uid2" (alphabetisch sortiert, eindeutig pro Paar)
+    senderId        String   Referenz zu app_users.uid
+    receiverId      String   Referenz zu app_users.uid
+    text            String   Nachrichtentext
+    type            String   "text" | "booking_proposal" | "booking_confirmed" | "booking_declined"
+    bookingData     Object|undefined  (nur bei type=booking_proposal)
+                               { slotId, date, time, teacherId, studentId }
+    bookingStatus   String|undefined  "pending" | "confirmed" | "declined"
+    readStatus      String   "sent" | "read"
+    edited          Boolean  Nachricht wurde bearbeitet
+    deleted         Boolean  Nachricht wurde gelöscht
+    deletedAt       String|undefined  ISO-8601 Timestamp der Löschung
+    createdAt       String   ISO-8601 Timestamp der Erstellung
+
+
+  KEY: app_wallets     Typ: Objekt (uid → Wallet-Objekt)
+  ──────────────────────────────────────────────────────
+  Felder pro Wallet-Objekt:
+    uid           String   Referenz zu app_users.uid
+    balance       Number   Aktuelles Guthaben in EUR (2 Dezimalstellen)
+    currency      String   Immer "EUR"
+    updatedAt     String   ISO-8601 Timestamp letzter Änderung
+
+
+  KEY: app_transactions  Typ: Array
+  ─────────────────────────────────
+  Alle Wallet-Transaktionen (Einzahlung, Auszahlung, Escrow).
+  Felder pro Transaction-Objekt:
+    txId          String   "tx_<timestamp>_<random>" (auto-generiert)
+    uid           String   Referenz zu app_users.uid (Eigentümer der Transaktion)
+    type          String   "deposit" | "withdrawal" | "escrow_hold" | "escrow_release" | "escrow_refund"
+    amount        Number   Betrag in EUR (negativ bei Auszahlung/Hold)
+    balance       Number   Wallet-Saldo nach der Transaktion
+    description   String   Freitext-Beschreibung
+    status        String   "completed" | "pending" | "failed"
+    createdAt     String   ISO-8601 Timestamp
+    relatedUid    String|null  Gegenpartei (z.B. teacherUid bei Buchungszahlung)
+
+────────────────────────────────────────────────────────────────────────────────
+5. ALLE DATENZUGRIFF-FUNKTIONEN
+────────────────────────────────────────────────────────────────────────────────
+
+  STORE.JS — Store.Users
+  ──────────────────────
+  Store.Users.all()                      → alle User
+  Store.Users.byUid(uid)                 → User-Objekt | null
+  Store.Users.byRole(role)               → User-Array
+  Store.Users.create(opts)               → neuer User | throws
+    opts: { uid?, name, role, email, password, discipline }
+    uid ist optional — wird auto-generiert wenn nicht angegeben
+  Store.Users.update(uid, opts)          → void | throws
+    opts: { name?, email?, discipline?, password? }
+  Store.Users.delete(uid)                → void | throws
+
+  STORE.JS — Store.Slots
+  ──────────────────────
+  Store.Slots.all()                      → alle Slots
+  Store.Slots.byTeacher(tid)             → Slots des Lehrers
+  Store.Slots.byStudent(sid)             → Slots des Schülers
+  Store.Slots.byTeacherDate(tid, date)   → Slots sortiert nach Zeit
+  Store.Slots.exists(tid, date, time)    → Slot | null
+  Store.Slots.create(opts)               → neuer Slot
+  Store.Slots.createRange(tid, date, startTime, endTime, status) → Anzahl erstellt
+  Store.Slots.update(slotId, patch)      → void
+  Store.Slots.setAvailability(slotId, newBase)  → void
+  Store.Slots.cancelBooking(slotId)      → void (stellt baseStatus wieder her)
+  Store.Slots.bookSlot(slotId, studentId) → void
+  Store.Slots.delete(slotId)             → void
+  Store.Slots.deleteByUser(uid)          → void (löscht als Teacher und Student)
+
+  STORE.JS — Store.Recurring
+  ──────────────────────────
+  Store.Recurring.all()                              → alle Regeln
+  Store.Recurring.byTeacher(tid)                     → Regeln des Lehrers
+  Store.Recurring.exists(tid, dayOfWeek, time)       → Regel | null
+  Store.Recurring.create(tid, dayOfWeek, time)       → void
+  Store.Recurring.delete(recurringId)                → void
+  Store.Recurring.deleteByTeacherDayTime(tid,dow,t)  → void
+  Store.Recurring.deleteByTeacher(tid)               → void
+  Store.Recurring.materialiseWeek(tid, weekDates)    → void (erstellt Slots)
+
+  STORE.JS — Store.Selections
+  ───────────────────────────
+  Store.Selections.all()                 → alle Selections
+  Store.Selections.byStudent(sid)        → Selections des Schülers
+  Store.Selections.byTeacher(tid)        → Selections des Lehrers
+  Store.Selections.exists(sid, tid)      → Boolean
+  Store.Selections.create(sid, tid)      → void
+  Store.Selections.delete(sid, tid)      → void
+  Store.Selections.deleteByUser(uid)     → void
+
+  STORE.JS — Hilfsfunktionen
+  ──────────────────────────
+  Store.slotEndTime(timeStr)             → "HH:MM" Endzeit (+30min)
+  Store.slotTimesInRange(start, end)     → Array von Zeitstrings
+  Store.SLOT_DURATION                    → 30 (Minuten, Konstante)
+  Store.onChange(fn)                     → Cross-Tab-Sync Listener registrieren
+
+  AUTH.JS — Auth
+  ──────────────
+  Auth.current()                         → User-Objekt | null (liest ?uid= aus URL)
+  Auth.login(uid)                        → redirect zu Rollenpage + ?uid=
+  Auth.loginByEmail(email, password)     → redirect | throws
+  Auth.loginByGoogle(uid)                → redirect (kein Passwort nötig)
+  Auth.googleAccounts()                  → User-Array (nur user mit email, kein admin)
+  Auth.logout()                          → redirect zu index.html
+  Auth.require(role|[roles])             → User | null (Guard für geschützte Seiten)
+
+  PROFILE.JS — ProfileStore
+  ─────────────────────────
+  ProfileStore.get(uid)                  → Profil-Objekt | null
+  ProfileStore.save(uid, profileData)    → gespeichertes Profil
+  ProfileStore.getDefault(uid)           → Default-Profil mit allen Feldern
+  ProfileStore.getOrDefault(uid)         → get() || getDefault()
+  ProfileStore.getDisplayName(uid)       → String (Profil-Name > Store-Name > uid)
+  ProfileStore.getPhoto(uid)             → Base64-String | null
+  ProfileStore.getPrice(uid)             → String | null
+  ProfileStore.getSpecializations(uid)   → Array
+
+  CHAT.JS — ChatStore
+  ───────────────────
+  ChatStore.getConversation(uidA, uidB)  → Message-Array (chronologisch)
+  ChatStore.getLastMessage(uidA, uidB)   → letztes Message-Objekt | null
+  ChatStore.getUnreadCount(currentUid, partnerUid) → Number
+  ChatStore.send(senderId, receiverId, text, type) → Message-Objekt
+  ChatStore.sendBookingProposal(senderId, receiverId, bookingData) → Message-Objekt
+  ChatStore.markAsRead(currentUid, partnerUid)     → void
+  ChatStore.markSentAsDelivered(currentUid, partnerUid) → void
+
+  ADAPTER-LOCALSTORAGE.JS — LocalStorageAdapter (via AppService)
+  ──────────────────────────────────────────────────────────────
+  Users:
+    getUser(uid, cb)
+    getAllUsers(cb)
+    getUsersByRole(role, cb)
+    createUser(data, cb)
+    deleteUser(uid, cb)
+
+  Slots:
+    getSlotsByTeacher(tid, cb)
+    getSlotsByStudent(sid, cb)
+    getSlotsByTeacherDate(tid, date, cb)
+    createSlot(opts, cb)
+    updateSlot(slotId, patch, cb)
+    deleteSlot(slotId, cb)
+    bookSlot(slotId, studentId, cb)
+    cancelBooking(slotId, cb)
+
+  Recurring:
+    getRecurringByTeacher(tid, cb)
+    createRecurring(tid, dayOfWeek, time, cb)
+    deleteRecurring(recurringId, cb)
+    materialiseWeek(tid, weekDates, cb)
+
+  Selections:
+    getSelectionsByStudent(sid, cb)
+    getSelectionsByTeacher(tid, cb)
+    createSelection(sid, tid, cb)
+    deleteSelection(sid, tid, cb)
+
+  Profile:
+    getProfile(uid, cb)
+    saveProfile(uid, data, cb)
+
+  Wallet:
+    getWallet(uid, cb)              → { uid, balance, currency, updatedAt }
+    deposit(uid, amount, desc, cb)  → { wallet, transaction }
+    withdraw(uid, amount, desc, cb) → { wallet, transaction }
+    getTransactions(uid, cb)        → Transaction-Array
+
+  Escrow (geplant / Schritt 3–8 offen):
+    escrowHold(studentUid, teacherUid, amount, bookingId, cb)
+    escrowRelease(bookingId, cb)
+    escrowRefund(bookingId, cb)
+
+────────────────────────────────────────────────────────────────────────────────
+6. HTML-SEITEN ÜBERSICHT
+────────────────────────────────────────────────────────────────────────────────
+
+  ÖFFENTLICHE SEITEN (kein Login nötig):
+    landing.html          Landing Page mit Hero, Sportarten-Karten, AuthModal
+                          (Sign In / Sign Up / Mit Google anmelden)
+    index.html            Alter Login (nur UID) — wird durch landing.html ersetzt
+    skiing.html           Ski-Kategorie-Seite (öffentlich)
+    skiing-catalog.html   Lehrerkatalog mit Filterung nach Disziplin
+    profile-view.html     Öffentliches Lehrerprofil
+
+  ROLLENGESCHÜTZTE SEITEN:
+    admin.html            Admin: User erstellen/bearbeiten/löschen, Statistiken
+                          Zugang: role=admin
+    teacher.html          Lehrer-Dashboard: Kalender, Buchungen, Meine Schüler, Wallet
+                          Zugang: role=teacher
+    student.html          Schüler-Dashboard: Meine Lehrer, Buchungen, Wallet
+                          Zugang: role=student
+    profile-edit.html     Profil bearbeiten (derzeit nur teacher)
+                          Zugang: eingeloggt (Auth.current())
+    wallet.html           Wallet-Standalone (Einzahlen/Auszahlen/Verlauf)
+                          Zugang: role=teacher | role=student
+
+  DIALOGE / OVERLAYS (standalone HTML, per iframe oder JS geladen):
+    dialogs/catalog-filter-drawer.html   Filterschublade für skiing-catalog
+
+  INTERNE SEITEN:
+    debug.html            Debug-Konsole (nur Entwicklung)
+    loop.html             Test-Seite
+    navbar.html           Navbar-Template-Vorschau
+
+────────────────────────────────────────────────────────────────────────────────
+7. KOMPLETTE PROJEKTZUSAMMENFASSUNG
+────────────────────────────────────────────────────────────────────────────────
+
+  ZWECK:
+    Buchungssystem für Sport-Instruktoren (Ski, Paragliding, Tauchen, Reiseführer).
+    Lehrer verwalten Verfügbarkeit und nehmen Buchungen an.
+    Schüler wählen Lehrer und buchen 30-Minuten-Slots.
+
+  3 ROLLEN:
+    Admin    → User erstellen/verwalten, Passwörter/Disziplinen setzen
+    Lehrer   → Kalender verwalten, Buchungen annehmen/ablehnen, Chat, Wallet
+    Schüler  → Lehrer auswählen, Slots buchen, Buchungen einsehen, Chat, Wallet
+
+  LOGIN-OPTIONEN:
+    1. E-Mail + Passwort (im Admin gesetzt)
+    2. "Mit Google anmelden" (Mock — wählt Account aus Liste der User mit E-Mail)
+    3. UID-Direkteingabe (Fallback)
+    4. Sign Up (Selbstregistrierung) → auto-UID → direkt zum Profil
+
+  DATEN-PERSISTENZ:
+    Alles in localStorage des Browsers.
+    6 Schlüssel: app_users, app_profiles, app_slots, app_recurring,
+                 app_selections, app_chat_messages, app_wallets, app_transactions
+
+  BESONDERHEITEN:
+    - Slots dauern immer 30 Minuten (SLOT_DURATION = 30, nicht konfigurierbar ohne Codeänderung)
+    - Recurring-Regeln materialisieren beim Wochenwechsel neue Slots automatisch
+    - Cross-Tab-Sync via window.addEventListener('storage', ...) → Store.onChange()
+    - Adapter-Swap: eine Zeile in app-config.js ersetzt localStorage durch Firestore
+    - Passwörter im Klartext (nur Mock — nicht produktionsreif)
+    - Escrow-System (Schritte 3–8) noch nicht vollständig implementiert
+
+  IMPLEMENTIERTE FEATURES:
+    ✅ Admin: User CRUD (erstellen, bearbeiten, löschen) mit E-Mail, Passwort, Disziplin
+    ✅ Lehrer: Wochenkalender, Slot-Verwaltung, Recurring-Regeln, Buchungsansicht
+    ✅ Lehrer: "Meine Schüler" Tab, Wallet, Chat
+    ✅ Schüler: Lehrerkatalog, "Meine Lehrer" Tab, Buchungen, Wallet, Chat
+    ✅ Landing: AuthModal (Sign In / Sign Up / Google-Mock)
+    ✅ Skiing-Catalog: Filterung nach Disziplin, Name, Verfügbarkeit
+    ✅ Profile: Öffentliches Profil für Lehrer
+    ✅ Wallet: Einzahlen, Auszahlen, Transaktionshistorie
+
+  OFFENE PUNKTE:
+    ⬜ Escrow-System Schritte 3–8 (Buchungszahlung, Hold, Release, Refund)
+    ⬜ profile-edit.html nur für Lehrer (Students einschränken/erweitern)
+    ⬜ Passwort-Hashing (bcrypt o.ä.) für Produktionsreife
+    ⬜ Sign Up: Weiterleitung für Students zu eigenem Profil
+    ⬜ Paragliding / Diving / Tour Guides als aktive Katalogseiten
+
+────────────────────────────────────────────────────────────────────────────────
+8. ASSET VERSIONING & CACHE-STRATEGIE
+────────────────────────────────────────────────────────────────────────────────
+
+  ZIEL:
+    Browser erkennen neue JS/CSS-Versionen automatisch.
+    Manuelles Cache-Leeren ist ein Architektur-Fehler — kein Workaround.
+
+  GRUNDPRINZIP (Non-Negotiable):
+    Jede statische Ressource (JS, CSS, Fonts) MUSS mit einem Versionsbezeichner
+    referenziert werden. Direkte Dateireferenzen ohne Version sind verboten.
+
+    VERBOTEN:
+      <script src="app.js"></script>
+      <link rel="stylesheet" href="styles.css">
+
+    PFLICHT:
+      <script src="app.js?v=2026-03-19-1"></script>
+      <link rel="stylesheet" href="styles.css?v=2026-03-19-1">
+
+  STRATEGIE: Query-Based Versioning (passt zu diesem Projekt ohne Build-Tool)
+
+    Die aktuelle App-Version wird zentral in app-config.js definiert.
+    app-config.js traegt ab sofort ZWEI Verantwortlichkeiten:
+      1. Adapter-Swap  (var AppAdapter = LocalStorageAdapter)
+      2. Asset-Version (var APP_VERSION = '2026-03-19-1')
+
+      // app-config.js
+      var APP_VERSION = '2026-03-19-1';    // <- bei jeder Aenderung erhoehen
+      var AppAdapter  = LocalStorageAdapter;
+
+    Alle HTML-Seiten binden app-config.js als ERSTES Script ein.
+    Danach werden alle weiteren Assets mit ?v= + APP_VERSION referenziert.
+
+  VERSIONSFORMAT:
+    Format: YYYY-MM-DD-{increment}
+    Beispiel: 2026-03-19-1 -> 2026-03-19-2 (zweite Aenderung am selben Tag)
+
+    Die Version wird erhoeht wenn:
+      - eine .js-Datei geaendert wird
+      - eine .css-Datei geaendert wird
+      - ein neues Asset hinzugefuegt wird
+
+    app-config.js selbst wird NICHT mit ?v= versioniert — sie ist der Anker.
+
+  LADEREIHENFOLGE (Ergaenzung zu Abschnitt 3):
+    app-config.js wird immer als allererste Datei geladen — noch vor store.js.
+
+      0. app-config.js     APP_VERSION + AppAdapter-Definition
+      1. store.js
+      2. auth.js
+      3. profile.js
+      4. ui.js
+      5. navbar.js
+      6. adapter-localstorage.js
+      7. app-service.js
+
+  DIALOGE & OVERLAYS:
+    Standalone-HTML-Dialoge (z. B. dialogs/catalog-filter-drawer.html)
+    unterliegen denselben Regeln. Sie laden app-config.js als erstes Script
+    und referenzieren alle Assets mit ?v=${APP_VERSION}.
+
+  DRITTANBIETER-LIBRARIES:
+    CDN-Links muessen immer eine fixe Version enthalten:
+    OK:   https://cdn.example.com/lib.min.js?v=3.4.1
+    NEIN: https://cdn.example.com/lib.min.js
+
+  PFLICHTREGELN:
+
+    R-CACHE-01  Jede JS- und CSS-Datei MUSS mit ?v=${APP_VERSION} referenziert
+                werden. Gilt fuer alle HTML-Seiten inkl. Dialoge und Overlays.
+    R-CACHE-02  Unversionierte Asset-Referenzen sind verboten — auch lokal.
+    R-CACHE-03  Bei jeder inhaltlichen Aenderung einer Asset-Datei MUSS
+                APP_VERSION in app-config.js erhoeht werden.
+    R-CACHE-04  app-config.js wird niemals selbst mit ?v= versioniert.
+    R-CACHE-05  APP_VERSION wird ausschliesslich in app-config.js definiert (SSOT).
+                Niemals hardcoden in einzelnen HTML-Dateien oder anderen .js-Dateien.
+    R-CACHE-06  Manuelles Cache-Leeren gilt als Architektur-Fehler.
+                Ursache beheben: APP_VERSION erhoehen.
+    R-CACHE-07  CDN-Links von Drittanbietern immer mit fixer Versionsangabe.
+    R-CACHE-08  app-config.js wird immer als erstes Script geladen (vor store.js).
+
+  ANTI-PATTERNS (verboten):
+
+    <script src="main.js"></script>
+    -> Browser cached die alte Datei.
+
+    <script src="main.js?v=2026-03-19"></script>
+    -> Kein Increment: zwei Aenderungen am selben Tag werden nicht erkannt.
+
+    <script src="main.js?v=RANDOM"></script>
+    -> Verhindert Caching komplett, schadet der Performance.
+
+    Hinweis "Bitte Cache leeren" in README oder Commit-Messages
+    -> Symptom statt Ursache beheben. APP_VERSION erhoehen.
+
+  CHECKLISTE (vor jedem Deployment / nach jeder Aenderung):
+    [ ] APP_VERSION in app-config.js wurde erhoeht
+    [ ] Alle <script src=""> enthalten ?v=...
+    [ ] Alle <link rel="stylesheet" href=""> enthalten ?v=...
+    [ ] app-config.js ist das erste Script in jeder HTML-Seite
+    [ ] Dialoge und Overlays (standalone HTML) ebenfalls geprueft
+    [ ] CDN-Links enthalten fixe Versionsangaben
+
+================================================================================

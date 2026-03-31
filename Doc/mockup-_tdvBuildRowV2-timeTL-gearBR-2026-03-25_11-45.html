@@ -1,0 +1,266 @@
+<!--
+  MOCKUP: _tdvBuildRowV2 — available/empty rows: time top-left, gear bottom-right
+  FILE:   teacher.js : _tdvBuildRowV2() available + empty branches
+          → Remove time-col/sep/info/action column layout
+          → Use single .dv-v2-slot-cell wrapper with position:relative
+          → time top-left, vis-badges middle, gear bottom-right (absolute)
+  CSS:    teacher.css — NEW: .dv-v2-slot-cell, .dv-v2-slot-time, .dv-v2-slot-gear
+  DATE:   2026-03-25 11:45
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — V2 Available: time top-left, gear bottom-right</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-400:#9aa3af;--neutral-500:#6b7685;
+  --neutral-700:#2d3540;
+  --font:'Figtree',sans-serif;
+  --text-caption:12px;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;
+  --radius-sm:4px;--transition:150ms ease;
+  --vis-new:#8b5cf6;--vis-new-bg:#ede9fe;--vis-new-tx:#5b21b6;
+  --vis-white:#0ea5e9;--vis-white-bg:#e0f2fe;--vis-white-tx:#0c4a6e;
+  --vis-group:#10b981;--vis-group-bg:#dcfce7;--vis-group-tx:#14532d;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;padding:0 0 60px;}
+.app{max-width:480px;margin:0 auto;background:var(--neutral-0);}
+.topbar{background:var(--color-900);color:#fff;padding:12px 16px;font-size:13px;font-weight:var(--weight-semibold);}
+.section-divider{font-size:10px;color:var(--neutral-400);font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:10px 16px 4px;}
+
+/* ── Base slot row (column direction from fix) ── */
+.dv-slot-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-bottom: 1px solid var(--neutral-100);
+  position: relative;
+}
+.dv-slot-row::before {
+  content:'';position:absolute;left:0;top:8px;bottom:8px;
+  width:3px;border-radius:0 2px 2px 0;background:var(--neutral-200);
+}
+.dv-s-available{background:var(--color-100);}
+.dv-s-available::before{background:var(--color-500);}
+.dv-s-empty{background:var(--neutral-50);}
+.dv-s-booked{background:var(--color-900);}
+.dv-s-booked::before{background:var(--color-400);}
+
+/* ════════════════════════════════════════════
+   NEW LAYOUT for V2 available/empty rows
+   Single cell, time top-left, gear bottom-right
+   ════════════════════════════════════════════ */
+
+/* NEW: .dv-v2-slot-cell
+   Replaces the time-col|sep|info|action columns for V2 non-booked rows */
+.dv-v2-slot-cell {
+  position: relative;
+  min-height: 72px;
+  padding: 10px 12px 10px 20px;  /* left padding clears the accent bar */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+/* NEW: .dv-v2-slot-time — time anchored top-left */
+.dv-v2-slot-time {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+}
+.dv-v2-time-start {
+  font-family: 'Courier New', monospace;
+  font-size: 15px;
+  font-weight: var(--weight-semibold);
+  color: var(--color-700);
+  line-height: 1;
+}
+.dv-v2-time-end {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: var(--color-400);
+  line-height: 1;
+}
+.dv-s-empty .dv-v2-time-start { color: var(--neutral-500); }
+.dv-s-empty .dv-v2-time-end   { color: var(--neutral-400); }
+
+/* Badges sit below time, also left-aligned */
+.dv-v2-slot-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+/* NEW: .dv-v2-slot-gear — gear anchored bottom-right */
+.dv-v2-slot-gear {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+}
+
+/* Gear button */
+.dv-vis-btn {
+  width: 30px; height: 30px; border-radius: var(--radius-sm);
+  border: 1px solid var(--color-200); background: transparent;
+  color: var(--color-400); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.dv-vis-btn.is-active {
+  background: var(--color-900); border-color: var(--color-900); color: #fff;
+}
+
+/* Vis badge */
+.dv-vis-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 3px;
+}
+.dv-vis-badge-sq {width:7px;height:7px;border-radius:2px;flex-shrink:0;display:inline-block;}
+
+/* ── Booked row stays as before (column layout) ── */
+.dv-v2-row-top {
+  display: flex; align-items: center; min-height: 60px; width: 100%;
+}
+.dv-slot-time {
+  width: 64px; flex-shrink: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; padding: 8px;
+  gap: 2px; text-align: center;
+}
+.dv-slot-sep { width:1px; background: rgba(255,255,255,.1); align-self:stretch; flex-shrink:0; }
+.dv-slot-info { flex:1; display:flex; align-items:center; padding:8px 8px 8px 12px; }
+.dv-slot-action { padding:0 12px; display:flex; align-items:center; gap:6px; flex-shrink:0; }
+.dv-time-start { font-family:monospace; font-size:12px; font-weight:600; color:rgba(255,255,255,.9); }
+.dv-time-end   { font-family:monospace; font-size:10px; color:rgba(255,255,255,.5); }
+.dv-v2-avatar-stack { display:flex; align-items:center; }
+.dv-v2-avatar-stack-item { width:26px;height:26px;border-radius:50%;border:2px solid #0f2a3f;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;flex-shrink:0;margin-left:-8px;background:var(--color-700); }
+.dv-v2-avatar-stack-item:first-child{margin-left:0;}
+.dv-v2-add-btn { width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.dv-chevron-v2 { width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.dv-v2-info-top { display:flex;align-items:center;gap:6px; }
+.dv-v2-info-badges { display:flex;align-items:center;flex-wrap:wrap;gap:4px; }
+.dv-s-booked-v2 .dv-slot-info { flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;padding:8px 8px 8px 12px; }
+
+/* Empty hint */
+.dv-empty-hint { font-size:12px; color:var(--neutral-400); }
+
+/* Gear SVG shorthand */
+.gear { width:13px;height:13px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">Verfügbarkeit 2 — Mi., 25. März 2026</div>
+  <div class="section-divider">Nacht</div>
+
+  <!-- ── Available, no config ── -->
+  <div class="dv-slot-row dv-s-available">
+    <div class="dv-v2-slot-cell">
+      <div class="dv-v2-slot-time">
+        <span class="dv-v2-time-start">00:00</span>
+        <span class="dv-v2-time-end">–00:30</span>
+      </div>
+      <!-- no badges -->
+      <div class="dv-v2-slot-gear">
+        <button class="dv-vis-btn">
+          <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Available + Nur neue Schüler badge ── -->
+  <div class="dv-slot-row dv-s-available" style="border-left:3px solid var(--vis-new);">
+    <div class="dv-v2-slot-cell">
+      <div class="dv-v2-slot-time">
+        <span class="dv-v2-time-start" style="color:#5b21b6;">00:30</span>
+        <span class="dv-v2-time-end" style="color:#a78bfa;">–01:00</span>
+      </div>
+      <div class="dv-v2-slot-badges">
+        <span class="dv-vis-badge" style="background:var(--vis-new-bg);color:var(--vis-new-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-new);"></span>Nur neue Schüler
+        </span>
+      </div>
+      <div class="dv-v2-slot-gear">
+        <button class="dv-vis-btn is-active">
+          <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Available + Gruppe badge ── -->
+  <div class="dv-slot-row dv-s-available" style="border-left:3px solid var(--vis-group);">
+    <div class="dv-v2-slot-cell">
+      <div class="dv-v2-slot-time">
+        <span class="dv-v2-time-start" style="color:#14532d;">01:00</span>
+        <span class="dv-v2-time-end" style="color:#34d399;">–01:30</span>
+      </div>
+      <div class="dv-v2-slot-badges">
+        <span class="dv-vis-badge" style="background:var(--vis-group-bg);color:var(--vis-group-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-group);"></span>Gruppe max. 3 · 1 gebucht
+        </span>
+      </div>
+      <div class="dv-v2-slot-gear">
+        <button class="dv-vis-btn is-active">
+          <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Empty ── -->
+  <div class="dv-slot-row dv-s-empty">
+    <div class="dv-v2-slot-cell">
+      <div class="dv-v2-slot-time">
+        <span class="dv-v2-time-start">01:30</span>
+        <span class="dv-v2-time-end">–02:00</span>
+      </div>
+      <div class="dv-v2-slot-gear">
+        <button class="dv-vis-btn">
+          <svg class="gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Booked (unchanged layout) ── -->
+  <div class="dv-slot-row dv-s-booked dv-s-booked-v2" style="flex-direction:column;">
+    <div class="dv-v2-row-top">
+      <div class="dv-slot-time">
+        <span class="dv-time-start">02:00</span>
+        <span class="dv-time-end">–02:30</span>
+      </div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info dv-s-booked-v2">
+        <div class="dv-v2-info-top">
+          <div class="dv-v2-avatar-stack">
+            <div class="dv-v2-avatar-stack-item">S</div>
+            <div class="dv-v2-avatar-stack-item">A</div>
+          </div>
+        </div>
+        <div class="dv-v2-info-badges">
+          <span class="dv-vis-badge" style="background:rgba(139,92,246,.2);color:#c4b5fd;">
+            <span class="dv-vis-badge-sq" style="background:#8b5cf6;"></span>Nur neue Schüler
+          </span>
+        </div>
+      </div>
+      <div class="dv-slot-action">
+        <button class="dv-v2-add-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        <button class="dv-chevron-v2"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

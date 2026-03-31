@@ -1,0 +1,563 @@
+<!--
+  MOCKUP: openSlotVisibilityConfig — Combobox + kombinierbare Optionen
+  FILE:   teacher.js : NEW — function openSlotVisibilityConfig(slot)
+  CSS:    teacher.css — NEW: .svc-*, reuses .stu-filter-combo-*, .stu-filter-check-*
+  CHANGE: Whitelist/Blacklist/Gruppe als aufklappbare Panels (nicht Radio-Buttons).
+          Jede Option hat eigenen Checkbox-Toggle + Combobox mit Search-as-you-type.
+          Alle Optionen kombinierbar. Gruppe: Textfeld für max. Teilnehmer.
+  DATE:   2026-03-24 21:00
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Slot Config Combobox</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-small:14px;--text-caption:12px;
+  --weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow-lg:0 4px 16px rgba(6,15,28,.14);
+  --focus-ring:0 0 0 3px rgba(77,122,160,.30);
+  --transition:150ms ease;
+  --vis-new:#8b5cf6; --vis-new-bg:#faf5ff; --vis-new-bd:#ddd6fe; --vis-new-tx:#5b21b6;
+  --vis-white:#0ea5e9; --vis-white-bg:#f0f9ff; --vis-white-bd:#bae6fd; --vis-white-tx:#0c4a6e;
+  --vis-black:#f97316; --vis-black-bg:#fff7ed; --vis-black-bd:#fed7aa; --vis-black-tx:#9a3412;
+  --vis-group:#10b981; --vis-group-bg:#f0fdf4; --vis-group-bd:#bbf7d0; --vis-group-tx:#14532d;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;min-height:100vh;display:flex;align-items:flex-end;justify-content:center;}
+
+/* ── Bottom sheet ── */
+.sheet-overlay{position:fixed;inset:0;background:rgba(6,15,28,.5);display:flex;align-items:flex-end;justify-content:center;}
+.sheet{background:var(--neutral-0);border-radius:16px 16px 0 0;width:100%;max-width:480px;box-shadow:var(--shadow-lg);max-height:94vh;overflow-y:auto;display:flex;flex-direction:column;}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--neutral-200);margin:12px auto 4px;flex-shrink:0;}
+.sheet-header{padding:4px 20px 14px;border-bottom:1px solid var(--neutral-100);flex-shrink:0;}
+.sheet-title{font-size:16px;font-weight:var(--weight-semibold);color:var(--neutral-900);}
+.sheet-subtitle{font-size:12px;color:var(--neutral-500);margin-top:2px;}
+.sheet-scroll{flex:1;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:10px;}
+.sheet-footer{padding:16px 20px 28px;display:flex;flex-direction:column;gap:8px;flex-shrink:0;border-top:1px solid var(--neutral-100);}
+
+/* ── Option card ── */
+.svc-card {
+  border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  overflow: visible;
+  background: var(--neutral-0);
+  transition: border-color var(--transition);
+}
+.svc-card.is-active { border-color: var(--active-color, var(--color-400)); }
+
+/* Card header row (toggle + label) */
+.svc-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+.svc-color-sq { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+.svc-card-title { flex: 1; font-size: 13px; font-weight: var(--weight-semibold); color: var(--neutral-900); }
+.svc-card-desc { font-size: 11px; color: var(--neutral-500); margin-top: 1px; }
+.svc-card-label { flex: 1; }
+
+/* Checkbox toggle */
+.svc-toggle {
+  width: 40px; height: 22px; border-radius: 11px;
+  background: var(--neutral-200); position: relative;
+  flex-shrink: 0; transition: background 200ms ease; cursor: pointer;
+}
+.svc-toggle.on { background: var(--active-color, var(--color-400)); }
+.svc-toggle::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:16px; height:16px; border-radius:50%; background:#fff;
+  transition: left 200ms ease; box-shadow:0 1px 2px rgba(0,0,0,.2);
+}
+.svc-toggle.on::after { left: 21px; }
+
+/* Expandable body */
+.svc-card-body {
+  display: none;
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--neutral-100);
+  flex-direction: column;
+  gap: 10px;
+}
+.svc-card.is-active .svc-card-body { display: flex; }
+
+/* ════════════════════════════════════════
+   COMBOBOX — reuses .stu-filter-combo-* pattern
+   ════════════════════════════════════════ */
+.svc-combo { position: relative; width: 100%; }
+
+.svc-combo-trigger {
+  width: 100%;
+  display: flex; align-items: center; gap: var(--sp-2);
+  font-family: var(--font); font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
+  border: 1px solid var(--neutral-200); border-radius: var(--radius-sm);
+  background: var(--neutral-0); color: var(--neutral-700);
+  cursor: pointer; text-align: left;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.svc-combo-trigger:focus-visible { outline: none; box-shadow: var(--focus-ring); border-color: var(--color-400); }
+.svc-combo-trigger.is-open { border-color: var(--color-400); box-shadow: var(--focus-ring); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+.svc-combo-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.svc-combo-count {
+  font-size: 10px; font-weight: var(--weight-semibold);
+  background: var(--color-400); color: var(--neutral-0);
+  border-radius: 99px; padding: 1px 6px; min-width: 18px;
+  text-align: center; flex-shrink: 0;
+}
+.svc-combo-chevron {
+  color: var(--neutral-400); flex-shrink: 0;
+  display: flex; align-items: center;
+  transition: transform var(--transition);
+}
+.svc-combo-trigger.is-open .svc-combo-chevron { transform: rotate(180deg); }
+
+/* Dropdown panel */
+.svc-combo-panel {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+  background: var(--neutral-0);
+  border: 1px solid var(--color-400); border-top: none;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  display: none; flex-direction: column;
+  max-height: 240px; overflow: hidden;
+}
+.svc-combo-trigger.is-open + .svc-combo-panel { display: flex; }
+
+/* Search input inside panel */
+.svc-combo-search {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  flex-shrink: 0;
+}
+.svc-combo-search svg { color: var(--neutral-400); flex-shrink: 0; }
+.svc-combo-search input {
+  flex: 1; font-family: var(--font); font-size: var(--text-caption);
+  color: var(--neutral-900); border: none; outline: none; background: transparent;
+  min-width: 0;
+}
+.svc-combo-search input::placeholder { color: var(--neutral-400); }
+
+/* List */
+.svc-combo-list { overflow-y: auto; flex: 1; }
+
+/* Row — reuses .stu-filter-check-row pattern */
+.svc-combo-row {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3); cursor: pointer;
+  transition: background var(--transition);
+}
+.svc-combo-row:hover { background: var(--neutral-50); }
+.svc-combo-row input[type="checkbox"] {
+  flex-shrink: 0; width: 16px; height: 16px;
+  accent-color: var(--color-400); cursor: pointer;
+}
+.svc-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--color-700); color: var(--neutral-0);
+  font-size: 11px; font-weight: var(--weight-semibold);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.svc-stu-name {
+  flex: 1; font-size: var(--text-caption); font-weight: var(--weight-semibold);
+  color: var(--neutral-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.svc-stu-meta { font-size: var(--text-caption); color: var(--neutral-400); white-space: nowrap; flex-shrink: 0; }
+
+/* No results */
+.svc-combo-empty { padding: var(--sp-3); font-size: var(--text-caption); color: var(--neutral-400); text-align: center; }
+
+/* Selected chips below trigger */
+.svc-chips { display: flex; flex-wrap: wrap; gap: var(--sp-1); padding-top: var(--sp-1); }
+.svc-chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px 2px 4px; border-radius: 99px;
+  background: var(--neutral-100); border: 1px solid var(--neutral-200);
+  font-size: 11px; color: var(--neutral-700);
+}
+.svc-chip-av { width:18px;height:18px;border-radius:50%;background:var(--color-700);color:#fff;font-size:9px;font-weight:var(--weight-semibold);display:flex;align-items:center;justify-content:center;flex-shrink:0; }
+.svc-chip-x { background:none;border:none;cursor:pointer;color:var(--neutral-400);font-size:13px;line-height:1;padding:0;display:flex;margin-left:2px; }
+
+/* ── Group max input ── */
+.svc-group-input-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 0;
+}
+.svc-group-input-label { font-size: 13px; font-weight: var(--weight-semibold); color: var(--neutral-900); flex: 1; }
+.svc-group-input-sub { font-size: 11px; color: var(--neutral-500); }
+.svc-max-input {
+  font-family: var(--font); font-size: 20px; font-weight: var(--weight-semibold);
+  color: var(--neutral-900); border: 1.5px solid var(--neutral-200);
+  border-radius: var(--radius-md); width: 72px; text-align: center;
+  padding: 8px 4px; background: var(--neutral-0);
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.svc-max-input:focus { outline: none; border-color: var(--color-400); box-shadow: var(--focus-ring); }
+
+/* Buttons */
+.btn-primary { font-family:var(--font);font-size:14px;font-weight:var(--weight-semibold);background:var(--color-900);color:#fff;border:none;border-radius:var(--radius-md);padding:14px;cursor:pointer;width:100%;transition:background var(--transition); }
+.btn-primary:hover { background: var(--color-800); }
+.btn-ghost-sm { font-family:var(--font);font-size:12px;color:var(--neutral-500);background:transparent;border:none;cursor:pointer;padding:6px;text-align:center; }
+
+.section-label { font-size:10px;font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:.07em;color:var(--neutral-400);margin-bottom:4px; }
+.hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="sheet-overlay">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Slot-Einstellungen</div>
+      <div class="sheet-subtitle">10:00 – 10:30 · Dienstag, 24. März 2026</div>
+    </div>
+
+    <div class="sheet-scroll">
+
+      <!-- ══ NEUE SCHÜLER ══ -->
+      <div class="svc-card" id="card-new" style="--active-color:var(--vis-new);">
+        <div class="svc-card-header" onclick="toggleCard('new')">
+          <div class="svc-color-sq" style="background:var(--vis-new);"></div>
+          <div class="svc-card-label">
+            <div class="svc-card-title">Nur neue Schüler</div>
+            <div class="svc-card-desc">Slot nur für Schüler ohne bisherige Buchung sichtbar</div>
+          </div>
+          <div class="svc-toggle" id="tog-new" style="--active-color:var(--vis-new);"></div>
+        </div>
+        <!-- No body needed for new-only — no student picker -->
+      </div>
+
+      <!-- ══ WHITELIST ══ -->
+      <div class="svc-card" id="card-white" style="--active-color:var(--vis-white);">
+        <div class="svc-card-header" onclick="toggleCard('white')">
+          <div class="svc-color-sq" style="background:var(--vis-white);"></div>
+          <div class="svc-card-label">
+            <div class="svc-card-title">Nur bestimmte Schüler</div>
+            <div class="svc-card-desc">Slot nur für ausgewählte Schüler sichtbar</div>
+          </div>
+          <div class="svc-toggle" id="tog-white" style="--active-color:var(--vis-white);"></div>
+        </div>
+        <div class="svc-card-body" id="body-white">
+          <div class="section-label">Schüler auswählen (Slot nur für diese sichtbar)</div>
+          <div class="svc-combo" id="combo-white">
+            <button type="button" class="svc-combo-trigger" id="trig-white" onclick="toggleCombo('white', event)">
+              <span class="svc-combo-label" id="label-white">Schüler wählen…</span>
+              <span class="svc-combo-count hidden" id="count-white">0</span>
+              <span class="svc-combo-chevron"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </button>
+            <div class="svc-combo-panel">
+              <div class="svc-combo-search">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="Schüler suchen…" oninput="filterStudents('white', this.value)">
+              </div>
+              <div class="svc-combo-list" id="list-white"></div>
+            </div>
+          </div>
+          <div class="svc-chips" id="chips-white"></div>
+        </div>
+      </div>
+
+      <!-- ══ BLACKLIST ══ -->
+      <div class="svc-card" id="card-black" style="--active-color:var(--vis-black);">
+        <div class="svc-card-header" onclick="toggleCard('black')">
+          <div class="svc-color-sq" style="background:var(--vis-black);"></div>
+          <div class="svc-card-label">
+            <div class="svc-card-title">Nicht für bestimmte Schüler</div>
+            <div class="svc-card-desc">Slot für alle sichtbar, außer für ausgewählte Schüler</div>
+          </div>
+          <div class="svc-toggle" id="tog-black" style="--active-color:var(--vis-black);"></div>
+        </div>
+        <div class="svc-card-body" id="body-black">
+          <div class="section-label">Schüler ausschließen (Slot für diese nicht sichtbar)</div>
+          <div class="svc-combo" id="combo-black">
+            <button type="button" class="svc-combo-trigger" id="trig-black" onclick="toggleCombo('black', event)">
+              <span class="svc-combo-label" id="label-black">Schüler wählen…</span>
+              <span class="svc-combo-count hidden" id="count-black">0</span>
+              <span class="svc-combo-chevron"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+            </button>
+            <div class="svc-combo-panel">
+              <div class="svc-combo-search">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.4"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+                <input type="text" placeholder="Schüler suchen…" oninput="filterStudents('black', this.value)">
+              </div>
+              <div class="svc-combo-list" id="list-black"></div>
+            </div>
+          </div>
+          <div class="svc-chips" id="chips-black"></div>
+        </div>
+      </div>
+
+      <!-- ══ GRUPPENUNTERRICHT ══ -->
+      <div class="svc-card" id="card-group" style="--active-color:var(--vis-group);">
+        <div class="svc-card-header" onclick="toggleCard('group')">
+          <div class="svc-color-sq" style="background:var(--vis-group);"></div>
+          <div class="svc-card-label">
+            <div class="svc-card-title">Gruppenunterricht</div>
+            <div class="svc-card-desc">Mehrere Schüler können diesen Slot gleichzeitig buchen</div>
+          </div>
+          <div class="svc-toggle" id="tog-group" style="--active-color:var(--vis-group);"></div>
+        </div>
+        <div class="svc-card-body" id="body-group">
+          <div class="svc-group-input-row">
+            <div>
+              <div class="svc-group-input-label">Maximale Teilnehmerzahl</div>
+              <div class="svc-group-input-sub">Slot bleibt sichtbar solange noch Plätze frei sind</div>
+            </div>
+            <input type="number" class="svc-max-input" id="group-max" value="3" min="2" max="20" oninput="updateGroupLabel()">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /sheet-scroll -->
+
+    <!-- Summary bar (shown when ≥1 option active) -->
+    <div id="summary-bar" class="hidden" style="padding:10px 20px;background:var(--neutral-50);border-top:1px solid var(--neutral-100);display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+      <span style="font-size:11px;color:var(--neutral-500);margin-right:2px;">Aktiv:</span>
+      <span id="summary-pills"></span>
+    </div>
+
+    <div class="sheet-footer">
+      <button class="btn-primary" onclick="save()">Speichern</button>
+      <button class="btn-ghost-sm">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Students data ── */
+var STUDENTS = [
+  { uid: 's1',  name: 's1',  initials: 'S1', bookings: 8  },
+  { uid: 's2',  name: 's2',  initials: 'S2', bookings: 3  },
+  { uid: 's3',  name: 's3',  initials: 'S3', bookings: 0  },
+  { uid: 's4',  name: 's4',  initials: 'S4', bookings: 12 },
+  { uid: 's5',  name: 's5',  initials: 'S5', bookings: 1  },
+  { uid: 's6',  name: 's6',  initials: 'S6', bookings: 5  }
+];
+
+/* ── State ── */
+var state = {
+  'new':   { on: false, selected: {} },
+  'white': { on: false, selected: {} },
+  'black': { on: false, selected: {} },
+  'group': { on: false, max: 3 }
+};
+
+/* ── Card toggle ── */
+function toggleCard(key) {
+  var s = state[key];
+  s.on = !s.on;
+  var card = document.getElementById('card-' + key);
+  var tog  = document.getElementById('tog-' + key);
+  if (s.on) {
+    card.classList.add('is-active');
+    tog.classList.add('on');
+  } else {
+    card.classList.remove('is-active');
+    tog.classList.remove('on');
+  }
+  updateSummary();
+}
+
+/* ── Combobox ── */
+var _openCombo = null;
+
+function toggleCombo(key, evt) {
+  evt.stopPropagation();
+  var trig = document.getElementById('trig-' + key);
+  if (trig.classList.contains('is-open')) {
+    closeCombo(key);
+  } else {
+    if (_openCombo && _openCombo !== key) closeCombo(_openCombo);
+    openCombo(key);
+  }
+}
+
+function openCombo(key) {
+  _openCombo = key;
+  var trig = document.getElementById('trig-' + key);
+  trig.classList.add('is-open');
+  renderList(key, '');
+  /* Focus search */
+  var input = trig.nextElementSibling.querySelector('input');
+  if (input) setTimeout(function(){ input.focus(); }, 50);
+}
+
+function closeCombo(key) {
+  var trig = document.getElementById('trig-' + key);
+  if (trig) trig.classList.remove('is-open');
+  if (_openCombo === key) _openCombo = null;
+}
+
+function filterStudents(key, q) {
+  renderList(key, q);
+}
+
+function renderList(key, q) {
+  var list = document.getElementById('list-' + key);
+  list.innerHTML = '';
+  var sel = state[key].selected;
+  var filtered = STUDENTS.filter(function(s) {
+    return !q || s.name.toLowerCase().indexOf(q.toLowerCase()) !== -1;
+  });
+  if (!filtered.length) {
+    var empty = document.createElement('div');
+    empty.className = 'svc-combo-empty';
+    empty.textContent = 'Kein Schüler gefunden';
+    list.appendChild(empty);
+    return;
+  }
+  filtered.forEach(function(stu) {
+    var row = document.createElement('label');
+    row.className = 'svc-combo-row';
+    row.onclick = function(e) { e.stopPropagation(); };
+    var cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = !!sel[stu.uid];
+    cb.onchange = function() { toggleStudent(key, stu.uid, cb.checked); };
+    var av = document.createElement('div');
+    av.className = 'svc-avatar';
+    av.textContent = stu.initials;
+    var nm = document.createElement('span');
+    nm.className = 'svc-stu-name';
+    nm.textContent = stu.name;
+    var mt = document.createElement('span');
+    mt.className = 'svc-stu-meta';
+    mt.textContent = stu.bookings + ' Buchung' + (stu.bookings !== 1 ? 'en' : '');
+    row.appendChild(cb); row.appendChild(av); row.appendChild(nm); row.appendChild(mt);
+    list.appendChild(row);
+  });
+}
+
+function toggleStudent(key, uid, checked) {
+  var sel = state[key].selected;
+  if (checked) sel[uid] = true;
+  else delete sel[uid];
+  updateTriggerLabel(key);
+  renderChips(key);
+  updateSummary();
+}
+
+function updateTriggerLabel(key) {
+  var sel = state[key].selected;
+  var keys = Object.keys(sel);
+  var labelEl = document.getElementById('label-' + key);
+  var countEl = document.getElementById('count-' + key);
+  if (!keys.length) {
+    labelEl.textContent = 'Schüler wählen…';
+    countEl.classList.add('hidden');
+  } else {
+    var names = keys.map(function(uid) {
+      var s = STUDENTS.filter(function(x){ return x.uid === uid; })[0];
+      return s ? s.name : uid;
+    });
+    labelEl.textContent = names.join(', ');
+    countEl.textContent = keys.length;
+    countEl.classList.remove('hidden');
+  }
+}
+
+function renderChips(key) {
+  var container = document.getElementById('chips-' + key);
+  container.innerHTML = '';
+  var sel = state[key].selected;
+  Object.keys(sel).forEach(function(uid) {
+    var stu = STUDENTS.filter(function(s){ return s.uid === uid; })[0];
+    if (!stu) return;
+    var chip = document.createElement('span');
+    chip.className = 'svc-chip';
+    var av = document.createElement('span');
+    av.className = 'svc-chip-av';
+    av.textContent = stu.initials;
+    var nm = document.createTextNode(stu.name);
+    var xBtn = document.createElement('button');
+    xBtn.className = 'svc-chip-x';
+    xBtn.innerHTML = '×';
+    xBtn.onclick = function() { delete sel[uid]; updateTriggerLabel(key); renderChips(key); updateSummary(); };
+    chip.appendChild(av); chip.appendChild(nm); chip.appendChild(xBtn);
+    container.appendChild(chip);
+  });
+}
+
+function updateGroupLabel() {
+  var val = parseInt(document.getElementById('group-max').value) || 2;
+  state.group.max = val;
+  updateSummary();
+}
+
+/* ── Summary bar ── */
+function updateSummary() {
+  var bar   = document.getElementById('summary-bar');
+  var pills = document.getElementById('summary-pills');
+  pills.innerHTML = '';
+  var any = false;
+
+  var defs = [
+    { key: 'new',   color: '#8b5cf6', bg: '#ede9fe', label: 'Nur neue Schüler' },
+    { key: 'white', color: '#0ea5e9', bg: '#e0f2fe', label: null },
+    { key: 'black', color: '#f97316', bg: '#fff7ed', label: null },
+    { key: 'group', color: '#10b981', bg: '#dcfce7', label: null }
+  ];
+  defs.forEach(function(d) {
+    if (!state[d.key].on) return;
+    any = true;
+    var pill = document.createElement('span');
+    pill.style.cssText = 'display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:600;padding:2px 7px;border-radius:3px;background:' + d.bg + ';color:' + d.color + ';border:1px solid ' + d.color + '44;';
+    var sq = document.createElement('span');
+    sq.style.cssText = 'width:8px;height:8px;border-radius:2px;background:' + d.color + ';flex-shrink:0;';
+    var lbl;
+    if (d.key === 'white') {
+      var cnt = Object.keys(state.white.selected).length;
+      lbl = 'Whitelist' + (cnt ? ' (' + cnt + ')' : '');
+    } else if (d.key === 'black') {
+      var cnt2 = Object.keys(state.black.selected).length;
+      lbl = 'Blacklist' + (cnt2 ? ' (' + cnt2 + ')' : '');
+    } else if (d.key === 'group') {
+      lbl = 'Gruppe max. ' + (state.group.max || 3);
+    } else {
+      lbl = d.label;
+    }
+    pill.appendChild(sq);
+    pill.appendChild(document.createTextNode(lbl));
+    pills.appendChild(pill);
+  });
+
+  bar.style.display = any ? 'flex' : 'none';
+}
+
+/* ── Close combos on outside click ── */
+document.addEventListener('click', function() {
+  if (_openCombo) closeCombo(_openCombo);
+});
+
+/* ── Save ── */
+function save() {
+  var result = {};
+  if (state.new.on)   result.newOnly = true;
+  if (state.white.on) result.whitelist = Object.keys(state.white.selected);
+  if (state.black.on) result.blacklist = Object.keys(state.black.selected);
+  if (state.group.on) result.groupMax  = state.group.max;
+  alert('Gespeichert:\n' + JSON.stringify(result, null, 2));
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+
+## Vergleichstabelle: My Students Filter vs. All Bookings Filter
+
+| Aspekt | **My Students** (`renderStudentList`) | **All Bookings** (`renderAllBookings` + HTML) | Redundanz |
+|---|---|---|---|
+| **Zeit-Buttons** | JS-gebaut: `booking-time-btn` | HTML-statisch + JS-rewired: `booking-time-btn` | 🔴 Gleiche CSS-Klassen, unterschiedlicher Aufbau |
+| **Confirm-Buttons** | JS-gebaut: `booking-confirm-btn`, **ohne** Badges | HTML-statisch + JS-rewired: `booking-confirm-btn`, **mit** Count + Price Badges | 🔴 Confirm-Buttons haben keine Badges in My Students |
+| **Sort + Datumsbereich** | ✅ `_buildSortDateRangeRow(cb)` | ✅ `_buildSortDateRangeRow(cb)` | ✅ Geteilt |
+| **Badge-Update** | ❌ Kein `_updateAllBookingsBadges()` Aufruf | ✅ `_updateAllBookingsBadges()` | 🔴 Badges fehlen in My Students |
+| **Preis-Summe in Badges** | ❌ Fehlt | ✅ Vorhanden (z.B. `Alle 7 €2295,00`) | 🔴 Fehlt in My Students |
+| **Filter-Container** | JS-gebaut in `container` | HTML-statisch in `teacher.html` | 🔴 Zwei Wege |
+| **`allBookingsSortAsc` smart default** | ❌ Fehlt | ✅ past→desc, upcoming→asc | 🔴 Fehlt in My Students |
+| **Buttons rewired oder neu gebaut** | Neu gebaut bei jedem render | HTML rewired via querySelectorAll | 🟡 Unterschiedlich, gleich funktional |

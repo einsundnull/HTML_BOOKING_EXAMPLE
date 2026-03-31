@@ -1,0 +1,183 @@
+================================================================================
+ESCROW WALLET BUGFIX — ZUSAMMENFASSUNG
+Datum: 17.03.2026  00:53
+Projekt: BookingSystem (HTML / localStorage / AppService)
+================================================================================
+
+GEÄNDERTE DATEIEN
+─────────────────
+  teacher.js
+  student.js
+  ui.js
+
+GELÖSCHTE DATEIEN
+─────────────────
+  js/student_1772799460115.js
+  js/teacher_1772799460201.js
+  js/store_1772799460462.js
+  js/admin_1772799460283.js
+  js/ui_1772799460339.js
+  js/auth_1772799460397.js
+  loop.html
+  wallet-standalone.html
+
+NEUE DATEIEN (frühere Session)
+───────────────────────────────
+  js/wallet-core.js          — gemeinsamer Kern für wallet.js + wallet-panel.js
+
+
+================================================================================
+PHASE 1 — SOFORT (Sicherheit & Korrektheit)
+================================================================================
+
+F1 — 6 Snapshot-Dateien gelöscht
+  Problem:  Veraltete Versionsstände mit Timestamp im Dateinamen.
+            store_1772799460462.js hätte bei versehentlichem Laden window.Store
+            mit einem Schema ohne Slots und ohne Escrow überschrieben — sofortiger
+            Totalausfall aller Slot- und Buchungs-Zugriffe.
+            ui_1772799460339.js hätte window.Toast und window.Modal überschrieben.
+  Fix:      Alle 6 Dateien gelöscht. Keine HTML-Datei referenziert sie.
+
+F2 — Store.Slots.confirm() in ui.js durch AppService.confirmSlot() ersetzt
+  Datei:    ui.js ~221
+  Problem:  Bestätigungen über den Block-Confirm-Dialog in ui.js liefen direkt
+            über Store.Slots.confirm() — ohne Escrow-Settlement, ohne Callback,
+            ohne Error-Handling. Alle anderen Bestätigungspfade (teacher.js,
+            student.js) nutzten bereits korrekt AppService.confirmSlot().
+  Fix:      AppService.confirmSlot() mit Callback-Barrier eingebaut.
+            Fehler werden gesammelt und als Toast ausgegeben.
+
+F3 — Double-Save Busy-Guard
+  Dateien:  student.js ~232 / teacher.js ~1017+1032
+  Problem:  Weder confirmAndCommit() noch saveBookingChanges() hatten einen
+            Guard gegen Doppelklick. Schnelles Doppelklicken konnte denselben
+            Slot zweimal buchen und zweimal Deposit abziehen.
+  Fix:      student.js: Confirm-Button wird nach Klick sofort disabled.
+            teacher.js: Save-Button (_saveBtn.disabled = true) beim Eintritt in
+            saveBookingChanges, disabled = false nach Abschluss aller Ops.
+
+F4 — Redundanter getWallet-Call im teacher.js Cancel-Callback entfernt
+  Datei:    teacher.js ~1083 (7 Zeilen entfernt)
+  Problem:  Im Cancel-Callback von saveBookingChanges wurde AppService.getWallet
+            aufgerufen und das Navbar-Badge inline gesetzt. Gleichzeitig rief
+            saveBookingChanges am Ende WalletPanel.refresh() auf, das ebenfalls
+            getWallet aufruft — zwei parallele async Requests auf dasselbe
+            DOM-Element, letzter gewinnt.
+  Fix:      Inline-getWallet-Block entfernt. WalletPanel.refresh() am Ende
+            deckt Navbar-Badge und Panel-Update vollständig ab.
+
+
+================================================================================
+PHASE 2 — DIESE WOCHE (Stabilität & Architektur)
+================================================================================
+
+F5 — Callback-Barrier in student.js commitDayChanges()
+  Datei:    student.js ~239–325
+  Problem:  N parallele bookSlotWithEscrow- und cancelSlotWithPolicy-Calls
+            feuerten in einer Schleife. renderCalendar(), renderDaySlots(),
+            pendingDayChanges={} etc. liefen synchron BEVOR irgendein Callback
+            zurückkam. Bei 3 Buchungen: 6 Renders ohne Reihenfolgengarantie,
+            UI-Flackern, letzte Callback-Render "gewinnt".
+  Fix:      pending-Counter (ids.length). onAllDone() zählt herunter und
+            feuert exakt einmal wenn alle Callbacks zurück sind. Dann ein
+            einziger authoritative Re-render + WalletPanel.refresh().
+            Fehler werden in errors[] gesammelt und als Toast ausgegeben.
+
+F6 — Callback-Barrier in teacher.js saveBookingChanges()
+  Datei:    teacher.js ~1013–1145
+  Problem:  Gleiches Race-Condition-Muster wie F5, zusätzlich mit extraStudents-
+            createSlot-Calls die ebenfalls nicht im Barrier erfasst waren.
+  Fix:      pending-Counter wird zuerst durch Vor-Iteration korrekt berechnet
+            (book + extraStudents + cancel). onAllDone() feuert exakt einmal.
+            extraStudents-Schleife in IIFE mit eigenem Barrier-Decrement.
+
+F7 — Store.*-Direktzugriffe in ui.js + teacher.js durch AppService ersetzt
+  Dateien:  ui.js (10 Stellen) / teacher.js (1 Stelle)
+  Problem:  Consumer-Code griff direkt auf Store.Slots.*, Store.Recurring.*,
+            Store.slotTimesInRange() zu, was laut Architektur-Guideline verboten
+            ist. Bei einem Adapter-Swap auf Firestore würden diese Stellen
+            stumm brechen ohne Fehlermeldung.
+  Ersetzungen:
+    Store.Slots.all()               → AppService.getAllSlotsSync()
+    Store.Slots.byTeacherDate()     → AppService.getSlotsByTeacherDateSync()
+    Store.slotEndTime()             → AppService.slotEndTime()
+    Store.Recurring.materialiseWeek() → AppService.materialiseWeek(..., cb)
+    Store.slotTimesInRange()        → AppService.slotTimesInRange()
+
+F8 — Tote HTML-Dateien gelöscht
+  loop.html:              Standalone Morphing-Colors-Visualizer, keine Verbindung
+                          zum Booking-System, keine eingehenden Links.
+  wallet-standalone.html: Nahezu identische Kopie von wallet.html, keine
+                          eingehenden Links, verwaistes Artefakt.
+
+
+================================================================================
+PHASE 3 — REFACTORING (Wartbarkeit)
+================================================================================
+
+F9 — renderBookingsPanel delegiert an renderAllBookingsList
+  Datei:    teacher.js ~675 (renderBookingsPanel) + ~1567 (renderAllBookingsList)
+  Problem:  renderBookingsPanel (Tages-Ansicht im Day-Panel) war eine ~130-Zeilen
+            parallele Reimplementierung von renderAllBookingsList. Eigener Kommentar
+            im Code: "Filter pipeline — identical to renderAllBookingsList" und
+            "Booked blocks — identical to renderAllBookingsList". Jede Änderung
+            an der Buchungs-Pipeline musste doppelt gemacht werden.
+  Fix:      renderAllBookingsList(opts) akzeptiert jetzt opts.container (DOM-
+            Element für Injection) und opts.dateFilter (YYYY-MM-DD für Tagesscope).
+            Bei opts.dateFilter werden _updateAllBookingsBadges() und
+            updateJumpBtns() übersprungen (nicht relevant für Day-Panel).
+            renderBookingsPanel rendert weiterhin eigenständig: Filter-Bar,
+            Free-Slots-Accordion (teacher-spezifisch), dann delegiert es den
+            Booked-Blocks-Teil an renderAllBookingsList({ container, dateFilter }).
+
+F10 — _applyTimeFilter in student.js zentralisiert
+  Datei:    student.js ~1459
+  Problem:  student.js filterte past/upcoming direkt inline mit zwei separaten
+            .filter()-Aufrufen. teacher.js nutzte bereits die gemeinsame
+            _applyTimeFilter()-Funktion aus ui.js (window._applyTimeFilter).
+            Inkonsistentes Filterverhalten bei Divergenz möglich.
+  Fix:      Inline-Filter durch _applyTimeFilter(slots, bookingsFilter.time, today)
+            ersetzt. Einheitliche Implementierung in ui.js für beide Consumer.
+
+  Hinweis:  mergeBookingBlocks und _calcBookingBlockCounts waren bereits in ui.js
+            zentralisiert. _mergeStudentBookingBlocks (student) und
+            mergeAllBookingBlocks (teacher) sind bereits thin wrappers mit
+            unterschiedlichem groupField-Parameter — keine weitere Änderung nötig.
+
+
+================================================================================
+ESCROW-SPEZIFISCHE FIXES (frühere Session, bereits deployed)
+================================================================================
+
+  — bookSlotWithEscrow-Callback re-rendert UI + refresht WalletPanel nach
+    Buchung (statt nur bei Fehler zu reagieren)
+  — cancelSlotWithPolicy-Callback aktualisiert WalletPanel nach Stornierung
+    (Refund war im Panel nicht sichtbar)
+  — WalletPanel.refresh() nach commitDayChanges() und saveBookingChanges()
+    hinzugefügt
+  — wallet-core.js erstellt: gemeinsamer Kern für wallet.js + wallet-panel.js,
+    ~370 Zeilen duplizierter Code eliminiert, _buildTxMetaLine im Panel
+    nachgerüstet (fehlte bisher)
+
+
+================================================================================
+OFFENE PUNKTE (nicht in dieser Session bearbeitet)
+================================================================================
+
+  1. requestDepositRefund schlägt fehl wenn depositStatus = 'unpaid'
+     (cash_on_site / Deposit nicht bezahlt) — Stornierung läuft durch
+     ohne Escrow-Settlement. Fix: in cancelSlotWithPolicy direkt
+     writeCancellationRecord aufrufen wenn Status 'unpaid'.
+
+  2. _showCancelPolicyDialog in ui.js: onAction-Callback aktualisiert
+     nach direkter Stornierung (kein Stage) nur Navbar-Badge, nicht
+     WalletPanel. Fix: WalletPanel.refresh(wUid) in ui.js ~885 ergänzen.
+
+  3. Partial-Refund (24–48h Tier) ist MVP: volles Deposit an Lehrer
+     statt korrektem 50/50-Split.
+
+  4. Cancellation-Policy Teacher-Profil-Felder (cancellationWindow,
+     policyMode) und UI-Dialog fehlen noch.
+
+
+================================================================================

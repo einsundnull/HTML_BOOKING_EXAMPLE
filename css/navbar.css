@@ -1,0 +1,707 @@
+/* ── navbar.css ─────────────────────────────────────────── */
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: var(--color-900);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  transform: translateY(0);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+  will-change: transform;
+}
+
+/* Hide state — slides up out of view */
+.navbar.navbar-hidden {
+  transform: translateY(-100%);
+}
+
+.navbar-inner {
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+}
+
+/* Brand */
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-0);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+.navbar-brand svg { opacity: 0.85; }
+@media (hover: hover) and (pointer: fine) {
+  .navbar-brand:hover { color: var(--neutral-0); opacity: 0.85; }
+}
+
+/* Nav links */
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.navbar-link {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.55);
+  text-decoration: none;
+  padding: var(--sp-1) var(--sp-3);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition), color var(--transition);
+  white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  .navbar-link:hover {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.85);
+  }
+}
+.navbar-link.active {
+  background: rgba(255,255,255,0.10);
+  color: var(--neutral-0);
+}
+
+/* Right side */
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-shrink: 0;
+}
+
+.navbar-username {
+  font-size: var(--text-caption);
+  color: rgba(255,255,255,0.55);
+}
+
+.navbar-badge {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  text-transform: capitalize;
+  letter-spacing: 0.02em;
+}
+.navbar-badge.role-admin   { background: rgba(77,122,160,0.25); color: var(--color-300); }
+.navbar-badge.role-teacher { background: rgba(255,255,255,0.10); color: rgba(255,255,255,0.7); }
+.navbar-badge.role-student { background: rgba(255,255,255,0.07); color: rgba(255,255,255,0.55); }
+
+.navbar-logout {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,0.45);
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--sp-2);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .navbar-logout:hover {
+    background: rgba(255,255,255,0.07);
+    color: rgba(255,255,255,0.75);
+    border-color: rgba(255,255,255,0.2);
+  }
+}
+.navbar-logout:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .navbar-inner { padding: 0 var(--sp-3); gap: var(--sp-2); }
+  .navbar-username { display: none; }
+  .navbar-link { padding: var(--sp-1) var(--sp-2); }
+}
+
+/* ── Hamburger Button ───────────────────────────────────── */
+.navbar-hamburger-wrap {
+  position: relative;
+}
+
+.navbar-hamburger {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  padding: 0;
+  transition: background var(--transition), border-color var(--transition);
+  flex-shrink: 0;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-hamburger:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(255,255,255,0.25);
+  }
+}
+
+.navbar-hamburger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.navbar-hamburger-bar {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  background: rgba(255,255,255,0.65);
+  border-radius: 2px;
+  transition:
+    transform 200ms ease,
+    opacity   200ms ease;
+  transform-origin: center;
+}
+
+/* Hamburger → X animation */
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(1) {
+  transform: translateY(5.5px) rotate(45deg);
+}
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.navbar-hamburger.is-open .navbar-hamburger-bar:nth-child(3) {
+  transform: translateY(-5.5px) rotate(-45deg);
+}
+
+/* ── Drawer Overlay ─────────────────────────────────────── */
+.navbar-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,15,28,0.45);
+  z-index: 290;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease;
+}
+.navbar-drawer-overlay.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Drawer Panel ───────────────────────────────────────── */
+.navbar-dropdown {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 82%;
+  max-width: 320px;
+  background: var(--neutral-0);
+  z-index: 300;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transform: translateX(100%);
+  transition: transform 280ms cubic-bezier(.32,1,.23,1);
+  box-shadow: -4px 0 32px rgba(6,15,28,0.18);
+}
+
+.navbar-dropdown.is-open {
+  transform: translateX(0);
+}
+
+/* ── Drawer Header ──────────────────────────────────────── */
+.navbar-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-200);
+  flex-shrink: 0;
+  position: relative;
+}
+
+.navbar-drawer-close {
+  position: absolute;
+  top: var(--sp-3);
+  right: var(--sp-3);
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: var(--neutral-100);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--neutral-500);
+  transition: background var(--transition), color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .navbar-drawer-close:hover { background: var(--neutral-200); color: var(--neutral-900); }
+}
+.navbar-drawer-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+.navbar-dropdown-avatar { flex-shrink: 0; }
+
+.navbar-dropdown-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  padding: 0;
+}
+
+.navbar-dropdown-username {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.navbar-dropdown-role {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  text-transform: capitalize;
+}
+
+/* ── Drawer scroll area ─────────────────────────────────── */
+.navbar-dropdown-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--sp-2) 0;
+}
+
+/* ── Drawer Items ───────────────────────────────────────── */
+.navbar-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-700);
+  text-decoration: none;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  line-height: 1.4;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-dropdown-item:hover {
+    background: var(--neutral-50);
+    color: var(--neutral-900);
+  }
+}
+
+.navbar-dropdown-item:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--color-400);
+}
+
+.navbar-dropdown-item svg {
+  color: var(--neutral-400);
+  flex-shrink: 0;
+}
+
+.navbar-dropdown-divider {
+  height: 1px;
+  background: var(--neutral-200);
+  margin: var(--sp-1) 0;
+}
+
+/* ── Logout footer ──────────────────────────────────────── */
+.navbar-dropdown-footer {
+  border-top: 1px solid var(--neutral-200);
+  padding: var(--sp-2) 0;
+  flex-shrink: 0;
+}
+
+.navbar-dropdown-logout {
+  color: var(--neutral-500);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-dropdown-logout:hover {
+    background: var(--danger-hover-bg);
+    color: var(--danger-tx);
+  }
+  .navbar-dropdown-logout:hover svg {
+    color: var(--danger-tx);
+  }
+}
+
+/* ── Welcome Modal ──────────────────────────────────────── */
+.welcome-modal {
+  max-width: 400px;
+  text-align: center;
+}
+
+.welcome-modal-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: var(--sp-3);
+}
+
+.welcome-modal-title {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-2);
+}
+
+.welcome-modal-body {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  line-height: 1.6;
+  margin: 0 0 var(--sp-4);
+}
+
+.welcome-modal .modal-footer {
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+
+
+
+/* ── Wallet Badge ────────────────────────────────────────── */
+.navbar-wallet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 4px 12px 4px 10px;
+  color: var(--neutral-0);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  transition: background var(--transition), border-color var(--transition);
+  white-space: nowrap;
+}
+@media (hover: hover) and (pointer: fine) {
+  .navbar-wallet-badge:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.22);
+  }
+}
+
+/* ── Auth buttons (unauthenticated landing state) ───────── */
+.navbar-auth-btn {
+  white-space: nowrap;
+}
+
+
+
+/* ── Navbar Select Comboboxen (Währung + Sprache) ──────────── */
+/* Gleicher Stil wie .navbar-wallet-badge — Pill-Form            */
+.navbar-select-wrap {
+  position: relative;
+}
+
+.navbar-select-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--neutral-0);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), border-color var(--transition);
+  line-height: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-select-btn:hover {
+    background: rgba(255,255,255,0.14);
+    border-color: rgba(255,255,255,0.22);
+  }
+}
+
+.navbar-select-btn:focus-visible {
+  outline: 2px solid var(--color-400);
+  outline-offset: 2px;
+}
+
+.navbar-select-btn[aria-expanded="true"] {
+  background: rgba(255,255,255,0.16);
+  border-color: rgba(255,255,255,0.28);
+}
+
+.navbar-select-chevron {
+  opacity: 0.65;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+.navbar-select-btn[aria-expanded="true"] .navbar-select-chevron {
+  transform: rotate(180deg);
+}
+
+/* ── Dropdown Panel ── */
+.navbar-select-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 190px;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(6,15,28,0.14);
+  z-index: 600;
+  overflow: hidden;
+}
+
+
+/* ── Option rows ── */
+.navbar-select-option {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: 9px 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: var(--text-caption);
+  color: var(--neutral-700);
+  text-align: left;
+  transition: background var(--transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-select-option:hover {
+    background: var(--neutral-50);
+  }
+}
+
+.navbar-select-option.is-selected {
+  background: var(--color-50);
+  color: var(--color-700);
+  font-weight: var(--weight-semibold);
+}
+
+.navbar-select-option + .navbar-select-option {
+  border-top: 1px solid var(--neutral-100);
+}
+
+.navbar-select-flag {
+  font-size: 15px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.navbar-select-code {
+  font-weight: var(--weight-semibold);
+  min-width: 28px;
+  flex-shrink: 0;
+}
+
+.navbar-select-name {
+  color: var(--neutral-500);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* ══════════════════════════════════════════════════════════
+   RESPONSIVE — Mobile Navbar (≤768px)
+   Pills hidden; settings live in drawer / sub-bar instead.
+══════════════════════════════════════════════════════════ */
+
+/* Desktop wrapper — keeps currency + lang pills in one row */
+.navbar-selects-desktop {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (max-width: 768px) {
+  .navbar-selects-desktop { display: none; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SUB-BAR — Landing page, unauthenticated only
+   Second row below navbar: plain currency + language buttons.
+   Hidden on desktop (pills in navbar are enough there).
+══════════════════════════════════════════════════════════ */
+.navbar-subbar {
+  display: flex;
+  width: 100%;
+  background: var(--color-800, #0f2035);
+  border-bottom: 1px solid rgba(255,255,255,0.10);
+}
+
+.navbar-subbar-inner {
+  width: 100%;
+  max-width: var(--container-max);
+  margin: 0 auto;
+  padding: 0 var(--container-pad);
+  height: 36px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+/* Hide sub-bar on desktop — pills in navbar row 1 are enough */
+@media (min-width: 769px) {
+  .navbar-subbar { display: none; }
+}
+
+.navbar-subbar-wrap {
+  position: relative;
+}
+
+/* Plain text button — no border, no background */
+.navbar-subbar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: rgba(255,255,255,0.55);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-subbar-btn:hover { color: rgba(255,255,255,0.85); }
+}
+
+.navbar-subbar-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-400);
+  border-radius: 3px;
+}
+
+.navbar-subbar-btn[aria-expanded="true"] {
+  color: var(--neutral-0);
+}
+
+.navbar-subbar-chevron {
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+.navbar-subbar-btn[aria-expanded="true"] .navbar-subbar-chevron {
+  transform: rotate(180deg);
+}
+
+/* ══════════════════════════════════════════════════════════
+   DRAWER SETTINGS — plain buttons (currency + language)
+   Inside hamburger drawer settings section.
+══════════════════════════════════════════════════════════ */
+.navbar-dropdown-settings {
+  border-top: 1px solid var(--neutral-100);
+  padding: var(--sp-1) var(--sp-4) var(--sp-2);
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.navbar-drawer-setting-wrap {
+  position: relative;
+}
+
+/* Plain text button inside drawer — same text colour as drawer items */
+.navbar-drawer-plain-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: var(--sp-2) 0;
+  color: var(--neutral-500);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 44px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--transition);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navbar-drawer-plain-btn:hover { color: var(--neutral-900); }
+}
+
+.navbar-drawer-plain-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-400);
+  border-radius: 3px;
+}
+
+.navbar-drawer-plain-btn[aria-expanded="true"] {
+  color: var(--neutral-900);
+}
+
+.navbar-drawer-plain-chevron {
+  opacity: 0.4;
+  flex-shrink: 0;
+  transition: transform var(--transition);
+}
+
+.navbar-drawer-plain-btn[aria-expanded="true"] .navbar-drawer-plain-chevron {
+  transform: rotate(180deg);
+  opacity: 0.7;
+}
+
+/* Drawer dropdown opens upward from settings row */
+.navbar-drawer-select-dropdown {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 4px);
+  top: auto;
+  max-height: 220px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  z-index: 700;
+  min-width: 180px;
+}

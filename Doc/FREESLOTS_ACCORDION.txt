@@ -1,0 +1,32 @@
+Let me read both implementations carefully.
+
+Now I have everything. Here is the full comparison table:
+
+---
+
+## Vergleichstabelle: Free Slots Accordion
+
+| Aspekt | **Teacher `renderBookingsPanel`** | **Student `renderDaySlots`** | Redundanz |
+|---|---|---|---|
+| **Free slots Quelle** | `populateAllBookingDetail` (liest alle Slots des Tages) | Eigene Abfrage: `getSlotsByTeacherDateSync` → filter `available && !studentId` | 🔴 Dupliziert |
+| **Free slots als Accordion** | ✅ Ja — `all-booking-block-wrapper` mit Header/Chevron/Toggle | ❌ Nein — flat list, keine Accordion-Hülle | 🔴 Fehlt beim Student |
+| **Open-State persistent** | ✅ `_freeSlotsBlockOpen` Variable | ❌ Kein State — immer offen | 🔴 Fehlt beim Student |
+| **Toggle möglich** | ✅ Ja — click → `_freeSlotsBlockOpen = !open` | ❌ Nein | 🔴 Fehlt beim Student |
+| **Auto-collapse bei Block-Expand** | ✅ Ja — durch `onExpand` + Sibling-DOM-Loop | ❌ N/A — kein Accordion | 🔴 Fehlt beim Student |
+| **Re-open Bug (Image 1)** | ❌ Bug — `_freeSlotsBlockOpen = false` durch `onExpand` → nach `renderDayPanel` bleibt es zu | N/A | Eigener Bug |
+| **Confirm ✓ Button** | ✅ Via `populateAllBookingDetail` | ❌ Kein Confirm in free row | 🟡 |
+| **Pending-book → Undo** | ✅ Via `populateAllBookingDetail` | ⚠️ Teilweise — skip-Logik vorhanden | 🟡 |
+| **+ Add Button** | ✅ Via `buildBookingForm` (student picker) | ✅ Direkt → `pendingDayChanges` | 🟡 Andere Logik nötig |
+
+---
+
+## Bugs gefixt 
+
+**Bug 1 — Teacher: Free slots können nach collapse nicht wieder geöffnet werden**
+`onExpand` setzt `_freeSlotsBlockOpen = false`. Der Toggle setzt es zwar auf `true` beim Klick, aber dann wird `renderDayPanel()` aufgerufen (durch `onAction`) und rendert alles neu mit `_freeSlotsBlockOpen = false`. Die Variable wird durch `renderDayPanel` überschrieben bevor der State persistiert.
+
+**Bug 2 — Student: Kein Accordion für free slots**
+`renderDaySlots` rendert free slots als flache Liste ohne Wrapper/Header/Toggle. Der Student sieht alle freien Slots immer offen — kein Collapse möglich.
+
+---
+

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPL — Navbar Wallet Badge Update</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0:#fff; --n50:#f8f9fb; --n100:#f0f2f5; --n200:#e2e6eb;
+      --n400:#9aa3af; --n500:#6b7685; --n700:#2d3540; --n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a; --ok-bg:#f0fff4; --ok-bd:#bbf7d0;
+      --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+      --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+    }
+
+    .ph { background:var(--navy); padding:28px 40px 24px; }
+    .ph-eye { font-family:var(--mono); font-size:11px; letter-spacing:.1em;
+              text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:6px; }
+    .ph-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:5px; }
+    .ph-sub { font-size:13px; color:rgba(255,255,255,.5); max-width:760px; margin-bottom:14px; }
+    .ph-meta { display:flex; gap:8px; flex-wrap:wrap; }
+    .ph-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px;
+                border-radius:999px; font-size:11px; font-weight:600;
+                background:rgba(255,255,255,.1); color:rgba(255,255,255,.75);
+                border:1px solid rgba(255,255,255,.15); }
+
+    .page { padding:28px 40px; max-width:1100px; margin:0 auto; }
+    @media(max-width:700px) { .ph,.page { padding:16px; } }
+
+    .sec { margin-bottom:44px; }
+    .sec-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px;
+               padding-bottom:9px; border-bottom:2px solid var(--n200); }
+    .sec-title { font-size:17px; font-weight:700; }
+    .sec-sub { font-size:12px; color:var(--n500); margin-left:auto; font-family:var(--mono); }
+
+    .callout { padding:11px 16px; border-radius:8px; border-left:3px solid;
+               font-size:13px; line-height:1.6; margin-bottom:14px; }
+    .c-ok   { background:var(--ok-bg);   border-color:var(--ok);   color:#14532d; }
+    .c-info { background:var(--info-bg); border-color:var(--info); color:#1a3a6b; }
+    .c-warn { background:var(--warn-bg); border-color:var(--warn); color:#7b3500; }
+    .callout strong { font-weight:700; }
+    .callout code { font-family:var(--mono); font-size:11.5px;
+                    background:rgba(0,0,0,.08); padding:1px 4px; border-radius:3px; }
+
+    .tw { overflow-x:auto; border-radius:8px; border:1px solid var(--n200); margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--navy-800); color:rgba(255,255,255,.82); text-align:left;
+               padding:9px 13px; font-size:10px; font-weight:700;
+               letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    tbody td { padding:9px 13px; border-bottom:1px solid var(--n200);
+               vertical-align:top; color:var(--n700); line-height:1.5; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr.r-fix { background:#f0fff4; }
+    tbody tr.r-ctx { background:var(--n50); }
+    code { font-family:var(--mono); font-size:11.5px; background:rgba(6,15,28,.07);
+           padding:1px 5px; border-radius:3px; color:#1a3249; }
+
+    .code-label { display:inline-block; background:rgba(255,255,255,.1);
+                  color:rgba(255,255,255,.6); font-family:var(--mono); font-size:10px;
+                  font-weight:700; letter-spacing:.07em; text-transform:uppercase;
+                  padding:3px 10px; border-radius:4px 4px 0 0; }
+    .code-block { background:var(--navy); border-radius:0 8px 8px 8px;
+                  padding:14px 18px; overflow-x:auto; margin-bottom:14px; }
+    .code-block code { font-family:var(--mono); font-size:12px; color:#e2e8f0;
+                       white-space:pre; display:block; line-height:1.75;
+                       background:none; padding:0; border-radius:0; }
+    .cm{color:#64748b} .ck{color:#93c5fd} .cs{color:#86efac} .cg{color:#6ee7b7}
+
+    .flow { display:flex; flex-direction:column; margin-bottom:14px; }
+    .flow-step { display:grid; grid-template-columns:28px 1fr; border:1px solid var(--n200);
+                 border-bottom:none; background:var(--n0); }
+    .flow-step:first-child { border-radius:8px 8px 0 0; }
+    .flow-step:last-child  { border-bottom:1px solid var(--n200); border-radius:0 0 8px 8px; }
+    .flow-step.hi { background:#f0fff4; }
+    .flow-num { background:var(--navy); color:#fff; font-size:11px; font-weight:700;
+                display:flex; align-items:flex-start; justify-content:center;
+                padding-top:12px; }
+    .flow-body { padding:10px 14px; }
+    .flow-fn   { font-family:var(--mono); font-size:12px; font-weight:700; color:var(--navy); margin-bottom:3px; }
+    .flow-file { font-size:10px; font-weight:700; text-transform:uppercase;
+                 letter-spacing:.05em; color:var(--n400); margin-bottom:3px; }
+    .flow-desc { font-size:12px; color:var(--n500); line-height:1.5; }
+    .tag { display:inline-flex; padding:2px 7px; border-radius:4px; font-size:10px;
+           font-weight:700; margin-right:4px; }
+    .t-nav { background:#f0fff4; color:#14532d; border:1px solid var(--ok-bd); }
+    .t-pan { background:var(--info-bg); color:#1e3a8a; border:1px solid var(--info-bd); }
+    .t-non { background:var(--n50); color:var(--n500); border:1px solid var(--n200); }
+
+    footer { margin-top:48px; padding:14px 0; border-top:1px solid var(--n200);
+             display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    footer span { font-family:var(--mono); font-size:11px; color:var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Navbar Wallet Badge</div>
+  <div class="ph-title">Navbar Wallet Badge — Sofort-Update nach Zahlungsereignissen</div>
+  <div class="ph-sub">
+    Dokumentation der vollständigen Update-Kette für das Wallet-Badge in der Navbar.
+    Einziger Fix-Punkt: <code>WalletPanel.refresh()</code> in <code>wallet-panel.js</code>.
+    Alle Aufrufer in student.js, teacher.js und ui.js profitieren automatisch.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">wallet-panel.js</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-15</span>
+    <span class="ph-badge">1 Datei geändert</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- ── ARCHITECTURE ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Architektur — beteiligte Funktionen</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Datei</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>WalletPanel.refresh(uid)</code></td>
+            <td>wallet-panel.js</td>
+            <td><strong>Einziger öffentlicher Einstiegspunkt.</strong> Wird von allen Aufrufer-Seiten aufgerufen. Aktualisiert Navbar-Badge und (wenn gemountet) das vollständige Wallet-Panel.</td>
+          </tr>
+          <tr>
+            <td><code>_onBalanceUpdate(wallet)</code></td>
+            <td>wallet-panel.js (privat)</td>
+            <td>Schreibt den formatierten Betrag in <code>#navbar-wallet-amount</code>. Führt Währungsumrechnung via <code>CurrencyService</code> durch. Wird von <code>refresh()</code> direkt und von <code>_core.loadData()</code> aufgerufen.</td>
+          </tr>
+          <tr>
+            <td><code>_core.loadData()</code></td>
+            <td>wallet-core.js (via WalletCore.createInstance)</td>
+            <td>Lädt Wallet + Transaktionen, ruft <code>onBalanceUpdate = _onBalanceUpdate</code> auf. Nur verfügbar wenn Wallet-Tab mindestens einmal geöffnet wurde.</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>_refreshNavbarWallet(uid)</code></td>
+            <td>student.js (privat)</td>
+            <td>Lokale Hilfsfunktion in student.js — ruft <code>AppService.getWallet()</code> und setzt Badge manuell. <em>Nicht in teacher.js vorhanden.</em> Wird nach dem Save-Button aufgerufen — wird durch die neue <code>refresh()</code>-Logik redundant, bleibt aber ohne Schaden bestehen.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── CALL FLOW ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Aufrufkette — vollständige Reihenfolge</div>
+      <span class="sec-sub">wallet-panel.js</span>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js / ui.js</div>
+          <div class="flow-fn">Zahlungsereignis abgeschlossen</div>
+          <div class="flow-desc">Beispiele: Buchung gespeichert, Stunde bestätigt, Stornierung mit Erstattung, Deposit freigegeben.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <div class="flow-file">student.js / teacher.js / ui.js</div>
+          <div class="flow-fn">WalletPanel.refresh(currentUser.uid)</div>
+          <div class="flow-desc">Einziger Aufruf der Aufrufer-Seiten. Kein direkter Zugriff auf Badge-Element oder Wallet-API nötig.</div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <div class="flow-file">wallet-panel.js — <strong>geändert</strong></div>
+          <div class="flow-fn">refresh(uid) → AppService.getWallet(uid, cb)</div>
+          <div class="flow-desc">
+            <strong>Immer</strong> ausgeführt — unabhängig ob Wallet-Tab besucht wurde.
+            Ruft <code>AppService.getWallet()</code> asynchron auf.
+          </div>
+          <div style="margin-top:6px"><span class="tag t-non">async</span></div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <div class="flow-file">wallet-panel.js — Callback</div>
+          <div class="flow-fn">_onBalanceUpdate(wallet)</div>
+          <div class="flow-desc">
+            Liest <code>CurrencyService.getUserCurrency(_uid)</code> → konvertiert Betrag falls nötig →
+            setzt <code>document.getElementById('navbar-wallet-amount').textContent</code>.
+          </div>
+          <div style="margin-top:6px">
+            <span class="tag t-nav">Navbar-Badge aktualisiert</span>
+          </div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">5</div>
+        <div class="flow-body">
+          <div class="flow-file">wallet-panel.js — optional</div>
+          <div class="flow-fn">if (_core) _core.loadData()</div>
+          <div class="flow-desc">
+            Nur ausgeführt wenn Wallet-Tab mindestens einmal geöffnet wurde (<code>_core ≠ null</code>).
+            Lädt vollständige Transaktionsliste und Saldo im Panel neu.
+            Ruft intern ebenfalls <code>_onBalanceUpdate()</code> auf — harmlose Doppelaktualisierung.
+          </div>
+          <div style="margin-top:6px">
+            <span class="tag t-pan">Wallet-Panel aktualisiert (wenn gemountet)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── IMPLEMENTATION ── -->
+  <div class="sec">
+    <div class="sec-hdr">
+      <div class="sec-title">Implementierung</div>
+      <span class="sec-sub">wallet-panel.js — refresh()</span>
+    </div>
+
+    <div class="code-label">wallet-panel.js — WalletPanel.refresh(uid)</div>
+    <div class="code-block"><code><span class="ck">function</span> refresh(uid) {
+  <span class="ck">if</span> (uid) _uid = uid;
+
+  <span class="cm">/* Always update the navbar badge immediately — even if the wallet panel
+     tab was never opened and _core is not yet initialized. */</span>
+  <span class="ck">if</span> (_uid && <span class="ck">typeof</span> AppService !== <span class="cs">'undefined'</span> && AppService.getWallet) {
+    AppService.getWallet(_uid, <span class="ck">function</span>(err, wallet) {
+      <span class="ck">if</span> (!err && wallet) _onBalanceUpdate(wallet);
+    });
+  }
+
+  <span class="cm">/* If panel is already mounted and core exists, reload full panel data in-place.
+     If not yet mounted (wallet tab not visited), nothing more to update —
+     mount() will load fresh data when the tab is opened. */</span>
+  <span class="ck">if</span> (_core) { _core.loadData(); }
+}</code></div>
+
+    <div class="code-label">wallet-panel.js — _onBalanceUpdate(wallet) — unverändert</div>
+    <div class="code-block"><code><span class="ck">function</span> _onBalanceUpdate(wallet) {
+  _wallet = wallet;
+  <span class="ck">var</span> badge = document.getElementById(<span class="cs">'navbar-wallet-amount'</span>);
+  <span class="ck">if</span> (badge && wallet) {
+    <span class="ck">var</span> _nbCur = (<span class="ck">typeof</span> CurrencyService !== <span class="cs">'undefined'</span> && <span class="ck">typeof</span> ProfileStore !== <span class="cs">'undefined'</span>)
+      ? CurrencyService.getUserCurrency(_uid) : <span class="cs">'EUR'</span>;
+    <span class="ck">var</span> _nbConv = (_nbCur !== <span class="cs">'EUR'</span> && <span class="ck">typeof</span> CurrencyService !== <span class="cs">'undefined'</span>)
+      ? CurrencyService.convertSync(wallet.balance, <span class="cs">'EUR'</span>, _nbCur) : <span class="cs">null</span>;
+    badge.textContent = _nbConv !== <span class="cs">null</span>
+      ? CurrencyService.format(_nbConv, _nbCur)
+      : WalletCore.formatAmount(wallet.balance) + <span class="cs">' €'</span>;
+  }
+}</code></div>
+  </div>
+
+  <!-- ── ALL CALLERS ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Alle Aufrufer — WalletPanel.refresh()</div></div>
+
+    <div class="callout c-ok">
+      <strong>Kein Änderungsbedarf in den Aufrufer-Dateien.</strong> Alle Aufrufer rufen bereits
+      <code>WalletPanel.refresh(uid)</code> auf. Die Navbar-Badge-Aktualisierung ist jetzt
+      garantiert, unabhängig vom Zustand des Wallet-Panels.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Auslöser</th><th>Kontext</th></tr></thead>
+        <tbody>
+          <tr><td><code>student.js</code><br>Zeile 381</td>
+              <td>Save-Button (Buchung/Stornierung)</td>
+              <td>Nach <code>confirmAndCommit()</code> — alle pending Changes gespeichert. Ruft auch <code>_refreshNavbarWallet()</code> auf (bleibt ohne Schaden).</td></tr>
+          <tr><td><code>student.js</code><br>Zeile 1996</td>
+              <td>„Jetzt bestätigen" — Block-Bestätigung</td>
+              <td>Nach <code>AppService.confirmBlock()</code>-Callback. Restbetrag wird vom Schüler abgezogen.</td></tr>
+          <tr><td><code>teacher.js</code><br>Zeile 1203</td>
+              <td>Save-Button</td>
+              <td>Nach dem Speichern aller Buchungsänderungen des Lehrers.</td></tr>
+          <tr><td><code>teacher.js</code><br>Zeile 2067</td>
+              <td>„Jetzt bestätigen" — Block-Bestätigung</td>
+              <td>Nach <code>AppService.confirmBlock()</code>-Callback. Vollbetrag wird dem Lehrer gutgeschrieben.</td></tr>
+          <tr><td><code>ui.js</code><br>Zeile 1560</td>
+              <td>Stornierung mit Erstattung (Schüler)</td>
+              <td>Nach Deposit-Rückerstattung im Cancel-Policy-Dialog.</td></tr>
+          <tr><td><code>ui.js</code><br>Zeile 1657</td>
+              <td>Stornierung (Lehrer-Stornierung)</td>
+              <td>Nach Teacher-Cancel mit Deposit-Freigabe an Schüler.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── _core STATE ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">_core-Zustand — wann ist das Wallet-Panel gemountet?</div></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Szenario</th><th>_core</th><th>Navbar-Badge</th><th>Wallet-Panel</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>Wallet-Tab wurde noch nicht besucht</td>
+            <td><code>null</code></td>
+            <td>✅ Wird via <code>AppService.getWallet()</code> aktualisiert</td>
+            <td>Wird beim nächsten Tab-Besuch frisch geladen</td></tr>
+          <tr class="r-fix">
+            <td>Wallet-Tab wurde mindestens einmal besucht</td>
+            <td>WalletCore-Instanz</td>
+            <td>✅ Wird via <code>_core.loadData()</code> → <code>_onBalanceUpdate()</code> aktualisiert</td>
+            <td>✅ Vollständig neu geladen (Transaktionsliste + Balance)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Doppelter _onBalanceUpdate-Aufruf:</strong> Wenn <code>_core</code> vorhanden ist,
+      wird <code>_onBalanceUpdate()</code> zweimal aufgerufen — einmal direkt via
+      <code>AppService.getWallet()</code> und einmal durch <code>_core.loadData()</code>.
+      Das ist harmlos: beide schreiben denselben Wert in das Badge-Element.
+      Der direkte Aufruf ist schneller (kein TX-Ladevorgang), der Core-Aufruf aktualisiert zusätzlich die Transaktionsliste.
+    </div>
+  </div>
+
+  <!-- ── CHANGED FILES ── -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Funktion</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/wallet-panel.js</code></td>
+            <td><code>refresh(uid)</code></td>
+            <td>Vor dem optionalen <code>_core.loadData()</code>-Aufruf wird immer <code>AppService.getWallet(uid, cb)</code> aufgerufen. Im Callback: <code>_onBalanceUpdate(wallet)</code> → Navbar-Badge sofort aktualisiert.</td>
+          </tr>
+          <tr>
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>2026-03-19-14</code> → <code>2026-03-19-15</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_NAVBAR_WALLET_BADGE_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-15 · 19. März 2026</span>
+  </footer>
+
+</div>
+</body>
+</html>

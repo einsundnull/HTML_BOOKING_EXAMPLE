@@ -1,0 +1,38 @@
+/* debug.css — Styles für debug.html */
+body { font-family: monospace; padding: 24px; background: var(--bg-base, #f8f9fb); color: var(--text-primary, #0d1117); }
+h2 { margin-bottom: var(--sp-2, 8px); }
+h3 { margin-bottom: var(--sp-1, 4px); margin-top: var(--sp-4, 24px); }
+pre { background: var(--bg-surface, #fff); border: 1px solid var(--border-default, #e2e6eb); padding: var(--sp-3, 16px); border-radius: var(--radius-sm, 4px); white-space: pre-wrap; word-break: break-all; margin-bottom: var(--sp-3, 16px); }
+.ok  { color: var(--ok, #16a34a); font-weight: bold; }
+.err { color: var(--danger, #dc2626); font-weight: bold; }
+
+/* Buttons */
+.debug-btn-group { display: flex; flex-wrap: wrap; gap: var(--sp-1, 4px); }
+.debug-btn { padding: 6px 14px; cursor: pointer; font-family: monospace; background: var(--bg-surface, #fff); border: 1px solid var(--border-strong, #dee2e6); border-radius: var(--radius-sm, 4px); color: var(--text-primary, #0d1117); }
+.debug-btn:hover { background: var(--bg-subtle, #f1f3f5); }
+.debug-btn--danger { border-color: var(--danger, #dc2626); color: var(--danger, #dc2626); }
+.debug-btn--danger:hover { background: #fee2e2; }
+
+/* Custom Confirm Dialog */
+.debug-confirm-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.debug-confirm-overlay.is-open { display: flex; }
+.debug-confirm-dialog {
+  background: var(--bg-surface, #fff);
+  border: 1px solid var(--border-strong, #dee2e6);
+  border-radius: var(--radius-lg, 16px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: var(--sp-4, 24px);
+  max-width: 380px;
+  width: 90%;
+  font-family: monospace;
+}
+.debug-confirm-title { font-weight: bold; font-size: 15px; margin-bottom: var(--sp-2, 8px); color: var(--text-primary, #0d1117); }
+.debug-confirm-msg { font-size: 13px; color: var(--text-secondary, #495057); margin-bottom: var(--sp-4, 24px); }
+.debug-confirm-actions { display: flex; gap: var(--sp-2, 8px); justify-content: flex-end; }

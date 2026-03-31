@@ -1,0 +1,34 @@
+baseStatus   │ Bedeutung
+─────────────┼──────────────────────────────────────────
+available    │ = recurring (jede Woche, dieser Tag+Zeit)
+disabled     │ = dauerhaft nicht verfügbar
+timeout      │ = einmalig nicht verfügbar (diese Woche)
+booked       │ = gebucht (studentId gesetzt)
+
+
+
+```
+Buchungen Tab — Tag 3 Mar
+─────────────────────────────────────
+09:00 – 09:30   [available]   [+ Book]
+                               ↓ klick
+                 ┌──────────────────────┐
+                 │ Book slot(s)         │
+                 │                      │
+                 │ Students:            │
+                 │ ☑ Anna               │
+                 │ ☑ Ben                │
+                 │ ☐ Chris              │
+                 │                      │
+                 │ Until: [10:30 ▼]     │
+                 │                      │
+                 │ [Cancel]  [Book]     │
+                 └──────────────────────┘
+
+→ Wenn "Until: 10:30" gewählt und 09:30–10:00 bereits
+  gebucht von Anna:
+
+  ⚠ "09:30–10:00 is already booked by Anna.
+     Overwrite?"  [Cancel] [Overwrite]
+```
+

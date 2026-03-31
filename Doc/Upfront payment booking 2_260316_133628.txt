@@ -1,0 +1,29 @@
+Let me read all wallet and payment service layers carefully.
+
+Now I have the complete picture. Here is the table and concept:
+
+---
+
+## Comparison Table: What exists, what's missing, what violates layering
+
+| Concern | Currently | Problem | Fix needed |
+|---|---|---|---|
+| **Price per slot** | `ProfileStore.getPrice(uid)` called directly in `student.js`, `teacher.js`, `ui.js` | 🔴 UI touches store directly — bypasses service layer | Expose `AppService.getSlotPrice(slotId)` or `AppService.getTeacherPrice(teacherId)` |
+| **Deposit calculation** | `_calcDeposit()` — private function inside `adapter-localstorage.js` | 🔴 Completely inaccessible to UI — buried in adapter | Expose `AppService.calcDepositInfo(teacherId, fullAmount, cb)` |
+| **Deposit settings** | `profile.requiresDeposit`, `depositMode`, `depositFixed`, `depositPercent` — read directly via `ProfileStore.getOrDefault()` | 🔴 UI would have to read raw profile fields and replicate deposit logic | Same — expose via service |
+| **Wallet balance** | `AppService.getWallet(uid, cb)` ✅ exists | ✅ Correctly routed through service | — |
+| **Pending cost calculation** | Does not exist anywhere | 🔴 Missing entirely | New: `AppService.calcPendingCost(pendingMap, cb)` |
+| **Wallet check** | Does not exist anywhere | 🔴 Missing entirely | New: `AppService.checkPendingAffordability(pendingMap, studentId, cb)` |
+| **`ProfileStore` in UI** | Used in `student.js` + `teacher.js` for price (8 call sites) | 🔴 Direct DB access from UI — security concern for Firestore migration | Replace all with AppService calls |
+| **Sync wallet read** | No `getWalletSync` in AppService | ⚠️ FAB update is synchronous — async wallet call creates race | Add `getWalletSync` via `_syncRead` |
+
+---
+
+## What I understand
+
+The core issue is **two architectural problems bundled together:**
+
+**1. Security / layering:** The UI (`student.js`, `teacher.js`, `ui.js`) directly calls `ProfileStore.getPrice()` — that is a direct store read that bypasses `AppService`. When this migrates to Firestore, that would be a direct DB call from the browser UI. Everything must go through `AppService`.
+
+**2. Missing service functions:** The deposit calculation logic exists (`_calcDeposit` in adapter) but is completely private. The UI has no way to ask "given these pending bookings for this teacher, what deposit is required, and can the student afford it?" — that entire question has no answer in the service layer.
+

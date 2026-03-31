@@ -1,0 +1,670 @@
+<!--
+  MOCKUP: openSlotVisibilityConfig + AdvancedSettings
+  FILE:   teacher.js : NEW — function openSlotVisibilityConfig(slot)
+          teacher.js : NEW — function openAdvancedSettings()
+          profile.js / store.js : NEW — teacherSettings.visibilityFeatures
+  CSS:    teacher.css — .dv-vis-btn, .dv-vis-badge-*, vis-modal-*, adv-*
+  CHANGE: "Erweiterte Einstellungen"-Button öffnet Feature-Toggles.
+          Der Lehrer wählt welche Visibility-Optionen überhaupt im Zahnrad-Modal erscheinen.
+          Zahnrad-Modal zeigt nur aktivierte Features.
+  DATE:   2026-03-24 20:30
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Advanced Settings + Slot Visibility Config</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens 1:1 aus tokens.css ── */
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(6,15,28,.08);
+  --shadow-lg:0 4px 16px rgba(6,15,28,.12);
+  --focus-ring:0 0 0 3px rgba(77,122,160,.30);
+  --transition:150ms ease;
+  --vis-new:#8b5cf6;
+  --vis-white:#0ea5e9;
+  --vis-black:#f97316;
+  --vis-group:#10b981;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;min-height:100vh;}
+
+/* ── App shell mock ── */
+.app{max-width:480px;margin:0 auto;background:var(--neutral-0);min-height:100vh;display:flex;flex-direction:column;}
+.topbar{background:var(--color-900);color:#fff;padding:12px 16px;font-size:14px;font-weight:var(--weight-semibold);display:flex;align-items:center;justify-content:space-between;}
+.topbar-title{opacity:.8;font-size:12px;}
+.day-label{font-size:16px;font-weight:var(--weight-semibold);}
+
+/* ── Advanced settings entry point ── */
+.adv-entry-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;
+  background:var(--neutral-50);
+  border-bottom:1px solid var(--neutral-200);
+}
+.adv-entry-label{font-size:12px;color:var(--neutral-500);}
+.adv-entry-btn{
+  display:inline-flex;align-items:center;gap:6px;
+  font-family:var(--font);font-size:12px;font-weight:var(--weight-semibold);
+  color:var(--color-500);background:transparent;
+  border:1px solid var(--color-200);border-radius:var(--radius-sm);
+  padding:4px 10px;cursor:pointer;
+  transition:background var(--transition),border-color var(--transition);
+}
+.adv-entry-btn:hover{background:var(--color-50);border-color:var(--color-300);}
+.adv-active-badges{display:flex;gap:6px;flex-wrap:wrap;padding:8px 16px;background:var(--neutral-50);border-bottom:1px solid var(--neutral-100);}
+.adv-active-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:var(--weight-semibold);
+  padding:2px 7px;border-radius:3px;
+}
+.adv-active-badge-sq{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+
+/* ── Day view slot list ── */
+.slot-list{flex:1;padding:12px 0;}
+.slot-row{
+  display:flex;align-items:stretch;
+  border-left:3px solid transparent;
+  border-bottom:1px solid var(--neutral-100);
+  min-height:52px;
+}
+.slot-row-available{border-left-color:var(--color-300);background:var(--color-50);}
+.slot-row-group{border-left-color:var(--vis-group);background:#f0fdf4;}
+.slot-row-vis-new{border-left-color:var(--vis-new);background:#faf5ff;}
+.slot-row-vis-white{border-left-color:var(--vis-white);background:#f0f9ff;}
+.slot-row-vis-black{border-left-color:var(--vis-black);background:#fff7ed;}
+.slot-row-empty{background:var(--neutral-50);}
+.slot-row-booked{background:var(--color-900);}
+.slot-time{
+  width:54px;flex-shrink:0;padding:8px 8px;
+  font-size:11px;font-family:monospace;
+  display:flex;flex-direction:column;justify-content:center;
+  color:var(--neutral-500);
+}
+.slot-row-available .slot-time,.slot-row-group .slot-time,
+.slot-row-vis-new .slot-time,.slot-row-vis-white .slot-time,.slot-row-vis-black .slot-time{color:var(--color-600);}
+.slot-row-booked .slot-time{color:rgba(255,255,255,.6);}
+.slot-time-start{font-weight:var(--weight-semibold);font-size:12px;}
+.slot-time-end{font-size:10px;opacity:.7;}
+.slot-info{flex:1;padding:8px 10px;display:flex;flex-direction:column;gap:3px;justify-content:center;}
+.slot-status{font-size:12px;font-weight:var(--weight-semibold);color:var(--color-700);}
+.slot-row-booked .slot-status{color:rgba(255,255,255,.9);}
+.slot-row-empty .slot-status{color:var(--neutral-400);}
+.slot-sub{font-size:11px;color:var(--neutral-500);}
+.slot-row-booked .slot-sub{color:rgba(255,255,255,.5);}
+.slot-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:10px;font-weight:var(--weight-semibold);
+  padding:2px 6px;border-radius:3px;width:fit-content;
+}
+.slot-badge-sq{width:7px;height:7px;border-radius:2px;flex-shrink:0;}
+.slot-action{
+  padding:0 12px;display:flex;align-items:center;gap:6px;flex-shrink:0;
+}
+.slot-gear-btn{
+  width:30px;height:30px;border-radius:var(--radius-sm);
+  border:1px solid var(--color-200);background:transparent;
+  color:var(--color-400);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  transition:background var(--transition),border-color var(--transition);
+  flex-shrink:0;
+}
+.slot-gear-btn:hover{background:var(--color-100);border-color:var(--color-300);}
+.slot-gear-btn.is-active{background:var(--color-900);border-color:var(--color-900);color:#fff;}
+.slot-gear-btn.is-active:hover{background:var(--color-800);}
+.slot-btn{
+  font-family:var(--font);font-size:11px;font-weight:var(--weight-semibold);
+  background:var(--neutral-0);border:1px solid var(--neutral-200);
+  border-radius:var(--radius-sm);color:var(--neutral-600);
+  cursor:pointer;padding:0 8px;height:28px;
+  display:inline-flex;align-items:center;white-space:nowrap;
+}
+
+/* ── BOTTOM SHEET base ── */
+.sheet-overlay{
+  position:fixed;inset:0;background:rgba(6,15,28,.5);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:300;
+}
+.sheet{
+  background:var(--neutral-0);border-radius:16px 16px 0 0;
+  width:100%;max-width:480px;
+  box-shadow:var(--shadow-lg);
+  max-height:92vh;overflow-y:auto;
+  display:flex;flex-direction:column;
+}
+.sheet-handle{width:36px;height:4px;border-radius:2px;background:var(--neutral-200);margin:12px auto 4px;}
+.sheet-header{padding:4px 20px 16px;border-bottom:1px solid var(--neutral-100);}
+.sheet-title{font-size:16px;font-weight:var(--weight-semibold);color:var(--neutral-900);}
+.sheet-subtitle{font-size:12px;color:var(--neutral-500);margin-top:2px;}
+.sheet-body{padding:20px;display:flex;flex-direction:column;gap:20px;}
+.sheet-footer{padding:0 20px 28px;display:flex;flex-direction:column;gap:8px;}
+.section-label{font-size:10px;font-weight:var(--weight-semibold);text-transform:uppercase;letter-spacing:.07em;color:var(--neutral-400);margin-bottom:10px;}
+
+/* ── ADVANCED SETTINGS sheet ── */
+.toggle-list{display:flex;flex-direction:column;gap:10px;}
+.toggle-row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 14px;
+  border:1.5px solid var(--neutral-200);
+  border-radius:var(--radius-md);
+  background:var(--neutral-0);
+  cursor:pointer;
+  transition:border-color var(--transition),background var(--transition);
+  user-select:none;
+}
+.toggle-row:hover{background:var(--neutral-50);}
+.toggle-row.is-on{border-color:var(--color-300);background:var(--color-50);}
+.toggle-color{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+.toggle-text{flex:1;}
+.toggle-name{font-size:13px;font-weight:var(--weight-semibold);color:var(--neutral-900);}
+.toggle-desc{font-size:11px;color:var(--neutral-500);margin-top:1px;}
+/* iOS-style toggle */
+.toggle-switch{
+  width:42px;height:24px;border-radius:12px;
+  background:var(--neutral-200);position:relative;
+  flex-shrink:0;transition:background 200ms ease;cursor:pointer;
+}
+.toggle-switch.on{background:var(--color-400);}
+.toggle-switch::after{
+  content:'';position:absolute;top:3px;left:3px;
+  width:18px;height:18px;border-radius:50%;background:#fff;
+  transition:left 200ms ease;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+}
+.toggle-switch.on::after{left:21px;}
+
+/* ── SLOT CONFIG sheet ── */
+.vis-options{display:flex;flex-direction:column;gap:8px;}
+.vis-opt{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 14px;
+  border:1.5px solid var(--neutral-200);
+  border-radius:var(--radius-md);
+  cursor:pointer;background:var(--neutral-0);
+  transition:border-color var(--transition),background var(--transition);
+  user-select:none;
+}
+.vis-opt:hover{background:var(--neutral-50);}
+.vis-opt.selected{border-color:var(--color-400);background:var(--color-50);}
+.vis-opt-color{width:14px;height:14px;border-radius:3px;flex-shrink:0;}
+.vis-opt-text{flex:1;}
+.vis-opt-label{font-size:13px;font-weight:var(--weight-semibold);color:var(--neutral-900);}
+.vis-opt-desc{font-size:11px;color:var(--neutral-500);margin-top:1px;}
+.vis-radio{width:18px;height:18px;border-radius:50%;border:2px solid var(--neutral-300);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:border-color var(--transition),background var(--transition);}
+.vis-opt.selected .vis-radio{border-color:var(--color-400);background:var(--color-400);}
+.vis-opt.selected .vis-radio::after{content:'';width:6px;height:6px;border-radius:50%;background:#fff;}
+
+/* Student picker */
+.student-picker{
+  background:var(--neutral-50);border:1px solid var(--neutral-200);
+  border-radius:var(--radius-md);padding:10px 12px;
+  display:flex;flex-wrap:wrap;gap:6px;align-items:center;
+}
+.stu-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:99px;background:var(--neutral-0);border:1px solid var(--neutral-200);font-size:12px;color:var(--neutral-700);}
+.stu-avatar{width:18px;height:18px;border-radius:50%;background:var(--color-100);color:var(--color-700);font-size:9px;font-weight:var(--weight-semibold);display:flex;align-items:center;justify-content:center;}
+.stu-remove{background:none;border:none;cursor:pointer;color:var(--neutral-400);font-size:14px;line-height:1;padding:0;display:flex;}
+.stu-add{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:99px;border:1px dashed var(--neutral-300);background:transparent;font-family:var(--font);font-size:12px;color:var(--neutral-400);cursor:pointer;}
+
+/* Group stepper */
+.group-stepper-row{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 14px;border:1.5px solid var(--neutral-200);
+  border-radius:var(--radius-md);background:var(--neutral-0);
+  transition:border-color var(--transition),background var(--transition);
+}
+.group-stepper-row.active{border-color:var(--vis-group);background:#f0fdf4;}
+.group-sq{width:14px;height:14px;border-radius:3px;background:var(--vis-group);flex-shrink:0;}
+.group-text{flex:1;}
+.group-name{font-size:13px;font-weight:var(--weight-semibold);color:var(--neutral-900);}
+.group-sub{font-size:11px;color:var(--neutral-500);margin-top:1px;}
+.stepper{display:flex;align-items:center;gap:10px;}
+.step-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--neutral-200);background:var(--neutral-0);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--neutral-600);line-height:1;font-family:var(--font);}
+.step-btn:hover{background:var(--neutral-100);}
+.step-num{font-size:16px;font-weight:var(--weight-semibold);color:var(--neutral-900);min-width:22px;text-align:center;}
+
+/* Buttons */
+.btn-primary{font-family:var(--font);font-size:14px;font-weight:var(--weight-semibold);background:var(--color-900);color:#fff;border:none;border-radius:var(--radius-md);padding:14px;cursor:pointer;width:100%;transition:background var(--transition);}
+.btn-primary:hover{background:var(--color-800);}
+.btn-ghost-sm{font-family:var(--font);font-size:12px;color:var(--neutral-500);background:transparent;border:none;cursor:pointer;padding:8px;text-align:center;}
+.btn-save-adv{font-family:var(--font);font-size:14px;font-weight:var(--weight-semibold);background:var(--color-400);color:#fff;border:none;border-radius:var(--radius-md);padding:14px;cursor:pointer;width:100%;transition:background var(--transition);}
+.btn-save-adv:hover{background:var(--color-500);}
+
+.divider{height:1px;background:var(--neutral-100);}
+.hidden{display:none!important;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Buchungen</div>
+      <div class="day-label">Di., 24. März 2026</div>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,.5);">Verfügbarkeit</div>
+  </div>
+
+  <!-- Advanced Settings entry bar -->
+  <div class="adv-entry-bar">
+    <span class="adv-entry-label">Slot-Einstellungen</span>
+    <button class="adv-entry-btn" onclick="openSheet('adv-sheet')">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      Erweiterte Einstellungen
+    </button>
+  </div>
+
+  <!-- Active features bar (shown when at least 1 feature enabled) -->
+  <div class="adv-active-badges" id="active-bar">
+    <!-- populated by JS -->
+  </div>
+
+  <!-- Slot list -->
+  <div class="slot-list">
+
+    <!-- Standard available -->
+    <div class="slot-row slot-row-available">
+      <div class="slot-time"><span class="slot-time-start">09:00</span><span class="slot-time-end">–09:30</span></div>
+      <div class="slot-info">
+        <span class="slot-status">Verfügbar</span>
+      </div>
+      <div class="slot-action">
+        <button class="slot-gear-btn" onclick="openSlotConfig(this,'09:00','public',false,1)" title="Einstellungen">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="slot-btn">Deaktivieren</button>
+      </div>
+    </div>
+
+    <!-- Neue Schüler active -->
+    <div class="slot-row slot-row-vis-new" id="row-0930">
+      <div class="slot-time"><span class="slot-time-start" style="color:#5b21b6;">09:30</span><span class="slot-time-end" style="color:#a78bfa;">–10:00</span></div>
+      <div class="slot-info">
+        <span class="slot-status" style="color:#5b21b6;">Verfügbar</span>
+        <span class="slot-badge" style="background:#ede9fe;color:#5b21b6;" id="badge-0930">
+          <span class="slot-badge-sq" style="background:#8b5cf6;"></span>
+          Nur neue Schüler
+        </span>
+      </div>
+      <div class="slot-action">
+        <button class="slot-gear-btn is-active" onclick="openSlotConfig(this,'09:30','new-only',false,1)" title="Einstellungen">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="slot-btn">Deaktivieren</button>
+      </div>
+    </div>
+
+    <!-- Booked -->
+    <div class="slot-row slot-row-booked">
+      <div class="slot-time"><span class="slot-time-start">10:00</span><span class="slot-time-end">–10:30</span></div>
+      <div class="slot-info">
+        <span class="slot-status">Gebucht — s1</span>
+      </div>
+      <div class="slot-action">
+        <button class="slot-btn" style="border-color:rgba(255,255,255,.2);background:transparent;color:rgba(255,255,255,.7);">Details</button>
+      </div>
+    </div>
+
+    <!-- Gruppe 2/3 -->
+    <div class="slot-row slot-row-group" id="row-1030">
+      <div class="slot-time"><span class="slot-time-start" style="color:#14532d;">10:30</span><span class="slot-time-end" style="color:#34d399;">–11:00</span></div>
+      <div class="slot-info">
+        <span class="slot-status" style="color:#14532d;">Gruppe</span>
+        <span class="slot-badge" style="background:#dcfce7;color:#14532d;" id="badge-1030">
+          <span class="slot-badge-sq" style="background:#10b981;"></span>
+          2 / 3 Plätze frei
+        </span>
+      </div>
+      <div class="slot-action">
+        <button class="slot-gear-btn is-active" onclick="openSlotConfig(this,'10:30','public',false,3)" title="Einstellungen">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="slot-btn">Deaktivieren</button>
+      </div>
+    </div>
+
+    <!-- Standard empty -->
+    <div class="slot-row slot-row-empty">
+      <div class="slot-time"><span class="slot-time-start" style="color:#aaa;">11:00</span></div>
+      <div class="slot-info"><span class="slot-status" style="color:var(--neutral-400);">Kein Slot</span></div>
+      <div class="slot-action">
+        <button class="slot-btn">Hinzufügen</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     ADVANCED SETTINGS SHEET
+══════════════════════════════════════════ -->
+<div class="sheet-overlay hidden" id="adv-sheet" onclick="if(event.target===this)closeSheet('adv-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Erweiterte Einstellungen</div>
+      <div class="sheet-subtitle">Wähle welche Optionen beim Bearbeiten von Slots verfügbar sind</div>
+    </div>
+    <div class="sheet-body">
+
+      <div>
+        <div class="section-label">Sichtbarkeits-Optionen</div>
+        <div class="toggle-list">
+
+          <div class="toggle-row" id="tog-new-only" onclick="toggleFeature('new-only')">
+            <div class="toggle-color" style="background:var(--vis-new);"></div>
+            <div class="toggle-text">
+              <div class="toggle-name">Nur neue Schüler</div>
+              <div class="toggle-desc">Slot nur für Schüler ohne bisherige Buchung sichtbar</div>
+            </div>
+            <div class="toggle-switch" id="sw-new-only"></div>
+          </div>
+
+          <div class="toggle-row" id="tog-whitelist" onclick="toggleFeature('whitelist')">
+            <div class="toggle-color" style="background:var(--vis-white);"></div>
+            <div class="toggle-text">
+              <div class="toggle-name">Whitelist — Nur bestimmte Schüler</div>
+              <div class="toggle-desc">Slot nur für ausgewählte Schüler sichtbar</div>
+            </div>
+            <div class="toggle-switch" id="sw-whitelist"></div>
+          </div>
+
+          <div class="toggle-row" id="tog-blacklist" onclick="toggleFeature('blacklist')">
+            <div class="toggle-color" style="background:var(--vis-black);"></div>
+            <div class="toggle-text">
+              <div class="toggle-name">Blacklist — Nicht für bestimmte Schüler</div>
+              <div class="toggle-desc">Slot für alle außer ausgewählten Schülern sichtbar</div>
+            </div>
+            <div class="toggle-switch" id="sw-blacklist"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div>
+        <div class="section-label">Unterrichtsformat</div>
+        <div class="toggle-list">
+
+          <div class="toggle-row" id="tog-group" onclick="toggleFeature('group')">
+            <div class="toggle-color" style="background:var(--vis-group);"></div>
+            <div class="toggle-text">
+              <div class="toggle-name">Gruppenunterricht</div>
+              <div class="toggle-desc">Mehrere Schüler können denselben Slot buchen</div>
+            </div>
+            <div class="toggle-switch" id="sw-group"></div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-save-adv" onclick="saveAdvanced()">Speichern</button>
+      <button class="btn-ghost-sm" onclick="closeSheet('adv-sheet')">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SLOT CONFIG SHEET
+══════════════════════════════════════════ -->
+<div class="sheet-overlay hidden" id="slot-sheet" onclick="if(event.target===this)closeSheet('slot-sheet')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-header">
+      <div class="sheet-title">Slot-Einstellungen</div>
+      <div class="sheet-subtitle" id="slot-sheet-time">—</div>
+    </div>
+    <div class="sheet-body" id="slot-sheet-body">
+      <!-- Built dynamically based on enabled features -->
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-primary" onclick="saveSlotConfig()">Speichern</button>
+      <button class="btn-ghost-sm" onclick="closeSheet('slot-sheet')">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── State ── */
+var features = { 'new-only': false, whitelist: false, blacklist: false, group: false };
+var _pendingFeatures = {};
+var _slotConfig = { time: '', vis: 'public', groupMax: 1, list: [] };
+var _currentGearBtn = null;
+
+var FEATURE_META = {
+  'new-only': { color: '#8b5cf6', label: 'Nur neue Schüler' },
+  whitelist:  { color: '#0ea5e9', label: 'Whitelist' },
+  blacklist:  { color: '#f97316', label: 'Blacklist' },
+  group:      { color: '#10b981', label: 'Gruppe' }
+};
+
+/* ── Sheet helpers ── */
+function openSheet(id) { document.getElementById(id).classList.remove('hidden'); }
+function closeSheet(id) { document.getElementById(id).classList.add('hidden'); }
+
+/* ── Advanced Settings ── */
+function toggleFeature(key) {
+  _pendingFeatures[key] = !_pendingFeatures[key];
+  var sw = document.getElementById('sw-' + key);
+  var row = document.getElementById('tog-' + key);
+  if (_pendingFeatures[key]) {
+    sw.classList.add('on');
+    row.classList.add('is-on');
+  } else {
+    sw.classList.remove('on');
+    row.classList.remove('is-on');
+  }
+}
+
+function saveAdvanced() {
+  for (var k in _pendingFeatures) features[k] = _pendingFeatures[k];
+  closeSheet('adv-sheet');
+  renderActiveBadges();
+}
+
+function renderActiveBadges() {
+  var bar = document.getElementById('active-bar');
+  bar.innerHTML = '';
+  var any = false;
+  for (var k in features) {
+    if (!features[k]) continue;
+    any = true;
+    var m = FEATURE_META[k];
+    var b = document.createElement('span');
+    b.className = 'adv-active-badge';
+    b.style.background = m.color + '22';
+    b.style.color = m.color;
+    b.style.border = '1px solid ' + m.color + '55';
+    var sq = document.createElement('span');
+    sq.className = 'adv-active-badge-sq';
+    sq.style.background = m.color;
+    b.appendChild(sq);
+    b.appendChild(document.createTextNode(m.label));
+    bar.appendChild(b);
+  }
+  bar.style.display = any ? 'flex' : 'none';
+}
+
+/* Sync pending to current on open */
+document.getElementById('adv-sheet').addEventListener('transitionend', function(){});
+var advBtn = document.querySelector('.adv-entry-btn');
+advBtn.addEventListener('click', function() {
+  /* copy current features to pending */
+  for (var k in features) {
+    _pendingFeatures[k] = features[k];
+    var sw = document.getElementById('sw-' + k);
+    var row = document.getElementById('tog-' + k);
+    if (features[k]) { sw.classList.add('on'); row.classList.add('is-on'); }
+    else { sw.classList.remove('on'); row.classList.remove('is-on'); }
+  }
+  openSheet('adv-sheet');
+});
+
+/* ── Slot Config ── */
+function openSlotConfig(btn, time, vis, hasStudents, groupMax) {
+  _currentGearBtn = btn;
+  _slotConfig = { time: time, vis: vis, groupMax: groupMax || 1, list: [] };
+  document.getElementById('slot-sheet-time').textContent = time + ' – ' + nextHalf(time);
+  buildSlotConfigBody();
+  openSheet('slot-sheet');
+}
+
+function buildSlotConfigBody() {
+  var body = document.getElementById('slot-sheet-body');
+  body.innerHTML = '';
+
+  var hasAnyVis = features['new-only'] || features.whitelist || features.blacklist;
+  var hasGroup  = features.group;
+
+  if (!hasAnyVis && !hasGroup) {
+    var empty = document.createElement('div');
+    empty.style.cssText = 'text-align:center;padding:32px 16px;color:#9aa3af;font-size:13px;line-height:1.6;';
+    empty.innerHTML = 'Keine erweiterten Optionen aktiviert.<br><span style="font-size:11px;">Öffne „Erweiterte Einstellungen" um Optionen freizuschalten.</span>';
+    body.appendChild(empty);
+    return;
+  }
+
+  /* Visibility section */
+  if (hasAnyVis) {
+    var sec1 = document.createElement('div');
+    var lbl1 = document.createElement('div');
+    lbl1.className = 'section-label';
+    lbl1.textContent = 'Sichtbarkeit';
+    sec1.appendChild(lbl1);
+    var opts = document.createElement('div');
+    opts.className = 'vis-options';
+
+    /* Always show Public */
+    opts.appendChild(makeVisOpt('public', '#c9d0d9', 'Öffentlich', 'Alle Schüler können diesen Slot sehen', _slotConfig.vis === 'public'));
+
+    if (features['new-only'])
+      opts.appendChild(makeVisOpt('new-only', '#8b5cf6', 'Nur neue Schüler', 'Nur Schüler ohne bisherige Buchung', _slotConfig.vis === 'new-only'));
+    if (features.whitelist)
+      opts.appendChild(makeVisOpt('whitelist', '#0ea5e9', 'Nur bestimmte Schüler', 'Whitelist — du wählst wer sieht', _slotConfig.vis === 'whitelist'));
+    if (features.blacklist)
+      opts.appendChild(makeVisOpt('blacklist', '#f97316', 'Nicht für bestimmte Schüler', 'Blacklist — alle außer diesen', _slotConfig.vis === 'blacklist'));
+
+    sec1.appendChild(opts);
+    body.appendChild(sec1);
+
+    /* Student picker (shown for whitelist / blacklist) */
+    var picker = document.createElement('div');
+    picker.id = 'student-picker-wrap';
+    picker.className = (_slotConfig.vis === 'whitelist' || _slotConfig.vis === 'blacklist') ? '' : 'hidden';
+    var pickerLabel = document.createElement('div');
+    pickerLabel.className = 'section-label';
+    pickerLabel.textContent = _slotConfig.vis === 'blacklist' ? 'Schüler ausschließen' : 'Schüler auswählen';
+    picker.appendChild(pickerLabel);
+    var chips = document.createElement('div');
+    chips.className = 'student-picker';
+    chips.innerHTML =
+      '<span class="stu-chip"><span class="stu-avatar">S1</span>s1<button class="stu-remove" onclick="event.stopPropagation()">×</button></span>' +
+      '<button class="stu-add" onclick="event.stopPropagation()">+ Schüler</button>';
+    picker.appendChild(chips);
+    body.appendChild(picker);
+  }
+
+  /* Group section */
+  if (hasGroup) {
+    var divider = document.createElement('div');
+    divider.className = 'divider';
+    body.appendChild(divider);
+
+    var sec2 = document.createElement('div');
+    var lbl2 = document.createElement('div');
+    lbl2.className = 'section-label';
+    lbl2.textContent = 'Gruppenunterricht';
+    sec2.appendChild(lbl2);
+
+    var stepRow = document.createElement('div');
+    stepRow.id = 'group-step-row';
+    stepRow.className = 'group-stepper-row' + (_slotConfig.groupMax > 1 ? ' active' : '');
+    stepRow.innerHTML =
+      '<div class="group-sq"></div>' +
+      '<div class="group-text"><div class="group-name">Max. Teilnehmer</div><div class="group-sub">1 = kein Gruppenunterricht</div></div>' +
+      '<div class="stepper">' +
+        '<button class="step-btn" onclick="stepGroup(-1,event)">−</button>' +
+        '<span class="step-num" id="slot-group-num">' + _slotConfig.groupMax + '</span>' +
+        '<button class="step-btn" onclick="stepGroup(1,event)">+</button>' +
+      '</div>';
+    sec2.appendChild(stepRow);
+    body.appendChild(sec2);
+  }
+}
+
+function makeVisOpt(key, color, label, desc, selected) {
+  var d = document.createElement('div');
+  d.className = 'vis-opt' + (selected ? ' selected' : '');
+  d.onclick = function() { selectVis(key, d); };
+  d.innerHTML =
+    '<div class="vis-opt-color" style="background:' + color + ';"></div>' +
+    '<div class="vis-opt-text"><div class="vis-opt-label">' + label + '</div><div class="vis-opt-desc">' + desc + '</div></div>' +
+    '<div class="vis-radio"></div>';
+  return d;
+}
+
+function selectVis(key, el) {
+  _slotConfig.vis = key;
+  var opts = el.parentNode.querySelectorAll('.vis-opt');
+  for (var i = 0; i < opts.length; i++) opts[i].classList.remove('selected');
+  el.classList.add('selected');
+  /* Show/hide student picker */
+  var pw = document.getElementById('student-picker-wrap');
+  if (pw) {
+    if (key === 'whitelist' || key === 'blacklist') {
+      pw.classList.remove('hidden');
+      var lbl = pw.querySelector('.section-label');
+      if (lbl) lbl.textContent = key === 'blacklist' ? 'Schüler ausschließen' : 'Schüler auswählen';
+    } else {
+      pw.classList.add('hidden');
+    }
+  }
+}
+
+function stepGroup(d, evt) {
+  evt.stopPropagation();
+  _slotConfig.groupMax = Math.max(1, Math.min(20, _slotConfig.groupMax + d));
+  var el = document.getElementById('slot-group-num');
+  if (el) el.textContent = _slotConfig.groupMax;
+  var row = document.getElementById('group-step-row');
+  if (row) row.className = 'group-stepper-row' + (_slotConfig.groupMax > 1 ? ' active' : '');
+}
+
+function saveSlotConfig() {
+  closeSheet('slot-sheet');
+  if (_currentGearBtn) {
+    var hasSettings = _slotConfig.vis !== 'public' || _slotConfig.groupMax > 1;
+    if (hasSettings) _currentGearBtn.classList.add('is-active');
+    else _currentGearBtn.classList.remove('is-active');
+  }
+}
+
+function nextHalf(t) {
+  var p = t.split(':'); var h = +p[0]; var m = +p[1] + 30;
+  if (m >= 60) { m -= 60; h++; }
+  return (h<10?'0':'')+h+':'+(m<10?'0':'')+m;
+}
+
+/* Init: hide active bar */
+document.getElementById('active-bar').style.display = 'none';
+</script>
+</body>
+</html>

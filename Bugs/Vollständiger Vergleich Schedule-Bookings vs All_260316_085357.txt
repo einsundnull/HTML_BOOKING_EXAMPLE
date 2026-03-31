@@ -1,0 +1,44 @@
+Let me read both implementations thoroughly before creating the table.
+
+Now I have the full picture. Here is the complete comparison:
+
+---
+
+## Vollständiger Vergleich: Schedule-Bookings vs. All-Bookings
+
+| Aspekt | **Schedule — `renderBookingsPanel`** | **All Bookings — `renderAllBookingsList` + `populateAllBookingDetail`** |
+|---|---|---|
+| **Datenquelle** | `getSlotsByTeacherDateSync` → `getEffectiveTeacherSlot` (pending-aware effective state) | `getSlotsByTeacherSync` direkt vom Store, pending-cancel manuell als `_pending:'cancel'` injiziert |
+| **Pending-book staged** | Slot in `freeSlots` (effective: `studentId=null`) → in Accordion via `populateAllBookingDetail` | Slot NICHT in `allSlots` (Store: `status='available'`) → erscheint nur via `pendingBookings[s.slotId]`-Check in `populateAllBookingDetail` |
+| **Amber bei pending-book** | ✅ Ja — `.slot-pending` via `populateAllBookingDetail` | ✅ Ja — `.slot-pending` via `populateAllBookingDetail` |
+| **Amber bei pending-cancel** | ⚠️ Teilweise — Slot landet in `freeSlots` (effective: `studentId=null`) → in Accordion, aber `isBooked=false` wegen `stuId=null !== s1` | ✅ Ja — `_pending:'cancel'` gesetzt, `buildAllBookingBlock` zeigt `block-pending` Header + `slot-pending` Rows |
+| **Undo-Button** | ✅ Ja — via `populateAllBookingDetail` | ✅ Ja — via `populateAllBookingDetail` |
+| **Summary-Block** | ✅ Pending-book ausgeschlossen (Fix 1) | ✅ Pending-book nie drin (Store-Status noch `available`) |
+| **Slot sichtbar nach Save** | ⚠️ Abhängig von `freeSlots.length` Gate (letzter Fix) | ✅ Immer — nur Store-`booked` Slots |
+| **Slot verschwindet nach Save** | War Bug, jetzt gefixt | ❌ Nie — bleibt als gebuchte Row |
+| **Confirm-Button** | ✅ Via `buildAllBookingBlock` in Summary-Sektion | ✅ Via `buildAllBookingBlock` |
+| **Filter (Student/Zeit/Datum)** | ✅ Vorhanden | ✅ Vorhanden |
+| **Bestätigt-Filter** | ✅ Vorhanden | ✅ Vorhanden |
+
+---
+
+## Redundanz-Analyse
+
+| Redundanz | Funktion A | Funktion B | Grad |
+|---|---|---|---|
+| **Slot-Filterung + pending-inject** | `renderBookingsPanel`: `getEffectiveTeacherSlot` loop | `renderAllBookingsList`: manueller `_pending:'cancel'` map | 🔴 Hoch — zwei verschiedene Wege zum selben Ziel |
+| **Block-Rendering** | `renderBookingsPanel` → `mergeAllBookingBlocks` → `buildAllBookingBlock` | `renderAllBookingsList` → `mergeAllBookingBlocks` → `buildAllBookingBlock` | ✅ Keine — selbe Funktion |
+| **Detail-Rendering** | `populateAllBookingDetail` (via fakeBlock) | `populateAllBookingDetail` (via echtem block) | ✅ Keine — selbe Funktion |
+| **Filter-Pipeline** | `_applyTimeFilter` + `_applyDateRangeFilter` + `_applyConfirmFilter` | Dieselben drei | ✅ Keine — selbe Funktionen |
+| **Accordion-Bau (Header/Chevron/Detail/Toggle)** | Inline in `renderBookingsPanel` (~25 Zeilen) | `buildAllBookingBlock` baut collapsible Block | 🟡 Mittel — Schedule baut Accordion manuell, All-Bookings nutzt `buildAllBookingBlock` |
+| **Student-Dropdown** | Inline in `renderBookingsPanel` (~40 Zeilen) | Inline in `renderAllBookings` (~40 Zeilen) | 🔴 Hoch — identischer Code, zweimal |
+
+---
+
+## Kernproblem
+
+`renderBookingsPanel` ist eine **parallele Reimplementierung** von `renderAllBookingsList` für einen einzigen Tag. Die gesamte Logik (Filterbar, pending-aware Slots, Accordion, Blocks) existiert bereits vollständig in `renderAllBookingsList` + `buildAllBookingBlock` + `populateAllBookingDetail`.
+
+**Ideale Lösung:** `renderBookingsPanel` ruft `renderAllBookingsList`-äquivalente Logik für einen einzelnen Tag auf — also `buildAllBookingBlock` direkt mit `populateAllBookingDetail`, statt einen parallelen Pfad zu pflegen.
+
+Soll ich das umbauen?

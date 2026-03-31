@@ -1,0 +1,249 @@
+KATALOG FILTER — Right Drawer mit Comboboxen
+═══════════════════════════════════════════════
+
+Aktuell: 2 Chip-Gruppen (Level + Unterricht) inline im Header.
+Vorschlag: Filter-Button im Header → Right Drawer mit allen Kategorien.
+
+
+═══════════════════════════════════════════════
+  HEADER — Filter-Button
+═══════════════════════════════════════════════
+
+╔══════════════════════════════════════════════╗
+║  ← Skiing                                    ║
+║  Lehrer finden                               ║
+║  12 Lehrer verfügbar                         ║
+║                                              ║
+║  ┌────────────────┐  ┌───────────────────┐   ║
+║  │ Level: Alle  ▼ │  │ Unterricht: Alle▼ │   ║
+║  └────────────────┘  └───────────────────┘   ║
+║                          ┌──────────────┐    ║
+║                          │ ⚙ Filter (3) │    ║
+║                          └──────────────┘    ║
+╚══════════════════════════════════════════════╝
+
+- Level + Unterricht bleiben als Quick-Filter im Header
+- Der ⚙ Filter-Button zeigt die Anzahl aktiver Detailfilter
+- Klick öffnet den Right Drawer
+
+
+═══════════════════════════════════════════════
+  RIGHT DRAWER — geschlossen → offen
+═══════════════════════════════════════════════
+
+                    ┌──────────────────────────┐
+                    │  Filter          ✕ Reset │
+                    │──────────────────────────│
+                    │                          │
+                    │  ▸ Sprachen              │
+                    │  ▸ Zielgruppe            │
+                    │  ▸ Terrain               │
+                    │  ▸ Spezialisierungen     │
+                    │  ▸ Preis                 │
+                    │  ▸ Erfahrung             │
+                    │  ▸ Standort              │
+                    │                          │
+                    │  ┌──────────────────┐    │
+                    │  │  X Ergebnisse    │    │
+                    │  └──────────────────┘    │
+                    └──────────────────────────┘
+
+Jede Zeile ist eine Combobox (aufklappbar).
+▸ = geschlossen, ▾ = offen
+
+
+═══════════════════════════════════════════════
+  COMBOBOX — Aufgeklappt (Beispiel: Sprachen)
+═══════════════════════════════════════════════
+
+                    ┌──────────────────────────┐
+                    │  Filter          ✕ Reset │
+                    │──────────────────────────│
+                    │                          │
+                    │  ▾ Sprachen              │
+                    │  ┌────────────────────┐  │
+                    │  │ ☑ Deutsch          │  │
+                    │  │ ☐ Englisch         │  │
+                    │  │ ☐ Französisch      │  │
+                    │  │ ☐ Italienisch      │  │
+                    │  │ ☐ Spanisch         │  │
+                    │  │ ☐ Russisch         │  │
+                    │  │ ☐ Japanisch        │  │
+                    │  │ ☐ Chinesisch       │  │
+                    │  └────────────────────┘  │
+                    │                          │
+                    │  ▸ Zielgruppe            │
+                    │  ▸ Terrain               │
+                    │  ...                     │
+                    └──────────────────────────┘
+
+
+═══════════════════════════════════════════════
+  COMBOBOX — Preis (Sonderfall: Range Slider)
+═══════════════════════════════════════════════
+
+                    │  ▾ Preis (pro 30 Min.)   │
+                    │  ┌────────────────────┐  │
+                    │  │  Min ───●────── Max│  │
+                    │  │  CHF 20    CHF 120 │  │
+                    │  └────────────────────┘  │
+
+Oder einfache Min/Max-Inputs:
+
+                    │  ▾ Preis (pro 30 Min.)   │
+                    │  ┌────────┐ ┌────────┐   │
+                    │  │ Von: 20│ │Bis: 120│   │
+                    │  └────────┘ └────────┘   │
+
+
+═══════════════════════════════════════════════
+  COMBOBOX — Erfahrung (Sonderfall: Range)
+═══════════════════════════════════════════════
+
+                    │  ▾ Erfahrung (Jahre)      │
+                    │  ┌────────┐ ┌────────┐   │
+                    │  │ Von: 0 │ │ Bis: 30│   │
+                    │  └────────┘ └────────┘   │
+
+
+═══════════════════════════════════════════════
+  AKTIVE FILTER — Badges im Header
+═══════════════════════════════════════════════
+
+Wenn Detailfilter aktiv → Chips unter dem Header:
+
+╔══════════════════════════════════════════════╗
+║  12 Lehrer verfügbar                         ║
+║                                              ║
+║  Level: Alle ▼    Unterricht: Alle ▼         ║
+║                                              ║
+║  ┌─────────┐ ┌───────────┐ ┌────────────┐   ║
+║  │Deutsch ✕│ │Freeride ✕ │ │20–80 CHF ✕ │   ║
+║  └─────────┘ └───────────┘ └────────────┘   ║
+║                          ⚙ Filter (3)        ║
+╚══════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════
+  KATEGORIEN UND UNTERKATEGORIEN (komplett)
+═══════════════════════════════════════════════════════════
+
+Quelle: ProfileStore-Felder aus profile.js
+
+┌────────────────────┬──────────────────────────────────────┐
+│ KATEGORIE          │ UNTERKATEGORIEN (Werte)              │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Level              │ Anfänger                             │
+│ (levels[])         │ Mittelstufe                          │
+│ Quick-Filter       │ Fortgeschritten                      │
+│                    │ Experten                             │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Unterricht         │ Einzelunterricht (private)           │
+│ (lessonTypes[])    │ Gruppenunterricht (group)            │
+│ Quick-Filter       │ Privat-Gruppe (private_group)        │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Sprachen           │ Deutsch (de)                         │
+│ (languages[])      │ Englisch (en)                        │
+│ Drawer             │ Französisch (fr)                     │
+│                    │ Italienisch (it)                     │
+│                    │ Spanisch (es)                        │
+│                    │ Russisch (ru)                        │
+│                    │ Japanisch (ja)                       │
+│                    │ Chinesisch (zh)                      │
+│                    │ + benutzerdefinierte Sprachen        │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Zielgruppe         │ Kinder (kids)                        │
+│ (audience[])       │ Jugendliche (teens)                  │
+│ Drawer             │ Erwachsene (adults)                  │
+│                    │ Senioren (seniors)                   │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Terrain            │ 🟢 Grün — Anfängerhänge (green)     │
+│ (terrain[])        │ 🔵 Blau — Mittlere Pisten (blue)    │
+│ Drawer             │ 🔴 Rot — Schwere Pisten (red)       │
+│                    │ ⚫ Schwarz — Extrem (black)          │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Spezialisierungen  │ Kinderunterricht (kids)              │
+│ (specializations[])│ Freeride (freeride)                  │
+│ Drawer             │ Freestyle (freestyle)                │
+│                    │ Renntraining (racing)                │
+│                    │ Angstbewältigung (anxiety)           │
+│                    │ Adaptiver Unterricht (adaptive)      │
+│                    │ Snowboard (snowboard)                │
+│                    │ Telemark (telemark)                  │
+│                    │ Erste Hilfe (firstaid)               │
+│                    │ Lawinenkunde (avalanche)             │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Preis              │ Min-Max Range (CHF pro 30 Min.)      │
+│ (pricePerHalfHour) │ Inputs: Von ___ Bis ___              │
+│ Drawer             │                                      │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Erfahrung          │ Min-Max Range (Jahre)                │
+│ (experienceYears)  │ Inputs: Von ___ Bis ___              │
+│ Drawer             │                                      │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Standort           │ Freitext-Suche (location)            │
+│ (location)         │ Input: z.B. "Zermatt"                │
+│ Drawer             │ Matched als contains/startsWith      │
+│                    │                                      │
+├────────────────────┼──────────────────────────────────────┤
+│                    │                                      │
+│ Geschlecht         │ Männlich (male)                      │
+│ (gender)           │ Weiblich (female)                    │
+│ Drawer             │ Divers (diverse)                     │
+│                    │                                      │
+└────────────────────┴──────────────────────────────────────┘
+
+Gesamt: 10 Kategorien, davon 2 Quick-Filter + 8 im Drawer
+
+
+═══════════════════════════════════════════════
+  FILTER-LOGIK
+═══════════════════════════════════════════════
+
+- Checkbox-Kategorien: OR innerhalb, AND zwischen
+  Beispiel: Sprachen=Deutsch OR Englisch
+            UND Terrain=Rot OR Schwarz
+            → Lehrer muss (DE oder EN) UND (rot oder schwarz) haben
+
+- Range-Kategorien: Min ≤ Wert ≤ Max
+
+- Standort: case-insensitive substring match
+
+- Leere Filter = kein Filter (alles anzeigen)
+
+- Live-Update: Ergebniszahl im Drawer aktualisiert
+  sich bei jeder Änderung
+
+- Reset: Einzeln (✕ pro Badge) oder global (Reset-Button)
+
+
+═══════════════════════════════════════════════
+  RESPONSIVE VERHALTEN
+═══════════════════════════════════════════════
+
+Mobile (≤768px):
+  - Drawer = Full-Screen Overlay von rechts
+  - Header ausgeblendet, Drawer hat eigenen Titel
+  - "X Ergebnisse anzeigen"-Button schließt Drawer
+
+Desktop (>768px):
+  - Drawer = 360px Sidebar, schiebt Content nicht
+  - Overlay-Dimmer auf den Rest der Seite
+  - Klick auf Dimmer schließt Drawer

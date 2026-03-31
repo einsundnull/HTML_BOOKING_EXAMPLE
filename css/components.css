@@ -1,0 +1,1150 @@
+/* ── Buttons ────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-4);
+  line-height: 1.5;
+  text-decoration: none;
+  transition:
+    background var(--transition),
+    border-color var(--transition),
+    color var(--transition);
+  white-space: nowrap;
+  user-select: none;
+  touch-action: manipulation;
+}
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--color-400);
+  border-color: var(--color-400);
+  color: var(--neutral-0);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover   { background: var(--color-500); border-color: var(--color-500); }
+}
+.btn-primary:active  { background: var(--color-600); border-color: var(--color-600); }
+.btn-primary:disabled,
+.btn-primary[aria-disabled="true"] {
+  background: var(--neutral-300);
+  border-color: var(--neutral-300);
+  cursor: not-allowed;
+}
+
+/* Secondary */
+.btn-secondary {
+  background: var(--neutral-0);
+  border-color: var(--neutral-200);
+  color: var(--neutral-700);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-secondary:hover  { background: var(--neutral-100); border-color: var(--neutral-300); }
+}
+.btn-secondary:active { background: var(--neutral-200); }
+
+/* Ghost */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--neutral-600);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover  { background: var(--neutral-100); }
+}
+.btn-ghost:active { background: var(--neutral-200); }
+
+/* Danger */
+.btn-danger {
+  background: transparent;
+  border-color: var(--neutral-200);
+  color: var(--danger-tx);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-danger:hover  { background: var(--danger-hover-bg); border-color: var(--danger-bd); }
+}
+.btn-danger:active { background: var(--danger-active-bg); }
+
+/* Size modifier */
+.btn-sm {
+  font-size: var(--text-caption);
+  padding: var(--sp-1) var(--sp-3);
+}
+
+/* ── Form Elements ──────────────────────────────────────── */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.form-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.form-textarea {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  width: 100%;
+  resize: vertical;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .form-textarea:hover { border-color: var(--neutral-300); }
+  .form-textarea:focus {
+    border-color: var(--color-400);
+    box-shadow: var(--focus-ring);
+  }
+}
+.form-textarea::placeholder { color: var(--neutral-300); }
+.input-error { border-color: var(--danger-bd) !important; box-shadow: 0 0 0 3px rgba(192,57,43,.15) !important; }
+.form-input,
+.form-select {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  color: var(--neutral-900);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  width: 100%;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  outline: none;
+  appearance: none;
+}
+.form-input::placeholder { color: var(--neutral-300); }
+@media (hover: hover) and (pointer: fine) {
+  .form-input:hover,
+  .form-select:hover  { border-color: var(--neutral-300); }
+  .form-input:focus,
+  .form-select:focus  {
+    border-color: var(--color-400);
+    box-shadow: var(--focus-ring);
+  }
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M4 6l4 4 4-4' stroke='%236b7685' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--sp-2) center;
+  padding-right: var(--sp-5);
+  cursor: pointer;
+}
+.form-hint {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+}
+.form-error-msg {
+  font-size: var(--text-caption);
+  color: var(--danger-tx);
+}
+
+/* Form row */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-3);
+}
+@media (max-width: 480px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* ── Card ───────────────────────────────────────────────── */
+.card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+  min-width: 0;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.card-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.card-description {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  margin-top: var(--sp-1);
+}
+
+/* ── Table ──────────────────────────────────────────────── */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 0 calc(-1 * var(--sp-4));
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-caption);
+}
+.table th {
+  text-align: left;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-200);
+  white-space: nowrap;
+}
+.table th:first-child { padding-left: var(--sp-4); }
+.table th:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table td {
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  color: var(--neutral-700);
+  vertical-align: middle;
+}
+.table td:first-child { padding-left: var(--sp-4); }
+.table td:last-child  { padding-right: var(--sp-4); text-align: right; }
+.table tr:last-child td { border-bottom: none; }
+@media (hover: hover) and (pointer: fine) {
+  .table tbody tr:hover td { background: var(--neutral-50); }
+}
+
+/* ── Badge ──────────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 2px var(--sp-2);
+  border-radius: var(--radius-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.badge-admin   { background: var(--color-900); color: var(--neutral-0); }
+.badge-teacher { background: var(--color-700); color: var(--neutral-0); }
+.badge-student { background: var(--color-50);  color: var(--color-700); border: 1px solid var(--color-200); }
+.badge-confirmed { background: var(--status-confirmed-bg); color: var(--status-confirmed-icon); border: 1px solid var(--status-confirmed-bd); }
+.badge-released  { background: var(--status-held-bg); color: var(--status-held-tx); border: 1px solid var(--status-held-bd); }
+
+/* ── Empty State ────────────────────────────────────────── */
+.empty-state {
+  text-align: center;
+  padding: var(--sp-7) var(--sp-4);
+  color: var(--neutral-500);
+}
+.empty-state svg { margin-bottom: var(--sp-3); color: var(--neutral-300); }
+.empty-state p   { font-size: var(--text-caption); }
+
+/* ── Stats Row ──────────────────────────────────────────── */
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+.stats-row--2col {
+  grid-template-columns: repeat(2, 1fr);
+}
+.stat-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: var(--sp-4);
+}
+.stat-label {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-2);
+}
+.stat-value {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+
+/* ── Dashboard calendar quick-link ──────────────────────── */
+.dash-calendar-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  color: var(--color-500);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  text-decoration: none;
+  margin-bottom: var(--sp-5);
+  transition: background var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .dash-calendar-btn:hover {
+    background: var(--color-50, #f0f6ff);
+    border-color: var(--color-300, #93c5fd);
+  }
+}
+.dash-calendar-btn-arrow {
+  margin-left: auto;
+  color: var(--neutral-400);
+}
+
+/* ── Move / Recurring dialog wrapper (shared — teacher, student, dashboard) ── */
+.move-dialog { display: flex; flex-direction: column; gap: var(--sp-3); }
+.move-dialog-info { margin: 0 0 var(--sp-1) 0; font-size: var(--text-body); font-weight: var(--weight-semibold); color: var(--neutral-900); }
+.move-dialog-actions { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; }
+.move-dialog-divider { border: none; border-top: 1px solid var(--neutral-200); margin: 0; }
+.move-dialog-row  { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.move-dialog-col  { display: flex; flex-direction: column; gap: var(--sp-1); flex: 1; min-width: 120px; }
+.move-check-result { font-size: var(--text-caption); font-weight: var(--weight-semibold); min-height: 20px; padding: var(--sp-1) 0; }
+.move-check-ok   { color: var(--status-confirmed-tx); }
+.move-check-fail { color: var(--danger-tx); }
+.move-dialog-btns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+.move-dialog-btns .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* ── Verschieben-Toggle-Button — mockup-openMoveBlockDialogShared-moveBtn-2026-03-24_16-00 ── */
+.btn-move {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 5px var(--sp-3);
+  border: 1px solid var(--color-300);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-500);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-move:hover { background: var(--color-50); border-color: var(--color-400); color: var(--color-600); }
+}
+.btn-move.is-active { background: var(--color-50); border-color: var(--color-400); color: var(--color-600); }
+
+/* ── Move-Panel — aufklappbarer Verschieben-Bereich im Block-Dialog ── */
+.move-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 200ms ease;
+}
+.move-panel.is-open {
+  max-height: 700px;
+  opacity: 1;
+}
+
+/* ── Modal ──────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,15,28,0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300; /* above summary panel (210) and day view overlay (200) */
+  padding: var(--sp-4);
+  animation: fade-in 150ms ease;
+}
+.modal {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-5);
+  width: 100%;
+  max-width: 440px;
+  max-height: calc(100vh - var(--sp-4) - var(--sp-4));
+  overflow-y: auto;
+  animation: modal-in 200ms ease;
+}
+.modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--sp-4);
+  gap: var(--sp-3);
+}
+.modal-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.modal-close {
+  width: 32px; height: 32px;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--neutral-500);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .modal-close:hover { background: var(--neutral-100); }
+}
+.modal-close:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.modal-body { display: flex; flex-direction: column; gap: var(--sp-3); }
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+@keyframes fade-in {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes modal-in {
+  from { transform: translateY(-8px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+/* ── Login Page ─────────────────────────────────────────── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: var(--neutral-50);
+}
+.login-card {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+  width: 100%;
+  max-width: 400px;
+}
+.login-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-5);
+  color: var(--neutral-900);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+.login-logo svg { color: var(--color-400); }
+.login-heading {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-1);
+}
+.login-sub {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  margin-bottom: var(--sp-5);
+}
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.login-btn {
+  width: 100%;
+  margin-top: var(--sp-1);
+}
+.login-hint {
+  margin-top: var(--sp-4);
+  padding: var(--sp-3);
+  background: var(--neutral-50);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  font-size: var(--text-caption);
+  color: var(--neutral-600);
+  line-height: 1.7;
+}
+.login-hint strong {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  display: block;
+  margin-bottom: var(--sp-1);
+}
+.login-hint code {
+  font-family: monospace;
+  background: var(--neutral-200);
+  padding: 1px 4px;
+  border-radius: 3px;
+  color: var(--neutral-700);
+}
+
+/* ── Admin Layout ───────────────────────────────────────── */
+.admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-5);
+}
+@media (max-width: 768px) {
+  .admin-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Admin Main Tabs ─────────────────────────────────────── */
+.admin-main-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 2px solid var(--neutral-200);
+  margin-bottom: var(--sp-4);
+}
+.admin-tab-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-tab-btn:hover { color: var(--neutral-700); }
+}
+.admin-tab-btn.active { color: var(--color-900); border-bottom-color: var(--color-900); }
+
+/* ── Admin Escrow Panel ──────────────────────────────────── */
+.admin-escrow-filters {
+  display: flex;
+  gap: var(--sp-1);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--neutral-100);
+  flex-wrap: wrap;
+}
+.admin-escrow-row { cursor: default; }
+.admin-escrow-links {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 3px;
+}
+.admin-detail-link {
+  font-size: var(--text-caption);
+  color: var(--color-400);
+  text-decoration: none;
+  font-weight: var(--weight-semibold);
+}
+@media (hover: hover) and (pointer: fine) {
+  .admin-detail-link:hover { color: var(--color-600); text-decoration: underline; }
+}
+.admin-release-btn { margin-top: var(--sp-1); }
+
+/* ── Segmented Control (Tab-like) ───────────────────────── */
+.segmented {
+  display: inline-flex;
+  background: var(--neutral-100);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+}
+.segmented-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-1) var(--sp-3);
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--neutral-500);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .segmented-btn:hover { color: var(--neutral-700); }
+}
+.segmented-btn.active {
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  box-shadow: var(--shadow);
+}
+.segmented-btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+
+/* ── Remove Teacher Modal — slot list ───────────────────── */
+.remove-teacher-slot-list {
+  list-style: none;
+  margin: var(--sp-3) 0 0;
+  padding: 0;
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.remove-teacher-slot-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+  font-size: var(--text-caption);
+  color: var(--neutral-700);
+}
+.remove-teacher-slot-list li:last-child { border-bottom: none; }
+.remove-teacher-slot-list li:nth-child(even) { background: var(--neutral-50); }
+.remove-teacher-slot-date {
+  color: var(--neutral-600);
+}
+.remove-teacher-slot-time {
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+
+/* ── Custom Dropdown ────────────────────────────────────────── */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 200px;
+}
+
+.custom-dropdown-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  color: var(--neutral-900);
+  cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition);
+  text-align: left;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .custom-dropdown-trigger:hover {
+    border-color: var(--color-400);
+  }
+}
+
+.custom-dropdown-trigger.is-open {
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+
+.custom-dropdown-chevron {
+  flex-shrink: 0;
+  color: var(--neutral-500);
+  transition: transform 0.2s ease;
+}
+
+.custom-dropdown-trigger.is-open .custom-dropdown-chevron {
+  transform: rotate(180deg);
+}
+
+.custom-dropdown-list {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(6,15,28,0.12);
+  list-style: none;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  z-index: 200;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.custom-dropdown-list.is-open {
+  display: block;
+}
+
+.custom-dropdown-item {
+  padding: var(--sp-2) var(--sp-4);
+  font-family: var(--font);
+  font-size: var(--text-body);
+  color: var(--neutral-800);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .custom-dropdown-item:hover {
+    background: var(--color-50);
+    color: var(--neutral-900);
+  }
+}
+
+.custom-dropdown-item.is-active {
+  color: var(--color-600);
+  font-weight: var(--weight-semibold);
+}
+
+.custom-dropdown-item.is-active::after {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-400);
+  flex-shrink: 0;
+}
+
+/* ── Form stack (replaces inline flex-column layout wrappers) */
+.form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+/* ── Button modifiers ───────────────────────────────────── */
+.btn-full      { width: 100%; justify-content: center; }
+.btn-self-start { align-self: flex-start; }
+
+/* ── Hint list items (login / demo accounts) ────────────── */
+.hint-code {
+  background: var(--neutral-100);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+.hint-role {
+  color: var(--neutral-500);
+}
+
+/* ── Table cell modifiers (admin user list) ─────────────── */
+.td-name         { font-weight: var(--weight-semibold); color: var(--neutral-900); }
+.td-meta         { color: var(--neutral-500); font-size: var(--text-caption); }
+.table-empty-cell {
+  text-align: center;
+  padding: var(--sp-6) var(--sp-4);
+  color: var(--neutral-500);
+  font-size: var(--text-caption);
+}
+
+/* ── Confirm / Release Dialog Body ──────────────────────── */
+.confirm-dialog-warning { background: var(--neutral-100); border: 1px solid var(--neutral-200); border-radius: var(--radius-sm); padding: var(--sp-3); color: var(--neutral-700); font-size: var(--text-body); }
+.confirm-dialog-list { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-1); color: var(--neutral-700); font-size: var(--text-body); }
+
+/* ── Username input (shared: landing + profile-edit + admin) ─ */
+.auth-username-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--neutral-300);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.auth-username-wrap:focus-within {
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+.auth-username-prefix {
+  padding: 0 var(--sp-2) 0 var(--sp-3);
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  background: var(--neutral-50);
+  border-right: 1px solid var(--neutral-200);
+  height: 42px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.auth-username-input {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  flex: 1;
+}
+.auth-username-input:focus { outline: none; box-shadow: none; }
+
+/* ── Status Badges (inline-style replacements) ─────────────── */
+.status-confirmed   { color: var(--status-save-ok-tx); font-weight: var(--weight-semibold); }
+.status-pending     { color: var(--pending-amber);      font-weight: var(--weight-semibold); }
+.status-error       { color: var(--danger-strong-tx);   font-weight: var(--weight-semibold); }
+
+/* ── Payment status blocks ─────────────────────────────────── */
+.payment-status-block {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+}
+.payment-status-ok   { background: var(--status-confirmed-bg);  color: var(--status-save-ok-tx); }
+.payment-status-warn { background: var(--danger-hover-bg);    color: var(--danger-strong-tx); }
+
+/* ── Warn badge (inline cssText replacement) ───────────────── */
+.warn-badge {
+  color: var(--danger-strong-tx);
+  font-size: var(--text-caption);
+  margin-left: var(--sp-1);
+}
+
+/* ── Recur table styles (replaces inline style= in ui.js) ──── */
+.recur-table        { width: 100%; border-collapse: collapse; }
+.recur-th           { padding: var(--sp-1) var(--sp-2); text-align: left; font-size: var(--text-caption);
+                      font-weight: var(--weight-semibold); color: var(--neutral-500); background: var(--neutral-100);
+                      text-transform: uppercase; letter-spacing: .04em; }
+.recur-th--right    { text-align: right; }
+.recur-th--center   { text-align: center; }
+.recur-td           { padding: var(--sp-1) var(--sp-2); font-size: var(--text-caption); color: var(--neutral-700);
+                      border-top: 1px solid var(--neutral-100); }
+.recur-td--right    { text-align: right; }
+.recur-td--center   { text-align: center; }
+.recur-td--mono     { font-family: monospace; }
+.recur-td--icon-ok  { text-align: center; color: var(--status-save-ok-tx); font-weight: var(--weight-semibold); }
+.recur-td--icon-warn{ text-align: center; color: var(--pending-amber);      font-weight: var(--weight-semibold); }
+.recur-td--icon-bad { text-align: center; color: var(--danger-strong-tx);   font-weight: var(--weight-semibold); }
+.recur-td--note     { color: var(--neutral-400); font-size: var(--text-caption); }
+.recur-row--even    { background: var(--neutral-0); }
+.recur-row--odd     { background: var(--neutral-50); }
+.recur-row--warn    { background: var(--pending-amber-bg); }
+.recur-row--bad     { background: var(--danger-hover-bg); }
+.recur-summary-line { color: var(--status-save-ok-tx); }
+.recur-summary-line--warn { color: var(--pending-amber); }
+.recur-summary-line--bad  { color: var(--danger-strong-tx); }
+
+/* ── Empty state / free detail padding ────────────────────────*/
+.empty-state-padded { padding: var(--sp-3) var(--sp-4); }
+.free-detail-padded { padding: var(--sp-1) var(--sp-3); }
+
+/* ── Text color utilities ──────────────────────────────────── */
+.text-accent  { color: var(--color-500); }
+.text-muted   { color: var(--neutral-500); }
+
+/* ── Booking total row ─────────────────────────────────────── */
+.booking-total-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--sp-2) 0 var(--sp-1);
+  border-top: 1px solid var(--neutral-200);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-body);
+}
+
+
+/* ── Recurring legacy row classes (shared) ── */
+.recur-section { border-top: 1px solid var(--neutral-200); padding-top: var(--sp-3); margin-top: var(--sp-1); }
+.recur-toggle-btn { width: 100%; justify-content: center; gap: var(--sp-2); }
+.recur-toggle-btn.active { color: var(--color-600); }
+.recur-panel { display: flex; flex-direction: column; gap: var(--sp-3); margin-top: var(--sp-3); }
+.recur-info { font-size: var(--text-caption); color: var(--neutral-500); margin: 0; }
+.recur-result { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+.recur-summary { font-size: var(--text-body); font-weight: var(--weight-semibold); color: var(--neutral-800); padding: var(--sp-1) 0; }
+.recur-list { max-height: 240px; overflow-y: auto; border: 1px solid var(--neutral-200); border-radius: var(--radius-sm); }
+.recur-th { padding: 3px 6px; text-align: left; font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); white-space: nowrap; }
+.recur-td { padding: 4px 6px; font-size: var(--text-caption); color: var(--neutral-700); white-space: nowrap; }
+.recur-td.recur-row-ok { color: var(--status-save-ok-tx); }
+.recur-td.recur-row-fail { color: var(--danger-strong-tx); }
+.recur-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-2); border-radius: var(--radius-sm); font-size: var(--text-caption); }
+.recur-row-ok { background: var(--status-confirmed-bg); }
+.recur-row-fail { background: var(--status-failed-bg); }
+.recur-row-icon { font-weight: var(--weight-semibold); flex-shrink: 0; width: 16px; text-align: center; }
+.recur-row-ok .recur-row-icon { color: var(--status-save-ok-tx); }
+.recur-row-fail .recur-row-icon { color: var(--danger-strong-tx); }
+.recur-row-date { flex: 1; color: var(--neutral-700); white-space: nowrap; }
+.recur-row-reason { color: var(--danger-strong-tx); font-size: var(--text-caption); }
+
+/* ── Recurring Booking Dialog (shared — used by teacher, student, dashboard) ──── */
+/* ── Recurring Booking Dialog — neue Klassen ─────────────── */
+
+/* Standalone mode wrapper */
+.recur-standalone { gap: var(--sp-4); }
+
+/* Source date subtitle */
+.recur-source-date {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  margin: 0 0 var(--sp-1) 0;
+}
+
+/* Mode toggle row */
+.recur-mode-row {
+  display: flex;
+  gap: var(--sp-2);
+  background: var(--neutral-100);
+  border-radius: var(--radius-md);
+  padding: var(--sp-1);
+  margin-bottom: var(--sp-2);
+}
+.recur-mode-btn {
+  flex: 1;
+  padding: var(--sp-1) var(--sp-2);
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--neutral-500);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: background 120ms, color 120ms;
+}
+.recur-mode-btn.is-active {
+  background: var(--neutral-0);
+  color: var(--color-900);
+  box-shadow: var(--shadow);
+}
+
+/* Input block */
+.recur-input-block { display: flex; flex-direction: column; gap: var(--sp-2); }
+.recur-input-block.is-hidden { display: none; }
+
+/* Price badge inside recur row */
+.recur-row-price {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-600);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Wallet status row */
+.recur-wallet-row {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+}
+.recur-wallet-ok   { background: var(--status-confirmed-bg); color: var(--status-save-ok-tx); }
+.recur-wallet-warn { background: var(--status-held-bg); color: var(--status-held-tx); }
+
+/* Slot buchen dialog — recurring button */
+.recur-row-price[style] { margin: 0; }
+
+/* Deposit sub-label (e.g. "€50 fixed per slot") */
+.recur-deposit-sub {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  font-weight: var(--weight-normal);
+}
+
+/* Cash-on-site badge in recur row */
+.recur-row-price--cash {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  margin-left: auto;
+  flex-shrink: 0;
+  font-style: italic;
+}
+
+/* Day-Slots toolbar — Regelmäßig buchen bar */
+.day-recur-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-2) var(--container-pad);
+  background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-200);
+}
+.day-recur-bar.is-hidden { display: none; }
+.day-recur-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-500);
+  white-space: nowrap;
+}
+.day-recur-btn:hover { color: var(--color-700); }
+
+/* ── Confirm / Cancel dialog helpers ──────────────────────── */
+.confirm-money-line {
+  margin-top: var(--sp-1);
+  font-size: var(--text-caption);
+}
+.confirm-notice-text {
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  margin-top: var(--sp-1);
+}
+.confirm-notice-info {
+  color: var(--color-500);
+}
+.confirm-tier-badge {
+  margin-top: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius-sm);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-caption);
+}
+.confirm-release-amount {
+  color: var(--color-500);
+}
+.confirm-detail-balance-row {
+  border-top: 1px solid var(--neutral-100);
+  margin-top: var(--sp-1);
+  padding-top: var(--sp-1);
+}
+.recur-wallet-row {
+  margin: var(--sp-1) var(--sp-2) var(--sp-2);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-1) var(--sp-2);
+}
+
+/* ── Multi-student recurring accordion (shared) ── */
+.recur-stu-list { display: flex; flex-direction: column; gap: var(--sp-2); margin-top: var(--sp-2); }
+.recur-stu-card { border: 1px solid var(--neutral-200); border-radius: var(--radius-sm); overflow: hidden; }
+.recur-stu-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--neutral-0);
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+}
+.recur-stu-name  { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-900); }
+.recur-stu-count { font-size: var(--text-caption); font-weight: var(--weight-semibold); }
+.recur-stu-body  { background: var(--neutral-50); border-top: 1px solid var(--neutral-100); }
+
+/* ── Search input — mockup-searchInput-2026-03-23_20-16 ─────────────────────
+   Used: buildBookingForm (teacher.js), renderStudentList (teacher.js),
+         renderCatalog (student.js / skiing-catalog.js)
+── */
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+.search-input-wrap .search-icon {
+  position: absolute;
+  left: var(--sp-2);
+  color: var(--neutral-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 var(--sp-4) 0 calc(var(--sp-2) + 16px + var(--sp-1));
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--neutral-50);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  color: var(--neutral-900);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.search-input::placeholder { color: var(--neutral-400); }
+.search-input:focus {
+  border-color: var(--color-400);
+  background: var(--neutral-0);
+  box-shadow: var(--focus-ring);
+}
+.search-input-clear {
+  position: absolute;
+  right: var(--sp-2);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--neutral-300);
+  color: var(--neutral-0);
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  touch-action: manipulation;
+  transition: background var(--transition);
+}
+.search-input-wrap.has-value .search-input-clear { display: flex; }
+.search-input-clear:hover { background: var(--neutral-500); }
+.search-empty {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  padding: var(--sp-2) 0;
+  text-align: center;
+}
+
+/* ── Search row inside custom-dropdown — mockup-bookingsStudentDropdown-2026-03-23_20-55 ── */
+.custom-dropdown-search {
+  padding: var(--sp-1) var(--sp-2);
+  position: sticky;
+  top: 0;
+  background: var(--neutral-0);
+  border-bottom: 1px solid var(--neutral-100);
+  z-index: 1;
+  list-style: none;
+}
+.custom-dropdown-search .search-input { height: 28px; font-size: 11px; }
+
+/* ── Timezone offset badge ───────────────────────────────────────────────
+   Shown next to times when viewer is in a different TZ than slot owner.
+   e.g. "09:00 UTC+2"  "+1d" for day overflow
+── */
+.tz-offset-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--color-600);
+  background: var(--color-50);
+  border: 1px solid var(--color-200);
+  border-radius: 10px;
+  padding: 1px var(--sp-2);
+  margin-left: var(--sp-1);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.tz-day-offset {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--pending-amber-tx);
+  background: var(--pending-amber-bg);
+  border: 1px solid var(--pending-amber-bd);
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: var(--sp-1);
+  white-space: nowrap;
+  vertical-align: middle;
+}

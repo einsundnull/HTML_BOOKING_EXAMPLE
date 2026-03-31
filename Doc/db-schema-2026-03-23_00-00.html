@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Database Schema — All Collections & Fields</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;--n900:#0d1117;--c400:#4d7aa0;--c100:#dde4ed;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:12px;background:var(--n50);padding:20px;}
+h1{font-size:18px;font-weight:600;margin-bottom:4px;color:var(--n900);}
+.meta{font-size:11px;color:var(--n500);margin-bottom:24px;}
+h2{font-size:13px;font-weight:600;color:var(--c400);margin:28px 0 8px;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid var(--c100);padding-bottom:4px;}
+.desc{font-size:11px;color:var(--n500);margin-bottom:8px;font-style:italic;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:8px;}
+th{background:var(--n900);color:var(--n0);padding:7px 10px;text-align:left;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+td{padding:6px 10px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.5;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--n50);}
+.field{font-family:monospace;font-size:11px;font-weight:600;color:var(--n900);}
+.type{font-family:monospace;font-size:10px;color:var(--c400);white-space:nowrap;}
+.req{display:inline-block;background:#fee2e2;color:#991b1b;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:600;}
+.opt{display:inline-block;background:var(--n100);color:var(--n500);padding:1px 4px;border-radius:3px;font-size:9px;font-weight:600;}
+.key{display:inline-block;background:#fef9ec;color:#7a5c00;padding:1px 4px;border-radius:3px;font-size:9px;font-weight:600;}
+.notes{font-size:11px;color:var(--n500);}
+.enum{font-family:monospace;font-size:10px;color:var(--n700);}
+.coll{font-family:monospace;font-size:11px;font-weight:600;background:var(--n900);color:#fff;padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:6px;}
+.role{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;margin-right:2px;}
+.teacher{background:#dde4ed;color:#1a3249;}
+.student{background:#f0fdf4;color:#14532d;}
+.both{background:#ede9fe;color:#5b21b6;}
+.admin{background:#fee2e2;color:#991b1b;}
+</style>
+</head>
+<body>
+
+<h1>Database Schema — All Collections &amp; Fields</h1>
+<div class="meta">Generated 2026-03-23 · LocalStorage adapter (Firestore-ready) · All keys prefixed app_</div>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>1. Users — <span class="coll">app_users</span></h2>
+<div class="desc">Array of user objects. Covers teachers, students and admin. One record per account.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Applies to</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">uid</td><td class="type">string</td><td><span class="req">PK</span></td><td><span class="role both">all</span></td><td class="notes">UUID. Primary key.</td></tr>
+<tr><td class="field">name</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td class="notes">Display name.</td></tr>
+<tr><td class="field">username</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Lowercase @handle. Unique across all users.</td></tr>
+<tr><td class="field">role</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td><span class="enum">'teacher' | 'student' | 'admin'</span></td></tr>
+<tr><td class="field">email</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Login email.</td></tr>
+<tr><td class="field">password</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Plaintext in localStorage. Hash in Firestore.</td></tr>
+<tr><td class="field">discipline</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">e.g. 'Ski', 'Snowboard'</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>2. Profiles — <span class="coll">app_profiles</span></h2>
+<div class="desc">Object map keyed by uid. Extended profile for teachers (public catalog) and students (skill/preferences). Separate from app_users — joined on read.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Applies to</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">uid</td><td class="type">string</td><td><span class="req">PK</span></td><td><span class="role both">all</span></td><td class="notes">Same as users.uid.</td></tr>
+<tr><td class="field">name</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td class="notes">Display name (overrides users.name).</td></tr>
+<tr><td class="field">age</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td></td></tr>
+<tr><td class="field">gender</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td><span class="enum">'male' | 'female' | 'diverse' | ''</span></td></tr>
+<tr><td class="field">location</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Ski resort / area.</td></tr>
+<tr><td class="field">bio</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Free-text public description.</td></tr>
+<tr><td class="field">photo</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Base64 data URL or remote URL.</td></tr>
+<tr><td class="field">pricePerHalfHour</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Price per 30-min slot in priceCurrency.</td></tr>
+<tr><td class="field">priceCurrency</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">ISO 4217. Default: 'EUR'.</td></tr>
+<tr><td class="field">displayCurrency</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Preferred display currency. ISO 4217. Default: 'EUR'.</td></tr>
+<tr><td class="field">experienceYears</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td></td></tr>
+<tr><td class="field">languages</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">e.g. ['de','en']</td></tr>
+<tr><td class="field">lessonTypes</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td><span class="enum">'private' | 'group' | 'private_group'</span></td></tr>
+<tr><td class="field">audience</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td><span class="enum">'kids' | 'teens' | 'adults' | 'seniors'</span></td></tr>
+<tr><td class="field">ageFrom</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Min student age.</td></tr>
+<tr><td class="field">ageTo</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Max student age.</td></tr>
+<tr><td class="field">levels</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td><span class="enum">'beginner' | 'intermediate' | 'advanced' | 'expert'</span></td></tr>
+<tr><td class="field">maxGroupSize</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td></td></tr>
+<tr><td class="field">terrain</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Piste types, e.g. ['blue','red','black','offpiste']</td></tr>
+<tr><td class="field">certifications</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">License/cert names.</td></tr>
+<tr><td class="field">specializations</td><td class="type">string[]</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">e.g. ['carving','freestyle','race']</td></tr>
+<tr><td class="field">email</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Public contact email.</td></tr>
+<tr><td class="field">emailVisible</td><td class="type">boolean</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Show email on public profile.</td></tr>
+<tr><td class="field">phone</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td></td></tr>
+<tr><td class="field">phoneVisible</td><td class="type">boolean</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td></td></tr>
+<tr><td class="field">instagram</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Handle without @.</td></tr>
+<tr><td class="field">website</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td></td></tr>
+<tr><td class="field">requiresDeposit</td><td class="type">boolean</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Default: true.</td></tr>
+<tr><td class="field">depositMode</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td><span class="enum">'fixed' | 'percent'</span> Default: 'percent'.</td></tr>
+<tr><td class="field">depositFixed</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Fixed deposit amount in EUR. Default: 20.</td></tr>
+<tr><td class="field">depositPercent</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Deposit as % of slot price. Default: 20.</td></tr>
+<tr><td class="field">paymentMode</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td><span class="enum">'instant' | 'cash_on_site'</span> Default: 'instant'.</td></tr>
+<tr><td class="field">cancellationWindow</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">Hours before lesson for free cancellation. Default: 48.</td></tr>
+<tr><td class="field">cancellationPartial</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">% of deposit kept if cancelled late. Default: 50.</td></tr>
+<tr><td class="field">cancellationStrict</td><td class="type">boolean</td><td><span class="opt">OPT</span></td><td><span class="role teacher">teacher</span></td><td class="notes">If true: forfeit full deposit on late cancel.</td></tr>
+<tr><td class="field">skillLevel</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role student">student</span></td><td><span class="enum">'beginner' | 'intermediate' | 'advanced' | 'expert'</span></td></tr>
+<tr><td class="field">bookingPermission</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role student">student</span></td><td><span class="enum">'always' | 'on_request' | 'never'</span></td></tr>
+<tr><td class="field">updatedAt</td><td class="type">ISO string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Last profile save timestamp.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>3. Slots — <span class="coll">app_slots</span></h2>
+<div class="desc">Array. One record per 30-min time slot. Covers available, booked, timeout and disabled states. Both teacher-created and materialised-from-recurring slots live here.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Applies to</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">slotId</td><td class="type">string</td><td><span class="req">PK</span></td><td><span class="role both">all</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role teacher">teacher</span></td><td class="notes">FK → users.uid (role=teacher).</td></tr>
+<tr><td class="field">studentId</td><td class="type">string|null</td><td><span class="opt">OPT</span></td><td><span class="role student">student</span></td><td class="notes">FK → users.uid (role=student). null if unbooked.</td></tr>
+<tr><td class="field">date</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td class="notes">Format: 'YYYY-MM-DD'.</td></tr>
+<tr><td class="field">time</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td class="notes">Format: 'HH:MM'. Slot start. Duration always 30 min.</td></tr>
+<tr><td class="field">status</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td><span class="enum">'available' | 'recurring' | 'booked' | 'timeout' | 'disabled'</span></td></tr>
+<tr><td class="field">baseStatus</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role both">all</span></td><td class="notes">Status before override (timeout/booking). Used to restore. Same enum as status.</td></tr>
+<tr><td class="field">price</td><td class="type">number</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Snapshot of price at booking time in EUR.</td></tr>
+<tr><td class="field">bookedByRole</td><td class="type">string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td><span class="enum">'teacher' | 'student'</span></td></tr>
+<tr><td class="field">movedFrom</td><td class="type">object</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Set when slot was rescheduled: <span class="enum">{ date, time }</span></td></tr>
+<tr><td class="field">movedAt</td><td class="type">ISO string</td><td><span class="opt">OPT</span></td><td><span class="role both">all</span></td><td class="notes">Timestamp of reschedule.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>4. Recurring Rules — <span class="coll">app_recurring</span></h2>
+<div class="desc">Array. Defines which weekday+time a teacher offers regularly. Materialised into app_slots on demand per week.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Applies to</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">recurringId</td><td class="type">string</td><td><span class="req">PK</span></td><td><span class="role teacher">teacher</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role teacher">teacher</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">dayOfWeek</td><td class="type">number</td><td><span class="req">REQ</span></td><td><span class="role teacher">teacher</span></td><td class="notes">0=Mon … 6=Sun.</td></tr>
+<tr><td class="field">time</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="role teacher">teacher</span></td><td class="notes">'HH:MM' slot start.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>5. Selections — <span class="coll">app_selections</span></h2>
+<div class="desc">Array. Teacher grants a student access to book. Required before student can see availability.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">studentId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid. Composite PK with teacherId.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>6. Favorites — <span class="coll">app_favorites</span></h2>
+<div class="desc">Array. Student bookmarks a teacher for quick reference. Does NOT grant booking access.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">studentId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid. Composite PK with teacherId.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>7. Wallets — <span class="coll">app_wallets</span></h2>
+<div class="desc">Object map keyed by uid. One wallet per user. Balance in EUR (system currency).</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">uid</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">FK → users.uid. Map key.</td></tr>
+<tr><td class="field">balance</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">Current balance in EUR. Always 2 decimal places.</td></tr>
+<tr><td class="field">currency</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">Always 'EUR' (system currency). Display currency stored in profile.</td></tr>
+<tr><td class="field">updatedAt</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td class="notes">Last balance change timestamp.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>8. Transactions — <span class="coll">app_transactions</span></h2>
+<div class="desc">Array. Immutable ledger. Every wallet change produces one entry.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">txId</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">uid</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid. Wallet owner.</td></tr>
+<tr><td class="field">type</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'deposit' | 'withdrawal' | 'escrow_hold' | 'escrow_release' | 'refund' | 'transfer' | 'remainder_due'</span></td></tr>
+<tr><td class="field">amount</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">Positive = credit, negative = debit. EUR.</td></tr>
+<tr><td class="field">balance</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">Wallet balance after this transaction.</td></tr>
+<tr><td class="field">description</td><td class="type">string</td><td><span class="opt">OPT</span></td><td class="notes">Human-readable note.</td></tr>
+<tr><td class="field">status</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'completed' | 'pending' | 'failed'</span></td></tr>
+<tr><td class="field">relatedUid</td><td class="type">string|null</td><td><span class="opt">OPT</span></td><td class="notes">Counterparty uid (e.g. teacher in a student deposit).</td></tr>
+<tr><td class="field">createdAt</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>9. Escrow — <span class="coll">app_escrow</span></h2>
+<div class="desc">Array. One record per booking. Tracks deposit and full payment lifecycle from booking through confirmation or cancellation.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">escrowId</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">slotId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → slots.slotId.</td></tr>
+<tr><td class="field">studentId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">depositAmount</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">EUR. Calculated at booking time.</td></tr>
+<tr><td class="field">depositType</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'fixed' | 'percent'</span></td></tr>
+<tr><td class="field">depositPercent</td><td class="type">number</td><td><span class="opt">OPT</span></td><td class="notes">Only set when depositType='percent'.</td></tr>
+<tr><td class="field">fullAmount</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">Total lesson price in EUR.</td></tr>
+<tr><td class="field">negotiatedAmount</td><td class="type">number</td><td><span class="opt">OPT</span></td><td class="notes">Override if teacher agreed different price.</td></tr>
+<tr><td class="field">paymentMode</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'instant' | 'cash_on_site'</span></td></tr>
+<tr><td class="field">requiresDeposit</td><td class="type">boolean</td><td><span class="req">REQ</span></td><td class="notes">Snapshot from teacher profile at booking time.</td></tr>
+<tr><td class="field">depositStatus</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'unpaid' → 'held' → 'released' | 'refund_requested' → 'refunded' | 'forfeited'</span></td></tr>
+<tr><td class="field">fullPaymentStatus</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'unpaid' → 'paid' → 'verified' | 'remainder_pending'</span></td></tr>
+<tr><td class="field">depositPaidAt</td><td class="type">ISO string|null</td><td><span class="opt">OPT</span></td><td></td></tr>
+<tr><td class="field">fullPaidAt</td><td class="type">ISO string|null</td><td><span class="opt">OPT</span></td><td></td></tr>
+<tr><td class="field">studentConfirmedAt</td><td class="type">ISO string|null</td><td><span class="opt">OPT</span></td><td class="notes">Student confirmed lesson took place.</td></tr>
+<tr><td class="field">releasedAt</td><td class="type">ISO string|null</td><td><span class="opt">OPT</span></td><td class="notes">Deposit released to teacher.</td></tr>
+<tr><td class="field">createdAt</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>10. Move Log — <span class="coll">app_move_log</span></h2>
+<div class="desc">Array. Immutable audit log. One entry per reschedule (move) action.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">moveId</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">slotId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → new slot after move.</td></tr>
+<tr><td class="field">oldSlotId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → original slot before move.</td></tr>
+<tr><td class="field">teacherId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">studentId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">movedBy</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid of actor.</td></tr>
+<tr><td class="field">movedByRole</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'teacher' | 'student'</span></td></tr>
+<tr><td class="field">oldDate</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">'YYYY-MM-DD'</td></tr>
+<tr><td class="field">oldTime</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">'HH:MM'</td></tr>
+<tr><td class="field">newDate</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">'YYYY-MM-DD'</td></tr>
+<tr><td class="field">newTime</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">'HH:MM'</td></tr>
+<tr><td class="field">reason</td><td class="type">string</td><td><span class="opt">OPT</span></td><td class="notes">Reason code.</td></tr>
+<tr><td class="field">reasonLabel</td><td class="type">string</td><td><span class="opt">OPT</span></td><td class="notes">Human-readable reason.</td></tr>
+<tr><td class="field">note</td><td class="type">string</td><td><span class="opt">OPT</span></td><td class="notes">Free-text note from actor.</td></tr>
+<tr><td class="field">createdAt</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>11. Chat Messages — <span class="coll">app_chat_messages</span></h2>
+<div class="desc">Array. All messages for all conversations. Filtered by conversationKey (sorted pair of uids) on read.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">msgId</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">conversationKey</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">Sorted uid pair: 'uidA_uidB'. Used as index.</td></tr>
+<tr><td class="field">senderId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">receiverId</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">FK → users.uid.</td></tr>
+<tr><td class="field">text</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">Message body. Empty string for system events.</td></tr>
+<tr><td class="field">type</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'text' | 'booking_proposal' | 'booking_confirmed' | 'booking_cancelled' | 'booking_moved' | 'system'</span></td></tr>
+<tr><td class="field">readStatus</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'sent' | 'delivered' | 'read'</span></td></tr>
+<tr><td class="field">edited</td><td class="type">boolean</td><td><span class="req">REQ</span></td><td class="notes">Default: false.</td></tr>
+<tr><td class="field">deleted</td><td class="type">boolean</td><td><span class="req">REQ</span></td><td class="notes">Soft delete. Default: false.</td></tr>
+<tr><td class="field">metadata</td><td class="type">object</td><td><span class="opt">OPT</span></td><td class="notes">Booking proposal payload: <span class="enum">{ slotId, date, time, price, ... }</span></td></tr>
+<tr><td class="field">createdAt</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td></td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>12. Email Log — <span class="coll">app_email_log</span></h2>
+<div class="desc">Array. Max 100 entries. Dev/staging log of outgoing emails. Not used in production Firestore.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes / Enum values</th></tr></thead>
+<tbody>
+<tr><td class="field">id</td><td class="type">string</td><td><span class="req">PK</span></td><td class="notes">UUID.</td></tr>
+<tr><td class="field">timestamp</td><td class="type">ISO string</td><td><span class="req">REQ</span></td><td></td></tr>
+<tr><td class="field">to</td><td class="type">string</td><td><span class="req">REQ</span></td><td class="notes">Recipient email address.</td></tr>
+<tr><td class="field">subject</td><td class="type">string</td><td><span class="req">REQ</span></td><td></td></tr>
+<tr><td class="field">event</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'new_message' | 'booking_created' | 'booking_cancelled' | 'booking_moved' | 'request_received' | 'request_accepted' | 'request_declined' | 'disconnected'</span></td></tr>
+<tr><td class="field">status</td><td class="type">string</td><td><span class="req">REQ</span></td><td><span class="enum">'sent' | 'failed'</span></td></tr>
+<tr><td class="field">error</td><td class="type">string|null</td><td><span class="opt">OPT</span></td><td class="notes">Error message if status='failed'.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>13. FX Rate Cache — <span class="coll">app_fx_cache</span></h2>
+<div class="desc">Object map keyed by base currency code. Cached exchange rates from open.er-api.com. TTL: 1 hour.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">[currency]</td><td class="type">object</td><td><span class="req">KEY</span></td><td class="notes">e.g. key 'EUR' → <span class="enum">{ rates: { USD: 1.08, GBP: 0.86, ... }, ts: 1711234567890 }</span></td></tr>
+<tr><td class="field">rates</td><td class="type">object</td><td><span class="req">REQ</span></td><td class="notes">Map of currency code → exchange rate relative to base.</td></tr>
+<tr><td class="field">ts</td><td class="type">number</td><td><span class="req">REQ</span></td><td class="notes">Unix timestamp (ms) of cache write. Expires after 1 hour.</td></tr>
+</tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════ -->
+<h2>14. Guest Settings — <span class="coll">app_guest_settings</span></h2>
+<div class="desc">Plain object (not array). Stores unauthenticated visitor preferences.</div>
+<table>
+<thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="field">currency</td><td class="type">string</td><td><span class="opt">OPT</span></td><td class="notes">ISO 4217. Visitor's preferred display currency. Default: 'EUR'.</td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

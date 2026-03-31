@@ -1,0 +1,150 @@
+================================================================
+BENACHRICHTIGUNGS-MATRIX — BookingSystem
+Wann erhält Lehrer / Schüler eine Nachricht?
+19. März 2026
+================================================================
+
+LEGENDE
+────────
+CH  = Chat-Nachricht (in-app, ChatStore)
+EM  = E-Mail (EmailService)
+–   = keine Benachrichtigung
+(✓) = bereits implementiert
+(✗) = noch nicht implementiert / fehlt
+(~) = teilweise implementiert
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 1: KONTAKT / ANFRAGEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Schüler wählt Lehrer aus      CH: student_request  –
+(Erstkontakt/Anfrage)         EM: onRequestReceived (✓)       –
+
+Lehrer akzeptiert Anfrage     –                   EM: onRequestAccepted (✓)
+                                                  CH: (✗) fehlt
+
+Lehrer lehnt Anfrage ab       –                   EM: onRequestDeclined (✓)
+                                                  CH: (✗) fehlt
+
+Schüler trennt Verbindung     CH: student_disconnected (✓)    –
+                              EM: onDisconnected (✓)
+
+Neue Chat-Nachricht           CH: eingehend (✓)   CH: eingehend (✓)
+                              EM: onNewMessage (✓) EM: onNewMessage (✓)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 2: BUCHUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Schüler bucht Slots           CH: booking_notification (✓)    CH: booking_notification (✓)
+                              EM: onBookingCreated (✓)        EM: onBookingCreated (~)
+
+Lehrer bucht Slots            CH: booking_request (✓)         CH: booking_request (✓)
+(für Schüler)                 EM: onBookingCreated (✓)        EM: onBookingCreated (~)
+
+Buchungsanfrage               CH: booking_request (✓)         CH: booking_request (✓)
+des Lehrers akzeptiert        –                               –
+
+Buchungsanfrage               CH: (✗) fehlt                   CH: (✗) fehlt
+des Lehrers abgelehnt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 3: DEPOSIT / ZAHLUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Deposit bezahlt               –                   –           (✗) beide fehlen
+Restbetrag bezahlt            –                   –           (✗) beide fehlen
+Restbetrag ausstehend         –                   –           (✗) beide fehlen
+  (remainder_due)
+Zahlung freigegeben           CH: (✗) fehlt        CH: (✗) fehlt
+  (escrow_release)
+Rückerstattung                –                   CH: (✗) fehlt
+  (refund)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 4: BESTÄTIGUNG / FREIGABE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Stunde bestätigt              CH: (✗) fehlt        CH: (✗) fehlt
+  (von Lehrer oder Schüler)   EM: (✗) fehlt        EM: (✗) fehlt
+
+Slots freigegeben             –                   CH: (✗) fehlt
+  (Lehrer gibt frei)          –                   EM: (✗) fehlt
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 5: VERSCHIEBUNG  ← neu zu implementieren
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Schüler verschiebt Termin     CH: booking_moved (✗)           CH: booking_moved (✗)
+                              EM: onBookingMoved (✓ API)      EM: onBookingMoved (✓ API)
+  inkl. Grund + Freitext
+
+Lehrer verschiebt Termin      CH: booking_moved (✗)           CH: booking_moved (✗)
+                              EM: onBookingMoved (✓ API)      EM: onBookingMoved (✓ API)
+  inkl. Grund + Freitext
+
+Hinweis: EmailService.onBookingMoved ist bereits implementiert,
+         wird aber noch nicht aufgerufen. Nur Chat-Message fehlt.
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+KATEGORIE 6: STORNIERUNG
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Ereignis                      Lehrer              Schüler
+──────────────────────────────────────────────────────────────
+Schüler storniert             CH: (✗) fehlt        CH: (✗) fehlt
+                              EM: onBookingCancelled (✓ API)  EM: onBookingCancelled (✓ API)
+
+Lehrer storniert              CH: (✗) fehlt        CH: (✗) fehlt
+                              EM: onBookingCancelled (✓ API)  EM: onBookingCancelled (✓ API)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ZUSAMMENFASSUNG — LÜCKEN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Priorität  Lücke
+──────────────────────────────────────────────────────────────
+P1 (jetzt) Verschiebung: booking_moved Chat-Message +
+           EmailService.onBookingMoved aufrufen
+
+P2         Stornierung:  Chat-Message bei cancel (beide Seiten)
+
+P3         Bestätigung:  Chat-Message wenn Stunde bestätigt wird
+
+P4         Zahlung:      Chat-Message bei escrow_release /
+           remainder_due / refund
+
+P5         Lehrer akzeptiert/lehnt ab: Chat-Message an Schüler
+
+================================================================
+BESTEHENDE CHAT SERVICE-EVENTS (ChatStore)
+================================================================
+
+Event                   Auslöser                  Status
+──────────────────────────────────────────────────────────────
+student_request         Schüler wählt Lehrer       (✓)
+booking_request         Lehrer bucht für Schüler   (✓)
+booking_notification    Buchung abgeschlossen      (✓)
+student_disconnected    Verbindung getrennt        (✓)
+tx_inquiry              Wallet-TX angeklickt       (✓)
+booking_moved           Termin verschoben          (✗) neu
+booking_cancelled       Termin storniert           (✗) neu
+
+================================================================

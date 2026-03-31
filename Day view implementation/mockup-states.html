@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — State A & B</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-400:#4d7aa0;--color-600:#2b4d6b;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --pending-amber:#f5a623;--pending-amber-bg:#fef3cd;--pending-amber-tx:#7a5c00;
+  --slot-timeout-bg:#fef9ec;--slot-timeout-bd:#f5d97e;--slot-timeout-tx:#7a5c00;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-regular:400;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;
+  --focus-ring:0 0 0 3px rgba(77,122,160,0.30);
+  --transition:150ms ease;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:var(--font);
+  background:var(--neutral-100);
+  padding:var(--sp-4) var(--sp-3);
+  display:flex;
+  gap:var(--sp-4);
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+
+/* ── Label above each frame ── */
+.frame-label {
+  font-family:var(--font);
+  font-size:var(--text-caption);
+  font-weight:var(--weight-semibold);
+  color:var(--neutral-500);
+  text-transform:uppercase;
+  letter-spacing:0.07em;
+  margin-bottom:var(--sp-2);
+}
+
+/* ── Phone frame ── */
+.frame {
+  width:390px;
+  background:var(--neutral-0);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow:0 16px 48px rgba(6,15,28,0.14);
+  display:flex;
+  flex-direction:column;
+  max-height:80vh;
+}
+
+/* ── Day nav bar ── */
+.day-nav-bar {
+  display:flex;align-items:center;justify-content:space-between;
+  padding:var(--sp-2) var(--sp-3);
+  background:var(--color-900);gap:var(--sp-2);flex-shrink:0;
+}
+.day-nav-btn {
+  width:32px;height:32px;border-radius:var(--radius-sm);
+  border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.08);
+  color:var(--neutral-0);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+}
+.day-nav-label {
+  flex:1;text-align:center;
+  font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--neutral-0);
+}
+
+/* ── Sub-tabs ── */
+.day-tab-nav {
+  display:flex;gap:2px;border-bottom:1px solid var(--neutral-200);
+  padding:0 var(--sp-3);flex-shrink:0;
+}
+.day-tab-btn {
+  font-family:var(--font);font-size:var(--text-caption);font-weight:var(--weight-semibold);
+  padding:var(--sp-2) var(--sp-3);border:none;border-bottom:2px solid transparent;
+  background:transparent;color:var(--neutral-500);cursor:pointer;margin-bottom:-1px;
+  transition:color var(--transition),border-color var(--transition);
+}
+.day-tab-btn.active{color:var(--color-900);border-bottom-color:var(--color-900);}
+
+/* ── Scrollable panel body ── */
+.day-panel-body {
+  flex:1;overflow-y:auto;padding:var(--sp-3);
+}
+.day-panel-body::-webkit-scrollbar{width:3px;}
+.day-panel-body::-webkit-scrollbar-thumb{background:var(--neutral-200);border-radius:2px;}
+
+/* ── Header row ── */
+.day-panel-header {
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:var(--sp-3);gap:var(--sp-2);
+}
+
+/* ── Buttons ── */
+.btn {
+  font-family:var(--font);font-weight:var(--weight-semibold);
+  border-radius:var(--radius-sm);cursor:pointer;
+  display:inline-flex;align-items:center;gap:var(--sp-1);
+  touch-action:manipulation;border:1px solid transparent;outline:none;
+  transition:background var(--transition),color var(--transition),border-color var(--transition);
+}
+.btn:focus-visible{box-shadow:var(--focus-ring);}
+.btn-sm{font-size:var(--text-caption);padding:5px var(--sp-2);min-height:30px;}
+.btn-primary{background:var(--color-900);color:var(--neutral-0);border-color:var(--color-900);}
+@media(hover:hover)and(pointer:fine){.btn-primary:hover{background:var(--color-700);}}
+.btn-ghost{background:transparent;color:var(--neutral-700);border-color:var(--neutral-200);}
+@media(hover:hover)and(pointer:fine){.btn-ghost:hover{background:var(--neutral-100);}}
+
+/* ── avail-row (existing — unchanged) ── */
+.avail-row {
+  display:flex;align-items:center;gap:var(--sp-2);
+  padding:var(--sp-2) var(--sp-3);
+  background:var(--neutral-0);
+  border:1px solid var(--neutral-200);
+  border-radius:var(--radius-md);
+  margin-bottom:var(--sp-1);min-height:44px;
+}
+.avail-row:last-child{margin-bottom:0;}
+.avail-row-time {
+  font-family:monospace;font-size:var(--text-caption);
+  font-weight:var(--weight-semibold);color:var(--neutral-900);
+  white-space:nowrap;min-width:100px;
+}
+.avail-row-status{font-size:var(--text-caption);color:var(--neutral-500);flex:1;}
+.avail-row-actions{display:flex;align-items:center;gap:var(--sp-1);flex-shrink:0;}
+
+/* status variants */
+.avail-row-timeout{background:var(--slot-timeout-bg);}
+.avail-row-timeout .avail-row-time,.avail-row-timeout .avail-row-status{color:var(--pending-amber-tx);}
+.avail-row-disabled{background:var(--neutral-50);}
+.avail-row-disabled .avail-row-time,.avail-row-disabled .avail-row-status{color:var(--neutral-400);}
+
+/* NEW: empty = kein Slot angelegt — gestrichelt, ausgegraut */
+.avail-row-empty{background:var(--neutral-50);border-style:dashed;border-color:var(--neutral-300);}
+.avail-row-empty .avail-row-time{color:var(--neutral-400);}
+.avail-row-empty .avail-row-status{color:var(--neutral-300);}
+
+/* trash icon */
+.icon-trash{width:14px;height:14px;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     STATE A — Normal view
+     Only existing slots shown
+════════════════════════════════════════ -->
+<div>
+  <div class="frame-label">State A — Normal</div>
+  <div class="frame">
+    <div class="day-nav-bar">
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12L4 8l4-4M12 12L8 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="day-nav-label">Do., 19. März 2026</span>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l4-4-4-4M8 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="day-tab-nav">
+      <button class="day-tab-btn active">Verfügbarkeit</button>
+      <button class="day-tab-btn">Buchungen</button>
+    </div>
+    <div class="day-panel-body">
+      <div class="day-panel-header">
+        <button class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add slots
+        </button>
+      </div>
+      <!-- Only the slots that exist -->
+      <div class="avail-row">
+        <span class="avail-row-time">12:30 – 13:00</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="avail-row">
+        <span class="avail-row-time">13:00 – 13:30</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="avail-row">
+        <span class="avail-row-time">13:30 – 14:00</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-timeout">
+        <span class="avail-row-time">14:00 – 14:30</span>
+        <span class="avail-row-status">Timeout</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Aktivieren</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-timeout">
+        <span class="avail-row-time">14:30 – 15:00</span>
+        <span class="avail-row-status">Timeout</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Aktivieren</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     STATE B — Add Slots mode
+     All 48 slots 00:00–24:00, consecutive,
+     existing ones with their real status,
+     empty ones with "Verfügbar" + "Timeout"
+════════════════════════════════════════ -->
+<div>
+  <div class="frame-label">State B — Add Slots (alle 24h)</div>
+  <div class="frame">
+    <div class="day-nav-bar">
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12L4 8l4-4M12 12L8 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <span class="day-nav-label">Do., 19. März 2026</span>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="day-nav-btn"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l4-4-4-4M8 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+    <div class="day-tab-nav">
+      <button class="day-tab-btn active">Verfügbarkeit</button>
+      <button class="day-tab-btn">Buchungen</button>
+    </div>
+    <div class="day-panel-body">
+      <div class="day-panel-header">
+        <!-- Same button, now acts as "close" -->
+        <button class="btn btn-ghost btn-sm">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Schließen
+        </button>
+      </div>
+
+      <!-- 00:00 – empty -->
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">00:00 – 00:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">00:30 – 01:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <!-- ... skipping for brevity ... -->
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">01:00 – 01:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">01:30 – 02:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">02:00 – 02:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">02:30 – 03:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">03:00 – 03:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">03:30 – 04:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">04:00 – 04:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">04:30 – 05:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">05:00 – 05:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">05:30 – 06:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">06:00 – 06:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">06:30 – 07:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">07:00 – 07:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">07:30 – 08:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">08:00 – 08:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">08:30 – 09:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">09:00 – 09:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">09:30 – 10:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">10:00 – 10:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">10:30 – 11:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">11:00 – 11:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">11:30 – 12:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+
+      <!-- 12:30 – EXISTING: Frei -->
+      <div class="avail-row">
+        <span class="avail-row-time">12:30 – 13:00</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 13:00 – EXISTING: Frei -->
+      <div class="avail-row">
+        <span class="avail-row-time">13:00 – 13:30</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 13:30 – EXISTING: Frei -->
+      <div class="avail-row">
+        <span class="avail-row-time">13:30 – 14:00</span>
+        <span class="avail-row-status">Frei</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Deaktivieren</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 14:00 – EXISTING: Timeout -->
+      <div class="avail-row avail-row-timeout">
+        <span class="avail-row-time">14:00 – 14:30</span>
+        <span class="avail-row-status">Timeout</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Aktivieren</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 14:30 – EXISTING: Timeout -->
+      <div class="avail-row avail-row-timeout">
+        <span class="avail-row-time">14:30 – 15:00</span>
+        <span class="avail-row-status">Timeout</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Aktivieren</button>
+          <button class="btn btn-ghost btn-sm" aria-label="Löschen"><svg class="icon-trash" viewBox="0 0 16 16" fill="none"><path d="M2 4h12M6 4V2h4v2M5 4v9a1 1 0 001 1h4a1 1 0 001-1V4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- 15:00 onwards — empty again -->
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">15:00 – 15:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">15:30 – 16:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">16:00 – 16:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">16:30 – 17:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">17:00 – 17:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">17:30 – 18:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">18:00 – 18:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">18:30 – 19:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">19:00 – 19:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">19:30 – 20:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">20:00 – 20:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">20:30 – 21:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">21:00 – 21:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">21:30 – 22:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">22:00 – 22:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">22:30 – 23:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">23:00 – 23:30</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+      <div class="avail-row avail-row-empty">
+        <span class="avail-row-time">23:30 – 00:00</span>
+        <span class="avail-row-status">—</span>
+        <div class="avail-row-actions">
+          <button class="btn btn-ghost btn-sm">Verfügbar</button>
+          <button class="btn btn-ghost btn-sm">Timeout</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

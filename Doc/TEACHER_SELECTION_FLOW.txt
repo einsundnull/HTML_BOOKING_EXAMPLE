@@ -1,0 +1,133 @@
+================================================================================
+  TEACHER SELECTION & APPROVAL FLOW
+  BookingSystem v1.0
+================================================================================
+
+
+OVERVIEW
+--------
+A student cannot simply add a teacher to their list — the teacher must first
+approve the request. This protects teachers from unwanted students and ensures
+both parties are committed before lessons can be booked.
+
+
+--------------------------------------------------------------------------------
+FULL FLOW STEP BY STEP
+--------------------------------------------------------------------------------
+
+STEP 1 — Student sends a request (Catalog)
+  - Student browses the Teacher Catalog
+  - Clicks "Select" on a teacher card
+  - The system:
+      → Sends a service message to the teacher's chat (type: 'student_request')
+      → Sends an email notification to the teacher
+      → Shows Toast: "Anfrage gesendet — Warte auf Bestätigung"
+      → NO selection is created yet (student cannot book yet)
+  - The teacher card now shows: "⏳ Anfrage ausstehend" (disabled button)
+  - The teacher card has a dashed amber border indicating pending state
+
+STEP 2 — Teacher receives notification
+  - Teacher's chat badge shows an unread message count
+  - Teacher opens chat → sees a service request card:
+      "[Student name] möchte bei dir Unterricht nehmen"
+      [Annehmen]  [Ablehnen]
+  - Teacher also received an email notification
+
+STEP 3a — Teacher ACCEPTS
+  - Teacher clicks "Annehmen" in the chat
+  - The system:
+      → Marks the service message as 'accepted'
+      → Creates the selection: student is now linked to teacher
+      → Sends email to student: "Your request was accepted by [teacher]"
+      → Shows Toast to teacher: "[Student] accepted"
+  - Student now sees the teacher in their "Book a lesson" tab
+  - Student can now browse and book slots with this teacher
+  - Teacher card in catalog now shows "Book lessons" + "Remove" buttons
+
+STEP 3b — Teacher DECLINES
+  - Teacher clicks "Ablehnen" in the chat
+  - The system:
+      → Marks the service message as 'declined'
+      → Removes any selection record (cleanup)
+      → Sends email to student: "Your request was declined by [teacher]"
+      → Shows Toast to teacher: "[Student] declined"
+  - Student sees teacher card revert to "Select" button
+  - Student can send a new request if they wish
+
+
+--------------------------------------------------------------------------------
+CATALOG CARD STATES
+--------------------------------------------------------------------------------
+
+STATE 1 — Not requested
+  Visual:   Normal card, "Select" button (blue/primary)
+  Action:   Click → sends request
+
+STATE 2 — Request pending (awaiting teacher approval)
+  Visual:   Dashed amber border, "⏳ Anfrage ausstehend" button (disabled)
+  Action:   Nothing — must wait for teacher response
+
+STATE 3 — Approved (selection active)
+  Visual:   Solid colored border, "Book lessons" + "Remove" buttons
+  Action:   Book lessons / Remove teacher
+
+
+--------------------------------------------------------------------------------
+DATA FLOW
+--------------------------------------------------------------------------------
+
+  localStorage key: app_chat_messages
+    → Service message { type:'service', serviceEvent:'student_request',
+                        requestStatus:'pending'|'accepted'|'declined',
+                        teacherId, studentId }
+
+  localStorage key: app_selections
+    → { studentId, teacherId }
+    → Only exists AFTER teacher accepts
+    → Deleted if teacher declines OR student removes teacher
+
+  localStorage key: app_email_log
+    → onRequestReceived: email to teacher when student requests
+    → onRequestAccepted: email to student when teacher accepts
+    → onRequestDeclined: email to student when teacher declines
+
+
+--------------------------------------------------------------------------------
+CHAT BADGE
+--------------------------------------------------------------------------------
+
+The chat FAB (floating action button) shows an unread message badge when:
+  - A new service request arrives (for the teacher)
+  - A response arrives (for the student, when teacher accepts/declines)
+
+The badge count is computed from ChatStore.totalUnread(uid) which counts all
+messages with readStatus !== 'read' where the uid is the receiver.
+
+
+--------------------------------------------------------------------------------
+WHAT WAS BROKEN (pre-fix)
+--------------------------------------------------------------------------------
+
+BUG 1: selectTeacher() in student.js called AppService.createSelection() 
+       directly — teacher approval was bypassed entirely. Selection was 
+       created immediately without any chat message or email.
+
+BUG 2: _respondServiceRequest() in chat.js did NOT call createSelection()
+       on accept. Teacher could click "Annehmen" in chat, email was sent,
+       but the student was never actually added to the teacher's student list.
+
+BOTH bugs meant the approval flow was effectively non-functional:
+  - Without Bug 1: student could never become linked (approval did nothing)
+  - Without Bug 2: teacher's approval had no effect on the data
+
+FIX APPLIED:
+  - student.js selectTeacher(): removed createSelection(), added
+    ChatStore.sendServiceMessage() + EmailService.onRequestReceived()
+  - student.js buildTeacherCard(): added 'pending' state display
+  - chat.js _respondServiceRequest(): added AppService.createSelection()
+    on response === 'accepted'
+
+
+================================================================================
+  END OF DOCUMENT
+================================================================================

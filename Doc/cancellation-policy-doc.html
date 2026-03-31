@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Stornierungsrichtlinie — Vollständige Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{
+  --ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --surface:#fff;--code-bg:#f1f5f9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;letter-spacing:-.2px;
+  padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;
+  color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;
+  background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;
+  overflow-x:auto;margin:14px 0}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1}
+pre .cm{color:#6c7086;font-style:italic} pre .num{color:#fab387}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.ok{color:var(--green);font-weight:600}
+.no{color:var(--red)}
+.warn{color:var(--amber);font-weight:600}
+.new{color:var(--accent);font-weight:600}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill-new{background:#eff6ff;color:var(--accent)}
+.pill-green{background:#dcfce7;color:var(--green)}
+.pill-amber{background:#fef3c7;color:var(--amber)}
+.pill-red{background:#fee2e2;color:var(--red)}
+.pill-gray{background:#f3f4f6;color:#374151}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.box-warn{border-color:#fde68a;background:#fffbeb}
+.box-green{border-color:#bbf7d0;background:#f0fdf4}
+.divider{border:none;border-top:2px solid var(--border);margin:52px 0}
+.flow{display:flex;flex-direction:column;gap:4px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.flow-text{font-size:13px;color:#374151}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;line-height:1}
+.tier{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.tier-full{background:#dcfce7;color:#166534}
+.tier-partial{background:#fef9c3;color:#7a5c00}
+.tier-forfeit{background:#fee2e2;color:#991b1b}
+.tier-none{background:#f3f4f6;color:#374151}
+</style>
+</head>
+<body>
+
+<h1>Stornierungsrichtlinie</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Übersicht</h2>
+<p>Das Buchungssystem unterscheidet bei Stornierungen nach zwei Dimensionen: <strong>Wer storniert</strong> (actorRole) und <strong>Wer gebucht hat</strong> (bookedByRole). Seit diesem Update wird auf jedem Slot gespeichert, wer die Buchung initiiert hat.</p>
+
+<div class="box box-info">
+  <strong>Neu:</strong> Das Feld <code>slot.bookedByRole</code> (<code>'teacher'</code> | <code>'student'</code>) wird bei jeder Buchung gesetzt. Wenn ein <strong>Lehrer</strong> eine Stunde einplant und der <strong>Schüler</strong> diese storniert, greift immer die <strong>volle Rückerstattung</strong> — unabhängig vom Stornierungsfenster.
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — Entscheidungsmatrix</h2>
+
+<div class="tw"><table>
+<thead>
+  <tr>
+    <th>Wer hat gebucht?</th>
+    <th>Wer storniert?</th>
+    <th>Ergebnis</th>
+    <th>Begründung</th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td><code>bookedByRole = 'student'</code></td>
+    <td>Schüler</td>
+    <td><span class="tier tier-full">Zeitfenster-Policy</span></td>
+    <td>Schüler hat selbst gebucht — normale Storno-Regeln</td>
+  </tr>
+  <tr>
+    <td><code>bookedByRole = 'student'</code></td>
+    <td>Lehrer / Admin</td>
+    <td><span class="tier tier-full">Volle Rückerstattung</span></td>
+    <td>Lehrer storniert fremde Buchung — immer volles Refund</td>
+  </tr>
+  <tr style="background:#f0fdf4">
+    <td><code>bookedByRole = 'teacher'</code> <span class="pill pill-new">NEU</span></td>
+    <td>Schüler</td>
+    <td><span class="tier tier-full">Volle Rückerstattung</span></td>
+    <td>Schüler wurde eingeplant ohne Kaufentscheidung — Penalty unfair</td>
+  </tr>
+  <tr>
+    <td><code>bookedByRole = 'teacher'</code></td>
+    <td>Lehrer / Admin</td>
+    <td><span class="tier tier-full">Volle Rückerstattung</span></td>
+    <td>Lehrer storniert eigene Buchung — immer volles Refund</td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Zeitfenster-Policy (Schüler bucht, Schüler storniert)</h2>
+<p>Die Policy richtet sich nach den Einstellungen des Lehrerprofils (<code>cancellationWindow</code>, <code>cancellationPartial</code>, <code>cancellationStrict</code>).</p>
+
+<div class="tw"><table>
+<thead><tr><th>Zeitpunkt der Stornierung</th><th>Tier</th><th>Deposit-Erstattung</th></tr></thead>
+<tbody>
+  <tr><td>Mehr als Fenster (Standard: &gt;48h)</td><td><span class="tier tier-full">full_refund</span></td><td class="ok">100%</td></tr>
+  <tr><td>Zwischen ½ und vollem Fenster (24–48h)</td><td><span class="tier tier-partial">partial</span></td><td class="warn">50% (konfigurierbar)</td></tr>
+  <tr><td>Weniger als ½ Fenster (&lt;24h)</td><td><span class="tier tier-forfeit">forfeit</span></td><td class="no">0%</td></tr>
+  <tr><td>Stunde bereits begonnen / strict mode</td><td><span class="tier tier-forfeit">forfeit</span></td><td class="no">0%</td></tr>
+  <tr><td>Kein Deposit / Barzahlung</td><td><span class="tier tier-none">no_escrow</span></td><td>Kein Betrag betroffen</td></tr>
+</tbody>
+</table></div>
+
+<h3>Lehrer-Konfiguration (Profile → Zahlung)</h3>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Default</th><th>Bedeutung</th></tr></thead>
+<tbody>
+  <tr><td><code>cancellationWindow</code></td><td>48h</td><td>Frühwarnung-Schwelle für Storno ohne Strafe</td></tr>
+  <tr><td><code>cancellationPartial</code></td><td>50%</td><td>Anteil den Lehrer bei Teilstorno behält</td></tr>
+  <tr><td><code>cancellationStrict</code></td><td>false</td><td>true = sofortiger forfeit bei jeder Stornierung</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Neue Felder &amp; Funktionen</h2>
+
+<h3>slot.bookedByRole <span class="pill pill-new">NEU</span></h3>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Typ</th><th>Werte</th><th>Gesetzt in</th></tr></thead>
+<tbody>
+  <tr>
+    <td><code>slot.bookedByRole</code></td>
+    <td>string</td>
+    <td><code>'teacher'</code> | <code>'student'</code></td>
+    <td><code>Store.Slots.bookSlot()</code>, <code>adapter.bookSlot()</code></td>
+  </tr>
+</tbody>
+</table></div>
+
+<h3>Geänderte Funktionen</h3>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Funktion</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>store.js</code></td><td><code>Store.Slots.bookSlot(slotId, studentId, price, bookedByRole)</code></td><td>Neuer 4. Parameter, wird auf Slot gespeichert</td></tr>
+  <tr><td><code>adapter-localstorage.js</code></td><td><code>bookSlot(slotId, studentId, cb, bookedByRole)</code></td><td>Neuer 4. Parameter, reicht an Store weiter</td></tr>
+  <tr><td><code>app-service.js</code></td><td><code>bookSlot(slotId, studentId, cb, bookedByRole)</code></td><td>Neuer 4. Parameter</td></tr>
+  <tr><td><code>app-service.js</code></td><td><code>bookSlotWithEscrowSilent(..., bookedByRole)</code></td><td>Neuer 5. Parameter, reicht an bookSlot weiter</td></tr>
+  <tr><td><code>app-service.js</code></td><td><code>calcCancellationPolicy()</code></td><td>Neue Bedingung: bookedByRole=teacher + actorRole=student → full_refund + bookedByTeacher:true</td></tr>
+  <tr><td><code>teacher.js</code></td><td><code>saveDayChanges()</code></td><td>Übergibt <code>'teacher'</code> als bookedByRole</td></tr>
+  <tr><td><code>student.js</code></td><td><code>saveDayChanges()</code></td><td>Übergibt <code>'student'</code> als bookedByRole</td></tr>
+  <tr><td><code>chat.js</code></td><td><code>_respondBookingRequest()</code></td><td>Übergibt <code>'teacher'</code> (booking_request ist Lehrer-initiiert)</td></tr>
+  <tr><td><code>ui.js</code></td><td><code>_buildCancelPolicyBody()</code></td><td>Zeigt Hinweis ℹ wenn bookedByTeacher=true</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — calcCancellationPolicy() Entscheidungsbaum</h2>
+
+<div class="flow">
+  <div class="flow-step">
+    <div class="flow-num">1</div>
+    <div class="flow-text">Slot laden. Escrow laden. <code>noticeHours</code> berechnen.</div>
+  </div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step" style="border-color:#bbf7d0;background:#f0fdf4">
+    <div class="flow-num" style="background:#16a34a">2</div>
+    <div class="flow-text"><strong>NEU:</strong> <code>actorRole === 'student'</code> AND <code>slot.bookedByRole === 'teacher'</code> AND Deposit gehalten → <span class="tier tier-full">full_refund</span> + <code>bookedByTeacher: true</code></div>
+  </div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">
+    <div class="flow-num">3</div>
+    <div class="flow-text"><code>actorRole === 'teacher'</code> OR <code>'admin'</code> → <span class="tier tier-full">teacher_cancel</span> (volle Rückerstattung)</div>
+  </div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">
+    <div class="flow-num">4</div>
+    <div class="flow-text">Kein Escrow / Barzahlung / Deposit nicht bezahlt → <span class="tier tier-none">no_escrow</span></div>
+  </div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step">
+    <div class="flow-num">5</div>
+    <div class="flow-text">Zeitfenster-Policy lesen (Lehrerprofil):<br>
+      &gt;48h → <span class="tier tier-full">full_refund</span> &nbsp;|&nbsp;
+      24–48h → <span class="tier tier-partial">partial</span> &nbsp;|&nbsp;
+      &lt;24h / strict → <span class="tier tier-forfeit">forfeit</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — bookingPermission (Schülerprofil)</h2>
+<p>Schüler können in ihrem Profil festlegen, ob Lehrer Stunden direkt einplanen dürfen.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Wert</th><th>Label</th><th>Verhalten im Teacher-Interface</th></tr></thead>
+<tbody>
+  <tr><td><code>'always'</code></td><td>Immer erlaubt</td><td><code>+ Add</code> Button (blau) — normaler Buchungsflow</td></tr>
+  <tr><td><code>'on_request'</code></td><td>Nur auf Nachfrage</td><td><code>? Anfragen</code> Button (grau) → <code>booking_request</code> Service-Message</td></tr>
+  <tr><td><code>'never'</code></td><td>Niemals</td><td><code>⊘</code> disabled + Tooltip „Dieser Schüler möchte nur selbst Buchungen vornehmen"</td></tr>
+</tbody>
+</table></div>
+
+<h3>booking_request Flow (on_request)</h3>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Lehrer drückt „? Anfragen" → <code>ChatStore.sendBookingRequest()</code> + E-Mail an Schüler</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Schüler sieht Service-Card im Chat: Datum/Zeit + „Genehmigen / Ablehnen"</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step" style="border-color:#bbf7d0;background:#f0fdf4"><div class="flow-num" style="background:#16a34a">3a</div><div class="flow-text">Genehmigen → <code>AppService.bookSlot(slotId, studentId, cb, <strong>'teacher'</strong>)</code> → <code>bookedByRole = 'teacher'</code> → bei Storno volle Rückerstattung</div></div>
+  <div class="flow-step" style="border-color:#fee2e2;background:#fff5f5"><div class="flow-num" style="background:#dc2626">3b</div><div class="flow-text">Ablehnen → Status updated, kein Slot gebucht</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Benachrichtigungen bei Buchung</h2>
+<div class="tw"><table>
+<thead><tr><th>Ereignis</th><th>E-Mail</th><th>Chat</th><th>Empfänger</th></tr></thead>
+<tbody>
+  <tr><td>Lehrer bucht für Schüler</td><td class="ok">✓ onBookingCreated</td><td class="ok">✓ 📅 Textnachricht</td><td>Schüler</td></tr>
+  <tr><td>Schüler bucht beim Lehrer</td><td class="ok">✓ onBookingCreated</td><td class="ok">✓ 📅 Textnachricht</td><td>Lehrer</td></tr>
+  <tr><td>Buchungsanfrage gesendet (on_request)</td><td class="ok">✓ onBookingCreated</td><td class="ok">✓ Service-Card</td><td>Schüler</td></tr>
+  <tr><td>Buchungsanfrage genehmigt</td><td class="ok">✓ beide</td><td class="ok">✓ Status in Card</td><td>Lehrer + Schüler</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>8 — Deployment-Checkliste</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>store.js</code></td><td>v=5</td><td><code>bookSlot()</code> + bookedByRole Parameter</td></tr>
+  <tr><td><code>adapter-localstorage.js</code></td><td>v=20</td><td><code>bookSlot()</code> + bookedByRole Parameter</td></tr>
+  <tr><td><code>app-service.js</code></td><td>v=15</td><td><code>bookSlot()</code>, <code>bookSlotWithEscrowSilent()</code>, <code>calcCancellationPolicy()</code> erweitert</td></tr>
+  <tr><td><code>teacher.js</code></td><td>v=45</td><td><code>'teacher'</code> als bookedByRole übergeben</td></tr>
+  <tr><td><code>student.js</code></td><td>v=48</td><td><code>'student'</code> als bookedByRole übergeben</td></tr>
+  <tr><td><code>chat.js</code></td><td>v=14</td><td><code>'teacher'</code> bei booking_request Genehmigung</td></tr>
+  <tr><td><code>ui.js</code></td><td>v=38</td><td>Hinweis in Cancel-Dialog bei bookedByTeacher</td></tr>
+</tbody>
+</table></div>
+
+<div class="box box-warn" style="margin-top:24px">
+  <strong>Hinweis Bestandsdaten:</strong> Slots die vor diesem Update gebucht wurden, haben kein <code>bookedByRole</code> Feld. Diese werden von <code>calcCancellationPolicy()</code> behandelt als wäre <code>bookedByRole = 'student'</code> (Standard-Fallback) — die alte Policy greift weiterhin.
+</div>
+
+</body>
+</html>

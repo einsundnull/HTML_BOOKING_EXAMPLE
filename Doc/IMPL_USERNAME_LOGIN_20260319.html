@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>IMPL — Username, Login E-Mail oder Username</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.6}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+      --warn:#d97706;--warn-bg:#fffbeb;
+    }
+    .ph{background:var(--navy);padding:28px 40px 24px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .ph-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:5px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:820px;margin-bottom:14px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.page{padding:16px}}
+    .sec{margin-bottom:44px}
+    .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--n200)}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+    .sec-title{font-size:17px;font-weight:700}
+    .callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px}
+    .c-ok{background:var(--ok-bg);border-color:var(--ok);color:#14532d}
+    .c-inf{background:var(--info-bg);border-color:var(--info);color:#1a3a6b}
+    .c-wrn{background:var(--warn-bg);border-color:var(--warn);color:#7b3500}
+    .callout strong{font-weight:700}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr.r-new{background:var(--info-bg)}
+    tbody tr.r-mod{background:#fffbeb}
+    tbody tr.r-ctx{background:var(--n50)}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+    .code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0}
+    .code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:14px}
+    .code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0}
+    .cm{color:#64748b}.ck{color:#93c5fd}.cs{color:#86efac}.cv{color:#fde68a}
+
+    /* Layer diagram */
+    .layers{display:flex;flex-direction:column;gap:0;max-width:700px;margin-bottom:20px}
+    .layer{display:grid;grid-template-columns:180px 1fr;border:1px solid var(--n200);border-bottom:none;background:var(--n0)}
+    .layer:first-child{border-radius:8px 8px 0 0}
+    .layer:last-child{border-bottom:1px solid var(--n200);border-radius:0 0 8px 8px}
+    .layer.l1{background:#f0fdf4}
+    .layer.l2{background:#eff6ff}
+    .layer.l3{background:#fefce8}
+    .layer.l4{background:#fdf4ff}
+    .layer-left{padding:10px 14px;border-right:1px solid var(--n200);display:flex;flex-direction:column;gap:3px}
+    .layer-label{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--n400)}
+    .layer-name{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--navy)}
+    .layer-right{padding:10px 14px;font-size:12px;color:var(--n500);line-height:1.6}
+    .layer-arrow{text-align:center;padding:2px 0;color:var(--n400);font-size:16px}
+
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem</div>
+  <div class="ph-title">Username — Login per E-Mail oder Benutzername</div>
+  <div class="ph-sub">Vollständige 4-Layer Implementierung: Store → Adapter → AppService → Consumer. Kein direkter Store-Zugriff im Consumer-Code.</div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">7 Dateien · APP_VERSION 2026-03-19-53</span>
+  </div>
+</div>
+<div class="page">
+
+  <!-- LAYER ARCHITECTURE -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">4-Layer Architektur</div></div>
+    <div class="layers">
+      <div class="layer l1">
+        <div class="layer-left"><div class="layer-label">Consumer</div><div class="layer-name">landing.js · profile.js · admin.js · auth.js</div></div>
+        <div class="layer-right">Ruft <strong>nur</strong> <code>AppService.*</code> und <code>Auth.*</code> auf. Kein direkter <code>Store.*</code>-Zugriff. Keine <code>localStorage</code>-Calls.</div>
+      </div>
+      <div class="layer-arrow">↓</div>
+      <div class="layer l2">
+        <div class="layer-left"><div class="layer-label">Service</div><div class="layer-name">app-service.js</div></div>
+        <div class="layer-right">Thin wrapper. Delegiert via <code>_call(methodName, args)</code> an den aktiven Adapter. Exponiert die öffentliche API für Consumer.</div>
+      </div>
+      <div class="layer-arrow">↓</div>
+      <div class="layer l3">
+        <div class="layer-left"><div class="layer-label">Adapter</div><div class="layer-name">adapter-localstorage.js</div></div>
+        <div class="layer-right">Implementiert die Logik: Slugify, Uniqueness-Check, Fallback-Nummerierung. Einzige Stelle die <code>Store.*</code> direkt aufruft.</div>
+      </div>
+      <div class="layer-arrow">↓</div>
+      <div class="layer l4">
+        <div class="layer-left"><div class="layer-label">Store</div><div class="layer-name">store.js</div></div>
+        <div class="layer-right">Datenhaltung. <code>Users.create()</code>, <code>Users.update()</code>, <code>Users.byUsername()</code>. Kein Business-Logic.</div>
+      </div>
+    </div>
+
+    <div class="callout c-inf">
+      <strong>auth.js</strong> ist Infrastructure (kein Consumer-Code) und darf <code>Store.*</code> für <code>current()</code> und <code>login()</code> nutzen — diese brauchen keine Async-Adapter-Indirektion. <strong>loginByEmailOrUsername()</strong> hingegen nutzt <code>AppService</code>, da es eine Suchabfrage über alle User macht.
+    </div>
+  </div>
+
+  <!-- NEW STORE METHODS -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">Layer 1 — store.js: Neue Methoden</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Methode</th><th>Signatur</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>Users.byUsername(u)</code></td><td><code>(string) → user|null</code></td><td>Case-insensitive Lookup. Gibt erstes Match oder <code>null</code>.</td></tr>
+          <tr class="r-mod"><td><code>Users.create(opts)</code></td><td><code>({uid,name,role,username,...}) → user</code></td><td>Neu: <code>username</code>-Feld, Uniqueness-Check beim Erstellen.</td></tr>
+          <tr class="r-mod"><td><code>Users.update(uid, patch)</code></td><td><code>(string, {username?,...}) → void</code></td><td>Neu: <code>username</code> in patch erlaubt + Uniqueness-Check.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-wrn">
+      <strong>User-Objekt-Schema (neu):</strong> <code>{ uid, name, username, role, email, password, discipline }</code>. <code>username</code> ist immer lowercase, ohne <code>@</code>-Prefix, 3–30 Zeichen, nur <code>[a-z0-9._]</code>. Bestehende User ohne Username haben <code>username: ''</code>.
+    </div>
+  </div>
+
+  <!-- ADAPTER METHODS -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Layer 2 — adapter-localstorage.js: Neue Funktionen</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Signatur</th><th>Logik</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>isUsernameAvailable</code></td><td><code>(username, cb(err, bool))</code></td><td>Validiert Format (3–30, <code>[a-z0-9._]</code>), prüft <code>Store.Users.byUsername()</code>.</td></tr>
+          <tr class="r-new"><td><code>generateUsername</code></td><td><code>(name, cb(err, string))</code></td><td>Slugify: „Max Müller" → <code>max.muller</code>. Falls besetzt: <code>max.muller2</code>, <code>max.muller3</code> … bis 999.</td></tr>
+          <tr class="r-new"><td><code>getUserByEmailOrUsername</code></td><td><code>(query, cb(err, user|null))</code></td><td>Enthält <code>@domain</code> → E-Mail-Suche. Sonst: Username-Suche (führendes <code>@</code> wird entfernt). Gibt <code>null</code> (kein Error) wenn nicht gefunden.</td></tr>
+          <tr class="r-new"><td><code>_slugify(name)</code></td><td><code>(string) → string</code></td><td>Privat. Lowercase, Leerzeichen→Punkt, Non-ASCII entfernt, max 28 Zeichen.</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="code-label">E-Mail vs. Username Erkennung</div>
+    <div class="code-block"><code><span class="cm">/* Regex: enthält @ gefolgt von Domain → E-Mail */</span>
+<span class="ck">var</span> isEmail = <span class="cv">/^[^@]+@[^@]+\.[^@]+$/</span>.test(q);
+
+<span class="cm">/* Beispiele: */</span>
+<span class="cm">// "max@gmail.com"       → isEmail = true  → E-Mail-Suche</span>
+<span class="cm">// "@max.mueller"        → isEmail = false → Username (@ entfernt)</span>
+<span class="cm">// "max.mueller"         → isEmail = false → Username direkt</span></code></div>
+  </div>
+
+  <!-- APPSERVICE API -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Layer 3 — app-service.js: Öffentliche API</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Methode</th><th>Signatur</th><th>Delegiert an Adapter</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>AppService.isUsernameAvailable</code></td><td><code>(username, cb)</code></td><td><code>isUsernameAvailable</code></td></tr>
+          <tr class="r-new"><td><code>AppService.generateUsername</code></td><td><code>(name, cb)</code></td><td><code>generateUsername</code></td></tr>
+          <tr class="r-new"><td><code>AppService.getUserByEmailOrUsername</code></td><td><code>(query, cb)</code></td><td><code>getUserByEmailOrUsername</code></td></tr>
+          <tr class="r-mod"><td><code>AppService.createUser</code></td><td><code>({uid,name,username,...}, cb)</code></td><td><code>createUser</code> — <code>username</code>-Feld ergänzt</td></tr>
+          <tr class="r-mod"><td><code>AppService.updateUser</code></td><td><code>(uid, {username,...}, cb)</code></td><td><code>updateUser</code> — <code>username</code> in patch erlaubt</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AUTH -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Layer 4a — auth.js: loginByEmailOrUsername</div></div>
+    <div class="code-label">auth.js</div>
+    <div class="code-block"><code>Auth.loginByEmailOrUsername(query, password, onSuccess, onError)
+
+<span class="cm">/* query   = E-Mail oder @username oder username (ohne @)
+   password = Klartext
+   onSuccess(user) — Redirect wird intern ausgeführt
+   onError(msg)    — Consumer zeigt Fehlermeldung */</span>
+
+<span class="cm">/* Flow: */</span>
+AppService.getUserByEmailOrUsername(query, <span class="ck">function</span>(err, user) {
+  <span class="cm">// → prüft password → Auth.login(user.uid) → Redirect</span>
+});</code></div>
+    <div class="callout c-inf">
+      <strong>Async-Callback statt throw.</strong> <code>loginByEmail()</code> ist synchron (throw). <code>loginByEmailOrUsername()</code> ist async wegen AppService-Adapter. Consumer-Code (landing.js) nutzt <code>onSuccess/onError</code>-Callbacks — kein try/catch nötig.
+    </div>
+  </div>
+
+  <!-- CONSUMER CHANGES -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">6</span><div class="sec-title">Layer 4b — Consumer: Geänderte Stellen</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Stelle</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-mod"><td><code>landing.js</code></td><td>Sign-In Handler</td><td><code>Auth.loginByEmail()</code> → <code>Auth.loginByEmailOrUsername(query, pw, onSuccess, onError)</code></td></tr>
+          <tr class="r-mod"><td><code>landing.js</code></td><td>Sign-In Input</td><td><code>type="email"</code> → <code>type="text"</code>, Placeholder/Label aktualisiert</td></tr>
+          <tr class="r-new"><td><code>landing.js</code></td><td>Sign-Up Panel</td><td>Username-Feld <code>#signup-username</code> mit <code>@</code>-Prefix-Wrapper</td></tr>
+          <tr class="r-new"><td><code>landing.js</code></td><td>Name-blur Handler</td><td><code>AppService.generateUsername(name, cb)</code> → befüllt Username-Feld automatisch</td></tr>
+          <tr class="r-mod"><td><code>landing.js</code></td><td>Sign-Up Submit</td><td>Username validieren, <code>isUsernameAvailable()</code> prüfen, <code>uid = 'u_t_' + Date.now()</code> auto-generieren</td></tr>
+          <tr class="r-new"><td><code>profile.js</code></td><td>ProfileEdit Render</td><td>Username-Feld <code>#field-username</code> nach Name-Feld</td></tr>
+          <tr class="r-mod"><td><code>profile.js</code></td><td><code>_loadValues()</code></td><td>Lädt <code>user.username</code> via <code>AppService.getUserSync(_uid)</code></td></tr>
+          <tr class="r-mod"><td><code>profile.js</code></td><td><code>_collect()</code></td><td>Speichert Username via <code>AppService.updateUser(_uid, {username}, cb)</code></td></tr>
+          <tr class="r-new"><td><code>admin.js</code></td><td>Edit-Modal</td><td>Username-Feld mit <code>@</code>-Prefix. Wert aus <code>user.username</code> vorbelegt.</td></tr>
+          <tr class="r-mod"><td><code>admin.js</code></td><td>Save-Handler</td><td><code>username</code> aus Modal in <code>AppService.updateUser()</code>-Patch</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- UID GENERATION -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">7</span><div class="sec-title">UID vs. Username vs. Name</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Feld</th><th>Wer setzt es</th><th>Eindeutig</th><th>Änderbar</th><th>Verwendung</th></tr></thead>
+        <tbody>
+          <tr><td><code>uid</code></td><td>Admin manuell (t1, s1) oder Auto (<code>'u_t_' + Date.now()</code> bei Signup)</td><td>✅ Systemweit</td><td>❌ Nie</td><td>Interne ID, URL-Parameter, alle Relationen</td></tr>
+          <tr><td><code>username</code></td><td>User beim Signup / Profil-Edit / Admin</td><td>✅ Systemweit</td><td>✅ Ja</td><td>Login-Identifier, öffentlich sichtbar (@handle)</td></tr>
+          <tr><td><code>name</code></td><td>User beim Signup / Profil-Edit</td><td>❌ Nicht eindeutig</td><td>✅ Ja</td><td>Anzeigename überall im UI</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CSS -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">8</span><div class="sec-title">Neue CSS-Klassen</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Datei</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>.auth-username-wrap</code></td><td><code>components.css</code></td><td>Flex-Container: <code>@</code>-Prefix + Input als Einheit mit gemeinsamem Border</td></tr>
+          <tr class="r-new"><td><code>.auth-username-prefix</code></td><td><code>components.css</code></td><td>Grauer <code>@</code>-Bereich links, border-right, gleiche Höhe wie Input</td></tr>
+          <tr class="r-new"><td><code>.auth-username-input</code></td><td><code>components.css</code></td><td>Input ohne eigene Border, kein border-radius, flex:1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-ok">
+      <strong>Shared CSS in components.css</strong> — die Klassen werden von landing.html, profile-edit.html und admin.html gleichzeitig genutzt. Kein Kopieren in seitenspezifische Stylesheets.
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_USERNAME_LOGIN_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-53 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

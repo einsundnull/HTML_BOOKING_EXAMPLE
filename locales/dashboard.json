@@ -1,0 +1,23 @@
+{
+  "pageTitle": "Dashboard",
+  "pageSubtitle": "Deine nächsten Stunden auf einen Blick.",
+  "statToday": "Heute",
+  "statWeek": "Diese Woche",
+  "statTotal": "Kommende",
+  "emptySchedule": "Keine kommenden Stunden.",
+  "loading": "Wird geladen…",
+  "dialogTitle": "Stunde",
+  "actionContact": "Kontaktieren",
+  "actionDetails": "Buchungsdetails",
+  "actionConfirm": "Bestätigen",
+  "actionMove": "Verlegen",
+  "actionCancel": "Stornieren",
+  "actionRelease": "Freigeben",
+  "actionClose": "Schließen",
+  "toastConfirmed": "Stunde bestätigt.",
+  "toastMoved": "Stunde verschoben.",
+  "toastReleased": "Slots freigegeben.",
+  "statStudents": "Schüler",
+  "statTeachers": "Lehrer",
+  "statBooked": "Buchungen"
+}

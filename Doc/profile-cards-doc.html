@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Profil-Visitenkarten — Implementierungsdokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
+:root {
+  --ink:#0f1117;--paper:#fafaf8;--muted:#6b7280;--border:#e5e7eb;
+  --accent:#2563eb;--accent-light:#eff6ff;--green:#16a34a;--red:#dc2626;
+  --amber:#d97706;--surface:#fff;--code-bg:#f3f4f6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:28px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:17px;font-weight:700;margin:48px 0 16px;letter-spacing:-.2px;
+  display:flex;align-items:center;gap:10px}
+h2::before{content:'';display:block;width:4px;height:20px;
+  background:var(--accent);border-radius:2px}
+h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;
+  color:var(--muted);margin:24px 0 10px}
+p{margin-bottom:12px;color:#374151}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  background:var(--code-bg);padding:1px 5px;border-radius:4px;color:#1d4ed8}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;
+  background:#1e1e2e;color:#cdd6f4;padding:20px;border-radius:10px;
+  overflow-x:auto;margin:14px 0;line-height:1.6}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1}
+pre .cm{color:#6c7086;font-style:italic} pre .num{color:#fab387}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  margin:16px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f9fafb;padding:9px 14px;text-align:left;font-size:11px;
+  font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+  color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f3f4f6;vertical-align:top}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green)} .no{color:var(--red)} .new{color:var(--accent)}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;
+  border-radius:20px;white-space:nowrap}
+.pill-new{background:#eff6ff;color:#1d4ed8}
+.pill-mod{background:#fef9c3;color:#854d0e}
+.pill-css{background:#f0fdf4;color:#15803d}
+.pill-html{background:#fff7ed;color:#c2410c}
+.box{border:1px solid var(--border);border-radius:10px;padding:20px 24px;
+  margin:16px 0;background:var(--surface)}
+.box-warn{border-color:#fde68a;background:#fffbeb}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+@media(max-width:640px){.grid2{grid-template-columns:1fr}}
+.tag-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.divider{border:none;border-top:1px solid var(--border);margin:40px 0}
+.arch-row{display:flex;align-items:center;gap:8px;font-size:13px;
+  padding:8px 0;border-bottom:1px solid #f3f4f6}
+.arch-row:last-child{border-bottom:none}
+.arch-file{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent)}
+</style>
+</head>
+<body>
+
+<h1>Profil-Visitenkarten</h1>
+<p class="subtitle">Implementierungsdokumentation · BookingSystem · 17.03.2026</p>
+
+<!-- OVERVIEW -->
+<h2>Überblick</h2>
+<div class="box box-info">
+  Zwei neue Features: <strong>Schüler-Visitenkarte</strong> im Teacher-Interface (My Students) mit Avatar, Bio-Snippet und Profil-Button sowie <strong>Lehrer-Profil-Link</strong> im Student-Katalog. Beide öffnen ein Bottom-Sheet oder navigieren zu <code>profile-view.html</code>.
+</div>
+
+<h3>Geänderte Dateien</h3>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Art</th><th>Was</th></tr></thead>
+<tbody>
+<tr><td><code>ui.js</code></td><td><span class="pill pill-mod">ERWEITERT</span></td><td><code>buildAvatarHTML()</code> + <code>showProfileSheet()</code> global hinzugefügt</td></tr>
+<tr><td><code>teacher.js</code></td><td><span class="pill pill-mod">ERWEITERT</span></td><td><code>buildStudentRow()</code>: Avatar, Bio-Snippet, Profil-Button</td></tr>
+<tr><td><code>skiing-catalog.js</code></td><td><span class="pill pill-mod">ERWEITERT</span></td><td><code>_buildSummaryHTML()</code>: Profil-Link-Button hinzugefügt</td></tr>
+<tr><td><code>base.css</code></td><td><span class="pill pill-css">CSS</span></td><td>Avatar-Klassen + Profile-Sheet-Klassen</td></tr>
+<tr><td><code>teacher.css</code></td><td><span class="pill pill-css">CSS</span></td><td>Neue Student-Card-Klassen</td></tr>
+<tr><td><code>skiing-catalog.css</code></td><td><span class="pill pill-css">CSS</span></td><td><code>.tc-profile-btn</code></td></tr>
+<tr><td><code>teacher.html</code></td><td><span class="pill pill-html">HTML</span></td><td><code>profile.css</code> geladen, Versionen gebumpt</td></tr>
+<tr><td><code>student.html</code></td><td><span class="pill pill-html">HTML</span></td><td><code>profile.css</code> geladen, Versionen gebumpt</td></tr>
+</tbody></table></div>
+
+<hr class="divider">
+
+<!-- FEATURE A -->
+<h2>A — buildAvatarHTML() · globale Hilfsfunktion</h2>
+<p>Einmalig in <code>ui.js</code> definiert und als <code>window.buildAvatarHTML</code> exportiert. Wird von <code>teacher.js</code>, <code>skiing-catalog.js</code> und zukünftig <code>chat.js</code> wiederverwendet — kein Codeduplikat.</p>
+
+<pre><code><span class="cm">/**
+ * buildAvatarHTML(uid, opts)
+ * opts: { size: 'sm'|'md'|'lg', role: 'teacher'|'student'|'admin' }
+ * Gibt HTML-String zurück: &lt;img&gt; wenn Foto, sonst &lt;div&gt; mit Initialen.
+ */</span>
+<span class="kw">function</span> <span class="fn">buildAvatarHTML</span>(uid, opts) {
+  <span class="kw">var</span> photo    = ProfileStore.<span class="fn">getPhoto</span>(uid);
+  <span class="kw">var</span> name     = ProfileStore.<span class="fn">getDisplayName</span>(uid);
+  <span class="kw">var</span> initials = <span class="fn">_computeInitials</span>(name);
+  <span class="kw">if</span> (photo) {
+    <span class="kw">return</span> <span class="str">'&lt;img class="avatar-img avatar-'</span> + size + <span class="str">'" src="...'</span>;
+  }
+  <span class="kw">return</span> <span class="str">'&lt;div class="avatar-initials avatar-'</span> + size + ... initials + <span class="str">'&lt;/div&gt;'</span>;
+}</code></pre>
+
+<h3>CSS-Klassen (base.css)</h3>
+<div class="tw"><table>
+<thead><tr><th>Klasse</th><th>Bedeutung</th></tr></thead>
+<tbody>
+<tr><td><code>avatar-img</code></td><td>Foto-Variante: <code>border-radius:50%</code>, border, object-fit</td></tr>
+<tr><td><code>avatar-initials</code></td><td>Initialen-Variante: zentrierter Text, rund</td></tr>
+<tr><td><code>avatar-sm</code></td><td>32×32px (Student-Card in Teacher-Liste)</td></tr>
+<tr><td><code>avatar-md</code></td><td>44×44px (Standard)</td></tr>
+<tr><td><code>avatar-lg</code></td><td>64×64px (Profile-Sheet Header)</td></tr>
+<tr><td><code>avatar-role-teacher</code></td><td>Blauer Hintergrund für Lehrer-Initialen</td></tr>
+<tr><td><code>avatar-role-student</code></td><td>Grauer Hintergrund für Schüler-Initialen</td></tr>
+</tbody></table></div>
+
+<hr class="divider">
+
+<!-- FEATURE B -->
+<h2>B — showProfileSheet(uid) · globales Bottom-Sheet</h2>
+<p>Öffnet ein animiertes Bottom-Sheet mit den Profildaten eines beliebigen Nutzers (Schüler oder Lehrer). Verwendet <code>ProfileStore.getOrDefault(uid)</code> — kein AppService-Aufruf nötig. Renutzt <code>pv-*</code> CSS-Klassen aus <code>profile.css</code> (jetzt auf teacher/student geladen).</p>
+
+<div class="grid2">
+<div class="box">
+<h3>Aufbau des Sheets</h3>
+<div class="arch-row"><code>profile-sheet-backdrop</code> <span style="color:var(--muted);font-size:11px">— animierter Overlay</span></div>
+<div class="arch-row"><code>profile-sheet-panel</code> <span style="color:var(--muted);font-size:11px">— gleitet hoch (translateY)</span></div>
+<div class="arch-row"><code>wtx-detail-handle</code> <span style="color:var(--muted);font-size:11px">— Drag-Handle (wiederverwendet)</span></div>
+<div class="arch-row"><code>profile-sheet-header</code> <span style="color:var(--muted);font-size:11px">— Avatar + Name + Badge + Ort</span></div>
+<div class="arch-row"><code>profile-sheet-body</code> <span style="color:var(--muted);font-size:11px">— Bio (pv-section/pv-bio)</span></div>
+<div class="arch-row"><code>profile-sheet-footer</code> <span style="color:var(--muted);font-size:11px">— „Vollständiges Profil" Link</span></div>
+</div>
+<div class="box">
+<h3>Schließen-Methoden</h3>
+<div class="arch-row">✕-Button oben rechts</div>
+<div class="arch-row">Klick auf Backdrop</div>
+<div class="arch-row">Escape-Taste</div>
+<br>
+<h3>Wiederverwendete Klassen</h3>
+<div class="arch-row"><code>wtx-detail-handle</code> aus wallet.css</div>
+<div class="arch-row"><code>wtx-detail-close</code> aus wallet.css</div>
+<div class="arch-row"><code>pv-hero-name</code>, <code>pv-bio</code>, <code>pv-lang-badge</code> aus profile.css</div>
+</div>
+</div>
+
+<hr class="divider">
+
+<!-- FEATURE C -->
+<h2>C — Schüler-Visitenkarte (Teacher → My Students)</h2>
+
+<h3>Vorher vs. Nachher</h3>
+<div class="tw"><table>
+<thead><tr><th>Element</th><th>Vorher</th><th>Nachher</th></tr></thead>
+<tbody>
+<tr><td>Avatar</td><td class="no">✗ Nicht vorhanden</td><td class="ok">✓ buildAvatarHTML(uid, {size:'sm', role:'student'})</td></tr>
+<tr><td>Name</td><td>Text, student-name</td><td>Text, student-name (unverändert)</td></tr>
+<tr><td>Bio-Snippet</td><td class="no">✗ Nicht vorhanden</td><td class="ok">✓ 60 Zeichen, truncated mit …</td></tr>
+<tr><td>UID-Badge</td><td><code>&lt;code class="uid-badge"&gt;</code></td><td class="no">Entfernt (kein Mehrwert für Nutzer)</td></tr>
+<tr><td>Profil-Button</td><td class="no">✗ Nicht vorhanden</td><td class="ok">✓ student-profile-btn → showProfileSheet(uid)</td></tr>
+<tr><td>Buchungs-Badges</td><td>Alle / Unbestätigt / Bestätigt</td><td>Unverändert</td></tr>
+<tr><td>Expand-Chevron</td><td>Unverändert</td><td>Unverändert</td></tr>
+</tbody></table></div>
+
+<h3>Neue CSS-Klassen (teacher.css)</h3>
+<div class="tw"><table>
+<thead><tr><th>Klasse</th><th>Beschreibung</th></tr></thead>
+<tbody>
+<tr><td><code>.student-row-avatar</code></td><td>flex-shrink:0 — hält Avatar-Größe</td></tr>
+<tr><td><code>.student-row-name-wrap</code></td><td>flex column: Name + Bio-Snippet</td></tr>
+<tr><td><code>.student-bio-snippet</code></td><td>11px, neutral-400, nowrap + ellipsis</td></tr>
+<tr><td><code>.student-profile-btn</code></td><td>28×28px Button, Person-Icon, hover: blau</td></tr>
+</tbody></table></div>
+
+<hr class="divider">
+
+<!-- FEATURE D -->
+<h2>D — Lehrer-Profil-Link (Student → Katalog)</h2>
+<p>In <code>_buildSummaryHTML()</code> in <code>skiing-catalog.js</code> wird ein neuer <code>&lt;a class="tc-profile-btn"&gt;</code> eingefügt — zwischen Chat-Button und Expand-Button. Navigiert direkt zu <code>profile-view.html?uid={uid}</code>.</p>
+
+<div class="box">
+<h3>Button-Reihenfolge in der Karte (rechts)</h3>
+<div class="arch-row">1. <code>tc-chat-btn</code> — Chat öffnen</div>
+<div class="arch-row">2. <code>tc-profile-btn</code> <span class="pill pill-new">NEU</span> — profile-view.html öffnen</div>
+<div class="arch-row">3. <code>tc-expand-btn</code> — Karte aufklappen</div>
+</div>
+
+<div class="box box-warn">
+  <strong>Architektur-Hinweis:</strong> <code>tc-profile-btn</code> ist ein <code>&lt;a&gt;</code>-Element (nicht button), da es zu einer neuen Seite navigiert — semantisch korrekt, kein JavaScript nötig, kein Event-Listener.
+</div>
+
+<hr class="divider">
+
+<!-- ARCHITECTURE -->
+<h2>Architektur-Entscheidungen</h2>
+<div class="tw"><table>
+<thead><tr><th>Entscheidung</th><th>Begründung</th></tr></thead>
+<tbody>
+<tr><td>buildAvatarHTML in ui.js, nicht in profile.js oder teacher.js</td><td>ui.js ist auf allen Seiten geladen. Vermeidet Duplikat in teacher.js und skiing-catalog.js</td></tr>
+<tr><td>showProfileSheet in ui.js statt Modal.show()</td><td>Modal.show() verwendet ein festes Layout. Bottom-Sheet passt besser auf Mobile. Wiederverwendet wtx-detail-* Klassen (bereits auf teacher/student geladen)</td></tr>
+<tr><td>Kein neues HTML-File für Schüler-Profil</td><td>ProfileStore.getOrDefault() liefert alle Daten synchron. Kein Netzwerkaufruf nötig</td></tr>
+<tr><td>profile.css in teacher/student.html laden</td><td>pv-hero-name, pv-bio, pv-lang-badge etc. werden im Profile-Sheet benötigt. Kein Inline-CSS</td></tr>
+<tr><td>profile.css in base.css für avatar/sheet</td><td>base.css ist auf allen Seiten geladen. Avatar-Klassen werden global benötigt</td></tr>
+<tr><td>tc-profile-btn als &lt;a&gt; statt &lt;button&gt;</td><td>Navigiert zu anderer Seite → semantisch Link, nicht Aktion</td></tr>
+</tbody></table></div>
+
+<hr class="divider">
+
+<!-- DEPLOY -->
+<h2>Deployment-Checkliste</h2>
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td><code>ui.js</code></td><td>v=32</td><td class="ok">✓ Gebumpt</td></tr>
+<tr><td><code>teacher.js</code></td><td>v=39</td><td class="ok">✓ Gebumpt</td></tr>
+<tr><td><code>skiing-catalog.js</code></td><td>v=10</td><td class="ok">✓ Gebumpt</td></tr>
+<tr><td><code>base.css</code></td><td>v=12</td><td class="ok">✓ Gebumpt</td></tr>
+<tr><td><code>teacher.css</code></td><td>v=20</td><td class="ok">✓ Gebumpt</td></tr>
+<tr><td><code>profile.css</code></td><td>v=10</td><td class="ok">✓ In teacher/student.html geladen</td></tr>
+<tr><td><code>teacher.html</code></td><td>—</td><td class="ok">✓ Aktualisiert</td></tr>
+<tr><td><code>student.html</code></td><td>—</td><td class="ok">✓ Aktualisiert</td></tr>
+</tbody></table></div>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Booking Dialog Expand</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --c400:#4d7aa0;--c100:#dde4ed;--c700:#1a3249;--c900:#060f1c;
+  --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+  --ok-bg:#f0fdf4;--ok-tx:#14532d;
+  --font:'Figtree',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--n100);padding:24px 12px;display:flex;gap:20px;flex-wrap:wrap;justify-content:center;align-items:flex-start;}
+.col{display:flex;flex-direction:column;gap:10px;width:300px;}
+.lbl{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);text-align:center;}
+
+.modal{background:var(--n0);border-radius:14px;padding:22px;box-shadow:0 8px 32px rgba(0,0,0,.15);}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.mt{font-size:16px;font-weight:600;color:var(--c900);}
+.mx{color:var(--n400);font-size:18px;background:none;border:none;cursor:pointer;}
+
+.slot-row{display:flex;justify-content:space-between;padding:7px 0;font-size:13px;border-bottom:1px solid var(--n100);}
+.st{font-family:monospace;color:var(--n700);}
+.sp{font-weight:600;}
+.total{display:flex;justify-content:space-between;padding:9px 0 7px;font-weight:700;font-size:13px;}
+.status{background:var(--ok-bg);color:var(--ok-tx);border-radius:6px;padding:8px 10px;font-size:11px;margin-top:6px;line-height:1.5;}
+
+.divider{border:none;border-top:1px solid var(--n100);margin:14px 0;}
+
+/* recurring inline */
+.recur-section{background:var(--n50);border:1px solid var(--n200);border-radius:8px;padding:12px;margin-top:2px;}
+.recur-title{font-size:12px;font-weight:600;color:var(--n700);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.recur-toggle{display:flex;border:1px solid var(--n200);border-radius:6px;overflow:hidden;margin-bottom:10px;}
+.rt-btn{flex:1;padding:6px;font-size:11px;font-weight:600;border:none;background:var(--n0);color:var(--n500);cursor:pointer;font-family:var(--font);}
+.rt-btn.active{background:var(--c400);color:#fff;}
+.recur-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--n500);margin-bottom:4px;}
+.recur-input{width:100%;padding:8px 10px;border:1px solid var(--n200);border-radius:6px;font-family:var(--font);font-size:13px;background:var(--n0);}
+.recur-hint{font-size:11px;color:var(--n400);margin-top:6px;}
+.check-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;}
+.check-ok{width:7px;height:7px;border-radius:50%;background:#16a34a;flex-shrink:0;}
+.check-no{width:7px;height:7px;border-radius:50%;background:var(--n200);flex-shrink:0;}
+
+/* buttons */
+.btns{margin-top:14px;display:flex;flex-direction:column;gap:7px;}
+.btn-primary{background:var(--c400);color:#fff;border:none;border-radius:8px;padding:12px;font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;width:100%;}
+.btn-outline{background:var(--n0);color:var(--c700);border:1.5px solid var(--c400);border-radius:8px;padding:10px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;width:100%;display:flex;align-items:center;justify-content:center;gap:6px;}
+.btn-ghost{background:none;border:none;color:var(--n500);font-family:var(--font);font-size:13px;cursor:pointer;padding:7px;width:100%;}
+.btn-check{background:var(--n100);color:var(--c700);border:1px solid var(--n200);border-radius:6px;padding:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;}
+
+.arrow{font-size:18px;text-align:center;color:var(--n400);padding:8px 0;}
+</style>
+</head>
+<body>
+
+<!-- STATE 1: Default — just booking + recurring button -->
+<div class="col">
+  <div class="lbl">State 1 — Default</div>
+
+  <div class="modal">
+    <div class="mh">
+      <span class="mt">1 Buchung bestätigen</span>
+      <button class="mx">✕</button>
+    </div>
+
+    <div class="slot-row"><span class="st">11:30 – 12:00</span><span class="sp">€90,00</span></div>
+    <div class="total"><span>Gesamt</span><span>€90,00</span></div>
+    <div class="status">✓ Deposit <strong>€18,00</strong> wird abgezogen.<br>Guthaben danach: <strong>€5050,00</strong></div>
+
+    <div class="btns">
+      <button class="btn-primary">Jetzt buchen</button>
+      <!-- Tapping this expands the recurring section below -->
+      <button class="btn-outline">↻ &nbsp;Regelmäßig buchen</button>
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- Arrow -->
+<div class="col" style="justify-content:center;padding-top:120px;">
+  <div class="arrow">tap ↻<br>▶</div>
+</div>
+
+<!-- STATE 2: Expanded — recurring section appears, buttons change -->
+<div class="col">
+  <div class="lbl">State 2 — Expanded</div>
+
+  <div class="modal">
+    <div class="mh">
+      <span class="mt">1 Buchung bestätigen</span>
+      <button class="mx">✕</button>
+    </div>
+
+    <div class="slot-row"><span class="st">11:30 – 12:00</span><span class="sp">€90,00</span></div>
+    <div class="total"><span>Gesamt</span><span>€90,00</span></div>
+    <div class="status">✓ Deposit <strong>€18,00</strong> wird abgezogen.<br>Guthaben danach: <strong>€5050,00</strong></div>
+
+    <hr class="divider">
+
+    <!-- Recurring section — now visible -->
+    <div class="recur-section">
+      <div class="recur-title">↻ Regelmäßig buchen</div>
+      <div class="recur-toggle">
+        <button class="rt-btn active">Anzahl Wochen</button>
+        <button class="rt-btn">Von–Bis Datum</button>
+      </div>
+      <div class="recur-label">Wochen im Voraus</div>
+      <input class="recur-input" type="number" value="4">
+      <button class="btn-check">Verfügbarkeit prüfen</button>
+    </div>
+
+    <div class="btns">
+      <button class="btn-primary">Jetzt buchen</button>
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATE 3: After check — results shown, button changes -->
+<div class="col">
+  <div class="lbl">State 3 — After "Prüfen"</div>
+
+  <div class="modal">
+    <div class="mh">
+      <span class="mt">1 Buchung bestätigen</span>
+      <button class="mx">✕</button>
+    </div>
+
+    <div class="slot-row"><span class="st">11:30 – 12:00</span><span class="sp">€90,00</span></div>
+    <div class="total"><span>Gesamt</span><span>€90,00</span></div>
+    <div class="status">✓ Deposit <strong>€18,00</strong> wird abgezogen.<br>Guthaben danach: <strong>€5050,00</strong></div>
+
+    <hr class="divider">
+
+    <div class="recur-section">
+      <div class="recur-title">↻ 3 von 4 Terminen verfügbar</div>
+      <div class="check-row"><span class="check-ok"></span><span>So, 29.03. &nbsp;11:30–12:00 &nbsp;€90</span></div>
+      <div class="check-row"><span class="check-ok"></span><span>So, 05.04. &nbsp;11:30–12:00 &nbsp;€90</span></div>
+      <div class="check-row"><span class="check-no"></span><span style="color:var(--n400)">So, 12.04. &nbsp;nicht verfügbar</span></div>
+      <div class="check-row"><span class="check-ok"></span><span>So, 19.04. &nbsp;11:30–12:00 &nbsp;€90</span></div>
+    </div>
+
+    <div class="btns">
+      <!-- Primary now books this slot + all recurring -->
+      <button class="btn-primary">Jetzt buchen + 3 Wiederholungen</button>
+      <button class="btn-ghost">Nur einmalig buchen</button>
+      <button class="btn-ghost">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

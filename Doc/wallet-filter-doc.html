@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wallet Filter — Vollständige Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{
+  --ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --surface:#fff;--code-bg:#f1f5f9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;overflow-x:auto;margin:14px 0}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1} pre .cm{color:#6c7086;font-style:italic}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#fafafa}
+.ok{color:var(--green);font-weight:600}
+.no{color:var(--red)}
+.new{color:var(--accent);font-weight:600}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.pill-new{background:#eff6ff;color:var(--accent)}
+.pill-ok{background:#dcfce7;color:var(--green)}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.divider{border:none;border-top:2px solid var(--border);margin:52px 0}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+.mockup{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 20px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#374151;margin:14px 0;line-height:2}
+.chip-demo{display:inline-block;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;margin:2px}
+.chip-demo.active{background:#0f1117;color:#fff;border-color:#0f1117}
+</style>
+</head>
+<body>
+
+<h1>Wallet Filter</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Überblick</h2>
+<p>Die Wallet-Transaktionsliste unterstützt jetzt umfassende Filteroptionen. Alle Filter arbeiten <strong>clientseitig</strong> auf dem einmal geladenen Transaktions-Array — kein zusätzlicher API-Aufruf bei Filteränderungen.</p>
+
+<div class="box box-info">
+  <strong>Architektur-Prinzip:</strong> <code>AppService.getTransactions(uid, cb)</code> wird einmalig aufgerufen und speichert alle TXs in <code>_allTxs</code>. Jede Filteränderung ruft <code>refilterAndRender()</code> auf, das <code>_applyWalletFilters(_allTxs)</code> aufruft und das Ergebnis an <code>renderHistory()</code> übergibt.
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — UI-Layout</h2>
+<div class="mockup">
+<div><span class="chip-demo active">Alle</span> <span class="chip-demo">↑ Einzahlung</span> <span class="chip-demo">↓ Auszahlung</span> <span class="chip-demo">⏸ Deposit</span> <span class="chip-demo">↩ Refund</span> <span class="chip-demo">✓ Buchung</span> <span class="chip-demo">✕ Storno</span> <span class="chip-demo">★ Bestätigt</span> <span class="chip-demo">▶ Freigabe</span></div>
+<div style="margin-top:8px">Von [dd/mm/yyyy] &nbsp; Bis [dd/mm/yyyy] &nbsp; [↓ Sort]</div>
+<div style="margin-top:4px">Betrag &nbsp; € [Min] — € [Max]</div>
+<div style="margin-top:4px">Schüler/Lehrer: [Alle ▾]</div>
+<div style="margin-top:8px;font-size:11px;color:#64748b">✕ Filter zurücksetzen &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 3 von 47 Transaktionen</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Filter im Detail</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Filter</th><th>UI-Element</th><th>TX-Feld</th><th>Logik</th></tr></thead>
+<tbody>
+  <tr>
+    <td><strong>TX-Typ</strong></td>
+    <td>Toggle-Chips (Einfachauswahl)</td>
+    <td><code>tx.type</code></td>
+    <td><code>'cancellation'</code> matcht auch <code>teacher_cancel</code></td>
+  </tr>
+  <tr>
+    <td><strong>Datum Von</strong></td>
+    <td>Date-Input</td>
+    <td><code>tx.createdAt.slice(0,10)</code></td>
+    <td><code>&gt;= dateFrom</code> (ISO-String Vergleich)</td>
+  </tr>
+  <tr>
+    <td><strong>Datum Bis</strong></td>
+    <td>Date-Input</td>
+    <td><code>tx.createdAt.slice(0,10)</code></td>
+    <td><code>&lt;= dateTo</code></td>
+  </tr>
+  <tr>
+    <td><strong>Betrag Min</strong></td>
+    <td>Number-Input</td>
+    <td><code>Math.abs(tx.amount)</code></td>
+    <td><code>&gt;= amtMin</code> — abs() damit negative Beträge auch matchen</td>
+  </tr>
+  <tr>
+    <td><strong>Betrag Max</strong></td>
+    <td>Number-Input</td>
+    <td><code>Math.abs(tx.amount)</code></td>
+    <td><code>&lt;= amtMax</code></td>
+  </tr>
+  <tr>
+    <td><strong>Gegenseite</strong></td>
+    <td>Native Select</td>
+    <td><code>tx.relatedUid</code>, <code>tx.meta.teacherId</code>, <code>tx.meta.studentId</code></td>
+    <td>Lehrer sieht Schüler-Dropdown, Schüler sieht Lehrer-Dropdown. Nur sichtbar wenn &gt;1 Gegenseite vorhanden</td>
+  </tr>
+  <tr>
+    <td><strong>Sortierung</strong></td>
+    <td>Sort-Button (↑/↓)</td>
+    <td><code>tx.createdAt</code></td>
+    <td>Toggle zwischen neueste-zuerst (default) und älteste-zuerst</td>
+  </tr>
+  <tr>
+    <td><strong>Anzahl-Anzeige</strong></td>
+    <td>Text-Badge</td>
+    <td>—</td>
+    <td>"3 von 47 Transaktionen" — nur wenn Filter aktiv</td>
+  </tr>
+  <tr>
+    <td><strong>Reset</strong></td>
+    <td>Button (nur wenn Filter aktiv)</td>
+    <td>—</td>
+    <td>Alle Filter auf Default, UI zurücksetzen</td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — TX-Typen Referenz</h2>
+
+<div class="tw"><table>
+<thead><tr><th>type</th><th>Icon</th><th>Chip-Label</th><th>Bedeutung</th></tr></thead>
+<tbody>
+  <tr><td><code>deposit</code></td><td>↑</td><td>Einzahlung</td><td>Geld auf Wallet eingezahlt</td></tr>
+  <tr><td><code>withdrawal</code></td><td>↓</td><td>Auszahlung</td><td>Geld abgehoben</td></tr>
+  <tr><td><code>escrow_hold</code></td><td>⏸</td><td>Deposit</td><td>Deposit für Stunde einbehalten</td></tr>
+  <tr><td><code>escrow_release</code></td><td>▶</td><td>Freigabe</td><td>Deposit an Lehrer freigegeben</td></tr>
+  <tr><td><code>refund</code></td><td>↩</td><td>Refund</td><td>Stornierung mit Rückerstattung</td></tr>
+  <tr><td><code>cancellation</code></td><td>✕</td><td>Storno</td><td>Stornierung (auch teacher_cancel)</td></tr>
+  <tr><td><code>teacher_cancel</code></td><td>✕</td><td>Storno</td><td>Vom Lehrer storniert — im Storno-Filter enthalten</td></tr>
+  <tr><td><code>booking</code></td><td>✓</td><td>Buchung</td><td>Buchungsbestätigung</td></tr>
+  <tr><td><code>lesson_confirmed</code></td><td>★</td><td>Bestätigt</td><td>Stunde bestätigt, Zahlung freigegeben</td></tr>
+  <tr><td><code>move</code></td><td>↔</td><td>—</td><td>Umbuchung (kein eigener Chip, in Alle)</td></tr>
+  <tr><td><code>transfer</code></td><td>⇄</td><td>—</td><td>Transfer (kein eigener Chip, in Alle)</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Filter-Pipeline</h2>
+
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text"><code>AppService.getTransactions(uid, cb)</code> → speichert in <code>_allTxs</code> (master copy, nie mutiert)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text"><code>refilterAndRender()</code> → ruft <code>_applyWalletFilters(_allTxs)</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>_applyWalletFilters(txs)</code>: type → dateFrom → dateTo → amtMin → amtMax → party → sort</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><code>renderHistory(filtered)</code> → DOM neu aufgebaut</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text"><code>_updateFilterCount(filtered, total)</code> → Anzahl-Badge<br><code>_updateResetBtn()</code> → Reset-Button ein/aus</div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — Geänderte Funktionen</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Funktion</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>createInstance()</code></td>
+    <td>Filter-State <code>_filters</code> + <code>_allTxs</code> hinzugefügt</td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>_applyWalletFilters(txs)</code> <span class="pill pill-new">NEU</span></td>
+    <td>Vollständige Filter + Sort Pipeline</td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>refilterAndRender()</code> <span class="pill pill-new">NEU</span></td>
+    <td>Kombiniert _applyWalletFilters + renderHistory + updateCount + updateReset</td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>_updateFilterCount()</code> <span class="pill pill-new">NEU</span></td>
+    <td>Zeigt "N von M Transaktionen"</td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>_updateResetBtn()</code> <span class="pill pill-new">NEU</span></td>
+    <td>Reset-Button nur sichtbar wenn mindestens ein Filter aktiv</td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td><code>loadData()</code> / <code>loadHistory()</code></td>
+    <td>Speichert jetzt in <code>_allTxs</code>, ruft <code>refilterAndRender()</code> statt <code>renderHistory()</code></td>
+  </tr>
+  <tr>
+    <td><code>wallet-core.js</code></td>
+    <td>Public API</td>
+    <td><code>getFilters()</code>, <code>setFilter(key, val)</code>, <code>refilterAndRender()</code> exportiert</td>
+  </tr>
+  <tr>
+    <td><code>wallet-panel.js</code></td>
+    <td><code>_buildHTML()</code></td>
+    <td>Filter-Bar HTML hinzugefügt (Chips, Datum, Betrag, Gegenseite, Reset)</td>
+  </tr>
+  <tr>
+    <td><code>wallet-panel.js</code></td>
+    <td><code>_getId()</code></td>
+    <td>10 neue ID-Mappings für Filter-Elemente</td>
+  </tr>
+  <tr>
+    <td><code>wallet-panel.js</code></td>
+    <td><code>_bindFilterEvents()</code> <span class="pill pill-new">NEU</span></td>
+    <td>Bindet alle Filter-Events (Chips, Datum, Betrag, Sort, Reset)</td>
+  </tr>
+  <tr>
+    <td><code>wallet-panel.js</code></td>
+    <td><code>_buildPartyFilter()</code> <span class="pill pill-new">NEU</span></td>
+    <td>Baut Gegenseite-Dropdown aus Selektionen (Lehrer→Schüler, Schüler→Lehrer)</td>
+  </tr>
+  <tr>
+    <td><code>wallet.css</code></td>
+    <td>—</td>
+    <td>Neue Klassen: <code>.wallet-filter-bar</code>, <code>.wf-chip</code>, <code>.wf-date</code>, <code>.wf-amt</code>, <code>.wf-sort-btn</code>, <code>.wf-party-select</code>, <code>.wf-reset-btn</code>, <code>.wf-count</code></td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Filter-State Objekt</h2>
+
+<pre><code><span class="cm">/* Interner Filter-State in wallet-core.js createInstance */</span>
+<span class="kw">var</span> _filters = {
+  type:     <span class="str">'all'</span>,      <span class="cm">// TX-Typ oder 'all'</span>
+  dateFrom: <span class="str">''</span>,         <span class="cm">// ISO date string 'YYYY-MM-DD' oder ''</span>
+  dateTo:   <span class="str">''</span>,         <span class="cm">// ISO date string 'YYYY-MM-DD' oder ''</span>
+  amtMin:   <span class="str">''</span>,         <span class="cm">// string (parseFloat bei Verwendung)</span>
+  amtMax:   <span class="str">''</span>,         <span class="cm">// string (parseFloat bei Verwendung)</span>
+  party:    <span class="str">'all'</span>,      <span class="cm">// UID oder 'all'</span>
+  sortAsc:  <span class="kw">false</span>        <span class="cm">// false = neueste zuerst (default)</span>
+};</code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>8 — Versionen</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderungen</th></tr></thead>
+<tbody>
+  <tr><td><code>wallet-core.js</code></td><td>v=4</td><td>Filter-State, _applyWalletFilters, refilterAndRender, Public API</td></tr>
+  <tr><td><code>wallet-panel.js</code></td><td>v=4</td><td>Filter-Bar HTML, _bindFilterEvents, _buildPartyFilter, getId erweitert</td></tr>
+  <tr><td><code>wallet.css</code></td><td>v=13</td><td>Alle Filter-CSS-Klassen</td></tr>
+</tbody>
+</table></div>
+
+</body>
+</html>

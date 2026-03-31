@@ -1,0 +1,41 @@
+Let me read the escrow and price storage carefully.
+
+Now I have the complete picture. Let me also check if `confirmedAt` is stored on slots:
+
+Now I have everything I need. Here is the full analysis:
+
+---
+
+## Was ich verstanden habe
+
+**Frage 1 — Preis-Lock beim Buchen:**
+Du möchtest dass der Preis **zum Zeitpunkt der Buchung** eingefroren wird. Wenn ein Lehrer später seinen Preis ändert, sollen bestehende Buchungen den alten Preis behalten.
+
+**Frage 2 — Preis-Summen in den Filter-Badges:**
+Neben den Block-Zählern (Alle 8 / Unbestätigt 7 / Bestätigt 1) soll auch eine **Gesamtsumme in Euro** stehen — jeweils passend zum aktiven Filter.
+
+---
+
+## Tabelle 1: Ist-Zustand Preis-Lock
+
+| Aspekt | Aktueller Stand | Problem |
+|---|---|---|
+| `app_slots` Schema | `{ slotId, teacherId, studentId, date, time, status, baseStatus, confirmedAt }` | ❌ **Kein `price`-Feld** — Preis wird nirgends am Slot gespeichert |
+| `bookSlot(slotId, studentId)` | Setzt nur `status=booked` + `studentId` | ❌ Kein Preis-Snapshot beim Buchen |
+| `createEscrow(slotId, ...)` | Speichert `fullAmount` aus Profil — **preisgekoppelt zum Buchungszeitpunkt** | ✅ Richtig — aber wird **nie aufgerufen** beim Buchen |
+| Preis-Anzeige (neu) | `ProfileStore.getPrice(teacherId)` — liest **aktuellen** Profilpreis | ❌ Zeigt immer aktuellen Preis, nicht Buchungspreis |
+| Escrow in UI genutzt? | Nein — `createEscrow` wird nie aus teacher.js / student.js aufgerufen | ❌ Escrow-System ungenutzt |
+
+**Fazit:** Preis-Lock ist **nicht implementiert**. Der Escrow hätte das gelöst, wird aber nicht aufgerufen. Einfachste Lösung: `price`-Feld direkt auf dem Slot speichern beim Buchen.
+
+---
+
+## Tabelle 2: Preis-Summen in Filter-Badges
+
+| Badge | Zählt aktuell | Soll zusätzlich zeigen |
+|---|---|---|
+| **Alle N** | Blocks gefiltert nach Zeit + Datum + Student | Summe aller Buchungspreise |
+| **Unbestätigt N** | Unconfirmed blocks | Summe unbestätigter Buchungen |
+| **Bestätigt N** | Confirmed blocks | Summe bestätigter Buchungen |
+| Zeitfilter (Vergangen/Kommende/Alle) | Zähler ändert sich | Summe ändert sich entsprechend |
+

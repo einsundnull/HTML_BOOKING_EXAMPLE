@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Color Scale Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 32px;
+            line-height: 1.6;
+            background: #f9fafb;
+            color: #111827;
+        }
+        h1, h2 {
+            margin-top: 32px;
+        }
+        table {
+            border-collapse: collapse;
+            margin-top: 16px;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #f3f4f6;
+        }
+        code {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .box {
+            padding: 16px;
+            margin-top: 12px;
+            border-radius: 6px;
+            color: white;
+        }
+        .light { color: black; }
+    </style>
+</head>
+<body>
+
+<h1>Color Scale System (50–900)</h1>
+
+<p>
+Die Zahlen wie <strong>400, 600, 900</strong> sind keine Farben, sondern
+<strong>Positionen auf einer Helligkeitsskala</strong> derselben Farbe.
+</p>
+
+---
+
+<h2>Grundprinzip</h2>
+
+<table>
+<tr><th>Wert</th><th>Bedeutung</th></tr>
+<tr><td>50</td><td>sehr hell (fast weiß)</td></tr>
+<tr><td>100</td><td>hell</td></tr>
+<tr><td>200</td><td>leicht hell</td></tr>
+<tr><td>300</td><td>disabled / grau</td></tr>
+<tr><td>400</td><td>Standard / Accent</td></tr>
+<tr><td>500</td><td>Hover</td></tr>
+<tr><td>600</td><td>Active</td></tr>
+<tr><td>700–900</td><td>sehr dunkel bis fast schwarz</td></tr>
+</table>
+
+---
+
+<h2>Beispiel (HSL basiert)</h2>
+
+<pre>
+--color-400: hsl(210, 60%, 50%);
+--color-500: hsl(210, 60%, 40%);
+--color-600: hsl(210, 60%, 30%);
+</pre>
+
+<p>
+👉 Nur die <strong>Lightness</strong> wird verändert.
+</p>
+
+---
+
+<h2>UI Verwendung</h2>
+
+<table>
+<tr><th>Use Case</th><th>Color Level</th></tr>
+<tr><td>Background</td><td>50–100</td></tr>
+<tr><td>Disabled</td><td>300</td></tr>
+<tr><td>Button Default</td><td>400</td></tr>
+<tr><td>Hover</td><td>500</td></tr>
+<tr><td>Active</td><td>600</td></tr>
+<tr><td>Dark UI / Text</td><td>700–900</td></tr>
+</table>
+
+---
+
+<h2>Interaktion Beispiel</h2>
+
+<pre>
+.button {
+    background: var(--color-400);
+}
+
+.button:hover {
+    background: var(--color-500);
+}
+
+.button:active {
+    background: var(--color-600);
+}
+</pre>
+
+---
+
+<h2>Wichtige Regeln</h2>
+
+<ul>
+<li>Nur eine Farbe (Hue) verwenden</li>
+<li>Alle Varianten über Helligkeit steuern</li>
+<li>Keine zufälligen Hex-Farben</li>
+<li>Keine Gradients verwenden</li>
+<li>Immer Design Tokens nutzen</li>
+</ul>
+
+---
+
+<h2>Merksatz</h2>
+
+<p><strong>50 = hell → 900 = dunkel</strong></p>
+<p><strong>400 = Standard, 500 = Hover, 600 = Active</strong></p>
+
+</body>
+</html>

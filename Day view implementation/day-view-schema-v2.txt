@@ -1,0 +1,277 @@
+================================================================================
+UI SCHEMA — DAY VIEW (Tagesansicht)
+BookingSystem · Teacher Interface · Stand: März 2026
+================================================================================
+
+Konformität:
+  ✅ GUIDELINE_NEW_STYLING    (Typografie, Farbe, Spacing, Komponenten)
+  ✅ GUIDELINE_NEW_ARCHITECTURE (ES5, IIFE, AppService.*, ?v= Cache)
+  ✅ GUIDELINE_NEW_MOBILE     (Touch 44px, Mobile-First, breakpoints)
+  ✅ Guideline_Layout_and_Styling (Overlays, verbotene Praktiken)
+  ✅ Guideline_Architecture   (Datenzugriff, Ladereihenfolge, Modul-Hierarchie)
+
+────────────────────────────────────────────────────────────────────────────────
+KONZEPT
+────────────────────────────────────────────────────────────────────────────────
+
+  ZWECK:
+    Tagesansicht eines Tages, geöffnet aus dem Monatskalender.
+    Ersetzt das bisherige horizontale 7-Spalten-Grid für den Einzeltag.
+    Zeigt alle 30-Min-Slots des Tages (06:00–22:00) vertikal und
+    vollflächig horizontal — ohne horizontales Scrolling.
+
+  ÖFFNEN / SCHLIESSEN:
+    Öffnen:  Klick auf einen Kalendertag → openDayView(dateStr)
+             Overlay slide-in von unten (transform: translateY, 200ms ease)
+    Schließen: [←] Zurück-Button → closeDayView()
+
+  DATENZUGRIFF (Architektur-konform):
+    AppService.getSlotsByTeacherDate(teacherUid, dateStr, callback)
+    AppService.getRecurringByTeacher(teacherUid, callback)
+    → NIEMALS Store.* direkt aufrufen
+
+
+────────────────────────────────────────────────────────────────────────────────
+OVERLAY-STRUKTUR
+────────────────────────────────────────────────────────────────────────────────
+
+  #day-view-overlay   (position: fixed, inset: 0, z-index: 200)
+  ├── .dv-topbar      (sticky, 60px, bg: --color-900)
+  └── .dv-slot-list   (flex: 1, overflow-y: auto)
+      ├── .dv-section-label   (sticky section header, e.g. "Morgen")
+      ├── .dv-slot-row        (1 Zeile pro 30-Min-Slot)
+      │   ├── .dv-slot-time   (Zeitangabe, fix 72px)
+      │   ├── .dv-slot-sep    (1px Trennlinie)
+      │   ├── .dv-slot-info   (Inhalt: Pill oder Schülerinfo)
+      │   └── .dv-slot-action (optionaler Action-Button)
+      └── ...
+
+
+────────────────────────────────────────────────────────────────────────────────
+TOPBAR  (sticky, 60px, bg: --color-900)
+────────────────────────────────────────────────────────────────────────────────
+
+  ┌─────────────────────────────────────────────────────────────────┐
+  │  [←]        DO  ·  19. März 2026                       [···]   │
+  │   ↑               ↑                                      ↑      │
+  │  .dv-back-btn    .dv-topbar-center               .dv-menu-btn  │
+  │  (36px rund)     Wochentag (Caption, --color-300)  (optional)  │
+  │                  Datum     (Body,    --neutral-0)               │
+  └─────────────────────────────────────────────────────────────────┘
+
+  .dv-back-btn:
+    → Kreis, 36×36px, border: rgba(255,255,255,0.3), bg: rgba(255,255,255,0.1)
+    → min touch area: 44×44px (padding-Erweiterung)
+    → touch-action: manipulation
+    → Hover nur in @media (hover:hover) and (pointer:fine)
+
+  .dv-topbar-center:
+    → Wochentag: font-size: --text-caption, color: --color-300, uppercase
+    → Datum:     font-size: --text-body,    color: --neutral-0, semibold
+
+
+────────────────────────────────────────────────────────────────────────────────
+SECTION LABELS  (sticky within scroll)
+────────────────────────────────────────────────────────────────────────────────
+
+  Gruppe     Slots
+  ────────   ──────────
+  Morgen     06:00 – 09:30
+  Vormittag  10:00 – 11:30
+  Mittag     12:00 – 13:30
+  Nachmittag 14:00 – 17:30
+  Abend      18:00 – 22:00
+
+  Styling:
+    bg: --neutral-50, border-top + border-bottom: 1px --neutral-100
+    font-size: --text-caption, uppercase, letter-spacing: 0.06em
+    color: --neutral-400, padding: --sp-1 --sp-3
+    position: sticky, top: 0, z-index: 2
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLOT ROW  (.dv-slot-row)
+────────────────────────────────────────────────────────────────────────────────
+
+  Höhe (Mobile-First):
+    Mobile  (< 480px):  min-height: 60px
+    Tablet  (≥ 480px):  min-height: 68px
+    Desktop (≥ 768px):  min-height: 72px
+
+  3-Spalten-Layout:
+  ┌──────────┬─┬──────────────────────────────┬──────────┐
+  │ ZEIT     │ │ INFO                         │ AKTION   │
+  │ 72px fix │ │ flex: 1                      │ 52px fix │
+  └──────────┴─┴──────────────────────────────┴──────────┘
+
+  Linker Rand (3px farbige Linie, border-radius 0 2px 2px 0):
+    available  → --color-400  (solid)
+    booked     → --color-400  (solid)
+    timeout    → --pending-amber (solid)
+    recurring  → --color-400  (dashed, CSS repeating-linear-gradient)
+    empty      → --neutral-200 (solid)
+
+  Hintergrundfarben:
+    available  → --color-50
+    booked     → --color-900
+    timeout    → --slot-timeout-bg
+    recurring  → --color-50
+    empty      → --neutral-0
+
+  Hover (nur @media (hover:hover) and (pointer:fine)):
+    available  → --color-100
+    timeout    → --slot-timeout-hover-bg
+    recurring  → --color-100
+    booked     → kein Hover (cursor: default)
+    empty      → kein Hover (cursor: default)
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLOT ZEIT-SPALTE  (.dv-slot-time)
+────────────────────────────────────────────────────────────────────────────────
+
+  Breite: 72px (fix, Mobile: 64px)
+  Layout: flex-column, align-items: flex-end, justify-content: center
+
+  .dv-time-start:
+    font-family: 'Courier New', monospace  (Code-Block-Ausnahme lt. Guideline)
+    font-size: --text-small (14px)
+    font-weight: --weight-semibold
+    color: --neutral-700 (available/empty/timeout/recurring)
+    color: --color-300   (booked)
+
+  .dv-time-end:
+    font-size: --text-caption (12px)
+    color: --neutral-400     (standard)
+    color: rgba(255,255,255,0.35) (booked)
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLOT INFO-BEREICH  (.dv-slot-info)
+────────────────────────────────────────────────────────────────────────────────
+
+  STATUS: available
+    → Pill: bg --color-100, border --color-200, color --color-700
+    → dot: --color-400
+    → Label: "Verfügbar"
+
+  STATUS: booked
+    → .dv-student-name: font-size --text-small, semibold, color --neutral-0
+    → .dv-student-meta: font-size --text-caption, color --color-300
+    → Inhalt: Name · E-Mail
+
+  STATUS: timeout
+    → Pill: bg --pending-amber-bg, border --slot-timeout-bd, color --pending-amber-tx
+    → dot: --pending-amber
+    → Label: "Gesperrt"
+
+  STATUS: recurring
+    → Pill: bg transparent, border 1.5px --color-400, color --color-600
+    → dot: transparent border --color-400
+    → Label: "Wiederkehrend"
+
+  STATUS: empty
+    → Text "Kein Slot" in --neutral-300, font-style: italic
+    → font-size: --text-caption
+
+
+────────────────────────────────────────────────────────────────────────────────
+SLOT ACTION-SPALTE  (.dv-slot-action)
+────────────────────────────────────────────────────────────────────────────────
+
+  Breite: 52px, align-items: center, justify-content: center
+
+  Button: 32×32px Kreis, touch-area via padding = 44×44px
+  Alle 5 Zustände: default · hover · active · focus · disabled
+
+  .dv-btn-add (empty):
+    border: --color-300, color: --color-400
+    hover (fine pointer): bg --color-400, color --neutral-0
+
+  .dv-btn-detail (booked):
+    border: rgba(255,255,255,0.25), color: rgba(255,255,255,0.7)
+    hover: bg rgba(255,255,255,0.15), color --neutral-0
+
+  .dv-btn-unblock (timeout):
+    border: --slot-timeout-bd, color: --pending-amber-tx
+    hover: bg --pending-amber, color --neutral-0
+
+  Focus-Ring: box-shadow: var(--focus-ring) — niemals outline: none ohne Ersatz
+
+
+────────────────────────────────────────────────────────────────────────────────
+SPACING-REGELN (8pt-Grid)
+────────────────────────────────────────────────────────────────────────────────
+
+  Topbar padding:         --sp-2 --sp-3  (8px 16px)
+  Slot row padding:       --sp-3 (16px) vertikal innen
+  Zeit-Spalte padding:    --sp-2 --sp-2 --sp-2 --sp-3
+  Info-Spalte padding:    --sp-2 --sp-2 --sp-2 --sp-3 (14px)
+  Action-Spalte padding:  0 --sp-2
+  Section-Label padding:  --sp-1 --sp-3
+  List bottom padding:    --sp-5 (32px) für FAB-Freiraum
+
+
+────────────────────────────────────────────────────────────────────────────────
+TYPOGRAFIE-REGELN (gemäß GUIDELINE_NEW_STYLING)
+────────────────────────────────────────────────────────────────────────────────
+
+  Nur Figtree — kein zweiter Font (Ausnahme: monospace für Zeit)
+  Nur 2 Gewichte: 400 Regular + 600 Semibold
+  Nur 4 Größen: 48 / 24 / 16 / 12px via Token
+    → Topbar Datum:    --text-body    (16px)
+    → Topbar Weekday:  --text-caption (12px)
+    → Slot Start-Zeit: 14px via inline (Grenzfall: zwischen Caption und Body)
+    → Slot End-Zeit:   --text-caption (12px)
+    → Pills:           --text-caption (12px)
+    → Schülername:     --text-small   (14px — Soft-Rule-Abweichung dokumentiert)
+    → Section Label:   --text-caption (12px)
+
+  HINWEIS Schriftgröße 14px:
+    Die Guideline definiert exakt 4 Größen (48/24/16/12).
+    14px ist eine dokumentierte Soft-Rule-Abweichung für die Zeit-Anzeige
+    und Schülernamen, da 16px (body) zu groß und 12px (caption) zu klein wäre
+    für diese Dichte. Begründung: Lesbarkeit in kompakter Listenansicht.
+
+
+────────────────────────────────────────────────────────────────────────────────
+VERBOTENE PRAKTIKEN (aus Guidelines)
+────────────────────────────────────────────────────────────────────────────────
+
+  ❌ element.style.display = ...  → classList.add('is-hidden')
+  ❌ Inline-CSS style="..."       → CSS-Klassen
+  ❌ Hardcoded Hex/px             → CSS-Tokens
+  ❌ Gradient/Textur              → flache fills, max shadow 0 1px 3px
+  ❌ font-weight: 500             → nur 400 oder 600
+  ❌ 2. Farb-Hue einführen        → nur navy-Palette + Semantic tokens
+  ❌ Store.* direkt               → nur AppService.*
+  ❌ let / const / Arrow-Fn       → var, function(){}
+  ❌ Unversionierte Assets        → ?v=${APP_VERSION}
+
+
+────────────────────────────────────────────────────────────────────────────────
+DATEIEN (geplant für Integration)
+────────────────────────────────────────────────────────────────────────────────
+
+  HTML:
+    teacher.html         → #day-view-overlay Block einfügen
+                           (analog zu #slot-grid-overlay)
+
+  CSS:
+    css/teacher.css      → .dv-* Klassen hinzufügen
+
+  JS:
+    js/teacher.js        → DayView IIFE-Modul hinzufügen:
+                           openDayView(dateStr), closeDayView(),
+                           renderDayView(), onDaySlotClick()
+
+  Ladereihenfolge (wie bestehend):
+    app-config.js → store.js → auth.js → profile.js → ui.js →
+    navbar.js → adapter-localstorage.js → app-service.js → teacher.js
+
+  Asset-Versionierung:
+    Nach Änderung APP_VERSION in app-config.js erhöhen
+    Alle <script src="...?v=${APP_VERSION}"> prüfen
+
+
+================================================================================

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Multi-Currency System — Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{--ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;--accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;--surface:#fff;--code-bg:#f1f5f9;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1100px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;overflow-x:auto;margin:14px 0}
+pre .cm{color:#6c7086;font-style:italic} pre .kw{color:#cba6f7} pre .str{color:#a6e3a1} pre .fn{color:#89dceb}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600} .new{color:var(--accent);font-weight:600} .warn{color:var(--amber);font-weight:600}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-num.green{background:var(--green)}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:18px;padding:0 0 0 36px}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.box-warn{border-color:#fde68a;background:#fffbeb}
+.box-green{border-color:#bbf7d0;background:#f0fdf4}
+
+/* Currency table */
+.cur-table{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+@media(max-width:600px){.cur-table{grid-template-columns:repeat(2,1fr)}}
+.cur-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.cur-flag{font-size:22px;flex-shrink:0}
+.cur-code{font-weight:700;font-size:13px;color:var(--ink)}
+.cur-sym{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.cur-name{font-size:11px;color:var(--neutral-400,#9ca3af)}
+
+/* Architecture diagram */
+.arch{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;align-items:center;gap:8px;margin:20px 0;font-size:12px}
+.arch-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;text-align:center}
+.arch-box.highlight{border-color:#2563eb;background:#eff6ff}
+.arch-box.green{border-color:#16a34a;background:#f0fdf4}
+.arch-arrow{text-align:center;font-size:18px;color:var(--muted);flex-shrink:0}
+</style>
+</head>
+<body>
+
+<h1>Multi-Currency System</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Unterstützte Währungen (12)</h2>
+
+<div class="cur-table">
+  <div class="cur-card"><div class="cur-flag">🇪🇺</div><div><div class="cur-code">EUR <span class="cur-sym">€</span></div><div class="cur-name">Euro</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇺🇸</div><div><div class="cur-code">USD <span class="cur-sym">$</span></div><div class="cur-name">US-Dollar</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇬🇧</div><div><div class="cur-code">GBP <span class="cur-sym">£</span></div><div class="cur-name">Brit. Pfund</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇨🇭</div><div><div class="cur-code">CHF <span class="cur-sym">Fr</span></div><div class="cur-name">Schweizer Franken</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇬🇪</div><div><div class="cur-code">GEL <span class="cur-sym">₾</span></div><div class="cur-name">Georgischer Lari</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇯🇵</div><div><div class="cur-code">JPY <span class="cur-sym">¥</span></div><div class="cur-name">Japanischer Yen</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇹🇷</div><div><div class="cur-code">TRY <span class="cur-sym">₺</span></div><div class="cur-name">Türkische Lira</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇵🇱</div><div><div class="cur-code">PLN <span class="cur-sym">zł</span></div><div class="cur-name">Polnischer Zloty</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇨🇿</div><div><div class="cur-code">CZK <span class="cur-sym">Kč</span></div><div class="cur-name">Tschech. Krone</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇸🇪</div><div><div class="cur-code">SEK <span class="cur-sym">kr</span></div><div class="cur-name">Schwedische Krone</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇷🇺</div><div><div class="cur-code">RUB <span class="cur-sym">₽</span></div><div class="cur-name">Russischer Rubel</div></div></div>
+  <div class="cur-card"><div class="cur-flag">🇦🇪</div><div><div class="cur-code">AED <span class="cur-sym">د.إ</span></div><div class="cur-name">Dirham (VAE)</div></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — Architektur-Prinzip</h2>
+
+<p><strong>Systemwährung: EUR.</strong> Alle Beträge werden bei Buchung in EUR konvertiert und gespeichert. Das Wallet läuft immer in EUR. Lehrer setzen ihren Preis in ihrer Währung. Schüler wählen ihre Anzeigewährung.</p>
+
+<div class="box box-info">
+  <strong>Best Practice (wie Stripe, Airbnb, Booking.com):</strong> Eine einzige Systemwährung im Backend. Konvertierung nur an der UI-Grenze. Kurs wird zum Buchungszeitpunkt eingefroren und im Slot gespeichert.
+</div>
+
+<pre><code><span class="cm">/* Geldfluss-Beispiel */</span>
+Lehrer (GEL):  Preis = ₾130  (Lari)
+               Kurs  = 1 EUR = 2.965 GEL
+               → slot.price = <span class="str">43.85 EUR</span>  ← gespeichert in EUR
+
+Schüler (USD): Wallet = $500
+               Sieht:  $47.36  (43.85 EUR × 1.08)
+               Zahlt:  $47.36 vom Wallet (in USD-Anzeige)
+               Wallet intern: -43.85 EUR</code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Provider Swap-Mechanismus</h2>
+
+<p>Der einzige Unterschied zwischen Mockup und Production ist <strong>eine Datei</strong>.</p>
+
+<div class="tw"><table>
+<thead><tr><th>Modus</th><th>Datei laden</th><th>Verhalten</th></tr></thead>
+<tbody>
+  <tr><td><strong>Mockup</strong> (aktuell)</td><td><code>currency-provider-mock.js</code></td><td>Statische Kurse (Stand März 2026), sofort verfügbar, kein API-Key</td></tr>
+  <tr><td><strong>Production</strong></td><td><code>currency-provider-live.js</code></td><td>Ruft open.er-api.com auf, cached 1h in localStorage, echte Kurse</td></tr>
+</tbody>
+</table></div>
+
+<div class="box box-green">
+  <strong>Go-Live in 1 Schritt:</strong> In allen HTML-Dateien<br>
+  <code>currency-provider-mock.js</code> → <code>currency-provider-live.js</code> ersetzen.<br>
+  Kein weiterer Code ändert sich.
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — CurrencyService API</h2>
+
+<pre><code><span class="cm">/* Konvertierung (async) */</span>
+<span class="fn">CurrencyService.convert</span>(amount, from, to, <span class="kw">function</span>(err, result) {
+  <span class="cm">// result: converted amount in target currency</span>
+});
+
+<span class="cm">/* Konvertierung (sync, nur wenn Kurse gecacht) */</span>
+<span class="kw">var</span> eur = <span class="fn">CurrencyService.convertSync</span>(45, <span class="str">'GEL'</span>, <span class="str">'EUR'</span>);
+
+<span class="cm">/* Formatierung mit Symbol */</span>
+<span class="fn">CurrencyService.format</span>(45.00, <span class="str">'EUR'</span>);  <span class="cm">// → "€45,00"</span>
+<span class="fn">CurrencyService.format</span>(130, <span class="str">'GEL'</span>);    <span class="cm">// → "₾130,00"</span>
+<span class="fn">CurrencyService.format</span>(5000, <span class="str">'JPY'</span>);   <span class="cm">// → "¥5000"</span>
+<span class="fn">CurrencyService.format</span>(45, <span class="str">'SEK'</span>);    <span class="cm">// → "45,00 kr"</span>
+
+<span class="cm">/* Symbol */</span>
+<span class="fn">CurrencyService.getSymbol</span>(<span class="str">'AED'</span>);  <span class="cm">// → "د.إ"</span>
+
+<span class="cm">/* Alle Währungen */</span>
+<span class="fn">CurrencyService.getSupportedCurrencies</span>();
+<span class="cm">// → [{code:'EUR', symbol:'€', name:'Euro', flag:'🇪🇺', decimals:2}, ...]</span>
+
+<span class="cm">/* Mockup-Check */</span>
+<span class="fn">CurrencyService.isMock</span>();  <span class="cm">// → true in Mockup, false in Production</span>
+
+<span class="cm">/* Warmup (beim App-Start) */</span>
+<span class="fn">CurrencyService.warmUp</span>(<span class="kw">function</span>(err, rates) { ... });
+
+<span class="cm">/* Profil-Währung lesen */</span>
+<span class="fn">CurrencyService.getTeacherPriceCurrency</span>(<span class="str">'t1'</span>);  <span class="cm">// → 'GEL'</span>
+<span class="fn">CurrencyService.getUserCurrency</span>(<span class="str">'s1'</span>);          <span class="cm">// → 'USD'</span></code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Konvertierungs-Pipeline (bei Buchung)</h2>
+
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Lehrer hat Preis <code>130 GEL</code> in Profil (<code>priceCurrency: 'GEL'</code>)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Schüler klickt „Buchen" → <code>adapter-localstorage.bookSlot()</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><code>CurrencyService.convertSync(130, 'GEL', 'EUR')</code> → <code>43.85 EUR</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text"><code>slot.price = 43.85</code> — in EUR gespeichert. Kurs eingefroren.</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Escrow: <code>fullAmount = 43.85 EUR</code>. Deposit: <code>8.77 EUR</code> (20%)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num green">6</div><div class="flow-text">UI zeigt dem Lehrer: <code>₾130,00</code> · dem Schüler (USD): <code>$47.36</code></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — Profil-Felder</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Wer</th><th>Default</th><th>Bedeutung</th></tr></thead>
+<tbody>
+  <tr><td><code>pricePerHalfHour</code></td><td>Lehrer</td><td>—</td><td>Preis-Betrag (in priceCurrency)</td></tr>
+  <tr><td><code>priceCurrency</code> <span class="new">NEU</span></td><td>Lehrer</td><td>EUR</td><td>ISO 4217 Code der Preiskäufer</td></tr>
+  <tr><td><code>displayCurrency</code> <span class="new">NEU</span></td><td>Alle</td><td>EUR</td><td>Bevorzugte Anzeigewährung</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — Mockup-Kurse (Stand März 2026)</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Währung</th><th>1 EUR =</th><th>1 dieser Einheit = EUR</th></tr></thead>
+<tbody>
+  <tr><td>🇺🇸 USD</td><td>1.080</td><td>0.926</td></tr>
+  <tr><td>🇬🇧 GBP</td><td>0.855</td><td>1.170</td></tr>
+  <tr><td>🇨🇭 CHF</td><td>0.962</td><td>1.039</td></tr>
+  <tr><td>🇬🇪 GEL</td><td>2.965</td><td>0.337</td></tr>
+  <tr><td>🇯🇵 JPY</td><td>161.2</td><td>0.0062</td></tr>
+  <tr><td>🇹🇷 TRY</td><td>36.8</td><td>0.0272</td></tr>
+  <tr><td>🇵🇱 PLN</td><td>4.275</td><td>0.234</td></tr>
+  <tr><td>🇨🇿 CZK</td><td>25.1</td><td>0.0398</td></tr>
+  <tr><td>🇸🇪 SEK</td><td>11.4</td><td>0.0877</td></tr>
+  <tr><td>🇷🇺 RUB</td><td>99.5</td><td>0.01005</td></tr>
+  <tr><td>🇦🇪 AED</td><td>3.967</td><td>0.252</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>8 — Datei-Übersicht</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Status</th><th>Version</th><th>Zweck</th></tr></thead>
+<tbody>
+  <tr><td><code>currency-provider-mock.js</code></td><td class="new">NEU</td><td>v=1</td><td>Statische Mockup-Kurse. Für Produktion ersetzen.</td></tr>
+  <tr><td><code>currency-provider-live.js</code></td><td class="new">NEU (Stub)</td><td>v=1</td><td>Production-Provider mit open.er-api.com + 1h Cache</td></tr>
+  <tr><td><code>currency-service.js</code></td><td class="new">NEU</td><td>v=1</td><td>Adapter-Layer: convert, format, getSymbol, warmUp, getUserCurrency</td></tr>
+  <tr><td><code>profile.js</code></td><td class="warn">Geändert</td><td>v=24</td><td><code>priceCurrency</code> + <code>displayCurrency</code> Felder, Dropdowns in Edit, _getPriceSymbol()</td></tr>
+  <tr><td><code>ui.js</code></td><td class="warn">Geändert</td><td>v=41</td><td><code>fmtPrice(amount, currencyCode)</code> — optionaler Währungsparameter, CurrencyService-aware</td></tr>
+  <tr><td><code>adapter-localstorage.js</code></td><td class="warn">Geändert</td><td>v=21</td><td><code>bookSlot()</code> konvertiert Lehrer-Preis → EUR via convertSync</td></tr>
+  <tr><td>Alle HTML-Dateien</td><td class="warn">Geändert</td><td>bump</td><td>currency-provider-mock.js + currency-service.js vor store.js geladen</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>9 — Go-Live Checkliste</h2>
+
+<div class="box box-warn">
+  <strong>Schritt 1:</strong> API-Key bei <a href="https://exchangeratesapi.io">exchangeratesapi.io</a> oder kostenloses Konto bei <a href="https://open.er-api.com">open.er-api.com</a> erstellen.<br><br>
+  <strong>Schritt 2:</strong> In <code>currency-provider-live.js</code> die <code>API_URL</code> und ggf. <code>API_KEY</code> setzen.<br><br>
+  <strong>Schritt 3:</strong> In allen HTML-Dateien:<br>
+  <code>&lt;script src="./js/currency-provider-<strong>mock</strong>.js"&gt;</code><br>
+  → <code>&lt;script src="./js/currency-provider-<strong>live</strong>.js"&gt;</code><br><br>
+  <strong>Fertig.</strong> Kein weiterer Code ändert sich.
+</div>
+
+</body>
+</html>

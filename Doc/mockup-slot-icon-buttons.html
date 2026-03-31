@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Slot Icon Buttons + Legend Dialog</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens (subset) ─────────────────────────── */
+:root {
+  --color-50:  #f0f3f7;
+  --color-100: #dde4ed;
+  --color-200: #bccada;
+  --color-300: #8fa9c0;
+  --color-400: #4d7aa0;
+  --color-500: #3a6285;
+  --color-600: #2b4d6b;
+  --color-700: #1a3249;
+  --color-800: #0f2035;
+  --color-900: #060f1c;
+  --neutral-0:   #ffffff;
+  --neutral-50:  #f8f9fb;
+  --neutral-100: #f0f2f5;
+  --neutral-200: #e2e6eb;
+  --neutral-300: #c9d0d9;
+  --neutral-400: #9aa3af;
+  --neutral-500: #6b7685;
+  --neutral-700: #2d3540;
+  --neutral-900: #0d1117;
+  --font: 'Figtree', sans-serif;
+  --text-body:    16px;
+  --text-caption: 12px;
+  --weight-regular:  400;
+  --weight-semibold: 600;
+  --sp-1:  4px; --sp-2:  8px; --sp-3: 16px;
+  --sp-4: 24px; --sp-5: 32px;
+  --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 2px rgba(6,15,28,0.06);
+  --shadow:    0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg: 0 4px 16px rgba(6,15,28,0.12);
+  --shadow-md: 0 2px 8px rgba(6,15,28,0.10);
+  --transition: 150ms ease;
+
+  /* Slot row colors */
+  --slot-available-bg:  #0f2035;
+  --slot-available-tx:  #ffffff;
+  --slot-empty-bg:      #ffffff;
+  --slot-empty-tx:      var(--neutral-400);
+  --slot-booked-bg:     #060f1c;
+  --slot-booked-tx:     #ffffff;
+
+  /* Icon button */
+  --btn-size: 40px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font);
+  font-size: var(--text-body);
+  font-weight: var(--weight-regular);
+  background: var(--neutral-100);
+  color: var(--neutral-900);
+  min-height: 100vh;
+  padding: var(--sp-4) var(--sp-3);
+}
+
+/* ── Page layout ────────────────────────────── */
+.page { max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; gap: var(--sp-4); }
+.section-title {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neutral-400);
+  margin-bottom: var(--sp-2);
+}
+
+/* ── Icon button ────────────────────────────── */
+/*
+  Perfect square, 40×40px touch target.
+  Black icon on white bg (default) or white icon on dark bg (inverted).
+  No border-radius — sharp squares as requested.
+*/
+.slot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--btn-size);
+  height: var(--btn-size);
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition), opacity var(--transition);
+  position: relative;
+}
+.slot-btn svg { display: block; }
+
+/* Default: white background, dark icon */
+.slot-btn--light {
+  background: var(--neutral-0);
+  color: var(--neutral-900);
+  box-shadow: var(--shadow);
+}
+.slot-btn--light:hover { background: var(--neutral-100); }
+.slot-btn--light:active { background: var(--neutral-200); }
+
+/* Inverted: dark background, white icon (for use on dark rows) */
+.slot-btn--dark {
+  background: rgba(255,255,255,0.12);
+  color: var(--neutral-0);
+}
+.slot-btn--dark:hover  { background: rgba(255,255,255,0.20); }
+.slot-btn--dark:active { background: rgba(255,255,255,0.30); }
+
+/* Ghost: transparent, subtle border */
+.slot-btn--ghost {
+  background: transparent;
+  color: var(--neutral-400);
+  box-shadow: none;
+}
+.slot-btn--ghost:hover { background: var(--neutral-100); color: var(--neutral-700); }
+
+/* ── Slot row layout ────────────────────────── */
+.slot-row {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-2);
+  min-height: 56px;
+  gap: var(--sp-2);
+  border-bottom: 1px solid var(--neutral-200);
+}
+.slot-row--empty    { background: var(--slot-empty-bg); }
+.slot-row--available{ background: var(--slot-available-bg); }
+.slot-row--booked   { background: var(--slot-booked-bg); }
+.slot-row--disabled { background: var(--neutral-50); }
+
+.slot-time {
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  min-width: 64px;
+  line-height: 1.2;
+}
+.slot-row--empty .slot-time     { color: var(--neutral-400); }
+.slot-row--available .slot-time { color: var(--neutral-0); }
+.slot-row--booked .slot-time    { color: var(--neutral-0); }
+.slot-row--disabled .slot-time  { color: var(--neutral-300); }
+
+.slot-time span { font-size: 11px; display: block; font-weight: var(--weight-regular); opacity: 0.7; }
+
+.slot-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+
+.slot-avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--color-400);
+  color: white;
+  font-size: 12px;
+  font-weight: var(--weight-semibold);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.slot-label {
+  font-size: 13px;
+  color: var(--neutral-400);
+  font-style: italic;
+}
+
+.slot-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Legend trigger ─────────────────────────── */
+.legend-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 6px var(--sp-2);
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-caption);
+  color: var(--neutral-500);
+  cursor: pointer;
+  font-family: var(--font);
+  font-weight: var(--weight-semibold);
+  transition: background var(--transition);
+  letter-spacing: 0.02em;
+}
+.legend-trigger:hover { background: var(--neutral-100); }
+
+/* ── Modal overlay ─────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(6,15,28,0.55);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 200ms ease;
+}
+.modal-overlay.is-open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Bottom sheet style for mobile */
+.modal-sheet {
+  background: var(--neutral-0);
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--sp-4);
+  transform: translateY(24px);
+  transition: transform 200ms ease;
+  box-shadow: 0 -4px 32px rgba(6,15,28,0.18);
+}
+.modal-overlay.is-open .modal-sheet { transform: translateY(0); }
+
+.modal-handle {
+  width: 36px; height: 4px;
+  background: var(--neutral-200);
+  border-radius: 2px;
+  margin: 0 auto var(--sp-4);
+}
+
+.modal-title {
+  font-size: 16px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  margin-bottom: var(--sp-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-close {
+  width: 32px; height: 32px;
+  background: var(--neutral-100);
+  border: none;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--neutral-500);
+  flex-shrink: 0;
+}
+.modal-close:hover { background: var(--neutral-200); }
+
+/* ── Legend items ──────────────────────────── */
+.legend-list { display: flex; flex-direction: column; gap: 2px; }
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px var(--sp-2);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.legend-item:last-child { border-bottom: none; }
+
+.legend-btn-preview {
+  width: var(--btn-size);
+  height: var(--btn-size);
+  background: var(--neutral-900);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--neutral-0);
+}
+
+.legend-text { flex: 1; }
+.legend-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.legend-text span {
+  font-size: 12px;
+  color: var(--neutral-500);
+  line-height: 1.4;
+}
+
+/* ── Context section ────────────────────────── */
+.legend-section-head {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--neutral-400);
+  padding: var(--sp-2) var(--sp-2) var(--sp-1);
+  margin-top: var(--sp-2);
+}
+
+/* ── Demo card ─────────────────────────────── */
+.demo-card {
+  background: var(--neutral-0);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+.demo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-200);
+  background: var(--color-900);
+}
+.demo-header-title {
+  font-size: 13px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-0);
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ① Section: Button legend trigger -->
+  <div>
+    <p class="section-title">① Legende-Button (in Day Header)</p>
+    <div style="display:flex; align-items:center; gap:8px; padding:12px 16px; background:var(--color-900); border-radius:var(--radius-md);">
+      <span style="color:var(--neutral-300); font-size:14px; font-weight:600; flex:1;">Do., 26. März</span>
+      <button class="legend-trigger" id="legend-open-btn" onclick="openLegend()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M8 7v5M8 5h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        Legende
+      </button>
+    </div>
+  </div>
+
+  <!-- ② Section: Slot rows with icon buttons -->
+  <div>
+    <p class="section-title">② Slot-Rows mit Icon-Buttons</p>
+    <div class="demo-card">
+
+      <!-- Empty slot -->
+      <div class="slot-row slot-row--empty">
+        <div class="slot-time">12:30<span>–13:00</span></div>
+        <div class="slot-info">
+          <span class="slot-label">Kein Slot</span>
+        </div>
+        <div class="slot-actions">
+          <!-- Gear / Settings -->
+          <button class="slot-btn slot-btn--ghost" title="Konfigurieren" onclick="tip('Slot konfigurieren')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M4.93 4.93l.7.7M14.37 14.37l.7.7M2 10h1M17 10h1M4.93 15.07l.7-.7M14.37 5.63l.7-.7M10 2v1M10 17v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Add booking -->
+          <button class="slot-btn slot-btn--light" title="Buchung erstellen" onclick="tip('Buchung erstellen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Available slot -->
+      <div class="slot-row slot-row--available">
+        <div class="slot-time">13:00<span>–13:30</span></div>
+        <div class="slot-info">
+          <!-- visibility badge -->
+          <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.6); background:rgba(255,255,255,0.12); padding:2px 8px; border-radius:3px; letter-spacing:0.04em;">SICHTBAR</span>
+        </div>
+        <div class="slot-actions">
+          <!-- Gear -->
+          <button class="slot-btn slot-btn--dark" title="Konfigurieren" onclick="tip('Slot konfigurieren')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M4.93 4.93l.7.7M14.37 14.37l.7.7M2 10h1M17 10h1M4.93 15.07l.7-.7M14.37 5.63l.7-.7M10 2v1M10 17v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Hide from students (eye-off) -->
+          <button class="slot-btn slot-btn--dark" title="Für Schüler ausblenden" onclick="tip('Für Schüler unsichtbar machen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </button>
+          <!-- Timeout (stopwatch) -->
+          <button class="slot-btn slot-btn--dark" title="Timeout setzen" onclick="tip('Timeout: Slot temporär sperren')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="11" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 7v4l2.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M7.5 2.5h5M10 2.5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Add booking -->
+          <button class="slot-btn slot-btn--dark" title="Buchung erstellen" onclick="tip('Buchung erstellen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Available slot — hidden from students -->
+      <div class="slot-row slot-row--available" style="opacity:0.6;">
+        <div class="slot-time">13:30<span>–14:00</span></div>
+        <div class="slot-info">
+          <span style="font-size:11px; font-weight:600; color:rgba(255,255,255,0.5); background:rgba(255,255,255,0.08); padding:2px 8px; border-radius:3px; letter-spacing:0.04em;">VERSTECKT</span>
+        </div>
+        <div class="slot-actions">
+          <button class="slot-btn slot-btn--dark" title="Konfigurieren" onclick="tip('Slot konfigurieren')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M4.93 4.93l.7.7M14.37 14.37l.7.7M2 10h1M17 10h1M4.93 15.07l.7-.7M14.37 5.63l.7-.7M10 2v1M10 17v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Show (eye with slash = currently hidden, click to show) -->
+          <button class="slot-btn slot-btn--dark" title="Für Schüler sichtbar machen" onclick="tip('Für Schüler sichtbar machen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M2 2l16 16M7.5 7.6A4 4 0 0012.4 12.5M4.2 4.3C2.5 5.8 1 8 1 10s3.5 6 9 6c1.8 0 3.4-.5 4.8-1.3M8 4.3C8.6 4.1 9.3 4 10 4c5.5 0 9 6 9 6a15 15 0 01-2 2.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="slot-btn slot-btn--dark" title="Timeout setzen" onclick="tip('Timeout setzen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <circle cx="10" cy="11" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M10 7v4l2.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M7.5 2.5h5M10 2.5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <button class="slot-btn slot-btn--dark" title="Buchung erstellen" onclick="tip('Buchung erstellen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Timeout slot -->
+      <div class="slot-row slot-row--empty" style="background:#fef9ec;">
+        <div class="slot-time" style="color:#7a5c00;">14:00<span style="color:#b09050;">–14:30</span></div>
+        <div class="slot-info">
+          <svg width="16" height="16" viewBox="0 0 20 20" fill="none" style="color:#b09050; flex-shrink:0;">
+            <circle cx="10" cy="11" r="6.5" stroke="currentColor" stroke-width="1.5"/>
+            <path d="M10 7v4l2.5 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7.5 2.5h5M10 2.5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <span style="font-size:12px; color:#7a5c00; font-weight:600;">Timeout</span>
+        </div>
+        <div class="slot-actions">
+          <button class="slot-btn slot-btn--ghost" title="Timeout aufheben" onclick="tip('Timeout aufheben')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M3 10a7 7 0 1014 0A7 7 0 003 10zM10 7v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M6 3l-3 3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="slot-btn slot-btn--light" title="Buchung erstellen" onclick="tip('Buchung erstellen (Timeout bleibt)')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Booked slot -->
+      <div class="slot-row slot-row--booked">
+        <div class="slot-time">15:00<span>–15:30</span></div>
+        <div class="slot-info">
+          <div class="slot-avatar">S</div>
+          <span style="font-size:13px; color:rgba(255,255,255,0.85);">Student 1</span>
+        </div>
+        <div class="slot-actions">
+          <button class="slot-btn slot-btn--dark" title="Konfigurieren" onclick="tip('Slot konfigurieren')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M4.93 4.93l.7.7M14.37 14.37l.7.7M2 10h1M17 10h1M4.93 15.07l.7-.7M14.37 5.63l.7-.7M10 2v1M10 17v1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Add another student -->
+          <button class="slot-btn slot-btn--dark" title="Weiteren Schüler buchen" onclick="tip('Weiteren Schüler hinzufügen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+          <!-- Expand -->
+          <button class="slot-btn slot-btn--dark" title="Details" onclick="tip('Buchungsdetails anzeigen')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+              <path d="M7 8l3 3 3-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ③ Tooltip feedback -->
+  <div id="tip-box" style="display:none; background:var(--color-900); color:white; font-size:12px; padding:8px 12px; border-radius:4px; text-align:center; font-weight:600;"></div>
+
+  <!-- ④ Legend button demo -->
+  <div>
+    <p class="section-title">③ Legende-Dialog — Preview</p>
+    <button onclick="openLegend()" style="width:100%; padding:12px; background:var(--color-400); color:white; border:none; font-family:var(--font); font-size:14px; font-weight:600; cursor:pointer; border-radius:var(--radius-sm);">
+      Legende öffnen
+    </button>
+  </div>
+
+</div>
+
+<!-- ── Legend Dialog (bottom sheet) ────────── -->
+<div class="modal-overlay" id="legend-overlay" onclick="closeLegendOutside(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">
+      Button-Legende
+      <button class="modal-close" onclick="closeLegend()">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="legend-list">
+
+      <div class="legend-section-head">Verfügbarkeit</div>
+
+      <!-- Gear / Settings -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 13a3 3 0 100-6 3 3 0 000 6z" stroke="white" stroke-width="1.5"/>
+            <path d="M4.93 4.93l.7.7M14.37 14.37l.7.7M2 10h1M17 10h1M4.93 15.07l.7-.7M14.37 5.63l.7-.7M10 2v1M10 17v1" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Konfigurieren</strong>
+          <span>Sichtbarkeit, Whitelist und Slot-Einstellungen</span>
+        </div>
+      </div>
+
+      <!-- Eye — visible -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" stroke="white" stroke-width="1.5"/>
+            <circle cx="10" cy="10" r="2.5" stroke="white" stroke-width="1.5"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Sichtbar für Schüler</strong>
+          <span>Schüler können diesen Slot sehen und buchen</span>
+        </div>
+      </div>
+
+      <!-- Eye-off — hidden -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M2 2l16 16M7.5 7.6A4 4 0 0012.4 12.5M4.2 4.3C2.5 5.8 1 8 1 10s3.5 6 9 6c1.8 0 3.4-.5 4.8-1.3M8 4.3C8.6 4.1 9.3 4 10 4c5.5 0 9 6 9 6a15 15 0 01-2 2.7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Unsichtbar für Schüler</strong>
+          <span>Slot existiert, ist aber für Schüler nicht buchbar</span>
+        </div>
+      </div>
+
+      <!-- Stopwatch — timeout -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="11" r="6.5" stroke="white" stroke-width="1.5"/>
+            <path d="M10 7v4l2.5 2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M7.5 2.5h5M10 2.5v2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Timeout</strong>
+          <span>Slot temporär gesperrt — für Schüler unsichtbar, Buchung durch Lehrer weiter möglich</span>
+        </div>
+      </div>
+
+      <!-- Undo timeout -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M3 10a7 7 0 1014 0A7 7 0 003 10zM10 7v3l2 2" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M6 3l-3 3 3 3" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Timeout aufheben</strong>
+          <span>Slot wieder auf vorherigen Status zurücksetzen</span>
+        </div>
+      </div>
+
+      <div class="legend-section-head" style="margin-top:var(--sp-2);">Buchungen</div>
+
+      <!-- Plus — add booking -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 4v12M4 10h12" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Buchung erstellen</strong>
+          <span>Schüler direkt auf diesem Slot buchen — unabhängig von Verfügbarkeit</span>
+        </div>
+      </div>
+
+      <!-- Chevron — expand -->
+      <div class="legend-item">
+        <div class="legend-btn-preview">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M7 8l3 3 3-3" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="legend-text">
+          <strong>Details anzeigen</strong>
+          <span>Buchungsdetails, Stornierung und weitere Aktionen</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function openLegend() {
+  document.getElementById('legend-overlay').classList.add('is-open');
+}
+function closeLegend() {
+  document.getElementById('legend-overlay').classList.remove('is-open');
+}
+function closeLegendOutside(e) {
+  if (e.target === document.getElementById('legend-overlay')) closeLegend();
+}
+function tip(msg) {
+  var box = document.getElementById('tip-box');
+  box.textContent = '→ ' + msg;
+  box.style.display = 'block';
+  clearTimeout(box._t);
+  box._t = setTimeout(function() { box.style.display = 'none'; }, 2000);
+}
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLegend();
+});
+</script>
+</body>
+</html>

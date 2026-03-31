@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="IMPL">
+  <meta name="doc-subject"  content="GuestSettings — Währungspersistenz via AppService-Layer">
+  <title>IMPL — GuestSettings Currency 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+           font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+    }
+    /* ── Header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .ph-badge.err { background: rgba(192,57,43,.3);  border-color: rgba(192,57,43,.5); }
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    /* ── Section ── */
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    /* ── Callout ── */
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    /* ── Table ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-new  { background: var(--info-bg); }
+    tbody tr.r-fix  { background: var(--ok-bg); }
+    tbody tr.r-bug  { background: var(--err-bg); }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    /* ── Code blocks ── */
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; color: #e2e8f0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; } .cs { color: #86efac; }
+    .ce { color: #fca5a5; } .cn { color: #fde68a; } .cp { color: #c4b5fd; }
+    /* ── Pipeline ── */
+    .pipe { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .pipe-step { display: grid; grid-template-columns: 180px 1fr;
+                 border: 1px solid var(--n200); border-bottom: none; background: var(--n0); }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .pipe-step.bug  { background: #fff8f8; }
+    .pipe-step.fix  { background: #f8fff8; }
+    .pipe-step.ctx  { background: var(--n50); }
+    .pipe-left { padding: 10px 14px; border-right: 1px solid var(--n200);
+                 display: flex; flex-direction: column; gap: 3px; }
+    .pipe-file { font-family: var(--mono); font-size: 10px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; color: var(--n400); }
+    .pipe-fn   { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy); }
+    .pipe-right { padding: 10px 14px; font-size: 12px; color: var(--n500); line-height: 1.6; }
+    .pipe-arrow { text-align: center; padding: 3px 0; font-size: 14px; color: var(--n400); }
+    /* ── Severity ── */
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-ok   { background: var(--ok-bg);   color: var(--ok-tx);   border: 1px solid var(--ok-bd); }
+    .sev-bug  { background: var(--err-bg);  color: var(--err-tx);  border: 1px solid var(--err-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .sev-info { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════ -->
+<header class="ph">
+  <div class="ph-eye">IMPL · Währungspersistenz · BookingSystem</div>
+  <h1 class="ph-title">GuestSettings — Währung via AppService-Layer</h1>
+  <p class="ph-sub">
+    <code>Store.GuestSettings</code> war nie implementiert. Die Navbar-Währungsauswahl
+    schrieb ins Leere — Lehrerpreise auf der Visitenkarte ignorierten die Einstellung.
+    Jetzt vollständig über den Adapter-Layer implementiert: <code>store.js</code> →
+    <code>adapter-localstorage.js</code> → <code>app-service.js</code> →
+    <code>currency-service.js</code>.
+  </p>
+  <div class="ph-meta">
+    <span class="ph-badge err">🔴 Bugfix</span>
+    <span class="ph-badge inf">🔵 IMPL</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">4 Dateien geändert</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-22</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 1 — ROOT CAUSE
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <span class="sec-title">Root Cause — was fehlte</span>
+      <span class="sec-sub">store.js · currency-service.js</span>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Kernproblem:</strong> <code>currency-service.js</code> rief
+      <code>Store.GuestSettings.setCurrency()</code> und
+      <code>Store.GuestSettings.getCurrency()</code> auf —
+      aber <code>Store.GuestSettings</code> war in <code>store.js</code> nie definiert.
+      Der <code>typeof Store !== 'undefined' &amp;&amp; Store.GuestSettings</code>-Guard
+      verhinderte den Crash, machte den Code aber zu totem Code.
+      Kein Schreibvorgang. Kein Lesevorgang. Einstellung wurde nicht gespeichert.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Schicht</th>
+            <th>Datei</th>
+            <th>Vorher</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td>Store-Layer</td>
+            <td><code>store.js</code></td>
+            <td><code>window.Store</code> exportierte: Users, Slots, Recurring, Selections, MoveLog, Favorites — kein GuestSettings</td>
+            <td><span class="sev sev-bug">❌ Fehlte</span></td>
+          </tr>
+          <tr class="r-bug">
+            <td>Adapter</td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td>Keine <code>getGuestCurrency</code> / <code>setGuestCurrency</code> Funktionen</td>
+            <td><span class="sev sev-bug">❌ Fehlte</span></td>
+          </tr>
+          <tr class="r-bug">
+            <td>AppService</td>
+            <td><code>app-service.js</code></td>
+            <td>Keine <code>getGuestCurrency</code> / <code>setGuestCurrency</code> Methoden</td>
+            <td><span class="sev sev-bug">❌ Fehlte</span></td>
+          </tr>
+          <tr class="r-bug">
+            <td>CurrencyService</td>
+            <td><code>currency-service.js</code></td>
+            <td><code>setGuestCurrency()</code> rief <code>Store.GuestSettings.setCurrency()</code> direkt auf — Guard ließ Code still scheitern</td>
+            <td><span class="sev sev-bug">❌ Toter Code</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Navbar</td>
+            <td><code>navbar.js</code></td>
+            <td><code>CurrencyService.setGuestCurrency(code, uid)</code> — Aufruf korrekt, Wirkung null</td>
+            <td><span class="sev sev-warn">⚠️ Korrekt, aber wirkungslos</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 2 — DATENFLUSS VORHER VS NACHHER
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <span class="sec-title">Datenfluss — Vorher vs. Nachher</span>
+      <span class="sec-sub">Write-Pfad: Navbar → Währung wechseln</span>
+    </div>
+
+    <p style="font-size:13px; color:var(--n500); margin-bottom:14px; font-weight:700;">VORHER — Write-Pfad (broken)</p>
+    <div class="pipe">
+      <div class="pipe-step bug">
+        <div class="pipe-left"><span class="pipe-file">navbar.js</span><span class="pipe-fn">_bindCurrencyDropdown()</span></div>
+        <div class="pipe-right">User wählt z.B. USD im Dropdown → <code>CurrencyService.setGuestCurrency('USD', uid)</code></div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left"><span class="pipe-file">currency-service.js</span><span class="pipe-fn">setGuestCurrency()</span></div>
+        <div class="pipe-right"><code>if (Store.GuestSettings)</code> → <strong>false</strong> — Store.GuestSettings existiert nicht → Block übersprungen → nichts geschrieben</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left"><span class="pipe-file">—</span><span class="pipe-fn">VERLOREN</span></div>
+        <div class="pipe-right">Währung wird nicht gespeichert. <code>getUserCurrency(null)</code> gibt weiterhin 'EUR' zurück. Visitenkarte zeigt Lehrerpreis in Lehrerwährung.</div>
+      </div>
+    </div>
+
+    <p style="font-size:13px; color:var(--n500); margin-bottom:14px; font-weight:700; margin-top:24px;">NACHHER — Write-Pfad (fix)</p>
+    <div class="pipe">
+      <div class="pipe-step fix">
+        <div class="pipe-left"><span class="pipe-file">navbar.js</span><span class="pipe-fn">_bindCurrencyDropdown()</span></div>
+        <div class="pipe-right">User wählt z.B. USD → <code>CurrencyService.setGuestCurrency('USD', uid)</code> — unverändert</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step fix">
+        <div class="pipe-left"><span class="pipe-file">currency-service.js</span><span class="pipe-fn">setGuestCurrency()</span></div>
+        <div class="pipe-right"><code>AppService.setGuestCurrency('USD', callback)</code> — delegiert via AppService-Layer</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step fix">
+        <div class="pipe-left"><span class="pipe-file">app-service.js</span><span class="pipe-fn">setGuestCurrency()</span></div>
+        <div class="pipe-right"><code>_call('setGuestCurrency', [code, callback])</code> — delegiert an aktiven Adapter</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step fix">
+        <div class="pipe-left"><span class="pipe-file">adapter-localstorage.js</span><span class="pipe-fn">setGuestCurrency()</span></div>
+        <div class="pipe-right"><code>Store.GuestSettings.setCurrency('USD')</code> → schreibt <code>app_guest_settings: {currency: 'USD'}</code> in localStorage</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step fix">
+        <div class="pipe-left"><span class="pipe-file">store.js</span><span class="pipe-fn">GuestSettings.setCurrency()</span></div>
+        <div class="pipe-right">Persistiert <code>{currency: 'USD'}</code> unter Key <code>app_guest_settings</code> in localStorage ✅</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 3 — GEÄNDERTE DATEIEN
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <span class="sec-title">Geänderte Dateien — 4 Stellen</span>
+      <span class="sec-sub">APP_VERSION 2026-03-21-22</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Was wurde hinzugefügt</th>
+            <th>Typ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-new">
+            <td><code>js/store.js</code></td>
+            <td>
+              <code>KEYS.GUEST_SETTINGS = 'app_guest_settings'</code> hinzugefügt.<br>
+              <code>GuestSettings</code>-Objekt implementiert: <code>getCurrency()</code> / <code>setCurrency(code)</code> / internes <code>_load()</code> / <code>_save()</code>.<br>
+              <code>window.Store</code>-Export um <code>GuestSettings</code> erweitert.
+            </td>
+            <td><span class="sev sev-info">Neu</span></td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/adapter-localstorage.js</code></td>
+            <td>
+              Zwei neue Funktionen: <code>getGuestCurrency(callback)</code> und <code>setGuestCurrency(code, callback)</code>.<br>
+              Beide delegieren an <code>Store.GuestSettings</code> und wrappen Fehler im Standard-Callback-Pattern <code>function(err, result)</code>.<br>
+              Beide im Return-Objekt des Adapters exportiert.
+            </td>
+            <td><span class="sev sev-info">Neu</span></td>
+          </tr>
+          <tr class="r-new">
+            <td><code>js/app-service.js</code></td>
+            <td>
+              Zwei neue Methoden im <code>AppService</code>: <code>getGuestCurrency(callback)</code> und <code>setGuestCurrency(code, callback)</code>.<br>
+              Beide delegieren via <code>_call()</code> an den aktiven Adapter.<br>
+              Beide im Return-Objekt von AppService exportiert.
+            </td>
+            <td><span class="sev sev-info">Neu</span></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/currency-service.js</code></td>
+            <td>
+              <code>setGuestCurrency()</code>: Direktzugriff <code>Store.GuestSettings.setCurrency()</code> ersetzt durch <code>AppService.setGuestCurrency(code, callback)</code>.<br>
+              <code>getUserCurrency()</code>: Sync-Lesezugriff <code>Store.GuestSettings.getCurrency()</code> bleibt bestehen — dokumentiert als einziger erlaubter Direktzugriff weil der Render-Pfad synchron ist.<br>
+              Kommentare präzisiert.
+            </td>
+            <td><span class="sev sev-ok">Fix</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 4 — SONDERFALL: getUserCurrency SYNC-LESEZUGRIFF
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <span class="sec-title">Architektur-Entscheid — Sync-Lesezugriff in getUserCurrency()</span>
+      <span class="sec-sub">currency-service.js · Guideline §2</span>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Warum liest <code>getUserCurrency()</code> noch direkt aus <code>Store.GuestSettings</code>?</strong><br>
+      <code>getUserCurrency(uid)</code> wird synchron aus Render-Pfaden aufgerufen
+      (<code>_buildCard()</code>, <code>_buildHeroSection()</code>, etc.).
+      Ein async-Callback wäre hier strukturell nicht integrierbar ohne alle Render-Funktionen
+      umzuschreiben — was außerhalb des Scope dieser Implementierung liegt.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Pfad</th>
+            <th>Begründung</th>
+            <th>Guideline-konform?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><strong>Schreiben</strong><br><code>setGuestCurrency()</code></td>
+            <td>navbar.js → CurrencyService → <strong>AppService</strong> → Adapter → Store.GuestSettings</td>
+            <td>Write-Operation ist fire-and-forget — Callback-Pattern problemlos integrierbar</td>
+            <td><span class="sev sev-ok">✅ Voll konform</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Lesen</strong><br><code>getUserCurrency()</code></td>
+            <td>Render-Funktion → CurrencyService → <strong>Store.GuestSettings direkt</strong></td>
+            <td>Sync-Render-Pfad. <code>GuestSettings</code> ist ein einzelnes, flaches Objekt ohne relationale Abhängigkeiten — vergleichbar mit einem Config-Read. Beim Wechsel auf Firestore würde dieser Sync-Zugriff durch einen gecachten Wert ersetzt.</td>
+            <td><span class="sev sev-warn">⚠️ Dokumentierte Ausnahme</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Firestore-Migrationspfad:</strong> Beim Wechsel auf Firestore wird
+      <code>getUserCurrency()</code> den GuestSettings-Wert aus einem lokalen Cache lesen,
+      der beim Seitenstart via <code>AppService.getGuestCurrency()</code> befüllt wird —
+      analog zu <code>CurrencyService.warmUp()</code> für den Rate-Cache.
+      Consumer-Code wird nicht geändert.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 5 — CODE-DIFFS
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <span class="sec-title">Code-Diffs</span>
+      <span class="sec-sub">Alle 4 geänderten Dateien</span>
+    </div>
+
+    <span class="code-label">store.js — GuestSettings (neu)</span>
+    <div class="code-block"><code><span class="cm">/* ── GuestSettings ───────────────────────────────────────────
+   Schema: { currency: 'EUR' }
+   Key: app_guest_settings                                     */</span>
+<span class="ck">var</span> GuestSettings = {
+  _key: KEYS.GUEST_SETTINGS,
+  _load: <span class="ck">function</span>() {
+    <span class="ck">try</span> {
+      <span class="ck">var</span> raw = localStorage.getItem(<span class="ck">this</span>._key);
+      <span class="ck">return</span> raw ? (JSON.parse(raw) || {}) : {};
+    } <span class="ck">catch</span>(e) { <span class="ck">return</span> {}; }
+  },
+  _save: <span class="ck">function</span>(data) {
+    <span class="ck">try</span> { localStorage.setItem(<span class="ck">this</span>._key, JSON.stringify(data)); } <span class="ck">catch</span>(e) {}
+  },
+  getCurrency: <span class="ck">function</span>() {
+    <span class="ck">return this</span>._load().currency || <span class="cs">'EUR'</span>;
+  },
+  setCurrency: <span class="ck">function</span>(code) {
+    <span class="ck">var</span> data = <span class="ck">this</span>._load();
+    data.currency = code || <span class="cs">'EUR'</span>;
+    <span class="ck">this</span>._save(data);
+  }
+};
+
+<span class="cm">// window.Store Export ergänzt:</span>
+window.Store = {
+  Users, Slots, Recurring, Selections, MoveLog, Favorites, <span class="cn">GuestSettings</span>, ...
+};</code></div>
+
+    <span class="code-label">adapter-localstorage.js — zwei neue Funktionen</span>
+    <div class="code-block"><code><span class="cm">/* ── GuestSettings ─────────────────────────────────────── */</span>
+<span class="ck">function</span> getGuestCurrency(callback) {
+  <span class="ck">try</span> {
+    <span class="ck">var</span> code = Store.GuestSettings.getCurrency();
+    _cb(callback, <span class="ck">null</span>, code);
+  } <span class="ck">catch</span>(e) { _cb(callback, e, <span class="ck">null</span>); }
+}
+
+<span class="ck">function</span> setGuestCurrency(code, callback) {
+  <span class="ck">try</span> {
+    Store.GuestSettings.setCurrency(code);
+    _cb(callback, <span class="ck">null</span>, code);
+  } <span class="ck">catch</span>(e) { _cb(callback, e, <span class="ck">null</span>); }
+}</code></div>
+
+    <span class="code-label">app-service.js — zwei neue Methoden</span>
+    <div class="code-block"><code><span class="cm">/** Gast-Anzeigewährung lesen.
+ *  @param {function} callback — function(err, currencyCode) */</span>
+<span class="ck">function</span> getGuestCurrency(callback) {
+  _call(<span class="cs">'getGuestCurrency'</span>, [callback]);
+}
+
+<span class="cm">/** Gast-Anzeigewährung setzen (kein Login erforderlich).
+ *  @param {string}   code     — ISO 4217, z.B. 'USD'
+ *  @param {function} callback — function(err, code) */</span>
+<span class="ck">function</span> setGuestCurrency(code, callback) {
+  _call(<span class="cs">'setGuestCurrency'</span>, [code, callback]);
+}</code></div>
+
+    <span class="code-label">currency-service.js — setGuestCurrency() vorher / nachher</span>
+    <div class="code-block"><code><span class="cm">/* VORHER (toter Code): */</span>
+<span class="ck">function</span> setGuestCurrency(code, uid) {
+  <span class="ce">if (typeof Store !== 'undefined' &amp;&amp; Store.GuestSettings) {</span>
+  <span class="ce">  Store.GuestSettings.setCurrency(code);  /* nie ausgeführt */</span>
+  <span class="ce">}</span>
+  ...
+}
+
+<span class="cm">/* NACHHER (korrekt via AppService): */</span>
+<span class="ck">function</span> setGuestCurrency(code, uid) {
+  <span class="cs">if (typeof AppService !== 'undefined') {</span>
+  <span class="cs">  AppService.setGuestCurrency(code, function(err) {</span>
+  <span class="cs">    if (err) { console.warn('[CurrencyService] setGuestCurrency failed:', err); }</span>
+  <span class="cs">  });</span>
+  <span class="cs">}</span>
+  ...
+}</code></div>
+
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 6 — VOLLSTÄNDIGE SCHICHT-ÜBERSICHT
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <span class="sec-title">Vollständige Schicht-Übersicht — Nachher</span>
+      <span class="sec-sub">Write + Read · alle Pfade</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Schicht</th>
+            <th>Datei</th>
+            <th>Write-Methode</th>
+            <th>Read-Methode</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>Store-Layer</td>
+            <td><code>store.js</code></td>
+            <td><code>Store.GuestSettings.setCurrency(code)</code></td>
+            <td><code>Store.GuestSettings.getCurrency()</code></td>
+            <td><span class="sev sev-ok">✅ Implementiert</span></td>
+          </tr>
+          <tr class="r-fix">
+            <td>Adapter</td>
+            <td><code>adapter-localstorage.js</code></td>
+            <td><code>setGuestCurrency(code, cb)</code></td>
+            <td><code>getGuestCurrency(cb)</code></td>
+            <td><span class="sev sev-ok">✅ Implementiert</span></td>
+          </tr>
+          <tr class="r-fix">
+            <td>AppService</td>
+            <td><code>app-service.js</code></td>
+            <td><code>AppService.setGuestCurrency(code, cb)</code></td>
+            <td><code>AppService.getGuestCurrency(cb)</code></td>
+            <td><span class="sev sev-ok">✅ Implementiert</span></td>
+          </tr>
+          <tr class="r-fix">
+            <td>CurrencyService</td>
+            <td><code>currency-service.js</code></td>
+            <td><code>setGuestCurrency()</code> → AppService</td>
+            <td><code>getUserCurrency()</code> → Store direkt (sync, dokumentierte Ausnahme)</td>
+            <td><span class="sev sev-ok">✅ Korrigiert</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td>Navbar (Consumer)</td>
+            <td><code>navbar.js</code></td>
+            <td><code>CurrencyService.setGuestCurrency(code, uid)</code></td>
+            <td>—</td>
+            <td><span class="sev sev-ok">✅ Unverändert korrekt</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════
+       SECTION 7 — GUIDELINE-KONFORMITÄT
+  ══════════════════════════════════════════════════════ -->
+  <section class="sec">
+    <div class="sec-hdr">
+      <span class="sec-num">7</span>
+      <span class="sec-title">Guideline-Konformität</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Guideline</th>
+            <th>Anforderung</th>
+            <th>Eingehalten?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Architektur §2</td>
+            <td>Consumer greift niemals direkt auf Store.* zu — nur via AppService.*</td>
+            <td>✅ Write-Pfad vollständig über AppService. Read-Pfad: dokumentierte Sync-Ausnahme in CurrencyService (kein Consumer-Code).</td>
+          </tr>
+          <tr>
+            <td>Architektur §2</td>
+            <td>Alles ist async — <code>function(err, result)</code> überall</td>
+            <td>✅ Adapter und AppService verwenden Standard-Callback-Pattern.</td>
+          </tr>
+          <tr>
+            <td>Architektur §2</td>
+            <td>Fehler nicht verschlucken — immer <code>callback(err, null)</code></td>
+            <td>✅ Adapter wrapp try/catch und gibt Fehler via Callback weiter.</td>
+          </tr>
+          <tr>
+            <td>Architektur §3</td>
+            <td>Flache Collections — kein tief verschachteltes JSON</td>
+            <td>✅ Schema: <code>{currency: 'EUR'}</code> — flachstes mögliches Objekt.</td>
+          </tr>
+          <tr>
+            <td>Architektur §3</td>
+            <td>Adapter-Swap: eine Zeile in app-config.js</td>
+            <td>✅ <code>FirestoreAdapter</code> muss nur <code>getGuestCurrency</code> / <code>setGuestCurrency</code> mit identischer Signatur implementieren.</td>
+          </tr>
+          <tr>
+            <td>Architektur §4</td>
+            <td>APP_VERSION erhöhen</td>
+            <td>✅ <code>2026-03-21-21</code> → <code>2026-03-21-22</code></td>
+          </tr>
+          <tr>
+            <td>No-Build §1</td>
+            <td>ES5-Syntax — var, function(){}, keine Arrow-Functions</td>
+            <td>✅ Alle neuen Funktionen in ES5.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer style="padding: 14px 40px; border-top: 1px solid #e2e6eb; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-top:0;">
+  <span style="font-family:monospace; font-size:11px; color:#6b7685;">IMPL_GUEST_SETTINGS_CURRENCY_20260321.html · BookingSystem</span>
+  <span style="font-family:monospace; font-size:11px; color:#6b7685;">APP_VERSION: 2026-03-21-22 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

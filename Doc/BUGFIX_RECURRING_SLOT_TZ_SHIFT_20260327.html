@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="doc-created" content="2026-03-27">
+  <meta name="doc-type" content="BUGFIX">
+  <meta name="doc-subject" content="Recurring Slot Timezone Shift — Wochenweise Verschiebung der Verfügbarkeit">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BUGFIX — Recurring Slot TZ Shift 2026-03-27</title>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --font: 'Figtree', sans-serif;
+      --color-900:#060f1c; --color-800:#0f2035; --color-700:#1a3249;
+      --color-400:#4d7aa0; --color-200:#bccada; --color-100:#dde4ed; --color-50:#f0f3f7;
+      --neutral-0:#ffffff; --neutral-50:#f8f9fb; --neutral-100:#f0f2f5;
+      --neutral-200:#e2e6eb; --neutral-400:#9aa3af; --neutral-500:#6b7685;
+      --neutral-600:#505a68; --neutral-700:#2d3540; --neutral-900:#0d1117;
+      --sp-1:4px; --sp-2:8px; --sp-3:16px; --sp-4:24px; --sp-5:32px; --sp-6:48px;
+      --radius:8px; --radius-lg:16px;
+      --shadow:0 1px 3px rgba(6,15,28,0.08);
+      --text-large:20px; --text-body:16px; --text-small:14px; --text-caption:12px;
+      --weight-semibold:600;
+      --ok:#1e6b3a; --ok-bg:#e8f5ee; --ok-bd:#a3d4b5;
+      --err:#991b1b; --err-bg:#fee2e2; --err-bd:#fca5a5;
+      --warn:#7a4f00; --warn-bg:#fff4e0; --warn-bd:#f0c060;
+      --info:#1a3d6b; --info-bg:#e8f0fa; --info-bd:#a0bce8;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    body { font-family:var(--font); font-size:var(--text-small); color:var(--neutral-900); background:var(--neutral-50); padding:var(--sp-5); line-height:1.6; }
+    .shell { max-width:1100px; margin:0 auto; }
+
+    .doc-header { background:var(--color-900); color:#fff; border-radius:var(--radius); padding:var(--sp-5); margin-bottom:var(--sp-5); }
+    .doc-header h1 { font-size:var(--text-large); font-weight:var(--weight-semibold); margin-bottom:var(--sp-2); }
+    .doc-meta { font-size:var(--text-caption); color:var(--color-200); }
+    .doc-meta span { margin-right:var(--sp-3); }
+    .doc-type-badge { display:inline-block; background:#dc2626; color:#fff; font-size:10px; font-weight:var(--weight-semibold); padding:2px 10px; border-radius:10px; margin-right:var(--sp-2); letter-spacing:.04em; }
+
+    .section { background:var(--neutral-0); border:1px solid var(--neutral-200); border-radius:var(--radius); margin-bottom:var(--sp-4); overflow:hidden; box-shadow:var(--shadow); }
+    .section-title { background:var(--neutral-50); border-bottom:1px solid var(--neutral-200); padding:var(--sp-3) var(--sp-4); font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); display:flex; align-items:center; gap:var(--sp-2); }
+    .section-num { background:var(--color-900); color:#fff; width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:11px; font-weight:var(--weight-semibold); flex-shrink:0; }
+    .section-body { padding:var(--sp-4); }
+    .section-body p { margin-bottom:var(--sp-3); color:var(--neutral-700); }
+    .section-body p:last-child { margin-bottom:0; }
+
+    pre { font-family:'JetBrains Mono','Courier New',monospace; font-size:12px; background:var(--color-900); color:#c8d8e8; border-radius:var(--radius); padding:var(--sp-3) var(--sp-4); overflow-x:auto; margin:var(--sp-3) 0; line-height:1.7; }
+    code { font-family:'JetBrains Mono','Courier New',monospace; font-size:12px; background:var(--neutral-100); border:1px solid var(--neutral-200); border-radius:4px; padding:1px 5px; }
+    .hl { color:#f0c060; } .ok-c { color:#7dd3a8; } .cm { color:#7a9ec0; } .kw { color:#c792ea; } .str { color:#f0c060; }
+
+    table { width:100%; border-collapse:collapse; font-size:var(--text-small); margin:var(--sp-3) 0; }
+    th { background:var(--color-800); color:#fff; border:1px solid var(--color-700); padding:var(--sp-2) var(--sp-3); text-align:left; font-weight:var(--weight-semibold); font-size:var(--text-caption); text-transform:uppercase; letter-spacing:.04em; }
+    td { border:1px solid var(--neutral-200); padding:var(--sp-2) var(--sp-3); vertical-align:top; line-height:1.5; }
+    tr:nth-child(even) td { background:var(--neutral-50); }
+
+    .callout { border-radius:var(--radius); padding:var(--sp-3) var(--sp-4); margin:var(--sp-3) 0; font-size:var(--text-small); line-height:1.6; }
+    .c-ok   { background:var(--ok-bg);   border:1px solid var(--ok-bd);   color:var(--ok); }
+    .c-err  { background:var(--err-bg);  border:1px solid var(--err-bd);  color:var(--err); }
+    .c-warn { background:var(--warn-bg); border:1px solid var(--warn-bd); color:var(--warn); }
+    .c-info { background:var(--info-bg); border:1px solid var(--info-bd); color:var(--info); }
+    .callout strong { font-weight:var(--weight-semibold); }
+
+    .badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:var(--weight-semibold); white-space:nowrap; }
+    .b-utc   { background:var(--ok-bg);   color:var(--ok);   border:1px solid var(--ok-bd); }
+    .b-local { background:var(--info-bg); color:var(--info); border:1px solid var(--info-bd); }
+    .b-bug   { background:var(--err-bg);  color:var(--err);  border:1px solid var(--err-bd); }
+    .b-fix   { background:var(--ok-bg);   color:var(--ok);   border:1px solid var(--ok-bd); }
+    .b-file  { background:var(--neutral-100); color:var(--neutral-700); border:1px solid var(--neutral-200); }
+
+    h2 { font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); margin:var(--sp-4) 0 var(--sp-2); }
+    h2:first-child { margin-top:0; }
+    ul { padding-left:var(--sp-4); margin-bottom:var(--sp-3); }
+    li { margin-bottom:var(--sp-1); color:var(--neutral-700); }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:var(--sp-4); margin:var(--sp-3) 0; }
+    @media (max-width:700px) { .two-col { grid-template-columns:1fr; } }
+    .col-box { background:var(--neutral-50); border:1px solid var(--neutral-200); border-radius:var(--radius); padding:var(--sp-3); }
+    .col-box-title { font-size:var(--text-caption); font-weight:var(--weight-semibold); text-transform:uppercase; letter-spacing:.05em; margin-bottom:var(--sp-2); }
+    .col-box-title.red { color:var(--err); }
+    .col-box-title.green { color:var(--ok); }
+
+    .arrow-row { display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap; margin:var(--sp-2) 0; font-size:var(--text-small); }
+    .arrow { color:var(--neutral-400); font-size:18px; }
+    .flow-box { display:inline-block; background:var(--color-50); border:1px solid var(--color-200); border-radius:var(--radius); padding:4px 12px; font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--color-800); }
+    .flow-box.local { background:var(--info-bg); border-color:var(--info-bd); color:var(--info); }
+    .flow-box.utc   { background:var(--ok-bg);   border-color:var(--ok-bd);   color:var(--ok); }
+    .flow-box.bug   { background:var(--err-bg);  border-color:var(--err-bd);  color:var(--err); }
+    .flow-box.warn  { background:var(--warn-bg); border-color:var(--warn-bd); color:var(--warn); }
+  </style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- Header -->
+  <div class="doc-header">
+    <h1><span class="doc-type-badge">BUGFIX</span> Recurring Slot Timezone Shift</h1>
+    <div class="doc-meta">
+      <span>📅 2026-03-27</span>
+      <span>Version: 2026-03-27-4</span>
+      <span>Betroffene Dateien: adapter-localstorage.js · teacher.js · app-config.js</span>
+    </div>
+  </div>
+
+  <!-- 1. Symptom -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">1</span> Symptom</div>
+    <div class="section-body">
+      <p>Die Verfügbarkeit im Wochen-Grid verschob sich von Woche zu Woche um 1–2 Stunden. Beim Navigieren zwischen Wochen erschienen die verfügbaren Slots an unterschiedlichen Zeitpositionen:</p>
+      <table>
+        <thead><tr><th>Woche</th><th>Slots sichtbar ab</th><th>Abweichung</th></tr></thead>
+        <tbody>
+          <tr><td>23.–29. März 2026</td><td>13:30 Uhr</td><td>—</td></tr>
+          <tr><td>30. März–5. Apr 2026</td><td>14:30 Uhr</td><td class="b-bug" style="display:table-cell">+1h (DST-Woche)</td></tr>
+          <tr><td>6.–12. Apr 2026</td><td>12:30 Uhr</td><td class="b-bug" style="display:table-cell">−1h (nach DST)</td></tr>
+        </tbody>
+      </table>
+      <div class="callout c-err">
+        <strong>Effekt:</strong> Schüler sahen unterschiedliche Verfügbarkeiten je nach Woche. Slots schienen zu „wandern". Das System schien mehrere Verfügbarkeits-Arrays zu führen.
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Root Cause -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">2</span> Root Cause — 3 überlagerte Bugs</div>
+    <div class="section-body">
+
+      <h2>Bug A — Falsche Zeitinterpretation in <code>materialiseWeek</code> <span class="badge b-bug">KRITISCH</span></h2>
+      <p>Recurring Rules speichern die <strong>Lehrerlokalzeit</strong> (z.B. <code>12:30</code> für einen UTC+4 Lehrer). <code>materialiseWeek</code> hat <code>rule.time</code> fälschlicherweise direkt als UTC behandelt — ohne Konvertierung.</p>
+
+      <div class="two-col">
+        <div class="col-box">
+          <div class="col-box-title red">❌ Vorher (falsch)</div>
+          <div class="arrow-row">
+            <span class="flow-box local">rule.time = "12:30" (Lokal)</span>
+            <span class="arrow">→</span>
+            <span class="flow-box bug">slot.time = "12:30" (als UTC behandelt)</span>
+          </div>
+          <p style="margin-top:8px;font-size:12px;color:#991b1b;">Für UTC+4 Lehrer: Slot erscheint um 16:30 Lokalzeit statt 12:30</p>
+        </div>
+        <div class="col-box">
+          <div class="col-box-title green">✓ Nachher (korrekt)</div>
+          <div class="arrow-row">
+            <span class="flow-box local">rule.time = "12:30" (Lokal)</span>
+            <span class="arrow">→</span>
+            <span class="flow-box">localToUtc(date, tz)</span>
+            <span class="arrow">→</span>
+            <span class="flow-box utc">slot.time = "08:30" UTC</span>
+          </div>
+          <p style="margin-top:8px;font-size:12px;color:#1e6b3a;">DST-korrekt: Konvertierung pro Datum</p>
+        </div>
+      </div>
+
+      <h2>Bug B — DST-Verschiebung durch Montagsreferenz <span class="badge b-bug">HOCH</span></h2>
+      <p><code>_buildLocalOrderedUtcTimes</code> berechnet die Zeilen-Labels anhand des <strong>Montags der aktuellen Woche</strong> als DST-Referenz. Da Bug A die Slots 4h verschoben speicherte, und der DST-Offset sich von Woche zu Woche ändert (UTC+1 → UTC+2 am 29. März), erschienen die Slots an jeder Woche an einer anderen Zeile.</p>
+
+      <h2>Bug C — Migration läuft nie <span class="badge b-warn">MITTEL</span></h2>
+      <p>Die One-time-Migration in <code>app-config.js</code> wurde als synchrone IIFE aufgerufen — zu einem Zeitpunkt, an dem <code>AppService</code> noch <code>undefined</code> ist (alle JS-Dateien laden mit <code>defer</code>). Die Migration wurde in allen Deployments nie ausgeführt.</p>
+
+      <h2>Bug D — <code>timezone-service.js</code> doppelt geladen <span class="badge b-warn">NIEDRIG</span></h2>
+      <p>In <code>teacher.html</code>: synchron im <code>&lt;head&gt;</code> und nochmals per <code>defer</code> via <code>_PAGE_ASSETS</code>. Race Conditions möglich.</p>
+
+    </div>
+  </div>
+
+  <!-- 3. Fix-Übersicht -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">3</span> Fix-Übersicht</div>
+    <div class="section-body">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Datei</th><th>Funktion</th><th>Änderung</th><th>Bug</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>F1</td>
+            <td><span class="badge b-file">adapter-localstorage.js</span></td>
+            <td><code>materialiseWeek</code></td>
+            <td><code>rule.time</code> (Lokalzeit) wird per <code>localToUtc(rule.time, dateStr, teacherTZ)</code> <strong>pro Datum</strong> in UTC konvertiert, bevor der Slot erstellt wird.</td>
+            <td><span class="badge b-bug">A</span></td>
+          </tr>
+          <tr>
+            <td>F2</td>
+            <td><span class="badge b-file">adapter-localstorage.js</span></td>
+            <td><code>materialiseWeek</code> — recurringKeys</td>
+            <td><code>recurringKeys</code> (für Purge-Schutz) verwendet jetzt ebenfalls UTC-konvertierte Zeiten als Keys, konsistent mit den erstellten Slots.</td>
+            <td><span class="badge b-bug">A</span></td>
+          </tr>
+          <tr>
+            <td>F3</td>
+            <td><span class="badge b-file">adapter-localstorage.js</span></td>
+            <td><code>materialiseWeek</code> — Purge</td>
+            <td>Slots mit <code>visibility</code>, <code>visibilityList</code>, <code>groupMax</code>, <code>excludeNewStudents</code>, <code>autoPromotedStudents</code> werden nie gepurgt. Manual-Slots (kein Rule-Key) überleben. Neu erstellte Slots bekommen <code>_utc: true</code>.</td>
+            <td>—</td>
+          </tr>
+          <tr>
+            <td>F4</td>
+            <td><span class="badge b-file">adapter-localstorage.js</span></td>
+            <td><code>createSlot</code></td>
+            <td><code>_utc</code>-Flag wird persistiert (nicht mehr gelöscht). Alle vom App erstellten Slots sind dauerhaft als UTC-korrekt markiert — Migration überspringt sie.</td>
+            <td><span class="badge b-bug">C</span></td>
+          </tr>
+          <tr>
+            <td>F5</td>
+            <td><span class="badge b-file">teacher.js</span></td>
+            <td><code>flushGridPending</code></td>
+            <td>Konvertiert UTC → Lokal vor <code>createRecurring</code> und <code>deleteRecurringByDayTime</code>. Rules speichern jetzt korrekt Lokalzeit.</td>
+            <td><span class="badge b-bug">A</span></td>
+          </tr>
+          <tr>
+            <td>F6</td>
+            <td><span class="badge b-file">teacher.js</span></td>
+            <td><code>renderGridTable</code></td>
+            <td><code>recurringExistsSync</code> wird mit <code>localLabel</code> (Lokalzeit) aufgerufen, nicht UTC. Konsistent mit Rule-Speicherformat.</td>
+            <td><span class="badge b-bug">A</span></td>
+          </tr>
+          <tr>
+            <td>F7</td>
+            <td><span class="badge b-file">teacher.js</span></td>
+            <td><code>onGridCellClick</code> (Timeout-Toggle)</td>
+            <td><code>recurringExistsSync</code> nutzt <code>cell.dataset.localtime</code> statt UTC-Zeit für Rule-Lookup.</td>
+            <td><span class="badge b-bug">A</span></td>
+          </tr>
+          <tr>
+            <td>F8</td>
+            <td><span class="badge b-file">teacher.js</span></td>
+            <td><code>window.load handler</code></td>
+            <td>One-time Migration korrekt nach allen <code>defer</code>-Scripts aufgerufen, wenn <code>AppService</code> garantiert bereit ist.</td>
+            <td><span class="badge b-bug">C</span></td>
+          </tr>
+          <tr>
+            <td>F9</td>
+            <td><span class="badge b-file">app-config.js</span></td>
+            <td><code>_PAGE_ASSETS['teacher.html']</code></td>
+            <td><code>timezone-service.js</code> aus der <code>defer</code>-Liste entfernt — wird bereits synchron im <code>&lt;head&gt;</code> geladen.</td>
+            <td><span class="badge b-bug">D</span></td>
+          </tr>
+          <tr>
+            <td>F10</td>
+            <td><span class="badge b-file">app-config.js</span></td>
+            <td>Migration-IIFE</td>
+            <td>Kaputte IIFE entfernt (lief nie). Durch F8 ersetzt.</td>
+            <td><span class="badge b-bug">C</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. Architektur-Invariante -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">4</span> Architektur-Invariante (nach Fix)</div>
+    <div class="section-body">
+      <div class="callout c-ok">
+        <strong>Invariante:</strong> Recurring Rules speichern immer <strong>Lehrerlokalzeit</strong>. <code>materialiseWeek</code> konvertiert diese per <code>localToUtc(rule.time, dateStr, teacherTZ)</code> <em>pro Datum</em> in UTC. Slots speichern immer UTC. Alle Caller die Rules lesen/schreiben verwenden Lokalzeit.
+      </div>
+
+      <div class="arrow-row" style="margin-top:var(--sp-3)">
+        <span class="flow-box local">app_recurring<br><small>time = Lokalzeit</small></span>
+        <span class="arrow">→ materialiseWeek<br><small>localToUtc(per Datum)</small> →</span>
+        <span class="flow-box utc">app_slots<br><small>time = UTC</small></span>
+        <span class="arrow">→ renderGridTable<br><small>utcToLocal(Display)</small> →</span>
+        <span class="flow-box">Grid-Anzeige<br><small>Lokalzeit</small></span>
+      </div>
+
+      <table style="margin-top:var(--sp-4)">
+        <thead><tr><th>Funktion</th><th>Eingabe</th><th>Ausgabe/Speicher</th><th>Zeitformat</th></tr></thead>
+        <tbody>
+          <tr><td><code>createRecurring</code></td><td>Lokalzeit</td><td><code>app_recurring.time</code></td><td><span class="badge b-local">LOKAL</span></td></tr>
+          <tr><td><code>recurringExistsSync</code></td><td>Lokalzeit</td><td>Boolean</td><td><span class="badge b-local">LOKAL</span></td></tr>
+          <tr><td><code>materialiseWeek</code></td><td><code>rule.time</code> Lokal</td><td><code>slot.time</code> UTC</td><td><span class="badge b-utc">UTC ← Konvertierung</span></td></tr>
+          <tr><td><code>createSlot</code></td><td>Lokal oder UTC (_utc)</td><td><code>slot.time</code> UTC</td><td><span class="badge b-utc">UTC</span></td></tr>
+          <tr><td><code>slotExistsSync</code></td><td>UTC</td><td>Slot | null</td><td><span class="badge b-utc">UTC</span></td></tr>
+          <tr><td><code>renderGridTable</code></td><td>UTC slots</td><td>Anzeige Lokalzeit</td><td><span class="badge b-local">LOKAL (Display)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. Deployment-Hinweise -->
+  <div class="section">
+    <div class="section-title"><span class="section-num">5</span> Deployment-Hinweise</div>
+    <div class="section-body">
+      <div class="callout c-warn">
+        <strong>Wichtig nach Deploy:</strong> Bestehende <code>app_recurring</code>-Einträge speichern möglicherweise UTC statt Lokalzeit (wenn sie vom alten <code>flushGridPending</code> erstellt wurden). Nach dem Deploy einmalig ausführen:
+        <pre>localStorage.removeItem('app_tz_migrated_v1');
+// Dann Seite neu laden → Migration läuft durch
+// Danach db-seed neu ausführen für saubere Testdaten</pre>
+      </div>
+      <ul>
+        <li>Version: <strong>2026-03-27-4</strong></li>
+        <li>Geänderte Dateien: <code>adapter-localstorage.js</code>, <code>teacher.js</code>, <code>app-config.js</code></li>
+        <li>Keine DB-Schema-Änderungen — nur Lese-/Schreiblogik</li>
+        <li>Rückwärtskompatibel: Migration-Flag <code>app_tz_migrated_v1</code> verhindert Doppelkonvertierung</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

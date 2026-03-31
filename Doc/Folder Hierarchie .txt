@@ -1,0 +1,31 @@
+Folder-Hierarchie (aktuell):
+/internalStorage/documents/HTML/
+├── index.html
+├── admin.html
+├── css/
+│   ├── tokens.css
+│   ├── base.css
+│   └── components.css
+└── js/
+    ├── store.js
+    ├── auth.js
+    ├── ui.js
+    └── admin.js
+Ziel nach diesem Build:
+/internalStorage/documents/HTML/
+├── index.html
+├── admin.html
+├── teacher.html          ← neu
+├── student.html          ← neu
+├── css/
+│   ├── tokens.css
+│   ├── base.css
+│   └── components.css
+└── js/
+    ├── store.js
+    ├── auth.js
+    ├── ui.js
+    ├── admin.js
+    ├── teacher.js        ← neu
+    └── student.js        ← neu
+Ich baue jetzt teacher.html + teacher.js und student.html + student.js.

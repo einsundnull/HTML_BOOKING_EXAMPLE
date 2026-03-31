@@ -1,0 +1,38 @@
+## Vollständiger Vergleich: Teacher All Bookings vs. Student My Bookings
+
+| Aspekt | **Teacher** | **Student** | Redundanz |
+|---|---|---|---|
+| **Slot-Pipeline** | `getSlotsByTeacherSync` → filter booked → inject `_pending:'cancel'` | `getSlotsByStudentSync` → filter booked → inject `_pending:'cancel'` + inject pending-book slots | 🔴 Identische Logik, anderer AppService-Call |
+| **Filter-Pipeline** | `_applyTimeFilter` + `_applyDateRangeFilter` + `_applyConfirmFilter` | Inline reimplementiert (eigene `if/else` Ketten) | 🔴 Student nutzt shared `_applyDateRangeFilter` aber nicht `_applyTimeFilter` / `_applyConfirmFilter` |
+| **Block-Merge** | `mergeAllBookingBlocks(dateStr, slots, today)` — gruppiert nach `studentId` | `_mergeStudentBookingBlocks(dateStr, slots, today)` — identischer Algorithmus, gruppiert nach `teacherId` | 🔴 Gleicher Algorithmus, anderes Gruppierfeld |
+| **Block-Render** | `buildAllBookingBlock(block, options)` — Header: Zeit + Schülername + Confirm + Edit + Chevron | `_buildStudentBookingBlock(block, isPast)` — Header: Zeit + Lehrername + Confirm + Edit + Chevron | 🔴 Identische Struktur, anderes Namensfeld (`block.student.uid` vs `block.teacherId`) |
+| **Detail-Render** | `populateAllBookingDetail(detail, block, onAction)` — zeigt freie + gebuchte Slots | `_populateStudentBlockDetail(detail, block, isPast)` — identische Logik, `pendingDayChanges` statt `pendingBookings` | 🔴 Identische Logik, anderer pending-Store |
+| **Amber/pending** | `.slot-pending` via `isPending = !!pendingBookings[slotId]` | `.slot-pending` via `isPendingBook || isPendingCancel` aus `pendingDayChanges` | 🟡 Gleiches Ergebnis, anderer Weg |
+| **Undo/Cancel Button** | Ghost bei pending-cancel, Danger sonst | Ghost bei pending-cancel, Danger sonst | ✅ Identisch |
+| **Block-Header pending** | `block-pending` wenn `hasPending` | `block-pending` wenn `hasPending` | ✅ Identisch |
+| **Expand/collapse** | `expandedAllBlocks[blockKey]` | `expandedStudentBlocks[blockKey]` | 🟡 Gleiche Logik, andere Variable |
+| **Blockkey-Schema** | `dateStr-start-studentUid` | `dateStr-start-teacherId` | ✅ Gleiches Schema |
+| **Bestätigen-Dialog** | `_openConfirmDialog(block)` / `_openConfirmDialogSingle(slotId)` | `_openStudentConfirmBlockDialog(block)` / `_openStudentConfirmDialog(slotId)` | 🔴 Gleiche Modals, anderer Text |
+| **Edit-Button** | `openMoveBlockDialog(block)` | `_openStudentEditBlockDialog(block)` | 🔴 Gleiche Move/Cancel-Dialoge, minimal anders |
+| **Datums-Divider** | Inline in `renderAllBookingsList` | Inline in `renderMyBookingsList` | 🔴 Identisch |
+| **Sort/Date row** | `_buildSortDateRangeRow(cb)` ✅ | `_buildSortDateRangeRow(cb)` ✅ | ✅ Bereits geteilt |
+| **Teacher/Student-Dropdown** | `_buildStudentFilterRow(cb)` (neu in ui.js) | Inline in `renderMyBookings` (~50 Zeilen) | 🔴 `_buildStudentFilterRow` könnte wiederverwendet werden |
+| **Badges** | `_updateAllBookingsBadges()` + `_calcBlockCounts()` | `_updateMyBookingsBadges()` + `_calcStudentBlockCounts()` | 🔴 Identischer Zähl-Algorithmus |
+| **Pending-Store** | `pendingBookings` | `pendingDayChanges` | ⚠️ Strukturell gleich, unterschiedliche Keys |
+| **Save/Discard** | `saveBookingChanges()` / `discardBookingChanges()` | `commitDayChanges()` / `discardDayChanges()` | 🟡 Gleiche Logik, anderer pending-Store |
+
+---
+
+## Konsolidierungsplan
+
+Die gesamte Redundanz kommt aus **einem einzigen Unterschied**: Teacher gruppiert nach `studentId`, Student nach `teacherId`. Alles andere — Merge-Algorithmus, Block-Struktur, Detail-Render, Amber, Undo, Dialoge — ist identisch.
+
+| # | Was teilen | Wie | Aufwand |
+|---|---|---|---|
+| 1 | `mergeAllBookingBlocks` | Parameter `groupByField` ('studentId' \| 'teacherId') | Gering — 1 Zeile |
+| 2 | `buildAllBookingBlock` | Parameter `nameResolver(block)` fn statt hardcoded `block.student` | Mittel — callback |
+| 3 | `populateAllBookingDetail` | Parameter `pendingStore` + `pendingField` | Mittel |
+| 4 | `_calcBlockCounts` / Badges | Bereits fast gleich, zusammenführen | Gering |
+| 5 | Teacher/Student-Dropdown | `_buildStudentFilterRow` bereits in ui.js | Trivial |
+
+Soll ich implementieren?

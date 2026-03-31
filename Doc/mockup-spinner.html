@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Spinner + Optimistic Updates</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens ── */
+:root {
+  --color-400:#4d7aa0; --color-500:#3a6285; --color-600:#2b4d6b;
+  --color-800:#0f2035; --color-900:#060f1c;
+  --neutral-0:#fff; --neutral-50:#f8f9fb; --neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb; --neutral-300:#c9d0d9; --neutral-400:#9aa3af;
+  --neutral-500:#6b7685; --neutral-700:#2d3540; --neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(6,15,28,.08);
+  --shadow-md:0 2px 8px rgba(6,15,28,.12);
+  --transition:150ms ease;
+  --btn-size:40px;
+  --pending-amber-bg:#fef9ec;
+  --pending-amber-tx:#7a5c00;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--neutral-100);
+     color:var(--neutral-900);padding:var(--sp-4) var(--sp-3) 80px;font-size:16px;}
+.page{max-width:420px;margin:0 auto;display:flex;flex-direction:column;gap:var(--sp-4);}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+               color:var(--neutral-400);margin-bottom:var(--sp-2);}
+
+/* ══════════════════════════════════════════════════
+   THE SPINNER — thin arc, CSS only
+   Sizes: sm (16px), md (20px), lg (28px)
+   Colors: light (white arc on dark), dark (navy on white)
+══════════════════════════════════════════════════ */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.spinner {
+  display: inline-block;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: transparent;
+  animation: spin 600ms linear infinite;
+  flex-shrink: 0;
+}
+
+/* Size variants */
+.spinner--sm  { width:16px; height:16px; border-width:2px; }
+.spinner--md  { width:20px; height:20px; border-width:2px; }
+.spinner--lg  { width:28px; height:28px; border-width:2.5px; }
+
+/* Color variants */
+/* light: white arc — for dark row backgrounds */
+.spinner--light { border-top-color: rgba(255,255,255,0.9); border-right-color: rgba(255,255,255,0.25); }
+/* dark: navy arc — for white/light backgrounds */
+.spinner--dark  { border-top-color: var(--color-400); border-right-color: rgba(77,122,160,0.2); }
+/* amber: for timeout rows */
+.spinner--amber { border-top-color: #b09050; border-right-color: rgba(176,144,80,0.2); }
+
+/* ── Icon buttons (same as teacher.css) ── */
+.s-btn{display:inline-flex;align-items:center;justify-content:center;
+       width:var(--btn-size);height:var(--btn-size);border:none;cursor:pointer;
+       flex-shrink:0;transition:background var(--transition);outline:none;}
+.s-btn svg,.s-btn .spinner{display:block;pointer-events:none;}
+.s-btn--l{background:var(--neutral-0);color:var(--neutral-900);box-shadow:var(--shadow);}
+.s-btn--d{background:rgba(255,255,255,.12);color:var(--neutral-0);}
+.s-btn--g{background:transparent;color:var(--neutral-400);}
+.s-btn--amber{background:rgba(245,217,126,.18);color:var(--pending-amber-tx);}
+
+/* ── Spinner in button — replaces icon while pending ── */
+.s-btn.is-pending { pointer-events:none; cursor:default; opacity:0.7; }
+
+/* ── Slot row ── */
+.demo-card{background:var(--neutral-0);box-shadow:var(--shadow-md);overflow:hidden;}
+.slot-row{display:flex;align-items:center;padding:0 var(--sp-2);
+          min-height:56px;gap:var(--sp-2);border-bottom:1px solid var(--neutral-200);
+          transition:opacity 200ms ease;}
+.slot-row:last-child{border-bottom:none;}
+.slot-row--empty    {background:var(--neutral-0);}
+.slot-row--available{background:var(--color-800);}
+.slot-row--booked   {background:var(--color-900);}
+.slot-row--timeout  {background:var(--pending-amber-bg);}
+
+/* Optimistic: row slightly dimmed while pending */
+.slot-row.is-pending { opacity:0.65; }
+
+.slot-time{font-size:14px;font-weight:600;min-width:60px;line-height:1.3;flex-shrink:0;}
+.slot-row--empty .slot-time    {color:var(--neutral-400);}
+.slot-row--available .slot-time{color:var(--neutral-0);}
+.slot-row--booked .slot-time   {color:var(--neutral-0);}
+.slot-row--timeout .slot-time  {color:var(--pending-amber-tx);}
+.slot-time small{font-size:11px;font-weight:400;display:block;opacity:.7;}
+
+.slot-info{flex:1;display:flex;align-items:center;gap:var(--sp-2);min-width:0;}
+.slot-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:3px;letter-spacing:.04em;white-space:nowrap;}
+.slot-badge--vis{color:rgba(255,255,255,.65);background:rgba(255,255,255,.10);}
+.slot-actions{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+
+/* ── Status indicator dot (optimistic state feedback) ── */
+.slot-status-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  flex-shrink: 0; margin-left: 2px;
+}
+.slot-status-dot--saving { background: var(--color-400); animation: pulse 800ms ease infinite; }
+.slot-status-dot--saved  { background: #22c55e; }
+.slot-status-dot--error  { background: #dc2626; }
+@keyframes pulse {
+  0%,100% { opacity:1; transform:scale(1); }
+  50%      { opacity:.4; transform:scale(.7); }
+}
+
+/* ── Toast (simplified) ── */
+.toast-area{position:fixed;top:var(--sp-5);right:var(--sp-3);
+            display:flex;flex-direction:column;gap:var(--sp-2);z-index:9999;}
+.toast{background:var(--neutral-900);color:#fff;padding:10px 14px;
+       border-radius:var(--radius-md);font-size:12px;font-weight:600;
+       display:flex;align-items:center;gap:var(--sp-2);
+       box-shadow:var(--shadow-md);max-width:260px;
+       animation:toastin 200ms ease;pointer-events:none;}
+.toast--ok    {background:#14532d;}
+.toast--err   {background:#3d1515;}
+.toast--info  {background:var(--color-800);}
+@keyframes toastin{from{transform:translateY(-8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* ── Demo controls ── */
+.demo-controls{display:flex;flex-direction:column;gap:var(--sp-2);}
+.demo-row{display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;}
+.demo-btn{padding:8px var(--sp-3);background:var(--color-400);color:#fff;
+          border:none;font-family:var(--font);font-size:12px;font-weight:600;
+          cursor:pointer;border-radius:var(--radius-sm);}
+.demo-btn:hover{background:var(--color-500);}
+.demo-btn--ghost{background:transparent;color:var(--neutral-500);
+                 border:1px solid var(--neutral-200);}
+.demo-btn--ghost:hover{background:var(--neutral-100);}
+.demo-btn--danger{background:#dc2626;}
+
+/* ── Spinner showcase ── */
+.spinner-grid{display:flex;align-items:center;gap:var(--sp-4);flex-wrap:wrap;padding:var(--sp-3);}
+.spinner-item{display:flex;flex-direction:column;align-items:center;gap:var(--sp-1);}
+.spinner-item span{font-size:10px;color:var(--neutral-500);font-weight:600;letter-spacing:.05em;text-transform:uppercase;}
+.swatch-dark {background:var(--neutral-0);padding:var(--sp-2);border-radius:var(--radius-sm);}
+.swatch-light{background:var(--color-800);padding:var(--sp-2);border-radius:var(--radius-sm);}
+
+/* ── Inline spinner in button showcase ── */
+.btn-row{display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;padding:var(--sp-3);}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ① Spinner variants -->
+  <div>
+    <p class="section-label">① Spinner — Alle Varianten</p>
+    <div class="demo-card">
+      <div class="spinner-grid">
+
+        <div class="spinner-item">
+          <div class="swatch-dark">
+            <div class="spinner spinner--sm spinner--dark"></div>
+          </div>
+          <span>sm · dark</span>
+        </div>
+
+        <div class="spinner-item">
+          <div class="swatch-dark">
+            <div class="spinner spinner--md spinner--dark"></div>
+          </div>
+          <span>md · dark</span>
+        </div>
+
+        <div class="spinner-item">
+          <div class="swatch-dark">
+            <div class="spinner spinner--lg spinner--dark"></div>
+          </div>
+          <span>lg · dark</span>
+        </div>
+
+        <div class="spinner-item">
+          <div class="swatch-light">
+            <div class="spinner spinner--sm spinner--light"></div>
+          </div>
+          <span>sm · light</span>
+        </div>
+
+        <div class="spinner-item">
+          <div class="swatch-light">
+            <div class="spinner spinner--md spinner--light"></div>
+          </div>
+          <span>md · light</span>
+        </div>
+
+        <div class="spinner-item">
+          <div class="swatch-dark">
+            <div class="spinner spinner--md spinner--amber"></div>
+          </div>
+          <span>md · amber</span>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ② Spinner inside icon button -->
+  <div>
+    <p class="section-label">② Spinner im Button (ersetzt Icon während Pending)</p>
+    <div class="demo-card">
+      <div class="btn-row">
+
+        <!-- Light button pending -->
+        <button class="s-btn s-btn--l is-pending" title="Wird gespeichert…">
+          <div class="spinner spinner--sm spinner--dark"></div>
+        </button>
+
+        <!-- Dark button pending -->
+        <div style="background:var(--color-800);padding:var(--sp-2);display:flex;gap:3px;">
+          <button class="s-btn s-btn--d is-pending" title="Wird gespeichert…">
+            <div class="spinner spinner--sm spinner--light"></div>
+          </button>
+          <button class="s-btn s-btn--d is-pending" title="Wird gespeichert…">
+            <div class="spinner spinner--sm spinner--light"></div>
+          </button>
+        </div>
+
+        <!-- Amber pending -->
+        <button class="s-btn s-btn--amber is-pending" title="Wird gespeichert…">
+          <div class="spinner spinner--sm spinner--amber"></div>
+        </button>
+
+        <span style="font-size:12px;color:var(--neutral-400);">← Buttons während async write</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ③ Optimistic slot rows — interactive demo -->
+  <div>
+    <p class="section-label">③ Optimistic Updates — Live Demo</p>
+    <div class="demo-card" id="demo-slots">
+
+      <!-- Row A: empty → click eye-slash → optimistic switch to available -->
+      <div class="slot-row slot-row--empty" id="row-a">
+        <div class="slot-time">13:00<small>–13:30</small></div>
+        <div class="slot-info">
+          <span style="font-size:12px;color:var(--neutral-300);font-style:italic;" id="row-a-label">Kein Slot</span>
+          <div class="slot-status-dot" id="row-a-dot" style="display:none;"></div>
+        </div>
+        <div class="slot-actions" id="row-a-actions">
+          <!-- gear -->
+          <button class="s-btn s-btn--g" title="Konfigurieren" id="row-a-gear" onclick="simulateGear('a')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.8" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <!-- eye-slash: make available -->
+          <button class="s-btn s-btn--g" title="Verfügbar schalten" id="row-a-eye" onclick="simulateMakeAvailable('a', false)">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 2l16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.1 6.2C3.8 7.6 2 10 2 10s3.5 6 8 6c1.7 0 3.2-.6 4.5-1.5M9 4.1C9.3 4 9.6 4 10 4c4.5 0 8 6 8 6a13.5 13.5 0 01-2.1 2.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 9.5a2.5 2.5 0 003 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <!-- plus -->
+          <button class="s-btn s-btn--l" title="Buchung erstellen" onclick="showToast('Booking form opens', 'info')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row B: available → click eye → optimistic switch to hidden -->
+      <div class="slot-row slot-row--available" id="row-b">
+        <div class="slot-time">14:00<small>–14:30</small></div>
+        <div class="slot-info">
+          <span class="slot-badge slot-badge--vis" id="row-b-badge">SICHTBAR</span>
+          <div class="slot-status-dot" id="row-b-dot" style="display:none;"></div>
+        </div>
+        <div class="slot-actions" id="row-b-actions">
+          <button class="s-btn s-btn--d" title="Konfigurieren" onclick="showToast('Konfiguration öffnet', 'info')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.8" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <!-- eye-open: hide -->
+          <button class="s-btn s-btn--d" title="Für Schüler ausblenden" id="row-b-eye" onclick="simulateHide('b', false)">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>
+          </button>
+          <!-- timeout -->
+          <button class="s-btn s-btn--d" title="Timeout setzen" onclick="simulateTimeout('b')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="11.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M10 8v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 2.5h5M10 2.5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button class="s-btn s-btn--d" title="Buchung erstellen" onclick="showToast('Booking form opens', 'info')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Row C: simulate a FAILED write (error rollback) -->
+      <div class="slot-row slot-row--empty" id="row-c">
+        <div class="slot-time">15:00<small>–15:30</small></div>
+        <div class="slot-info">
+          <span style="font-size:12px;color:var(--neutral-300);font-style:italic;" id="row-c-label">Kein Slot</span>
+          <div class="slot-status-dot" id="row-c-dot" style="display:none;"></div>
+        </div>
+        <div class="slot-actions">
+          <button class="s-btn s-btn--g" title="Konfigurieren" onclick="showToast('Konfiguration öffnet', 'info')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.8" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+          </button>
+          <!-- eye-slash: simulate FAIL -->
+          <button class="s-btn s-btn--g" title="Verfügbar schalten (Fehler simulieren)" id="row-c-eye" onclick="simulateMakeAvailable('c', true)">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 2l16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.1 6.2C3.8 7.6 2 10 2 10s3.5 6 8 6c1.7 0 3.2-.6 4.5-1.5M9 4.1C9.3 4 9.6 4 10 4c4.5 0 8 6 8 6a13.5 13.5 0 01-2.1 2.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 9.5a2.5 2.5 0 003 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+          <button class="s-btn s-btn--l" title="Buchung erstellen" onclick="showToast('Booking form opens', 'info')">
+            <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+        <span style="font-size:10px;color:#dc2626;font-weight:600;padding-right:8px;">FAIL-TEST</span>
+      </div>
+
+    </div>
+    <p style="font-size:11px;color:var(--neutral-400);margin-top:var(--sp-1);padding:0 4px;">
+      Tippe die Buttons — Row C simuliert einen Netzwerk-Fehler mit Rollback.
+    </p>
+  </div>
+
+  <!-- ④ Reset -->
+  <div>
+    <button class="demo-btn demo-btn--ghost" onclick="resetDemo()" style="width:100%;">↺ Demo zurücksetzen</button>
+  </div>
+
+</div>
+
+<!-- Toast area -->
+<div class="toast-area" id="toast-area"></div>
+
+<script>
+/* ── SVG icons ── */
+var SVG = {
+  gear:   '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2.8" stroke="currentColor" stroke-width="1.5"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  eye:    '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M1 10s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/></svg>',
+  eyeOff: '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 2l16 16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M6.1 6.2C3.8 7.6 2 10 2 10s3.5 6 8 6c1.7 0 3.2-.6 4.5-1.5M9 4.1C9.3 4 9.6 4 10 4c4.5 0 8 6 8 6a13.5 13.5 0 01-2.1 2.6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 9.5a2.5 2.5 0 003 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  plus:   '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
+  timeout:'<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="11.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M10 8v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7.5 2.5h5M10 2.5v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+  undoTo: '<svg width="18" height="18" viewBox="0 0 20 20" fill="none"><circle cx="11" cy="11.5" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M11 8v3.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M7 4L4 7l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+
+function spinnerHTML(color) {
+  return '<div class="spinner spinner--sm spinner--' + (color||'dark') + '"></div>';
+}
+
+/* ── Optimistic: make slot available (row A & C) ── */
+function simulateMakeAvailable(rowId, shouldFail) {
+  var row   = document.getElementById('row-' + rowId);
+  var eye   = document.getElementById('row-' + rowId + '-eye');
+  var label = document.getElementById('row-' + rowId + '-label');
+  var dot   = document.getElementById('row-' + rowId + '-dot');
+
+  /* 1. Optimistic UI update — instant */
+  row.classList.remove('slot-row--empty');
+  row.classList.add('slot-row--available');
+  if (label) label.innerHTML = '<span class="slot-badge slot-badge--vis">SICHTBAR</span>';
+
+  /* 2. Show spinner on button + pending dot */
+  eye.classList.add('is-pending');
+  eye.innerHTML = spinnerHTML('light');
+  row.classList.add('is-pending');
+  dot.style.display = 'block';
+  dot.className = 'slot-status-dot slot-status-dot--saving';
+
+  /* 3. Simulate async write (700ms) */
+  setTimeout(function() {
+    eye.classList.remove('is-pending');
+    row.classList.remove('is-pending');
+
+    if (shouldFail) {
+      /* ROLLBACK — revert optimistic change */
+      row.classList.remove('slot-row--available');
+      row.classList.add('slot-row--empty');
+      if (label) label.textContent = 'Kein Slot';
+      eye.innerHTML = SVG.eyeOff;
+      dot.className = 'slot-status-dot slot-status-dot--error';
+      showToast('Fehler: Netzwerk-Timeout. Änderung wurde rückgängig gemacht.', 'err');
+      setTimeout(function(){ dot.style.display='none'; }, 2000);
+    } else {
+      /* SUCCESS — swap eye icon to open, confirm dot */
+      eye.innerHTML = SVG.eye;
+      eye.setAttribute('title','Für Schüler ausblenden');
+      eye.onclick = function() { simulateHide(rowId, false); };
+      dot.className = 'slot-status-dot slot-status-dot--saved';
+      showToast('Slot ist jetzt für Schüler sichtbar.', 'ok');
+      setTimeout(function(){ dot.style.display='none'; }, 1500);
+    }
+  }, 700);
+}
+
+/* ── Optimistic: hide slot (row B) ── */
+function simulateHide(rowId, shouldFail) {
+  var row = document.getElementById('row-' + rowId);
+  var eye = document.getElementById('row-' + rowId + '-eye');
+  var badge = document.getElementById('row-' + rowId + '-badge');
+  var dot   = document.getElementById('row-' + rowId + '-dot');
+
+  /* 1. Optimistic update */
+  row.classList.remove('slot-row--available');
+  row.classList.add('slot-row--empty');
+  if (badge) badge.textContent = 'VERSTECKT';
+
+  /* 2. Spinner */
+  eye.classList.add('is-pending');
+  eye.innerHTML = spinnerHTML('dark');
+  row.classList.add('is-pending');
+  dot.style.display = 'block';
+  dot.className = 'slot-status-dot slot-status-dot--saving';
+
+  setTimeout(function() {
+    eye.classList.remove('is-pending');
+    row.classList.remove('is-pending');
+
+    if (shouldFail) {
+      row.classList.remove('slot-row--empty');
+      row.classList.add('slot-row--available');
+      if (badge) badge.textContent = 'SICHTBAR';
+      eye.innerHTML = SVG.eye;
+      dot.className = 'slot-status-dot slot-status-dot--error';
+      showToast('Fehler beim Speichern. Änderung zurückgesetzt.', 'err');
+      setTimeout(function(){ dot.style.display='none'; }, 2000);
+    } else {
+      eye.innerHTML = SVG.eyeOff;
+      eye.setAttribute('title','Verfügbar schalten');
+      eye.onclick = function() { simulateMakeAvailable(rowId, false); };
+      dot.className = 'slot-status-dot slot-status-dot--saved';
+      showToast('Slot ist jetzt für Schüler ausgeblendet.', 'ok');
+      setTimeout(function(){ dot.style.display='none'; }, 1500);
+    }
+  }, 700);
+}
+
+/* ── Simulate timeout ── */
+function simulateTimeout(rowId) {
+  var row = document.getElementById('row-' + rowId);
+  var dot = document.getElementById('row-' + rowId + '-dot');
+  var actions = document.getElementById('row-' + rowId + '-actions');
+
+  row.classList.remove('slot-row--available');
+  row.classList.add('slot-row--timeout');
+  row.classList.add('is-pending');
+  dot.style.display = 'block';
+  dot.className = 'slot-status-dot slot-status-dot--saving';
+
+  /* Spinner on all action buttons */
+  var btns = actions.querySelectorAll('.s-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.add('is-pending');
+    btns[i].innerHTML = spinnerHTML('amber');
+  }
+
+  setTimeout(function() {
+    row.classList.remove('is-pending');
+    dot.className = 'slot-status-dot slot-status-dot--saved';
+    /* Restore with timeout buttons */
+    actions.innerHTML =
+      '<button class="s-btn s-btn--amber" title="Timeout aufheben" onclick="simulateUndoTimeout(\'' + rowId + '\')">' + SVG.undoTo + '</button>' +
+      '<button class="s-btn s-btn--l" title="Buchung erstellen" onclick="showToast(\'Buchung erstellen\',\'info\')">' + SVG.plus + '</button>';
+    showToast('Timeout gesetzt.', 'ok');
+    setTimeout(function(){ dot.style.display='none'; }, 1500);
+  }, 700);
+}
+
+function simulateUndoTimeout(rowId) {
+  var row = document.getElementById('row-' + rowId);
+  var dot = document.getElementById('row-' + rowId + '-dot');
+  var actions = document.getElementById('row-' + rowId + '-actions');
+
+  /* Optimistic: back to available */
+  row.classList.remove('slot-row--timeout');
+  row.classList.add('slot-row--available');
+  row.classList.add('is-pending');
+  dot.style.display = 'block';
+  dot.className = 'slot-status-dot slot-status-dot--saving';
+
+  var btns = actions.querySelectorAll('.s-btn');
+  for (var i = 0; i < btns.length; i++) {
+    btns[i].classList.add('is-pending');
+    btns[i].innerHTML = spinnerHTML('light');
+  }
+
+  setTimeout(function() {
+    row.classList.remove('is-pending');
+    dot.className = 'slot-status-dot slot-status-dot--saved';
+    actions.innerHTML =
+      '<button class="s-btn s-btn--d" title="Konfigurieren" onclick="showToast(\'Konfiguration\',\'info\')">' + SVG.gear + '</button>' +
+      '<button class="s-btn s-btn--d" title="Ausblenden" id="row-' + rowId + '-eye" onclick="simulateHide(\'' + rowId + '\',false)">' + SVG.eye + '</button>' +
+      '<button class="s-btn s-btn--d" title="Timeout" onclick="simulateTimeout(\'' + rowId + '\')">' + SVG.timeout + '</button>' +
+      '<button class="s-btn s-btn--d" title="Buchen" onclick="showToast(\'Buchen\',\'info\')">' + SVG.plus + '</button>';
+    showToast('Timeout aufgehoben.', 'ok');
+    setTimeout(function(){ dot.style.display='none'; }, 1500);
+  }, 700);
+}
+
+function simulateGear(rowId) { showToast('Config-Dialog öffnet (kein Availability-Change).', 'info'); }
+
+/* ── Toast ── */
+function showToast(msg, type) {
+  var area = document.getElementById('toast-area');
+  var t = document.createElement('div');
+  t.className = 'toast toast--' + (type||'ok');
+  t.textContent = msg;
+  area.appendChild(t);
+  setTimeout(function(){
+    t.style.opacity='0'; t.style.transform='translateY(-8px)';
+    t.style.transition='200ms ease';
+    setTimeout(function(){ t.remove(); }, 200);
+  }, 2500);
+}
+
+/* ── Reset ── */
+function resetDemo() { location.reload(); }
+
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') resetDemo(); });
+</script>
+</body>
+</html>

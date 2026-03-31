@@ -1,0 +1,471 @@
+<!--
+  MOCKUP: renderStudentList — student filter combobox (stu-filter-combo)
+  FILE:   teacher.js : line 223 — (function() { ... })() inside renderStudentList
+  CSS:    teacher.css — NEW classes: .stu-filter-combo, .stu-filter-combo-trigger,
+          .stu-filter-combo-label, .stu-filter-combo-count, .stu-filter-combo-chevron,
+          .stu-filter-combo-list, .stu-filter-combo-header, .stu-filter-combo-header-label,
+          .stu-filter-combo-all-btn, .stu-filter-check-row, .stu-filter-check-avatar,
+          .stu-filter-check-name, .stu-filter-check-meta
+  CHANGE: Student filter changed from old .filter-chip pills to a new dropdown
+          combobox with checkboxes. CSS classes were missing → layout broken.
+          This mockup shows all states: closed (all selected), closed (partial),
+          open dropdown, and how it sits inside .student-filter-toolbar.
+  DATE:   2026-03-24 11:21
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — Student Filter Combobox</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens 1:1 from tokens.css ── */
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#ffffff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-800:#1a2130;--neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-regular:400;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow-sm:0 1px 2px rgba(6,15,28,0.06);
+  --shadow:0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg:0 4px 16px rgba(6,15,28,0.12);
+  --focus-ring:0 0 0 3px rgba(77,122,160,0.30);
+  --transition:150ms ease;
+  --border:var(--neutral-200);
+}
+
+/* ── Page shell (mockup scaffolding only) ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: var(--neutral-100); color: var(--neutral-900); padding: 32px 20px; }
+.mock-page { max-width: 480px; margin: 0 auto; display: flex; flex-direction: column; gap: 40px; }
+.mock-state-label { font-size: 10px; font-weight: var(--weight-semibold); color: var(--neutral-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px; }
+.mock-card { background: var(--neutral-0); border-radius: var(--radius-md); box-shadow: var(--shadow); overflow: visible; padding: var(--sp-3); }
+.mock-card-title { font-size: 13px; font-weight: var(--weight-semibold); color: var(--neutral-700); margin-bottom: var(--sp-3); padding-bottom: var(--sp-2); border-bottom: 1px solid var(--neutral-100); }
+
+/* ── Existing class from teacher.css (1:1 copy) ── */
+.student-filter-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+/* ════════════════════════════════════════════════════════════
+   NEW: teacher.css — append after .student-filter-toolbar block
+   ════════════════════════════════════════════════════════════ */
+
+/* Combobox wrapper — positions trigger + floating list */
+.stu-filter-combo {
+  position: relative;
+  width: 100%;
+}
+
+/* Trigger button — looks like a select input */
+.stu-filter-combo-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  background: var(--neutral-0);
+  color: var(--neutral-700);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.stu-filter-combo-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--color-400);
+}
+.stu-filter-combo-trigger.is-open {
+  border-color: var(--color-400);
+  box-shadow: var(--focus-ring);
+}
+
+/* Label text inside trigger */
+.stu-filter-combo-label {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Count badge inside trigger */
+.stu-filter-combo-count {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  background: var(--color-400);
+  color: var(--neutral-0);
+  border-radius: 99px;
+  padding: 1px 6px;
+  min-width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.stu-filter-combo-count.is-all {
+  background: var(--neutral-200);
+  color: var(--neutral-600);
+}
+
+/* Chevron icon inside trigger */
+.stu-filter-combo-chevron {
+  color: var(--neutral-400);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  transition: transform var(--transition);
+}
+.stu-filter-combo-trigger.is-open .stu-filter-combo-chevron {
+  transform: rotate(180deg);
+}
+
+/* Floating dropdown list */
+.stu-filter-combo-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  /* Hidden by default */
+  display: none;
+}
+.stu-filter-combo-list.is-open {
+  display: block;
+}
+
+/* Header row inside dropdown (label + all/none btn) */
+.stu-filter-combo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-2) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.stu-filter-combo-header-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.stu-filter-combo-all-btn {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--color-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: var(--sp-1) var(--sp-2);
+  border-radius: var(--radius-sm);
+  transition: background var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .stu-filter-combo-all-btn:hover { background: var(--color-50); }
+}
+
+/* Individual checkbox row inside dropdown */
+.stu-filter-check-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .stu-filter-check-row:hover { background: var(--neutral-50); }
+}
+.stu-filter-check-row input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-400);
+  cursor: pointer;
+}
+
+/* Avatar circle in row */
+.stu-filter-check-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--color-700);
+  color: var(--neutral-0);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.stu-filter-check-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+/* Student name in row */
+.stu-filter-check-name {
+  flex: 1;
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Booking count meta in row */
+.stu-filter-check-meta {
+  font-size: var(--text-caption);
+  color: var(--neutral-400);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+/* ── END NEW classes ── */
+
+/* Mockup-only: search input look-alike */
+.mock-search {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3);
+  color: var(--neutral-400);
+  font-size: var(--text-caption);
+  font-family: var(--font);
+  background: var(--neutral-0);
+}
+</style>
+</head>
+<body>
+<div class="mock-page">
+
+  <!-- STATE A: Trigger closed, all selected -->
+  <div>
+    <div class="mock-state-label">State A — Geschlossen, alle Schüler ausgewählt</div>
+    <div class="mock-card">
+      <div class="student-filter-toolbar">
+        <div class="stu-filter-combo">
+          <button type="button" class="stu-filter-combo-trigger">
+            <span class="stu-filter-combo-label">Alle Schüler</span>
+            <span class="stu-filter-combo-count is-all">2</span>
+            <span class="stu-filter-combo-chevron">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+        <div class="mock-search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Schüler suchen…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE B: Trigger closed, partial selection (s115 only) -->
+  <div>
+    <div class="mock-state-label">State B — Geschlossen, 1 Schüler gefiltert</div>
+    <div class="mock-card">
+      <div class="student-filter-toolbar">
+        <div class="stu-filter-combo">
+          <button type="button" class="stu-filter-combo-trigger">
+            <span class="stu-filter-combo-label">s115</span>
+            <span class="stu-filter-combo-count">1</span>
+            <span class="stu-filter-combo-chevron">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+        </div>
+        <div class="mock-search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Schüler suchen…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE C: Dropdown open, all selected -->
+  <div>
+    <div class="mock-state-label">State C — Dropdown offen, alle ausgewählt</div>
+    <div class="mock-card" style="overflow: visible; padding-bottom: 160px;">
+      <div class="student-filter-toolbar" style="overflow:visible">
+        <div class="stu-filter-combo">
+          <button type="button" class="stu-filter-combo-trigger is-open">
+            <span class="stu-filter-combo-label">Alle Schüler</span>
+            <span class="stu-filter-combo-count is-all">2</span>
+            <span class="stu-filter-combo-chevron">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+          <div class="stu-filter-combo-list is-open">
+            <div class="stu-filter-combo-header">
+              <span class="stu-filter-combo-header-label">Schüler</span>
+              <button type="button" class="stu-filter-combo-all-btn">Alle abwählen</button>
+            </div>
+            <label class="stu-filter-check-row">
+              <input type="checkbox" checked>
+              <div class="stu-filter-check-avatar">S</div>
+              <span class="stu-filter-check-name">s115</span>
+              <span class="stu-filter-check-meta">15 Buchungen</span>
+            </label>
+            <label class="stu-filter-check-row">
+              <input type="checkbox" checked>
+              <div class="stu-filter-check-avatar">S</div>
+              <span class="stu-filter-check-name">s211</span>
+              <span class="stu-filter-check-meta">11 Buchungen</span>
+            </label>
+          </div>
+        </div>
+        <div class="mock-search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Schüler suchen…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE D: Dropdown open, partial selection -->
+  <div>
+    <div class="mock-state-label">State D — Dropdown offen, teilweise ausgewählt</div>
+    <div class="mock-card" style="overflow: visible; padding-bottom: 160px;">
+      <div class="student-filter-toolbar" style="overflow:visible">
+        <div class="stu-filter-combo">
+          <button type="button" class="stu-filter-combo-trigger is-open">
+            <span class="stu-filter-combo-label">s115</span>
+            <span class="stu-filter-combo-count">1</span>
+            <span class="stu-filter-combo-chevron">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </button>
+          <div class="stu-filter-combo-list is-open">
+            <div class="stu-filter-combo-header">
+              <span class="stu-filter-combo-header-label">Schüler</span>
+              <button type="button" class="stu-filter-combo-all-btn">Alle auswählen</button>
+            </div>
+            <label class="stu-filter-check-row">
+              <input type="checkbox" checked>
+              <div class="stu-filter-check-avatar">S</div>
+              <span class="stu-filter-check-name">s115</span>
+              <span class="stu-filter-check-meta">15 Buchungen</span>
+            </label>
+            <label class="stu-filter-check-row">
+              <input type="checkbox">
+              <div class="stu-filter-check-avatar">S</div>
+              <span class="stu-filter-check-name">s211</span>
+              <span class="stu-filter-check-meta">11 Buchungen</span>
+            </label>
+          </div>
+        </div>
+        <div class="mock-search">
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 10.5l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Schüler suchen…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW CSS BLOCK to append into teacher.css -->
+  <div>
+    <div class="mock-state-label">CSS — In teacher.css einfügen (nach .student-filter-toolbar Block)</div>
+    <div class="mock-card">
+      <pre style="font-size:11px;line-height:1.6;color:var(--neutral-700);overflow-x:auto;white-space:pre-wrap;">/* ── NEW: teacher.css — append after .student-filter-row block ── */
+.stu-filter-combo { position:relative; width:100%; }
+.stu-filter-combo-trigger {
+  width:100%; display:flex; align-items:center; gap:var(--sp-2);
+  font-family:var(--font); font-size:var(--text-caption);
+  font-weight:var(--weight-semibold);
+  padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3);
+  border:1px solid var(--neutral-200); border-radius:var(--radius-sm);
+  background:var(--neutral-0); color:var(--neutral-700);
+  cursor:pointer; text-align:left;
+  transition:border-color var(--transition), box-shadow var(--transition);
+}
+.stu-filter-combo-trigger:focus-visible { outline:none; box-shadow:var(--focus-ring); border-color:var(--color-400); }
+.stu-filter-combo-trigger.is-open { border-color:var(--color-400); box-shadow:var(--focus-ring); }
+.stu-filter-combo-label { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.stu-filter-combo-count {
+  font-size:10px; font-weight:var(--weight-semibold);
+  background:var(--color-400); color:var(--neutral-0);
+  border-radius:99px; padding:1px 6px; min-width:18px;
+  text-align:center; flex-shrink:0;
+}
+.stu-filter-combo-count.is-all { background:var(--neutral-200); color:var(--neutral-600); }
+.stu-filter-combo-chevron {
+  color:var(--neutral-400); flex-shrink:0;
+  display:flex; align-items:center;
+  transition:transform var(--transition);
+}
+.stu-filter-combo-trigger.is-open .stu-filter-combo-chevron { transform:rotate(180deg); }
+.stu-filter-combo-list {
+  position:absolute; top:calc(100% + 4px); left:0; right:0; z-index:200;
+  background:var(--neutral-0); border:1px solid var(--neutral-200);
+  border-radius:var(--radius-md); box-shadow:var(--shadow-lg);
+  overflow:hidden; display:none;
+}
+.stu-filter-combo-list.is-open { display:block; }
+.stu-filter-combo-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:var(--sp-2) var(--sp-3); border-bottom:1px solid var(--neutral-100);
+}
+.stu-filter-combo-header-label {
+  font-size:var(--text-caption); font-weight:var(--weight-semibold);
+  color:var(--neutral-500); text-transform:uppercase; letter-spacing:0.06em;
+}
+.stu-filter-combo-all-btn {
+  font-family:var(--font); font-size:var(--text-caption);
+  font-weight:var(--weight-semibold); color:var(--color-400);
+  background:none; border:none; cursor:pointer;
+  padding:var(--sp-1) var(--sp-2); border-radius:var(--radius-sm);
+  transition:background var(--transition);
+}
+@media (hover:hover) and (pointer:fine) { .stu-filter-combo-all-btn:hover { background:var(--color-50); } }
+.stu-filter-check-row {
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:var(--sp-2) var(--sp-3); cursor:pointer;
+  transition:background var(--transition);
+}
+@media (hover:hover) and (pointer:fine) { .stu-filter-check-row:hover { background:var(--neutral-50); } }
+.stu-filter-check-row input[type="checkbox"] { flex-shrink:0; width:16px; height:16px; accent-color:var(--color-400); cursor:pointer; }
+.stu-filter-check-avatar {
+  width:28px; height:28px; border-radius:50%;
+  background:var(--color-700); color:var(--neutral-0);
+  font-size:11px; font-weight:var(--weight-semibold);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; overflow:hidden;
+}
+.stu-filter-check-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.stu-filter-check-name {
+  flex:1; font-size:var(--text-caption); font-weight:var(--weight-semibold);
+  color:var(--neutral-800); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.stu-filter-check-meta { font-size:var(--text-caption); color:var(--neutral-400); white-space:nowrap; flex-shrink:0; }</pre>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

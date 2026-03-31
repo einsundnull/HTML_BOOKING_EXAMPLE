@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>IMPL — Dashboard Now Line</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.6}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;--n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--ok-bd:#bbf7d0;
+      --info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+      --warn:#d97706;--warn-bg:#fffbeb;
+    }
+    .ph{background:var(--navy);padding:28px 40px 24px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .ph-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:5px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:800px;margin-bottom:14px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.page{padding:16px}}
+    .sec{margin-bottom:44px}
+    .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--n200)}
+    .sec-title{font-size:17px;font-weight:700}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+    .callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px}
+    .c-ok{background:var(--ok-bg);border-color:var(--ok);color:#14532d}
+    .c-inf{background:var(--info-bg);border-color:var(--info);color:#1a3a6b}
+    .c-wrn{background:var(--warn-bg);border-color:var(--warn);color:#7b3500}
+    .callout strong{font-weight:700}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:14px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr.r-new{background:var(--info-bg)}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+    .code-label{display:inline-block;background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;padding:3px 10px;border-radius:4px 4px 0 0}
+    .code-block{background:var(--navy);border-radius:0 8px 8px 8px;padding:14px 18px;overflow-x:auto;margin-bottom:14px}
+    .code-block code{font-family:var(--mono);font-size:12px;color:#e2e8f0;white-space:pre;display:block;line-height:1.75;background:none;padding:0;border-radius:0}
+    .cm{color:#64748b}.ck{color:#93c5fd}.cs{color:#86efac}.cv{color:#fde68a}
+
+    /* Live mock */
+    .mock-day{display:grid;grid-template-columns:48px 1fr;gap:0 12px;max-width:360px;margin-bottom:20px}
+    .mock-label{display:flex;flex-direction:column;align-items:center;padding-top:8px}
+    .mock-wd{font-size:10px;font-weight:700;color:#9aa3af;text-transform:uppercase}
+    .mock-dn{font-size:18px;font-weight:700;color:#4d7aa0}
+    .mock-slots{display:flex;flex-direction:column;gap:8px}
+    .mock-card{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e2e6eb;border-radius:8px;border-left:3px solid;padding:8px 10px}
+    .mc-past{border-left-color:#c9d0d9;opacity:.65}
+    .mc-curr{border-left-color:#f5a623}
+    .mc-future{border-left-color:#f5a623}
+    .mc-body{flex:1}
+    .mc-name{font-size:13px;font-weight:600;color:#0d1117}
+    .mc-time{font-size:11px;color:#6b7685}
+    .mc-av{width:28px;height:28px;border-radius:50%;background:#e2e6eb;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#6b7685;flex-shrink:0}
+
+    /* Now line mock */
+    .now-line{display:flex;align-items:center;gap:8px;pointer-events:none}
+    .now-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;flex-shrink:0}
+    .now-bar{flex:1;height:2px;background:#16a34a;border-radius:1px}
+    .now-lbl{font-size:11px;font-weight:700;color:#16a34a;white-space:nowrap}
+
+    .flow{display:flex;flex-direction:column;margin-bottom:16px}
+    .flow-step{display:grid;grid-template-columns:28px 1fr;border:1px solid var(--n200);border-bottom:none;background:var(--n0)}
+    .flow-step:first-child{border-radius:8px 8px 0 0}
+    .flow-step:last-child{border-bottom:1px solid var(--n200);border-radius:0 0 8px 8px}
+    .flow-step.hi{background:var(--ok-bg)}
+    .flow-num{background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:flex-start;justify-content:center;padding-top:12px}
+    .flow-body{padding:10px 14px}
+    .flow-fn{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--navy);margin-bottom:3px}
+    .flow-file{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--n400);margin-bottom:3px}
+    .flow-desc{font-size:12px;color:var(--n500);line-height:1.5}
+
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Dashboard Now Line</div>
+  <div class="ph-title">Dashboard — Now Line (Zeitlinie)</div>
+  <div class="ph-sub">
+    Grüne horizontale Linie mit Uhrzeit-Label die die aktuelle Zeit
+    innerhalb der heutigen Buchungsliste visualisiert. Aktualisiert sich automatisch jede Minute.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">dashboard.js · dashboard.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-36</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- VISUAL -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">Visuelle Darstellung — alle 4 Positionen</div></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex-wrap:wrap">
+
+      <!-- Before all -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--n500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Vor allen Stunden</p>
+        <div class="mock-day">
+          <div class="mock-label"><div class="mock-wd">FR.</div><div class="mock-dn">20</div></div>
+          <div class="mock-slots">
+            <div class="now-line"><div class="now-dot"></div><div class="now-bar"></div><div class="now-lbl">11:55</div></div>
+            <div class="mock-card mc-future"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">12:30 – 14:00</div></div><div class="mc-av">MH</div></div>
+            <div class="mock-card mc-future"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">14:30 – 15:30</div></div><div class="mc-av">MH</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Between -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--n500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Zwischen zwei Stunden</p>
+        <div class="mock-day">
+          <div class="mock-label"><div class="mock-wd">FR.</div><div class="mock-dn">20</div></div>
+          <div class="mock-slots">
+            <div class="mock-card mc-past"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">12:30 – 14:00</div></div><div class="mc-av">MH</div></div>
+            <div class="now-line"><div class="now-dot"></div><div class="now-bar"></div><div class="now-lbl">14:22</div></div>
+            <div class="mock-card mc-future"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">14:30 – 15:30</div></div><div class="mc-av">MH</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- During -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--n500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Während einer Stunde</p>
+        <div class="mock-day">
+          <div class="mock-label"><div class="mock-wd">FR.</div><div class="mock-dn">20</div></div>
+          <div class="mock-slots">
+            <div class="mock-card mc-past"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">12:30 – 14:00</div></div><div class="mc-av">MH</div></div>
+            <div class="mock-card mc-curr"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">14:30 – 15:30</div></div><div class="mc-av">MH</div></div>
+            <div class="now-line"><div class="now-dot"></div><div class="now-bar"></div><div class="now-lbl">15:10</div></div>
+            <div class="mock-card mc-future"><div class="mc-body"><div class="mc-name">S1</div><div class="mc-time">16:00 – 16:30</div></div><div class="mc-av">S1</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- After all — no line -->
+      <div>
+        <p style="font-size:12px;font-weight:700;color:var(--n500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em">Alle Stunden vorbei → keine Linie</p>
+        <div class="mock-day">
+          <div class="mock-label"><div class="mock-wd">FR.</div><div class="mock-dn">20</div></div>
+          <div class="mock-slots">
+            <div class="mock-card mc-past"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">12:30 – 14:00</div></div><div class="mc-av">MH</div></div>
+            <div class="mock-card mc-past"><div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">14:30 – 15:30</div></div><div class="mc-av">MH</div></div>
+            <p style="font-size:11px;color:var(--n400);text-align:center;padding:4px 0">— kein Now-Line —</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- POSITIONIERUNGSLOGIK -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">Positionierungs-Algorithmus</div></div>
+    <div class="code-label">dashboard.js — _insertNowLine(slotsCol, blocks)</div>
+    <div class="code-block"><code><span class="cv">var</span> now = _currentTimeStr(); <span class="cm">// "14:22"</span>
+<span class="cv">var</span> insertAfterIndex = -2; <span class="cm">// -2 = vor allen, -1 = nicht zeigen</span>
+
+<span class="ck">for</span> (<span class="cv">var</span> i = 0; i &lt; blocks.length; i++) {
+  <span class="ck">if</span> (now &lt; blocks[i].start) {
+    insertAfterIndex = i - 1; <span class="cm">// vor diesem Block</span>
+    <span class="ck">break</span>;
+  }
+  <span class="ck">if</span> (now &gt;= blocks[i].start && now &lt; blocks[i].end) {
+    insertAfterIndex = i;     <span class="cm">// nach diesem Block (läuft gerade)</span>
+    <span class="ck">break</span>;
+  }
+  insertAfterIndex = -1;      <span class="cm">// alle vorbei → kein Line</span>
+}
+
+<span class="ck">if</span> (insertAfterIndex === -1) <span class="ck">return</span>; <span class="cm">// kein Line</span>
+<span class="ck">if</span> (insertAfterIndex === -2) {
+  slotsCol.insertBefore(lineEl, slotsCol.firstChild); <span class="cm">// vor allen</span>
+} <span class="ck">else</span> {
+  slotsCol.insertBefore(lineEl, cardEls[insertAfterIndex].nextSibling);
+}</code></div>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>now vs. Blöcke</th><th>insertAfterIndex</th><th>Ergebnis</th></tr></thead>
+        <tbody>
+          <tr><td><code>now &lt; block[0].start</code></td><td><code>-2</code></td><td>Linie vor der ersten Karte</td></tr>
+          <tr><td><code>now</code> zwischen block[0] und block[1]</td><td><code>0</code></td><td>Linie nach Karte 0</td></tr>
+          <tr><td><code>now</code> innerhalb block[1]</td><td><code>1</code></td><td>Linie nach Karte 1 (läuft)</td></tr>
+          <tr><td><code>now &gt;= block[N-1].end</code></td><td><code>-1</code></td><td>Kein Line — alle vorbei</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-inf">
+      <strong>Zeitvergleich:</strong> Strings im Format <code>"HH:MM"</code> werden lexikographisch verglichen —
+      <code>"14:22" &lt; "14:30"</code> ist <code>true</code>. Das funktioniert korrekt für alle Uhrzeiten im Format 00:00–23:59.
+    </div>
+  </div>
+
+  <!-- CALL FLOW -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Aufrufkette</div></div>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js — _buildSchedule()</div>
+          <div class="flow-fn">for each dateStr === _dashToday</div>
+          <div class="flow-desc">Erkennt heutigen Tag. Setzt <code>slotsCol.id = 'dash-today-slots'</code> und <code>slotsCol._dashBlocks = blocks</code> — beides für den Ticker benötigt.</div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">2</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">_insertNowLine(slotsCol, blocks)</div>
+          <div class="flow-desc">Berechnet Einfügeposition. Erstellt <code>.dash-now-line</code>-Element via <code>_buildNowLineEl(timeStr)</code>. Fügt es zwischen den Flex-Kinder-Karten ein.</div>
+        </div>
+      </div>
+      <div class="flow-step hi">
+        <div class="flow-num">3</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js</div>
+          <div class="flow-fn">_startNowLineTick()</div>
+          <div class="flow-desc"><code>setInterval(fn, 60000)</code> — jede Minute. Findet <code>#dash-today-slots</code>, liest <code>._dashBlocks</code>, ruft <code>_insertNowLine()</code> erneut auf. Alte Linie wird entfernt, neue eingefügt.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-body">
+          <div class="flow-file">dashboard.js — _rerender()</div>
+          <div class="flow-fn">_nowLineInterval = null → clearInterval</div>
+          <div class="flow-desc">Bei <code>_rerender()</code> wird der Interval durch <code>_startNowLineTick()</code> neu gestartet — das bestehende Interval wird mit <code>clearInterval(_nowLineInterval)</code> zuerst gestoppt, kein Memory-Leak.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEUE FUNKTIONEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Neue Funktionen</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Signatur</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>_currentTimeStr()</code></td><td><code>() → "HH:MM"</code></td><td>Aktuelle Uhrzeit als String im 24h-Format, zero-padded</td></tr>
+          <tr class="r-new"><td><code>_buildNowLineEl(timeStr)</code></td><td><code>(string) → HTMLElement</code></td><td>Erzeugt <code>.dash-now-line</code> DOM-Element: Punkt + Linie + Label</td></tr>
+          <tr class="r-new"><td><code>_insertNowLine(slotsCol, blocks)</code></td><td><code>(HTMLElement, Block[]) → void</code></td><td>Entfernt alte Linie, berechnet Position, fügt neue ein</td></tr>
+          <tr class="r-new"><td><code>_startNowLineTick()</code></td><td><code>() → void</code></td><td>Startet/neustartet <code>setInterval</code> für minütliche Aktualisierung</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CSS KLASSEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Neue CSS-Klassen (dashboard.css)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Element</th><th>Eigenschaft</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>.dash-now-line</code></td><td>Container</td><td><code>display:flex, align-items:center, gap:sp-2, pointer-events:none</code></td></tr>
+          <tr class="r-new"><td><code>.dash-now-line-dot</code></td><td>Punkt links</td><td><code>8×8px, border-radius:50%, background:--ok</code></td></tr>
+          <tr class="r-new"><td><code>.dash-now-line-bar</code></td><td>Linie</td><td><code>flex:1, height:2px, background:--ok</code></td></tr>
+          <tr class="r-new"><td><code>.dash-now-line-label</code></td><td>Uhrzeit-Text</td><td><code>caption, semibold, color:--ok, white-space:nowrap</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-ok">
+      <strong>Design Token:</strong> Alle Farben via <code>var(--ok, #16a34a)</code> — dieselbe Grün-Variable
+      die für bestätigte Buchungen verwendet wird. Konsistente Farbsprache.
+    </div>
+  </div>
+
+  <!-- DOM REFERENZ -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">6</span><div class="sec-title">DOM-Referenzen &amp; Datenhaltung</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Element</th><th>ID / Property</th><th>Zweck</th></tr></thead>
+        <tbody>
+          <tr><td><code>.dash-day-slots</code> für heute</td><td><code>id="dash-today-slots"</code></td><td>Referenz für Ticker: <code>document.getElementById('dash-today-slots')</code></td></tr>
+          <tr><td><code>.dash-day-slots</code> für heute</td><td><code>._dashBlocks = blocks[]</code></td><td>Block-Array auf DOM-Element gespeichert — kein globaler State nötig</td></tr>
+          <tr><td><code>.dash-now-line</code></td><td><code>id="dash-now-line"</code></td><td>Wird vor jedem Neusetzen per <code>querySelector</code> entfernt</td></tr>
+          <tr><td>Interval</td><td><code>_nowLineInterval</code> (Modul-global)</td><td>Für <code>clearInterval()</code> beim Re-render</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-inf">
+      <strong>Kein globaler Block-State:</strong> Die Block-Referenz wird direkt auf dem <code>slotsCol</code>-DOM-Element
+      als <code>._dashBlocks</code> gespeichert. Das ist ein bewusstes Muster — der Ticker muss kein globales
+      Array durchsuchen, sondern findet seine Daten direkt über das Element.
+    </div>
+  </div>
+
+  <!-- GEÄNDERTE DATEIEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">7</span><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>js/dashboard.js</code></td><td>Variable <code>_nowLineInterval</code>. 4 neue Funktionen: <code>_currentTimeStr</code>, <code>_buildNowLineEl</code>, <code>_insertNowLine</code>, <code>_startNowLineTick</code>. In <code>_buildSchedule()</code>: heute-Erkennung + <code>id</code> + <code>._dashBlocks</code> + <code>_insertNowLine()</code> + <code>_startNowLineTick()</code>.</td></tr>
+          <tr class="r-new"><td><code>css/dashboard.css</code></td><td>4 neue Klassen: <code>.dash-now-line</code>, <code>.dash-now-line-dot</code>, <code>.dash-now-line-bar</code>, <code>.dash-now-line-label</code>.</td></tr>
+          <tr><td><code>js/app-config.js</code></td><td><code>APP_VERSION → 2026-03-19-36</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_DASHBOARD_NOW_LINE_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-36 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

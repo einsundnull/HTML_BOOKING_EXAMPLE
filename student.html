@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Student — Booking System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="./js/app-config.js"></script>
+  <script>
+    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/teacher.css',
+        './css/wallet.css',
+        './css/profile.css',
+        './css/student.css',
+        './css/chat.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <main class="page">
+
+    <div class="page-header">
+      <h2 id="student-page-title">Meine Stunden</h2>
+      <p id="student-page-subtitle">Lehrer finden und Stunden buchen.</p>
+    </div>
+
+    <div class="stats-row stats-row-student">
+      <div class="stat-card"><div class="stat-label" id="stat-label-teachers">Meine Lehrer</div><div class="stat-value" id="stat-teachers">—</div></div>
+      <div class="stat-card"><div class="stat-label" id="stat-label-bookings">Gebucht</div><div class="stat-value" id="stat-bookings">—</div></div>
+    </div>
+
+    <div class="view-nav">
+      <button class="view-nav-btn active" id="nav-catalog">Meine Lehrer</button>
+      <button class="view-nav-btn" id="nav-calendar">Stunde buchen</button>
+      <button class="view-nav-btn" id="nav-my-bookings">Meine Buchungen</button>
+      <button class="view-nav-btn" id="nav-wallet">Wallet</button>
+      <a class="view-nav-btn" id="nav-dashboard-link">Dashboard</a>
+    </div>
+
+    <!-- Catalog -->
+    <div id="view-catalog">
+      <div id="catalog-grid" class="catalog-grid"></div>
+    </div>
+
+    <!-- My bookings -->
+    <div id="view-my-bookings" class="view-hidden">
+
+      <!-- Teacher filter dropdown — mirrors teacher's student dropdown -->
+      <div class="all-bookings-toolbar">
+        <label class="form-label">Lehrer</label>
+        <div class="custom-dropdown" id="mb-teacher-dropdown">
+          <button type="button" class="custom-dropdown-trigger" id="mb-teacher-trigger" aria-haspopup="listbox" aria-expanded="false">
+            <span class="custom-dropdown-label" id="mb-teacher-label">Alle Lehrer</span>
+            <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <ul class="custom-dropdown-list" id="mb-teacher-list" role="listbox" aria-label="Lehrer auswählen"></ul>
+        </div>
+      </div>
+
+      <!-- Dynamic sort+date-range row (rendered by _buildSortDateRangeRow) -->
+      <div id="mb-sort-date-row"></div>
+
+      <!-- Zeitfilter -->
+      <div class="booking-time-filter">
+        <button class="booking-time-btn mb-time-btn" id="mb-filter-past">Vergangen <!-- <span class="booking-confirm-count" id="mb-time-past-count">0</span> --></button>
+        <button class="booking-time-btn mb-time-btn active" id="mb-filter-upcoming">Kommende <!-- <span class="booking-confirm-count" id="mb-time-upcoming-count">0</span> --></button>
+        <button class="booking-time-btn mb-time-btn" id="mb-filter-all">Alle <!-- <span class="booking-confirm-count" id="mb-time-all-count">0</span> --></button>
+      </div>
+
+      <!-- Statusfilter — all three badges always visible -->
+      <div class="booking-confirm-filter">
+        <button class="booking-confirm-btn mb-confirm-btn active" data-confirm="all">Alle <span class="booking-confirm-count" id="mb-all-count-badge">0</span><span class="booking-price-badge" id="mb-all-price-badge"></span></button>
+        <button class="booking-confirm-btn mb-confirm-btn" data-confirm="unconfirmed">Unbestätigt <span class="booking-confirm-count" id="mb-unconfirmed-count-badge">0</span><span class="booking-price-badge" id="mb-unconfirmed-price-badge"></span></button>
+        <button class="booking-confirm-btn mb-confirm-btn" data-confirm="confirmed">Bestätigt ✓ <span class="booking-confirm-count" id="mb-confirmed-count-badge">0</span><span class="booking-price-badge" id="mb-confirmed-price-badge"></span></button>
+      </div>
+
+      <div id="my-bookings-list"></div>
+    </div>
+
+    <!-- Calendar / Week grid -->
+    <div id="view-calendar" class="view-hidden">
+      <div id="teacher-picker">
+        <label class="form-label">Lehrer</label>
+        <div class="teacher-picker-row">
+          <div class="custom-dropdown" id="teacher-picker-dropdown">
+            <button type="button" class="custom-dropdown-trigger" id="teacher-picker-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="custom-dropdown-label" id="teacher-picker-label">Lehrer wählen</span>
+              <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+                <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <ul class="custom-dropdown-list" id="teacher-picker-list" role="listbox" aria-label="Lehrer auswählen"></ul>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="teacher-picker-week-btn">Wochenansicht</button>
+        </div>
+      </div>
+      <div id="cal-section" class="view-hidden">
+
+        <div class="student-cal-layout">
+
+          <!-- Month calendar -->
+          <div class="card">
+            <div class="cal-nav">
+              <button class="cal-btn" id="prev-btn" aria-label="Previous month">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <span class="cal-nav-label" id="month-label"></span>
+              <button class="cal-btn" id="next-btn" aria-label="Next month">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+            </div>
+            <div class="cal-weekdays">
+              <div class="cal-weekday">Mo</div><div class="cal-weekday">Di</div>
+              <div class="cal-weekday">Mi</div><div class="cal-weekday">Do</div>
+              <div class="cal-weekday">Fr</div><div class="cal-weekday">Sa</div>
+              <div class="cal-weekday">So</div>
+            </div>
+            <div class="cal-days" id="cal-days"></div>
+            <div class="cal-legend">
+              <div class="cal-legend-item"><span class="cal-legend-dot cal-legend-dot-avail"></span><span id="cal-legend-avail">Verfügbar</span></div>
+              <div class="cal-legend-item"><span class="cal-legend-dot cal-legend-dot-booked"></span><span id="cal-legend-booked">Meine Buchung</span></div>
+            </div>
+          </div>
+
+          <!-- Day slot list -->
+          <div id="day-slots-wrapper">
+            <div id="day-nav-sentinel"></div>
+            <div id="day-nav-bar" class="day-nav-bar">
+              <button class="day-nav-btn" id="day-nav-prev-month" aria-label="Previous month"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 12L4 8l4-4M12 12L8 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="day-nav-btn" id="day-nav-prev" aria-label="Previous day"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <span class="day-nav-label" id="day-nav-label"></span>
+              <button class="day-nav-btn" id="day-nav-next" aria-label="Next day"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="day-nav-btn" id="day-nav-next-month" aria-label="Next month"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 12l4-4-4-4M8 12l4-4-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+            <div id="day-slots"></div>
+            <div id="day-recur-bar" class="day-recur-bar is-hidden">
+              <button class="btn btn-ghost btn-sm day-recur-btn" id="day-recur-open-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0111.46-2.46M14 8a6 6 0 01-11.46 2.46" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Regelm&#228;&#223;ig buchen&hellip;
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Wallet View -->
+    <div id="view-wallet" class="view-hidden">
+      <div id="student-wallet-panel"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STUDENT DAY VIEW OVERLAY  — #student-day-view-overlay
+     Öffnen:    openStudentDayView(dateStr, teacherId)
+     Schließen: closeStudentDayView()
+══════════════════════════════════════════════════════ -->
+<div id="student-day-view-overlay" class="dv-overlay" role="dialog" aria-modal="true" aria-label="Tagesansicht">
+
+  <!-- Topbar: two-row (teacher name + date) -->
+  <div class="dv-topbar">
+
+    <!-- Row 1: back · teacher name · prev/next · menu -->
+    <div class="dv-topbar-row1">
+      <button class="dv-topbar-btn" id="sdv-back-btn" aria-label="Zurück zum Kalender">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </button>
+
+      <span class="dv-topbar-teacher" id="sdv-teacher-name">Lehrer</span>
+
+      <div class="dv-day-nav">
+        <button class="dv-topbar-btn" id="sdv-prev-day" aria-label="Vorheriger Tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="15 18 9 12 15 6"/>
+          </svg>
+        </button>
+        <button class="dv-topbar-btn" id="sdv-next-day" aria-label="Nächster Tag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Row 2: weekday + date -->
+    <div class="dv-topbar-row2">
+      <span class="dv-topbar-weekday" id="sdv-weekday"></span>
+      <span class="dv-topbar-date"    id="sdv-date"></span>
+    </div>
+
+  </div>
+
+  <!-- Slot list -->
+  <div class="dv-slot-list" id="sdv-slot-list" role="list" aria-label="Zeitslots"></div>
+
+</div>
+
+<!-- Student day view FABs (save / dismiss pending bookings) -->
+<div class="dv-fab-group is-hidden" id="sdv-fab-group" aria-label="Ausstehende Buchungen">
+  <button class="dv-fab dv-fab-dismiss" id="sdv-fab-dismiss" aria-label="Verwerfen">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    Verwerfen
+  </button>
+  <button class="dv-fab dv-fab-save" id="sdv-fab-save" aria-label="Buchungen speichern">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <path d="M2.5 8l4 4L13.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Speichern
+    <span class="dv-fab-badge" id="sdv-fab-badge">0</span>
+  </button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     STUDENT WEEK GRID — same overlay structure as teacher
+══════════════════════════════════════════════════════ -->
+<div id="student-grid-overlay" class="slot-grid-overlay" role="dialog" aria-modal="true" aria-label="Book a lesson">
+
+  <div class="grid-topbar">
+
+    <!-- Row 1: close + week nav (full width, one line) -->
+    <div class="grid-topbar-row1">
+      <button class="grid-round-btn" id="sgrid-close-btn" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+          <path d="M11 4L6 9l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button class="grid-round-btn sgrid-action-btn sgrid-dismiss-btn is-hidden" id="sgrid-dismiss-btn" aria-label="Dismiss changes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+      <button class="grid-round-btn sgrid-action-btn sgrid-save-btn is-hidden" id="sgrid-save-btn" aria-label="Save changes">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2.5 8l4 4L13.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span id="sgrid-save-badge"></span>
+      </button>
+
+      <!-- Week nav — centered in remaining space -->
+      <div class="sgrid-week-nav">
+        <button class="cal-btn" id="sgrid-prev-month" aria-label="Previous month">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 12L4 8l4-4M12 12L8 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="cal-btn" id="sgrid-prev-week" aria-label="Previous week">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <span class="grid-week-label" id="sgrid-week-label"></span>
+        <button class="cal-btn" id="sgrid-next-week" aria-label="Next week">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M6 12l4-4-4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="cal-btn" id="sgrid-next-month" aria-label="Next month">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M4 12l4-4-4-4M8 12l4-4-4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Row 2: teacher dropdown (full width) -->
+    <div class="grid-topbar-row2">
+      <div class="custom-dropdown sgrid-teacher-dropdown" id="sgrid-teacher-dropdown">
+        <button type="button" class="custom-dropdown-trigger sgrid-teacher-trigger" id="sgrid-teacher-trigger"
+                aria-haspopup="listbox" aria-expanded="false">
+          <span class="custom-dropdown-label" id="sgrid-teacher-name">Lehrer wählen</span>
+          <svg class="custom-dropdown-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <ul class="custom-dropdown-list" id="sgrid-teacher-list" role="listbox" aria-label="Lehrer auswählen"></ul>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid-scroll">
+    <div id="sgrid-content"></div>
+  </div>
+
+</div>
+
+<!-- Floating save button (day slots) -->
+<div id="day-save-summary" class="day-save-summary"></div>
+
+<div id="day-save-group" class="booking-fab-group day-save-group" aria-label="Pending changes">
+  <button id="day-dismiss-btn" class="booking-fab booking-fab-dismiss" aria-label="Verwerfen">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+    <span id="fab-dismiss-label">Verwerfen</span>
+  </button>
+  <button id="day-save-btn" class="booking-fab booking-fab-save" aria-label="Änderungen speichern">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <path d="M2.5 8l4 4L13.5 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span id="fab-done-label">Fertig</span>
+    <span class="save-badge">0</span>
+  </button>
+</div>
+<!-- Service Layer -->
+<script>
+window.addEventListener('load', function() {
+  ChatPanel.init();
+  /* day-save, day-dismiss, day-nav, day-recur bound inside student.js _initApp() via CurrencyService.onReady */
+  document.getElementById('jump-up').addEventListener('click', function() { jumpSection(-1); });
+  document.getElementById('jump-down').addEventListener('click', function() { jumpSection(1); });
+  updateJumpBtns();
+});
+</script>
+
+<!-- Section jump buttons -->
+<div class="section-jumper" id="section-jumper">
+  <button class="section-jump-btn" id="jump-up" aria-label="Jump to previous section">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 10l5-5 5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <button class="section-jump-btn" id="jump-down" aria-label="Jump to next section">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6l5 5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+
+<!-- Chat FAB — standalone, immer sichtbar -->
+<div class="chat-fab-anchor">
+  <button class="chat-fab" id="chat-fab" aria-label="Chat">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+</body>
+</html>

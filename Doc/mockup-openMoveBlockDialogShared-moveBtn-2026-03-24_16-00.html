@@ -1,0 +1,425 @@
+<!--
+  MOCKUP: openMoveBlockDialogShared
+  FILE:   ui.js : line 127 — function openMoveBlockDialogShared(opts)
+  CSS:    teacher.css / components.css — .move-dialog, .move-dialog-actions,
+          .move-dialog-btns, .move-dialog-row, .move-reason-section,
+          .move-dialog-divider, .move-check-result
+  CHANGE: Fehlender "Verschieben"-Button als primäre Aktion.
+          Aktuell: Verschieben-Flow ist unbenannt — nur "Verfügbarkeit prüfen"
+          sichtbar, kein klarer Einstiegspunkt für den Move.
+          Fix:  Neuen Button "Verschieben →" als dritte Haupt-Aktion neben
+          "Bestätigen" und "Stornieren" in move-dialog-actions einfügen.
+          Klick darauf scrollt / klappt den Move-Bereich auf (toggle).
+          Beim erneuten Klick klappt er wieder zu.
+  DATE:   2026-03-24 16:00
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — openMoveBlockDialogShared</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens 1:1 aus tokens.css ── */
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#ffffff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-800:#1a2130;--neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-regular:400;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow-lg:0 4px 16px rgba(6,15,28,0.12);
+  --focus-ring:0 0 0 3px rgba(77,122,160,0.30);
+  --transition:150ms ease;
+  --red:#dc2626;
+  --status-confirmed-bg:#f0fdf4;--status-confirmed-bd:#bbf7d0;--status-confirmed-tx:#14532d;
+  --pending-amber-bg:#fef3cd;--pending-amber-bd:#f5d97e;--pending-amber-tx:#7a5c00;
+}
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font); background: #e8ecf0; padding: 24px 16px 64px; }
+
+/* ── Page scaffold ── */
+.mock-page { max-width: 440px; margin: 0 auto; display: flex; flex-direction: column; gap: 48px; }
+.mock-state-label { font-size: 10px; font-weight: var(--weight-semibold); color: var(--neutral-400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px; }
+.mock-note { font-size: 12px; color: var(--neutral-500); margin-bottom: 16px; line-height: 1.5; background: var(--neutral-100); border-radius: var(--radius-sm); padding: 8px 12px; border-left: 3px solid var(--color-300); }
+.mock-note strong { color: var(--neutral-700); font-weight: var(--weight-semibold); }
+
+/* ── Modal shell ── */
+.modal-shell {
+  background: var(--neutral-0);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-4) var(--sp-4) var(--sp-3);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.modal-title {
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+}
+.modal-close {
+  background: none;
+  border: none;
+  color: var(--neutral-400);
+  cursor: pointer;
+  padding: var(--sp-1);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-body { padding: var(--sp-4); }
+
+/* ── Existing classes 1:1 from teacher.css / components.css ── */
+.move-dialog { display: flex; flex-direction: column; gap: var(--sp-3); }
+.move-dialog-info { font-size: var(--text-small); color: var(--neutral-700); line-height: 1.5; }
+.move-dialog-info strong { color: var(--neutral-900); }
+.move-dialog-divider { border: none; border-top: 1px solid var(--neutral-200); margin: 0; }
+.move-dialog-actions { display: flex; gap: var(--sp-2); flex-wrap: wrap; }
+.move-dialog-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+.move-dialog-col { display: flex; flex-direction: column; gap: var(--sp-1); }
+.move-dialog-btns { display: flex; flex-direction: column; gap: var(--sp-2); }
+.move-reason-section { display: flex; flex-direction: column; gap: var(--sp-2); background: var(--neutral-50); border: 1px solid var(--neutral-200); border-radius: var(--radius-md); padding: var(--sp-3); }
+.move-reason-label { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em; }
+.move-reason-required { color: var(--red); }
+.move-reason-optional { font-weight: var(--weight-regular); color: var(--neutral-400); }
+.move-reason-note-label { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em; }
+.move-check-result { font-size: var(--text-caption); font-weight: var(--weight-semibold); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); }
+.move-check-ok   { background: var(--status-confirmed-bg); color: var(--status-confirmed-tx); border: 1px solid var(--status-confirmed-bd); }
+.move-check-fail { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
+.recur-section { border-top: 1px solid var(--neutral-200); padding-top: var(--sp-3); }
+.form-label { font-size: var(--text-caption); font-weight: var(--weight-semibold); color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.05em; }
+.form-select {
+  font-family: var(--font); font-size: var(--text-small); color: var(--neutral-700);
+  border: 1px solid var(--neutral-200); border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3); background: var(--neutral-0); width: 100%;
+}
+.form-textarea {
+  font-family: var(--font); font-size: var(--text-small); color: var(--neutral-700);
+  border: 1px solid var(--neutral-200); border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3); background: var(--neutral-0); width: 100%; resize: vertical;
+}
+.custom-dropdown-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--font); font-size: var(--text-small); color: var(--neutral-500);
+  border: 1px solid var(--neutral-200); border-radius: var(--radius-sm);
+  padding: var(--sp-2) var(--sp-3); background: var(--neutral-0); cursor: pointer;
+}
+.badge-confirmed {
+  display: inline-flex; align-items: center; gap: var(--sp-1); padding: var(--sp-1) var(--sp-3);
+  border-radius: 999px; font-size: var(--text-caption); font-weight: var(--weight-semibold);
+  background: var(--status-confirmed-bg); color: var(--status-confirmed-tx);
+  border: 1px solid var(--status-confirmed-bd);
+}
+/* Buttons */
+.btn { font-family: var(--font); font-size: var(--text-small); font-weight: var(--weight-semibold); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; transition: background var(--transition), color var(--transition); display: inline-flex; align-items: center; gap: var(--sp-1); }
+.btn-primary { background: var(--color-900); color: var(--neutral-0); border-color: var(--color-900); }
+.btn-primary:hover { background: var(--color-800); }
+.btn-danger  { background: transparent; color: var(--red); border-color: var(--red); }
+.btn-danger:hover { background: #fef2f2; }
+.btn-ghost   { background: transparent; color: var(--neutral-600); border-color: transparent; }
+.btn-ghost:hover { background: var(--neutral-100); }
+.btn-sm { font-size: var(--text-caption); padding: 5px var(--sp-3); }
+.btn-full { width: 100%; justify-content: center; }
+.is-hidden { display: none !important; }
+.recur-toggle-btn { color: var(--color-400); font-size: var(--text-small); }
+
+/* ── NEW: .btn-move — "Verschieben" primary action button ── */
+/* NEW: teacher.css — append after .move-dialog-actions block  */
+.btn-move {
+  background: transparent;
+  color: var(--color-500);
+  border: 1px solid var(--color-300);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  padding: 5px var(--sp-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.btn-move:hover { background: var(--color-50); border-color: var(--color-400); color: var(--color-600); }
+.btn-move.is-active { background: var(--color-50); border-color: var(--color-400); color: var(--color-600); }
+
+/* ── NEW: .move-panel — collapsible move section ── */
+/* NEW: teacher.css — append after .move-dialog-row block      */
+.move-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 280ms ease, opacity 200ms ease;
+}
+.move-panel.is-open {
+  max-height: 600px;
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+<div class="mock-page">
+
+  <!-- ════════════════════════════════════════════════
+       STATE A — VORHER (aktueller Stand, kaputt)
+  ════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-state-label">State A — Vorher (aktuell) · Unbestätigt</div>
+    <div class="mock-note">
+      <strong>Problem:</strong> Der Nutzer sieht „Bestätigen" und „Stornieren" — aber <em>keinen</em>
+      Button zum Verschieben. Der Verschieben-Flow versteckt sich unbenannt hinter dem
+      Datum/Zeit-Formular und „Verfügbarkeit prüfen". Kein klarer Einstiegspunkt.
+    </div>
+    <div class="modal-shell">
+      <div class="modal-header">
+        <span class="modal-title">Block bearbeiten</span>
+        <button class="modal-close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="move-dialog">
+          <p class="move-dialog-info"><strong>4 Slots</strong> (00:00 – 02:00) — <strong>s1</strong></p>
+          <!-- Alte Actions: nur Bestätigen + Stornieren -->
+          <div class="move-dialog-actions">
+            <button class="btn btn-primary btn-sm">✓ Bestätigen</button>
+            <button class="btn btn-danger btn-sm">Stornieren</button>
+          </div>
+          <hr class="move-dialog-divider">
+          <!-- Move-Bereich: immer sichtbar, kein Label, kein Toggle -->
+          <div class="move-dialog-row">
+            <div class="move-dialog-col">
+              <label class="form-label">Datum</label>
+              <input type="text" class="form-select" value="30 / 03" readonly>
+            </div>
+            <div class="move-dialog-col">
+              <label class="form-label">Startzeit</label>
+              <select class="form-select"><option>11:00 – 11:30</option></select>
+            </div>
+          </div>
+          <div class="move-reason-section">
+            <label class="move-reason-label">Grund der Verschiebung <span class="move-reason-required">*</span></label>
+            <button class="custom-dropdown-trigger">
+              <span>Bitte Grund wählen…</span>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+            <label class="move-reason-note-label">Hinweis <span class="move-reason-optional">(optional)</span></label>
+            <textarea class="form-textarea" rows="2" placeholder="Kurze Beschreibung…"></textarea>
+          </div>
+          <div class="move-dialog-btns">
+            <button class="btn btn-primary btn-full">Verfügbarkeit prüfen</button>
+            <button class="btn btn-ghost btn-full">Im Kalender anzeigen</button>
+          </div>
+          <div class="recur-section">
+            <button class="btn btn-ghost recur-toggle-btn">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0111.46-2.46M14 8a6 6 0 01-11.46 2.46" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Regelmäßig buchen
+            </button>
+          </div>
+          <div class="move-dialog-btns">
+            <button class="btn btn-ghost">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       STATE B — NACHHER · Move-Panel geschlossen
+  ════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-state-label">State B — Nachher · Unbestätigt · Move-Panel zu</div>
+    <div class="mock-note">
+      <strong>Fix:</strong> Dritter Button „↕ Verschieben" in <code>.move-dialog-actions</code>.
+      Klick öffnet das Move-Panel per Toggle. Der Rest des Dialogs bleibt unverändert.
+    </div>
+    <div class="modal-shell">
+      <div class="modal-header">
+        <span class="modal-title">Block bearbeiten</span>
+        <button class="modal-close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="move-dialog">
+          <p class="move-dialog-info"><strong>4 Slots</strong> (11:00 – 13:00) — <strong>s1</strong></p>
+          <!-- Neue Actions: Bestätigen + Stornieren + Verschieben -->
+          <div class="move-dialog-actions">
+            <button class="btn btn-primary btn-sm">✓ Bestätigen</button>
+            <button class="btn btn-danger btn-sm">Stornieren</button>
+            <button class="btn-move" id="move-toggle-b" onclick="toggleMove('b')">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4M4 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Verschieben
+            </button>
+          </div>
+          <hr class="move-dialog-divider">
+          <!-- Move-Panel: standardmäßig GESCHLOSSEN -->
+          <div class="move-panel" id="move-panel-b">
+            <div class="move-dialog-row">
+              <div class="move-dialog-col">
+                <label class="form-label">Datum</label>
+                <input type="text" class="form-select" value="30 / 03" readonly>
+              </div>
+              <div class="move-dialog-col">
+                <label class="form-label">Startzeit</label>
+                <select class="form-select"><option>11:00 – 11:30</option></select>
+              </div>
+            </div>
+            <div class="move-reason-section">
+              <label class="move-reason-label">Grund der Verschiebung <span class="move-reason-required">*</span></label>
+              <button class="custom-dropdown-trigger">
+                <span>Bitte Grund wählen…</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+              <label class="move-reason-note-label">Hinweis <span class="move-reason-optional">(optional)</span></label>
+              <textarea class="form-textarea" rows="2" placeholder="Kurze Beschreibung…"></textarea>
+            </div>
+            <div class="move-dialog-btns">
+              <button class="btn btn-primary btn-full">Verfügbarkeit prüfen</button>
+              <button class="btn btn-ghost btn-full">Im Kalender anzeigen</button>
+            </div>
+            <div class="recur-section">
+              <button class="btn btn-ghost recur-toggle-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0111.46-2.46M14 8a6 6 0 01-11.46 2.46" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Regelmäßig buchen
+              </button>
+            </div>
+          </div>
+          <div class="move-dialog-btns">
+            <button class="btn btn-ghost">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       STATE C — NACHHER · Move-Panel offen
+  ════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-state-label">State C — Nachher · Move-Panel geöffnet</div>
+    <div class="modal-shell">
+      <div class="modal-header">
+        <span class="modal-title">Block bearbeiten</span>
+        <button class="modal-close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="move-dialog">
+          <p class="move-dialog-info"><strong>4 Slots</strong> (11:00 – 13:00) — <strong>s1</strong></p>
+          <div class="move-dialog-actions">
+            <button class="btn btn-primary btn-sm">✓ Bestätigen</button>
+            <button class="btn btn-danger btn-sm">Stornieren</button>
+            <!-- Verschieben aktiv / hervorgehoben -->
+            <button class="btn-move is-active" id="move-toggle-c" onclick="toggleMove('c')">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M4 6l4-4 4 4M4 10l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Verschieben
+            </button>
+          </div>
+          <hr class="move-dialog-divider">
+          <!-- Move-Panel: offen -->
+          <div class="move-panel is-open" id="move-panel-c">
+            <div class="move-dialog-row">
+              <div class="move-dialog-col">
+                <label class="form-label">Datum</label>
+                <input type="text" class="form-select" value="30 / 03" readonly>
+              </div>
+              <div class="move-dialog-col">
+                <label class="form-label">Startzeit</label>
+                <select class="form-select"><option>11:00 – 11:30</option></select>
+              </div>
+            </div>
+            <div class="move-reason-section">
+              <label class="move-reason-label">Grund der Verschiebung <span class="move-reason-required">*</span></label>
+              <button class="custom-dropdown-trigger">
+                <span>Bitte Grund wählen…</span>
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+              <label class="move-reason-note-label">Hinweis <span class="move-reason-optional">(optional)</span></label>
+              <textarea class="form-textarea" rows="2" placeholder="Kurze Beschreibung…"></textarea>
+            </div>
+            <div class="move-dialog-btns">
+              <button class="btn btn-primary btn-full">Verfügbarkeit prüfen</button>
+              <button class="btn btn-ghost btn-full">Im Kalender anzeigen</button>
+            </div>
+            <div class="recur-section">
+              <button class="btn btn-ghost recur-toggle-btn">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8a6 6 0 0111.46-2.46M14 8a6 6 0 01-11.46 2.46" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M14 2v4h-4M2 14v-4h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Regelmäßig buchen
+              </button>
+            </div>
+          </div>
+          <div class="move-dialog-btns">
+            <button class="btn btn-ghost">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════
+       STATE D — NACHHER · Bestätigt (kein Move möglich)
+  ════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-state-label">State D — Nachher · Vollständig bestätigt</div>
+    <div class="mock-note">
+      Bestätigte Blöcke: kein Verschieben möglich. Unverändert — nur „✓ Bestätigt"-Badge.
+    </div>
+    <div class="modal-shell">
+      <div class="modal-header">
+        <span class="modal-title">Block bearbeiten</span>
+        <button class="modal-close">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="move-dialog">
+          <p class="move-dialog-info"><strong>4 Slots</strong> (11:00 – 13:00) — <strong>s1</strong></p>
+          <div class="move-dialog-actions">
+            <span class="badge-confirmed">✓ Bestätigt</span>
+          </div>
+          <hr class="move-dialog-divider">
+          <div class="move-dialog-btns">
+            <button class="btn btn-ghost">Abbrechen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleMove(id) {
+  var panel  = document.getElementById('move-panel-' + id);
+  var toggle = document.getElementById('move-toggle-' + id);
+  var isOpen = panel.classList.contains('is-open');
+  if (isOpen) {
+    panel.classList.remove('is-open');
+    toggle.classList.remove('is-active');
+  } else {
+    panel.classList.add('is-open');
+    toggle.classList.add('is-active');
+  }
+}
+</script>
+</body>
+</html>

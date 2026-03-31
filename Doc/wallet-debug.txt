@@ -1,0 +1,50 @@
+WALLET DEBUG — Bekannte Probleme
+================================
+
+SYMPTOM
+-------
+- Einzahlen-Button bleibt nach Klick ausgegraut (disabled)
+- Kontostand wird nicht aktualisiert
+- Input-Felder werden nicht geleert
+
+VERDÄCHTIGE ROOT CAUSE
+----------------------
+adapter-localstorage.js — _cb() Funktion:
+
+  function _cb(callback, err, result) {
+    try {
+      callback(err, result);
+    } catch (e) {
+      console.error('[LocalStorageAdapter] Callback-Fehler:', e);
+      // Exception wird geschluckt — btn.disabled = false wird nie erreicht
+    }
+  }
+
+Wenn irgendwo im Callback eine Exception fliegt, wird sie hier
+silent geloggt. btn.disabled = false steht NACH dem Fehler-Punkt
+und wird nie ausgeführt.
+
+WAS BEREITS VERSUCHT WURDE
+---------------------------
+1. _currentUid() auf Auth.current() umgestellt (war Auth.currentUser)
+2. btn.disabled = false als erstes im Callback gesetzt
+3. _buildTxItem defensiv gemacht (tx.type || 'deposit' etc.)
+4. Render-Code in try/catch gekapselt
+5. Auth-Guard beim Init hinzugefügt
+
+NÄCHSTER SCHRITT (manuell im Browser)
+--------------------------------------
+Browser DevTools öffnen (F12) → Console-Tab.
+Dann Einzahlen klicken und auf Fehlermeldung achten.
+
+Spezifisch suchen nach:
+  [LocalStorageAdapter] Callback-Fehler: ...
+
+Das zeigt den genauen Fehler der von _cb geschluckt wird.
+
+DATEIEN
+-------
+wallet.js              — Consumer wallet.html
+wallet-panel.js        — Panel für teacher/student
+adapter-localstorage.js — _cb Helper (Zeile ~23)
+app-service.js         — _call() delegiert an Adapter

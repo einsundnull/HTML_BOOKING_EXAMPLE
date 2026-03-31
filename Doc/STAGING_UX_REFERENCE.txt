@@ -1,0 +1,11 @@
+## Vergleichstabelle: Staging UX — Teacher vs. Student
+
+| # | Feature | Teacher | Student (aktuell) | Problem |
+|---|---|---|---|---|
+| **1** | Block-Detail bleibt offen nach Re-render | ✅ `expandedAllBlocks{}` — blockKey persistiert offen/zu | ❌ kein State — DOM wird neu gebaut, alles kollabiert | **Root Cause: Combobox schließt** |
+| **2** | Cancel-Button in Detail — zeigt Modal | ❌ **Kein Modal** — staged sofort, Button wird zu "Undo" | ✅ zeigt Modal mit "Behalten / Stornieren" | **Muss weg** |
+| **3** | Cancel-Block-Button — zeigt Modal | ❌ **Kein Modal** — staged über Edit-Dialog | ✅ zeigt Modal | **Muss weg** |
+| **4** | `+ Add` / Cancel — Button wird zu "Undo" | ✅ Button text = "Undo", Farbe ghost | ❌ kein Undo-Button | **Fehlt** |
+| **5** | Amber-Highlight auf pending Slot-Row | ✅ `.slot-pending` CSS auf der Row | ❌ nur auf Block-Header | **Fehlt auf Row-Ebene** |
+| **6** | Amber-Highlight auf Block-Header | ✅ `.block-pending` | ✅ implementiert | ✅ |
+| **7** | Save/Dismiss FAB erscheint | ✅ nach jeder Staging-Aktion | ✅ implementiert | ✅ |

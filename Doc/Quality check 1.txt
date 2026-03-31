@@ -1,0 +1,106 @@
+Now I have everything. Here is the complete report:
+
+---
+
+## Vollständiger Code-Qualitäts-Report
+
+### 🔴 Totes Code (Dead Code)
+
+| Funktion | Datei | Defined | Called | Befund |
+|---|---|---|---|---|
+| `getEffectiveStudentSlot` | student.js | ✅ | 0× | Echtes Dead Code — Pipeline nutzt jetzt direktes Map-Pattern |
+| `bookDaySlot` | student.js | ✅ | 0× | Echtes Dead Code — `+ Add` Button staged direkt inline |
+| `cancelDaySlot` | student.js | ✅ | 0× | Echtes Dead Code — kein Aufrufer mehr |
+| `_cancelBookingBlock` | student.js | ✅ | 0× | Echtes Dead Code — Header-Cancel staged direkt inline |
+| `_cancelBookingFromList` | student.js | ✅ | 0× | Echtes Dead Code — Detail-Cancel staged direkt inline |
+| `_getFilter` | teacher.js | ✅ | 0× | Echtes Dead Code — nur Definition, nie aufgerufen |
+| `cancelBookingFromPanel` | teacher.js | ✅ | 0× | Echtes Dead Code — 0 Referenzen gesamt |
+| `openMoveDialog` | teacher.js | ✅ | 0× | Echtes Dead Code — 0 Referenzen gesamt |
+
+**Anmerkung:** `commitDayChanges`, `discardDayChanges`, `jumpSection`, `navDay`, `navMonth`, `saveBookingChanges`, `discardBookingChanges` sind **nicht** dead — sie werden aus `student.html` / `teacher.html` inline-script aufgerufen.
+
+---
+
+### 🟡 Redundanzen (Duplikate)
+
+| Funktion | student.js | teacher.js | Wo hin |
+|---|---|---|---|
+| `fmtDate` | ✅ | ✅ | → `store.js` (hat bereits `_fmtDate` intern) |
+| `_applyTimeFilter` | ✅ | ✅ | → `ui.js` |
+| `_applyDateRangeFilter` | ✅ | ✅ | → `ui.js` |
+| `_buildSortDateRangeRow` | ✅ | ✅ | → `ui.js` |
+| `checkDayNavSticky` | ✅ | ✅ | → `ui.js` |
+| `updateDayNavBar` | ✅ | ✅ | → `ui.js` |
+| `navDay` | ✅ | ✅* | → `ui.js` (*teacher: nur HTML-aufgerufen) |
+| `navMonth` | ✅ | ✅* | → `ui.js` |
+| `getStickyOffset` | ✅ | ✅ | → `ui.js` |
+| `getCurrentSectionIndex` | ✅ | ✅ | → `ui.js` |
+| `updateJumpBtns` | ✅ | ✅ | → `ui.js` |
+| `jumpSection` | ✅ | ✅ | → `ui.js` |
+| `renderCalendar` | ✅ 44 Zeilen | ✅ 60 Zeilen | Verschiedene Kontexte — behalten, aber angleichen |
+
+---
+
+### 🟠 Memory Leaks — Event Listener
+
+| Problem | Datei | Zeile | Beschreibung |
+|---|---|---|---|
+| `document.addEventListener('click', ...)` in Render-Funktion | student.js | renderMyBookings | Wird bei jedem Render neu gebunden, nie entfernt |
+| `document.addEventListener('click', ...)` in Render-Funktion | teacher.js | renderAllBookings | Identisches Problem |
+| addEventListener delta | student.js | — | 42 adds, 1 remove — Delta: **41** |
+| addEventListener delta | teacher.js | — | 75 adds, 1 remove — Delta: **74** |
+| `_closeTeacherPickerDropdown` | student.js | L476 | Wird jedes Render neu registriert, vorheriger nie entfernt |
+| `_closeBookingDropdown` | teacher.js | L1719 | Identisches Problem |
+
+---
+
+### 🟠 Phantom Code (geschrieben, nie gelesen)
+
+| Symbol | Datei | Problem |
+|---|---|---|
+| `_bookingsSortBtnInit` | teacher.js | `var _bookingsSortBtnInit = false` — deklariert und kommentiert, aber **nie** als Guard-Bedingung genutzt |
+| `allBookingsFilter` | teacher.js | In `_setFilter` geschrieben, nie gelesen — Write-only alias |
+| `allBookingsTimeFilter` | teacher.js | Write-only alias |
+| `allBookingsConfirmFilter` | teacher.js | Write-only alias |
+| `dayBookingsFilter` | teacher.js | Write-only alias |
+| `dayBookingsTimeFilter` | teacher.js | Write-only alias |
+| `dayBookingsConfirmFilter` | teacher.js | Write-only alias |
+
+---
+
+### 🟡 Architektur-Verletzungen
+
+| Problem | student.js | teacher.js |
+|---|---|---|
+| Direkte `Store.*` Aufrufe (sollte AppService nutzen) | **35** | **68** |
+| Laut Guidelines: Consumer-Code darf NIEMALS direkt `Store.*` aufrufen | ❌ | ❌ |
+
+---
+
+### 🟡 Sicherheit — XSS
+
+| Datei | Zeile | Code |
+|---|---|---|
+| teacher.js | L396 | `chip.innerHTML = b.label + '<span...' + b.val` |
+| teacher.js | L1020 | `btn.innerHTML = opt.label + '<span...' + opt.count` |
+
+Niedriges Risiko da interne Daten aus eigenem localStorage — aber Best Practice verletzt. Fix: `textContent` + `appendChild` statt `innerHTML` mit Concat.
+
+---
+
+### ✅ Kein Befund
+
+- Keine `console.log` / `console.error` in Produktionscode
+- Keine leeren `catch {}` Blöcke
+- Keine hardcodierten Secrets, Passwörter oder API-Keys
+- `prevMonth` / `nextMonth` — scheinbar dead, aber korrekt per `addEventListener` in `renderTeacherPicker()` verdrahtet
+
+---
+
+### Empfohlene Reihenfolge
+
+1. **Sofort** — Dead Code löschen (8 Funktionen): `getEffectiveStudentSlot`, `bookDaySlot`, `cancelDaySlot`, `_cancelBookingBlock`, `_cancelBookingFromList`, `_getFilter`, `cancelBookingFromPanel`, `openMoveDialog`
+2. **Sofort** — Legacy Aliases in teacher.js entfernen (6 Writes ohne Reads)
+3. **Kurzfristig** — Memory Leaks: `document.addEventListener` in Render-Funktionen mit Guard-Pattern fixen
+4. **Kurzfristig** — 12 Duplikat-Funktionen nach `ui.js` auslagern
+5. **Mittelfristig** — 103 direkte `Store.*` Aufrufe auf `AppService` migrieren

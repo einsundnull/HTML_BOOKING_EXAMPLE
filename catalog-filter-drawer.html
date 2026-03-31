@@ -1,0 +1,314 @@
+<!--
+  catalog-filter-drawer.html
+  Standalone Right-Drawer für Ski-Katalog-Filter.
+  Wird per CatalogFilterDrawer.init() als innerHTML in #catalog-filter-drawer-root injiziert.
+  i18n Namespace: skiing-catalog (getriggert von skiing-catalog.html)
+-->
+<div class="cfd-overlay" id="cfd-overlay" aria-hidden="true"></div>
+
+<aside
+  class="cfd-drawer"
+  id="cfd-drawer"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Filter"
+  aria-hidden="true"
+>
+  <!-- Drawer Header -->
+  <div class="cfd-header">
+    <span class="cfd-title" data-i18n="filterDrawerTitle">Filter</span>
+    <button class="cfd-reset-btn" id="cfd-reset-btn" type="button" data-i18n="filterReset">
+      Zurücksetzen
+    </button>
+    <button
+      class="cfd-close-btn"
+      id="cfd-close-btn"
+      type="button"
+      aria-label="Filter-Drawer schließen"
+      data-i18n-aria="drawerCloseLabel"
+    >
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Scrollable body -->
+  <div class="cfd-body" id="cfd-body">
+
+    <!-- GROUP: Disziplin -->
+    <div class="cfd-group" id="cfd-group-discipline">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="discipline" type="button">
+        <span data-i18n="filterGroupDiscipline">Disziplin</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-discipline"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-discipline" hidden>
+        <label class="cfd-check-label">
+          <input class="cfd-checkbox" type="checkbox" name="discipline" value="ski">
+          <span data-i18n="disciplineSki">Ski</span>
+        </label>
+        <label class="cfd-check-label">
+          <input class="cfd-checkbox" type="checkbox" name="discipline" value="snowboard">
+          <span data-i18n="disciplineSnowboard">Snowboard</span>
+        </label>
+        <label class="cfd-check-label">
+          <input class="cfd-checkbox" type="checkbox" name="discipline" value="telemark">
+          <span data-i18n="disciplineTelemark">Telemark</span>
+        </label>
+        <label class="cfd-check-label">
+          <input class="cfd-checkbox" type="checkbox" name="discipline" value="nordic">
+          <span data-i18n="disciplineNordic">Langlauf</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- GROUP: Level -->
+    <div class="cfd-group" id="cfd-group-level">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="level" type="button">
+        <span data-i18n="filterGroupLevel">Level</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-level"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-level" hidden>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="level" value="beginner">
+          <span data-i18n="levelBeginner">Anfänger</span>
+        </label>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="level" value="intermediate">
+          <span data-i18n="levelIntermediate">Mittelstufe</span>
+        </label>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="level" value="advanced">
+          <span data-i18n="levelAdvanced">Fortgeschritten</span>
+        </label>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="level" value="expert">
+          <span data-i18n="levelExpert">Experten</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- GROUP: Unterricht -->
+    <div class="cfd-group" id="cfd-group-lesson">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="lesson" type="button">
+        <span data-i18n="filterGroupLesson">Unterricht</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-lesson"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-lesson" hidden>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="lesson" value="private">
+          <span data-i18n="lessonPrivate">Einzelunterricht</span>
+        </label>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="lesson" value="group">
+          <span data-i18n="lessonGroup">Gruppenunterricht</span>
+        </label>
+        <label class="cfd-check-row">
+          <input class="cfd-checkbox" type="checkbox" name="lesson" value="private_group">
+          <span data-i18n="lessonPrivateGroup">Privat-Gruppe</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- GROUP: Sprachen -->
+    <div class="cfd-group" id="cfd-group-languages">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="languages" type="button">
+        <span data-i18n="filterGroupLanguages">Sprachen</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-languages"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-languages" hidden>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="de"><span data-i18n="langDe">Deutsch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="en"><span data-i18n="langEn">Englisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="fr"><span data-i18n="langFr">Französisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="it"><span data-i18n="langIt">Italienisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="es"><span data-i18n="langEs">Spanisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="ru"><span data-i18n="langRu">Russisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="ja"><span data-i18n="langJa">Japanisch</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="languages" value="zh"><span data-i18n="langZh">Chinesisch</span></label>
+      </div>
+    </div>
+
+    <!-- GROUP: Zielgruppe -->
+    <div class="cfd-group" id="cfd-group-audience">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="audience" type="button">
+        <span data-i18n="filterGroupAudience">Zielgruppe</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-audience"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-audience" hidden>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="audience" value="kids"><span data-i18n="audienceKids">Kinder</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="audience" value="teens"><span data-i18n="audienceTeens">Jugendliche</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="audience" value="adults"><span data-i18n="audienceAdults">Erwachsene</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="audience" value="seniors"><span data-i18n="audienceSeniors">Senioren</span></label>
+      </div>
+    </div>
+
+    <!-- GROUP: Terrain -->
+    <div class="cfd-group" id="cfd-group-terrain">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="terrain" type="button">
+        <span data-i18n="filterGroupTerrain">Terrain</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-terrain"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-terrain" hidden>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="terrain" value="green"><span data-i18n="terrainGreen">🟢 Grün — Anfänger</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="terrain" value="blue"><span data-i18n="terrainBlue">🔵 Blau — Mittel</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="terrain" value="red"><span data-i18n="terrainRed">🔴 Rot — Fortgeschritten</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="terrain" value="black"><span data-i18n="terrainBlack">⚫ Schwarz — Extrem</span></label>
+      </div>
+    </div>
+
+    <!-- GROUP: Spezialisierungen -->
+    <div class="cfd-group" id="cfd-group-specializations">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="specializations" type="button">
+        <span data-i18n="filterGroupSpecializations">Spezialisierungen</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-specializations"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-specializations" hidden>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="kids"><span data-i18n="specKids">Kinderunterricht</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="freeride"><span data-i18n="specFreeride">Freeride</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="freestyle"><span data-i18n="specFreestyle">Freestyle</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="racing"><span data-i18n="specRacing">Renntraining</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="anxiety"><span data-i18n="specAnxiety">Angstbewältigung</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="adaptive"><span data-i18n="specAdaptive">Adaptiver Unterricht</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="snowboard"><span data-i18n="specSnowboard">Snowboard</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="telemark"><span data-i18n="specTelemark">Telemark</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="firstaid"><span data-i18n="specFirstaid">Erste Hilfe</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="specializations" value="avalanche"><span data-i18n="specAvalanche">Lawinenkunde</span></label>
+      </div>
+    </div>
+
+    <!-- GROUP: Preis -->
+    <div class="cfd-group" id="cfd-group-price">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="price" type="button">
+        <span data-i18n="filterGroupPrice">Preis (pro 30 Min.)</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-price"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-price" hidden>
+        <div class="cfd-range-wrap">
+          <div class="cfd-range-track">
+            <div class="cfd-range-fill" id="cfd-price-fill"></div>
+          </div>
+          <input class="cfd-range" id="cfd-price-min-range" type="range" min="0" max="300" step="5" value="0" aria-label="Preis Von">
+          <input class="cfd-range" id="cfd-price-max-range" type="range" min="0" max="300" step="5" value="300" aria-label="Preis Bis">
+        </div>
+        <div class="cfd-range-inputs">
+          <div class="cfd-range-input-group">
+            <label class="cfd-range-label" for="cfd-price-min" data-i18n="filterPriceFrom">Von (CHF)</label>
+            <input class="cfd-range-input" id="cfd-price-min" type="number" min="0" max="300" step="5" value="0" placeholder="0">
+          </div>
+          <span class="cfd-range-sep">–</span>
+          <div class="cfd-range-input-group">
+            <label class="cfd-range-label" for="cfd-price-max" data-i18n="filterPriceTo">Bis (CHF)</label>
+            <input class="cfd-range-input" id="cfd-price-max" type="number" min="0" max="300" step="5" value="300" placeholder="300">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP: Erfahrung -->
+    <div class="cfd-group" id="cfd-group-experience">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="experience" type="button">
+        <span data-i18n="filterGroupExperience">Erfahrung (Jahre)</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-experience"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-experience" hidden>
+        <div class="cfd-range-wrap">
+          <div class="cfd-range-track">
+            <div class="cfd-range-fill" id="cfd-exp-fill"></div>
+          </div>
+          <input class="cfd-range" id="cfd-exp-min-range" type="range" min="0" max="40" step="1" value="0" aria-label="Erfahrung Von">
+          <input class="cfd-range" id="cfd-exp-max-range" type="range" min="0" max="40" step="1" value="40" aria-label="Erfahrung Bis">
+        </div>
+        <div class="cfd-range-inputs">
+          <div class="cfd-range-input-group">
+            <label class="cfd-range-label" for="cfd-exp-min" data-i18n="filterExperienceFrom">Von (Jahre)</label>
+            <input class="cfd-range-input" id="cfd-exp-min" type="number" min="0" max="40" step="1" value="0" placeholder="0">
+          </div>
+          <span class="cfd-range-sep">–</span>
+          <div class="cfd-range-input-group">
+            <label class="cfd-range-label" for="cfd-exp-max" data-i18n="filterExperienceTo">Bis (Jahre)</label>
+            <input class="cfd-range-input" id="cfd-exp-max" type="number" min="0" max="40" step="1" value="40" placeholder="40">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP: Standort -->
+    <div class="cfd-group" id="cfd-group-location">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="location" type="button">
+        <span data-i18n="filterGroupLocation">Standort</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-location"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-location" hidden>
+        <div class="cfd-location-wrap">
+          <input
+            class="cfd-location-input"
+            id="cfd-location-input"
+            type="text"
+            placeholder="z. B. Zermatt"
+            data-i18n-placeholder="filterLocationPlaceholder"
+            autocomplete="off"
+          >
+          <svg class="cfd-location-icon" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M8 1a5 5 0 015 5c0 3.5-5 9-5 9S3 9.5 3 6a5 5 0 015-5z" stroke="currentColor" stroke-width="1.5"/>
+            <circle cx="8" cy="6" r="1.5" stroke="currentColor" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- GROUP: Geschlecht -->
+    <div class="cfd-group" id="cfd-group-gender">
+      <button class="cfd-group-trigger" aria-expanded="false" data-group="gender" type="button">
+        <span data-i18n="filterGroupGender">Geschlecht</span>
+        <span class="cfd-group-badge is-hidden" id="cfd-badge-gender"></span>
+        <svg class="cfd-chevron" width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <div class="cfd-group-panel" id="cfd-panel-gender" hidden>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="gender" value="male"><span data-i18n="genderMale">Männlich</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="gender" value="female"><span data-i18n="genderFemale">Weiblich</span></label>
+        <label class="cfd-check-row"><input class="cfd-checkbox" type="checkbox" name="gender" value="diverse"><span data-i18n="genderDiverse">Divers</span></label>
+      </div>
+    </div>
+
+  </div><!-- /cfd-body -->
+
+  <!-- Drawer Footer: Live-count + Apply -->
+  <div class="cfd-footer">
+    <button class="cfd-apply-btn btn btn-primary btn-full" id="cfd-apply-btn" type="button">
+      <span id="cfd-apply-label">Ergebnisse anzeigen</span>
+    </button>
+  </div>
+
+</aside>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<!--
+  MOCKUP: _tdvBuildRowV1 / _tdvBuildRowV2 — Availability 2 Fixes
+  FILE:   teacher.js : line 3124 — function _tdvBuildRowV1(slot, time, dateStr, isPastDay)
+          teacher.js : line 3555 — function _tdvBuildRowV2(slot, time, dateStr, isPastDay)
+          teacher.js : line 1022 — function buildBookingForm(startSlot, dateStr, allSlots)
+          teacher.js : line 2462 — function _openV2CancelDialog(studentId, slot)
+  CSS:    teacher.css — .dv-v1-row-top, .dv-inline-btn, .dv-v2-add-btn, .dv-s-booked (NEW)
+                        .policy-card, .policy-row, .policy-warn, .policy-ok (existing)
+  CHANGE: Fix 1 — Booking button on empty/unavailable slots: "+" darf direkt Booking-Form öffnen
+                  ohne den Slot zuerst auf 'available' zu setzen. Teacher-Buchungen sind
+                  unabhängig von der Slot-Verfügbarkeit.
+          Fix 2 — Deaktivieren auf gebuchten Slots: setzt nur Availability, cancelt NICHT
+                  die Buchung. Slot bleibt gebucht, wird aus Verfügbarkeit entfernt.
+          Fix 3 — Timeout auf gebuchtem Slot: Warning-Dialog → Stornierungsdialog (_openV2CancelDialog)
+                  → nach Bestätigung: Buchung stornieren + Timeout setzen.
+  DATE:   2026-03-26 00:30
+-->
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mockup — Availability 2 Fixes</title>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Tokens 1:1 ── */
+    :root {
+      --font:'Figtree',sans-serif;
+      --color-900:#060f1c;--color-800:#0f2035;--color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;--color-400:#4d7aa0;
+      --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;
+      --neutral-400:#9aa3af;--neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;--neutral-900:#0d1117;
+      --status-confirmed-bg:#f0fdf4;--status-confirmed-bd:#bbf7d0;--status-confirmed-icon:#065f46;
+      --status-failed-bg:#fee2e2;--status-failed-bd:#fecaca;--status-failed-tx:#991b1b;
+      --status-pending-bg:#fef9ec;--status-pending-bd:#f5d97e;--status-pending-tx:#7a5c00;
+      --status-refund-bg:#dbeafe;--status-refund-bd:#93c5fd;--status-refund-tx:#1e40af;
+      --danger-tx:#c0392b;--danger-hover-bg:#fdf0ee;--danger-fab-bg:#b91c1c;
+      --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+      --radius:8px;--radius-sm:4px;
+      --shadow:0 1px 3px rgba(6,15,28,.08);--shadow-lg:0 4px 16px rgba(6,15,28,.12);
+      --text-body:16px;--text-small:14px;--text-caption:12px;--weight-semibold:600;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:var(--font);font-size:var(--text-body);color:var(--neutral-900);background:var(--neutral-100);padding:var(--sp-4)}
+    .page{max-width:860px;margin:0 auto}
+    .page-title{font-size:18px;font-weight:var(--weight-semibold);margin-bottom:4px}
+    .page-sub{font-size:var(--text-caption);color:var(--neutral-500);margin-bottom:var(--sp-4)}
+    .state-label{font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);text-transform:uppercase;letter-spacing:.06em;margin-bottom:var(--sp-2)}
+    .state-row{display:flex;gap:var(--sp-4);align-items:flex-start;flex-wrap:wrap;margin-bottom:var(--sp-4)}
+    .state-col{flex:1;min-width:280px}
+    .divider{height:1px;background:var(--neutral-200);margin:var(--sp-4) 0}
+    .section-note{font-size:var(--text-small);color:var(--neutral-600);background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:var(--radius);padding:var(--sp-3);margin-bottom:var(--sp-4)}
+    .section-note strong{font-weight:var(--weight-semibold)}
+    .callout-new{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:12px;color:#065f46;margin-bottom:var(--sp-2)}
+    .callout-fix{background:#fef9ec;border:1px solid #f5d97e;border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:12px;color:#7a5c00;margin-bottom:var(--sp-2)}
+
+    /* ── Day View Row — existing classes 1:1 from teacher.css ── */
+    .dv-slot-row{border-bottom:1px solid var(--neutral-100);background:var(--neutral-0)}
+    .dv-v1-row-top{display:flex;align-items:center;min-height:44px;padding:var(--sp-2) var(--sp-3)}
+    .dv-slot-time{width:72px;flex-shrink:0;display:flex;flex-direction:column;line-height:1.2}
+    .dv-time-start{font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--neutral-900)}
+    .dv-time-end{font-size:10px;color:var(--neutral-400)}
+    .dv-slot-sep{width:1px;height:32px;background:var(--neutral-200);margin:0 var(--sp-2);flex-shrink:0}
+    .dv-slot-info{flex:1;display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap}
+    .dv-slot-action{display:flex;align-items:center;gap:var(--sp-2);flex-shrink:0;margin-left:auto}
+    .dv-s-available{background:var(--neutral-0)}
+    .dv-s-empty{background:var(--neutral-50)}
+    .dv-s-booked{background:var(--status-confirmed-bg)} /* NEW class */
+    .dv-s-timeout-avail{background:var(--status-pending-bg)}
+    .dv-empty-hint{font-size:var(--text-caption);color:var(--neutral-400)}
+    .dv-pill{display:inline-flex;align-items:center;font-size:10px;font-weight:var(--weight-semibold);padding:2px 8px;border-radius:10px}
+    .dv-pill-available{background:var(--status-confirmed-bg);color:var(--status-confirmed-icon)}
+    .dv-pill-recurring{background:var(--status-refund-bg);color:var(--status-refund-tx)}
+    .dv-pill-booked{background:var(--status-confirmed-bg);color:var(--status-confirmed-icon)} /* NEW */
+    .dv-inline-btn{font-size:11px;font-weight:var(--weight-semibold);color:var(--color-400);background:none;border:1px solid var(--color-200);border-radius:var(--radius-sm);padding:3px 10px;cursor:pointer}
+    .dv-inline-btn:hover{background:var(--color-50)}
+    .dv-inline-btn.danger{color:var(--danger-tx);border-color:#fecaca}
+    .dv-inline-btn.danger:hover{background:var(--danger-hover-bg)}
+    .dv-v2-add-btn{width:26px;height:26px;border-radius:50%;background:var(--color-400);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .dv-v2-add-btn:hover{background:var(--color-500,#3a6285)}
+    .dv-timeout-icon{color:var(--status-pending-tx);display:flex;align-items:center}
+    .student-chip{display:inline-flex;align-items:center;gap:4px;font-size:11px;background:var(--neutral-100);border:1px solid var(--neutral-200);border-radius:10px;padding:2px 8px;color:var(--neutral-700)}
+
+    /* ── Dialog / Modal — existing classes ── */
+    .modal-backdrop{position:relative;background:rgba(6,15,28,.45);border-radius:var(--radius);padding:var(--sp-4)}
+    .modal{background:var(--neutral-0);border-radius:var(--radius);box-shadow:var(--shadow-lg);overflow:hidden;max-width:420px;margin:0 auto}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;padding:var(--sp-3) var(--sp-4);border-bottom:1px solid var(--neutral-100)}
+    .modal-title{font-size:var(--text-small);font-weight:var(--weight-semibold)}
+    .modal-close{background:none;border:none;color:var(--neutral-400);font-size:16px;cursor:pointer;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm)}
+    .modal-body{padding:var(--sp-4)}
+    .modal-footer{display:flex;justify-content:flex-end;gap:var(--sp-2);padding:var(--sp-3) var(--sp-4);border-top:1px solid var(--neutral-100)}
+    .btn{font-size:var(--text-small);font-weight:var(--weight-semibold);padding:8px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer}
+    .btn-ghost{background:none;border:1px solid var(--neutral-200);color:var(--neutral-700)}
+    .btn-danger{background:#b91c1c;color:#fff}
+    .btn-primary{background:var(--color-400);color:#fff}
+
+    /* ── Policy card — existing ── */
+    .policy-card{background:var(--neutral-50);border:1px solid var(--neutral-200);border-radius:var(--radius);padding:var(--sp-3);margin:var(--sp-3) 0}
+    .policy-row{display:flex;justify-content:space-between;font-size:var(--text-small);padding:3px 0;border-bottom:1px solid var(--neutral-100)}
+    .policy-row:last-child{border-bottom:none}
+    .policy-label{color:var(--neutral-500)}
+    .policy-value{font-weight:var(--weight-semibold)}
+    .policy-refund{font-weight:var(--weight-semibold);color:var(--status-confirmed-icon)}
+    .policy-warn{background:var(--status-failed-bg);border:1px solid var(--status-failed-bd);border-radius:var(--radius-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--text-caption);color:var(--status-failed-tx);margin-top:var(--sp-2)}
+    .policy-ok{background:var(--status-confirmed-bg);border:1px solid var(--status-confirmed-bd);border-radius:var(--radius-sm);padding:var(--sp-2) var(--sp-3);font-size:var(--text-caption);color:var(--status-confirmed-icon);margin-top:var(--sp-2)}
+
+    /* ── Move dialog info text — existing ── */
+    .move-dialog-info{font-size:var(--text-small);color:var(--neutral-700);margin-bottom:var(--sp-3)}
+    .dlg-student-row{display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3)}
+    .dlg-avatar{width:40px;height:40px;border-radius:50%;background:var(--color-100);display:flex;align-items:center;justify-content:center;font-weight:var(--weight-semibold);color:var(--color-700);flex-shrink:0}
+    .dlg-name{font-weight:var(--weight-semibold);font-size:var(--text-small)}
+    .dlg-slot{font-size:var(--text-caption);color:var(--neutral-500)}
+
+    /* ── Warning box ── */
+    .warn-box{background:var(--status-pending-bg);border:1px solid var(--status-pending-bd);border-radius:var(--radius-sm);padding:var(--sp-3);font-size:var(--text-small);color:var(--status-pending-tx);margin-bottom:var(--sp-3)}
+    .warn-box strong{font-weight:var(--weight-semibold)}
+    .dialog-error-msg{background:var(--status-failed-bg);border:1px solid var(--status-failed-bd);border-radius:var(--radius-sm);color:var(--status-failed-tx);font-size:var(--text-caption);padding:var(--sp-2) var(--sp-3);margin-top:var(--sp-2)}
+
+    /* ── Flow arrows ── */
+    .flow-arrow{text-align:center;color:var(--neutral-400);font-size:22px;margin:var(--sp-1) 0;line-height:1}
+    .flow-label{text-align:center;font-size:10px;color:var(--neutral-400);margin-bottom:var(--sp-1)}
+
+    .badge-new{font-size:9px;font-weight:700;background:#065f46;color:#fff;border-radius:3px;padding:1px 5px;vertical-align:middle;margin-left:4px}
+    .badge-fix{font-size:9px;font-weight:700;background:#7a5c00;color:#fff;border-radius:3px;padding:1px 5px;vertical-align:middle;margin-left:4px}
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="page-title">Mockup — Availability 2: Unabhängige Teacher-Buchungen + Timeout auf gebuchtem Slot</div>
+  <div class="page-sub">mockup-tdvBuildRowV1-availabilityFixes-2026-03-26_00-30.html</div>
+
+  <!-- ════════════════════════════════════════════
+       FIX 1: Booking-Button unabhängig von Slot-Status
+  ════════════════════════════════════════════ -->
+  <div class="section-note">
+    <strong>Fix 1 — Booking-Button unabhängig von Availability</strong><br>
+    Der Teacher kann auf JEDEM Slot (leer, timeout, verfügbar, gebucht) direkt die Booking-Form öffnen.<br>
+    Kein automatisches Setzen auf 'available' mehr. Slot-Status und Buchungen sind vollständig unabhängig.
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <div class="state-label">State A — Leerer Slot (heute: öffnet erst Availability, dann Buchung)</div>
+      <div style="border:1px solid var(--neutral-200);border-radius:var(--radius);overflow:hidden;background:var(--neutral-0)">
+        <div class="dv-slot-row dv-s-empty">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">12:30</span><span class="dv-time-end">–13:00</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info"><span class="dv-empty-hint">Kein Slot angelegt</span></div>
+            <div class="dv-slot-action">
+              <button class="dv-inline-btn" style="opacity:.5" title="Heute: Slot wird zuerst auf available gesetzt">Hinzufügen</button>
+              <button class="dv-inline-btn" style="opacity:.5">Timeout</button>
+            </div>
+          </div>
+        </div>
+        <div class="dv-slot-row dv-s-empty">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">13:00</span><span class="dv-time-end">–13:30</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info"><span class="dv-empty-hint">Kein Slot angelegt</span></div>
+            <div class="dv-slot-action">
+              <button class="dv-v2-add-btn" style="opacity:.5" title="Heute: setzt Slot auf available, öffnet dann Buchung">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <div class="state-label">State B — Nach Fix: direkt Booking-Form <span class="badge-fix">FIX</span></div>
+      <div style="border:1px solid var(--neutral-200);border-radius:var(--radius);overflow:hidden;background:var(--neutral-0)">
+        <div class="dv-slot-row dv-s-empty">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">12:30</span><span class="dv-time-end">–13:00</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info"><span class="dv-empty-hint">Kein Slot angelegt</span></div>
+            <div class="dv-slot-action">
+              <button class="dv-inline-btn">Verfügbar</button>
+              <button class="dv-inline-btn">Timeout</button>
+              <!-- NEW: Buchung direkt möglich ohne Slot zuerst anzulegen -->
+              <button class="dv-v2-add-btn" title="Schüler direkt buchen (ohne Slot auf verfügbar zu setzen)">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="dv-slot-row dv-s-empty">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">13:00</span><span class="dv-time-end">–13:30</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info"><span class="dv-empty-hint">Kein Slot angelegt</span></div>
+            <div class="dv-slot-action">
+              <button class="dv-inline-btn">Verfügbar</button>
+              <button class="dv-inline-btn">Timeout</button>
+              <button class="dv-v2-add-btn">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout-new" style="margin-top:var(--sp-2)">✓ „+" öffnet direkt die Booking-Form. Kein createSlot davor. Slot entsteht ggf. erst beim Speichern der Buchung.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════════
+       FIX 2: Deaktivieren auf gebuchtem Slot
+  ════════════════════════════════════════════ -->
+  <div class="section-note">
+    <strong>Fix 2 — Deaktivieren auf gebuchtem Slot</strong><br>
+    Deaktivieren entfernt nur die Availability (slot.status = 'disabled'). Die Buchung bleibt vollständig erhalten.<br>
+    Heute: Deaktivieren auf gebuchten Slots ist gesperrt (Button fehlt). Nach Fix: immer verfügbar, unabhängig.
+  </div>
+
+  <div class="state-row">
+    <div class="state-col">
+      <div class="state-label">State C — Gebuchter Slot (heute: kein Deaktivieren-Button)</div>
+      <div style="border:1px solid var(--neutral-200);border-radius:var(--radius);overflow:hidden">
+        <div class="dv-slot-row dv-s-available">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">14:00</span><span class="dv-time-end">–14:30</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info">
+              <span class="student-chip">👤 Maria S.</span>
+            </div>
+            <div class="dv-slot-action">
+              <!-- Heute: nur Deaktivieren + Timeout für booked, aber Deaktivieren setzt nur auf disabled -->
+              <button class="dv-inline-btn" style="opacity:.4" title="Deaktivieren fehlt bei booked heute">—</button>
+              <button class="dv-inline-btn">Timeout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-col">
+      <div class="state-label">State D — Nach Fix: Deaktivieren unabhängig von Buchung <span class="badge-fix">FIX</span></div>
+      <div style="border:1px solid var(--neutral-200);border-radius:var(--radius);overflow:hidden">
+        <!-- NEW class: dv-s-booked — visuell klar unterscheidbar -->
+        <div class="dv-slot-row dv-s-booked">
+          <div class="dv-v1-row-top">
+            <div class="dv-slot-time"><span class="dv-time-start">14:00</span><span class="dv-time-end">–14:30</span></div>
+            <div class="dv-slot-sep"></div>
+            <div class="dv-slot-info">
+              <span class="dv-pill dv-pill-booked">Gebucht</span>
+              <span class="student-chip">👤 Maria S.</span>
+            </div>
+            <div class="dv-slot-action">
+              <!-- Deaktivieren setzt nur Availability auf disabled — Buchung bleibt -->
+              <button class="dv-inline-btn" title="Entfernt Slot aus Availability. Buchung bleibt bestehen.">Deaktivieren</button>
+              <button class="dv-inline-btn danger" title="Öffnet Timeout-Warning-Dialog (Fix 3)">Timeout</button>
+              <button class="dv-v2-add-btn" title="Weiteren Schüler buchen">
+                <svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="callout-new" style="margin-top:var(--sp-2)">✓ Deaktivieren → setzt nur slot.status = 'disabled'. Buchung, Zahlung und Stornierungsrecht unverändert.</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ════════════════════════════════════════════
+       FIX 3: Timeout auf gebuchtem Slot — Dialog-Flow
+  ════════════════════════════════════════════ -->
+  <div class="section-note">
+    <strong>Fix 3 — Timeout auf gebuchtem Slot: 2-stufiger Dialog-Flow</strong><br>
+    Stufe 1: Warning-Dialog (Buchung wird storniert). Stufe 2: Stornierungsdialog mit Rückerstattungsberechnung (bereits implementiert: _openV2CancelDialog). Nach Bestätigung: Buchung stornieren → Timeout setzen.
+  </div>
+
+  <!-- Flow -->
+  <div style="display:flex;gap:var(--sp-3);align-items:center;flex-wrap:wrap;margin-bottom:var(--sp-4)">
+    <div style="background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:var(--text-small);font-weight:var(--weight-semibold)">Teacher klickt<br>„Timeout"<br>auf gebuchtem Slot</div>
+    <span style="color:var(--neutral-400);font-size:20px">→</span>
+    <div style="background:var(--status-pending-bg);border:1px solid var(--status-pending-bd);border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--status-pending-tx)">Stufe 1:<br>Warning-Dialog<br>(NEU)</div>
+    <span style="color:var(--neutral-400);font-size:20px">→</span>
+    <div style="background:var(--status-refund-bg);border:1px solid var(--status-refund-bd);border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--status-refund-tx)">Stufe 2:<br>_openV2CancelDialog<br>(bestehend)</div>
+    <span style="color:var(--neutral-400);font-size:20px">→</span>
+    <div style="background:var(--status-confirmed-bg);border:1px solid var(--status-confirmed-bd);border-radius:var(--radius);padding:var(--sp-2) var(--sp-3);font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--status-confirmed-icon)">Buchung storniert<br>+ Timeout gesetzt</div>
+  </div>
+
+  <div class="state-row">
+    <!-- Dialog Stufe 1: Warning -->
+    <div class="state-col">
+      <div class="state-label">State E — Stufe 1: Warning-Dialog (NEU) <span class="badge-new">NEU</span></div>
+      <div class="modal-backdrop">
+        <div class="modal">
+          <div class="modal-header">
+            <span class="modal-title">Timeout setzen</span>
+            <button class="modal-close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="warn-box">
+              <strong>⚠ Dieser Slot ist gebucht.</strong><br>
+              Wenn du einen Timeout setzt, wird die Buchung von Maria S. storniert. Das kann nicht rückgängig gemacht werden.
+            </div>
+            <div class="dlg-student-row">
+              <div class="dlg-avatar">MS</div>
+              <div>
+                <div class="dlg-name">Maria S.</div>
+                <div class="dlg-slot">Mi., 26.03.2026 · 14:00–14:30</div>
+              </div>
+            </div>
+            <p style="font-size:var(--text-caption);color:var(--neutral-500)">Im nächsten Schritt siehst du die genauen Rückerstattungsbedingungen.</p>
+            <!-- error element — required by dialog guidelines -->
+            <div class="dialog-error-msg" style="display:none" role="alert" aria-live="polite"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost">Abbrechen</button>
+            <button class="btn btn-danger">Weiter → Stornierung prüfen</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dialog Stufe 2: _openV2CancelDialog (existing) -->
+    <div class="state-col">
+      <div class="state-label">State F — Stufe 2: _openV2CancelDialog (bestehend, unverändert)</div>
+      <div class="modal-backdrop">
+        <div class="modal">
+          <div class="modal-header">
+            <span class="modal-title">Buchung stornieren</span>
+            <button class="modal-close">✕</button>
+          </div>
+          <div class="modal-body">
+            <div class="dlg-student-row">
+              <div class="dlg-avatar">MS</div>
+              <div>
+                <div class="dlg-name">Maria S.</div>
+                <div class="dlg-slot">Mi., 26.03.2026 · 14:00–14:30</div>
+              </div>
+            </div>
+            <div class="policy-card">
+              <div class="policy-row"><span class="policy-label">Preis</span><span class="policy-value">45,00 €</span></div>
+              <div class="policy-row"><span class="policy-label">Rückerstattung</span><span class="policy-refund">45,00 €</span></div>
+            </div>
+            <div class="policy-ok">✓ Rechtzeitige Stornierung — volle Rückerstattung.</div>
+            <div class="dialog-error-msg" style="display:none" role="alert" aria-live="polite"></div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-ghost">Abbrechen</button>
+            <button class="btn btn-danger">Stornieren &amp; Rückerstatten</button>
+          </div>
+        </div>
+      </div>
+      <div class="callout-new" style="margin-top:var(--sp-2)">✓ Nach Bestätigung: cancelSlotWithPolicy() → Timeout setzen → render</div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Implementierungshinweise -->
+  <div class="section-note">
+    <strong>Bereits vorhandene Funktionen (keine Duplikate nötig)</strong><br><br>
+    <strong>_openV2CancelDialog(studentId, slot)</strong> — teacher.js:2462 — vollständiger Stornierungsdialog mit Policy-Berechnung ✓<br>
+    <strong>AppService.cancelSlotWithPolicy(slotId, 'teacher', cb)</strong> — Stornierung + Rückerstattung ✓<br>
+    <strong>AppService.setSlotAvailability(slotId, 'timeout', cb)</strong> — Timeout setzen ✓<br>
+    <strong>buildBookingForm(slot, dateStr, allSlots)</strong> — teacher.js:1022 — Booking-Form Modal ✓<br><br>
+    <strong>NEU zu implementieren:</strong><br>
+    • Fix 1: „+" Button + „Hinzufügen" auf leeren/timeout-Slots → <code>buildBookingForm</code> direkt ohne vorheriges createSlot<br>
+    • Fix 2: „Deaktivieren" auf gebuchten Slots → nur <code>setSlotAvailability('disabled')</code>, kein Booking-Touch<br>
+    • Fix 3: „Timeout"-Button auf gebuchten Slots → Warning-Dialog (neu) → <code>_openV2CancelDialog</code> → nach cb: <code>setSlotAvailability('timeout')</code><br>
+    • NEU CSS-Klasse: <code>.dv-s-booked</code> für visuell unterscheidbare gebuchte Slots in Availability 2
+  </div>
+</div>
+</body>
+</html>

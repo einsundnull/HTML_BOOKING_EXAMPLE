@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>User Detail — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="./js/app-config.js"></script>
+  <script>
+    /* CSS-Injection: versioned CSS links, synchron — browser blockiert Rendering */
+    (function() {
+      var v = typeof APP_VERSION !== 'undefined' ? ('?v=' + APP_VERSION) : '';
+      var css = [
+        './css/tokens.css',
+        './css/base.css',
+        './css/components.css',
+        './css/navbar.css',
+        './css/wallet.css',
+        './css/user-detail.css',
+      ];
+      var head = document.head;
+      for (var i = 0; i < css.length; i++) {
+        var link = document.createElement('link');
+        link.rel  = 'stylesheet';
+        link.href = css[i] + v;
+        head.appendChild(link);
+      }
+    }());
+  </script>
+</head>
+<body>
+<div class="app-shell">
+  <main class="page">
+
+    <!-- Back + Header -->
+    <div class="ud-page-header">
+      <a href="./admin.html" class="ud-back-btn">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Admin
+      </a>
+      <div class="ud-header-info">
+        <div class="ud-user-name" id="ud-user-name">—</div>
+        <div class="ud-user-meta">
+          <code class="uid-badge" id="ud-user-uid">—</code>
+          <span class="ud-role-badge" id="ud-role-badge">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Balance card -->
+    <div class="ud-balance-row">
+      <div class="stat-card">
+        <div class="stat-label">Guthaben</div>
+        <div class="stat-value" id="ud-balance">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Transaktionen</div>
+        <div class="stat-value" id="ud-tx-count">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Offene Escrows</div>
+        <div class="stat-value" id="ud-escrow-count">—</div>
+      </div>
+    </div>
+
+    <div class="ud-grid">
+
+      <!-- Transaktionshistorie -->
+      <div class="card ud-card ud-tx-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Transaktionshistorie</div>
+            <div class="card-description">Alle Ein- und Auszahlungen dieses Users.</div>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="ud-filter-bar" id="ud-filter-bar">
+          <div class="ud-filter-row">
+            <input class="form-input ud-filter-search" type="text" id="ud-filter-txid"
+              placeholder="TX-ID suchen…" autocomplete="off" />
+            <div class="custom-dropdown" id="ud-dd-type" data-dropdown-id="ud-type" data-dropdown-value="all">
+              <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-dropdown-label" data-dropdown-label="ud-type">Typ: Alle</span>
+                <svg class="custom-dropdown-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" role="listbox" data-dropdown-list="ud-type">
+                <li class="custom-dropdown-item is-active" role="option" data-value="all" aria-selected="true">Alle</li>
+                <li class="custom-dropdown-item" role="option" data-value="deposit" aria-selected="false">Einzahlung</li>
+                <li class="custom-dropdown-item" role="option" data-value="withdrawal" aria-selected="false">Auszahlung</li>
+                <li class="custom-dropdown-item" role="option" data-value="booking" aria-selected="false">Buchung</li>
+                <li class="custom-dropdown-item" role="option" data-value="escrow_hold" aria-selected="false">Deposit hinterlegt</li>
+                <li class="custom-dropdown-item" role="option" data-value="escrow_release" aria-selected="false">Zahlung freigegeben</li>
+                <li class="custom-dropdown-item" role="option" data-value="refund" aria-selected="false">Rückerstattung</li>
+                <li class="custom-dropdown-item" role="option" data-value="cancellation" aria-selected="false">Stornierung</li>
+                <li class="custom-dropdown-item" role="option" data-value="move" aria-selected="false">Verschiebung</li>
+                <li class="custom-dropdown-item" role="option" data-value="lesson_confirmed" aria-selected="false">Stunde bestätigt</li>
+              </ul>
+            </div>
+            <div class="custom-dropdown" id="ud-dd-status" data-dropdown-id="ud-status" data-dropdown-value="all">
+              <button type="button" class="custom-dropdown-trigger" aria-haspopup="listbox" aria-expanded="false">
+                <span class="custom-dropdown-label" data-dropdown-label="ud-status">Status: Alle</span>
+                <svg class="custom-dropdown-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </button>
+              <ul class="custom-dropdown-list" role="listbox" data-dropdown-list="ud-status">
+                <li class="custom-dropdown-item is-active" role="option" data-value="all" aria-selected="true">Alle</li>
+                <li class="custom-dropdown-item" role="option" data-value="completed" aria-selected="false">Abgeschlossen</li>
+                <li class="custom-dropdown-item" role="option" data-value="pending" aria-selected="false">Ausstehend</li>
+                <li class="custom-dropdown-item" role="option" data-value="failed" aria-selected="false">Fehlgeschlagen</li>
+              </ul>
+            </div>
+          </div>
+          <div class="ud-filter-row">
+            <div class="ud-filter-dates">
+              <label class="ud-filter-label">Von</label>
+              <input class="form-input ud-date-input" type="date" id="ud-filter-from" />
+              <label class="ud-filter-label">Bis</label>
+              <input class="form-input ud-date-input" type="date" id="ud-filter-to" />
+            </div>
+            <div class="ud-filter-amounts">
+              <input class="form-input ud-amt-input" type="number" id="ud-filter-amt-min" placeholder="Betrag von €" min="0" step="0.01" />
+              <span class="ud-filter-label">–</span>
+              <input class="form-input ud-amt-input" type="number" id="ud-filter-amt-max" placeholder="bis €" min="0" step="0.01" />
+            </div>
+            <button class="btn btn-secondary btn-sm" id="ud-party-btn" type="button">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M11 14v-1.5a3 3 0 00-3-3H5a3 3 0 00-3 3V14M10 3a3 3 0 010 6M14 14v-1.5a3 3 0 00-2-2.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6.5" cy="5" r="3" stroke="currentColor" stroke-width="1.5"/></svg>
+              <span id="ud-party-btn-label">Personen</span>
+            </button>
+          </div>
+          <div class="ud-filter-footer">
+            <span class="ud-filter-count" id="ud-filter-count"></span>
+            <button class="btn btn-ghost btn-sm is-hidden" id="ud-filter-reset" type="button">Zurücksetzen</button>
+          </div>
+        </div>
+
+        <!-- Balance chart -->
+        <div class="ud-chart-wrap is-hidden" id="ud-chart-wrap">
+          <svg class="ud-chart" id="ud-chart" aria-label="Kontostand über Zeit"></svg>
+        </div>
+
+        <ul class="wallet-tx-list" id="ud-tx-list">
+          <li class="wallet-history-empty" id="ud-tx-empty">Keine Transaktionen.</li>
+        </ul>
+      </div>
+
+      <!-- Escrow-Historie -->
+      <div class="card ud-card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Escrow-Historie</div>
+            <div class="card-description">Hinterlegte Zahlungen und deren Status.</div>
+          </div>
+        </div>
+        <div id="ud-escrow-list">
+          <p class="wallet-history-empty" id="ud-escrow-empty">Keine Escrows.</p>
+        </div>
+      </div>
+
+    </div><!-- /ud-grid -->
+
+  </main>
+</div>
+
+<div class="chat-fab-anchor">
+  <button class="chat-fab" id="chat-fab" aria-label="Chat">
+    <svg width="18" height="18" viewBox="0 0 20 20" fill="none"><path d="M2 4a2 2 0 012-2h12a2 2 0 012 2v9a2 2 0 01-2 2H6l-4 3V4z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+</div>
+<script>
+window.addEventListener('load', function() {
+  if (typeof ChatPanel !== 'undefined') ChatPanel.init();
+});
+</script>
+</body>
+</html>

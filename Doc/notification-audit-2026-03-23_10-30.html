@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notification System Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n500:#6b7685;--n900:#0d1117;--c400:#4d7aa0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:11px;background:var(--n50);padding:16px;}
+h1{font-size:17px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:10px;color:var(--n500);margin-bottom:20px;}
+h2{font-size:12px;font-weight:600;color:var(--c400);margin:20px 0 6px;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #dde4ed;padding-bottom:3px;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:16px;}
+th{background:var(--n900);color:var(--n0);padding:6px 8px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+td{padding:6px 8px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--n50);}
+.fn{font-family:monospace;font-size:10px;font-weight:600;color:var(--n900);}
+.file{font-family:monospace;font-size:9px;color:var(--c400);}
+.ok{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#f0fdf4;color:#14532d;}
+.fixed{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#eff6ff;color:#1e40af;}
+.broken{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#fee2e2;color:#991b1b;}
+.partial{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#fef9ec;color:#7a5c00;}
+.missing{display:inline-block;padding:2px 6px;border-radius:3px;font-size:9px;font-weight:600;background:#f3f4f6;color:#6b7280;}
+.note{font-size:10px;color:var(--n500);line-height:1.6;}
+code{font-family:monospace;font-size:9px;background:var(--n100);padding:1px 4px;border-radius:2px;}
+</style>
+</head>
+<body>
+
+<h1>Notification System Audit</h1>
+<div class="meta">Generated 2026-03-23 &middot; Sources: EMAIL_SYSTEM.md, NOTIFICATION_MATRIX.txt, chat.js, student.js, teacher.js, app-service.js</div>
+
+<h2>1 &mdash; Contact / Teacher Selection Flow</h2>
+<table>
+<thead><tr><th>Event</th><th>Recipient</th><th>Doc says</th><th>Actual implementation</th><th>Status</th><th>Root cause / Fix</th></tr></thead>
+<tbody>
+<tr>
+  <td class="fn">Student selects teacher<br><span class="file">student.js: selectTeacher()</span></td>
+  <td>Teacher &mdash; Chat</td>
+  <td class="note"><code>CH: student_request</code> service message. Teacher sees Accept/Decline card in chat panel.</td>
+  <td class="note"><code>ChatStore.sendServiceMessage()</code> called &checkmark; Message stored in localStorage. Teacher DOES see it if they open chat.</td>
+  <td><span class="partial">PARTIAL</span></td>
+  <td class="note"><strong>Fixed (session 2026-03-23):</strong> Added <code>window.addEventListener('storage')</code> in ChatPanel.init() &mdash; badge now updates cross-tab without page reload.</td>
+</tr>
+<tr>
+  <td class="fn">Student selects teacher<br><span class="file">student.js: selectTeacher()</span></td>
+  <td>Teacher &mdash; Email</td>
+  <td class="note"><code>EM: onRequestReceived(teacherUid, studentName)</code></td>
+  <td class="note"><code>EmailService.onRequestReceived()</code> is called &checkmark; but silently skipped when user has no email address.</td>
+  <td><span class="broken">BROKEN</span></td>
+  <td class="note"><strong>Root cause:</strong> Users created via admin or tests often have <code>email: ''</code>. EmailService skips silently.<br><strong>Fix applied:</strong> Mock mode now logs a <code>skipped_no_email</code> entry so the skip is visible in the email log. Real fix: ensure users have email addresses.</td>
+</tr>
+<tr>
+  <td class="fn">Teacher accepts request<br><span class="file">chat.js: _respondServiceRequest()</span></td>
+  <td>Student &mdash; Email</td>
+  <td class="note"><code>EM: onRequestAccepted()</code></td>
+  <td class="note">Called correctly &checkmark;</td>
+  <td><span class="partial">PARTIAL</span></td>
+  <td class="note">Same email address problem as above.</td>
+</tr>
+<tr>
+  <td class="fn">Teacher accepts request<br><span class="file">chat.js: _respondServiceRequest()</span></td>
+  <td>Student &mdash; Chat</td>
+  <td class="note"><code>CH: (missing)</code> &mdash; per NOTIFICATION_MATRIX</td>
+  <td class="note">No chat message was sent. Student had no in-app feedback.</td>
+  <td><span class="fixed">FIXED</span></td>
+  <td class="note"><strong>Fixed (session 2026-03-23):</strong> <code>_respondServiceRequest()</code> now writes a <code>request_accepted_notify</code> service message to student. Rendered as: &ldquo;Matthias Heinold hat deine Anfrage angenommen.&rdquo;</td>
+</tr>
+<tr>
+  <td class="fn">Teacher declines request<br><span class="file">chat.js: _respondServiceRequest()</span></td>
+  <td>Student &mdash; Chat</td>
+  <td class="note"><code>CH: (missing)</code></td>
+  <td class="note">No chat message sent.</td>
+  <td><span class="fixed">FIXED</span></td>
+  <td class="note"><strong>Fixed (session 2026-03-23):</strong> <code>request_declined_notify</code> message now written to student chat.</td>
+</tr>
+<tr>
+  <td class="fn">Student disconnects teacher<br><span class="file">student.js: _executeRemoveTeacher()</span></td>
+  <td>Teacher &mdash; Chat + Email</td>
+  <td class="note"><code>CH: student_disconnected</code> + <code>EM: onDisconnected</code></td>
+  <td class="note">Both called &checkmark;</td>
+  <td><span class="ok">OK</span></td>
+  <td></td>
+</tr>
+</tbody>
+</table>
+
+<h2>2 &mdash; Booking Notifications</h2>
+<table>
+<thead><tr><th>Event</th><th>Recipient</th><th>Doc says</th><th>Actual implementation</th><th>Status</th></tr></thead>
+<tbody>
+<tr>
+  <td class="fn">Student books slots<br><span class="file">student.js: commitDayChanges()</span></td>
+  <td>Teacher &mdash; Chat</td>
+  <td class="note"><code>CH: booking_notification</code></td>
+  <td class="note"><code>ChatStore.sendBookingNotification()</code> called, batched by teacher+date &checkmark;</td>
+  <td><span class="ok">OK</span></td>
+</tr>
+<tr>
+  <td class="fn">Student books slots</td>
+  <td>Teacher &mdash; Email</td>
+  <td class="note"><code>EM: onBookingCreated</code></td>
+  <td class="note">Fired inside <code>AppService.bookSlotWithEscrowSilent()</code> &checkmark; (moved from consumer code in CRUD refactor)</td>
+  <td><span class="partial">PARTIAL</span></td>
+</tr>
+<tr>
+  <td class="fn">Teacher books for student<br><span class="file">teacher.js: saveBookingChanges()</span></td>
+  <td>Student &mdash; Chat</td>
+  <td class="note"><code>CH: booking_notification</code></td>
+  <td class="note"><code>ChatStore.sendBookingNotification()</code> called &checkmark;</td>
+  <td><span class="ok">OK</span></td>
+</tr>
+<tr>
+  <td class="fn">Student cancels<br><span class="file">AppService: cancelSlotWithPolicy()</span></td>
+  <td>Teacher &mdash; Chat</td>
+  <td class="note"><code>CH: booking_cancelled (missing)</code> per matrix</td>
+  <td class="note">No chat sent previously.</td>
+  <td><span class="fixed">FIXED</span></td>
+</tr>
+<tr>
+  <td class="fn">Teacher cancels<br><span class="file">AppService: cancelSlotWithPolicy()</span></td>
+  <td>Student &mdash; Chat</td>
+  <td class="note"><code>CH: booking_cancelled (missing)</code> per matrix</td>
+  <td class="note">No chat sent previously.</td>
+  <td><span class="fixed">FIXED</span></td>
+</tr>
+<tr>
+  <td class="fn">Cancellation (both)<br><span class="file">AppService: cancelSlotWithPolicy()</span></td>
+  <td>Both &mdash; Email</td>
+  <td class="note"><code>EM: onBookingCancelled</code></td>
+  <td class="note">Fired inside <code>cancelSlotWithPolicy()</code> wrapper &checkmark; (moved from consumer code in CRUD refactor)</td>
+  <td><span class="partial">PARTIAL</span></td>
+</tr>
+<tr>
+  <td class="fn">Slot moved<br><span class="file">AppService: writeMoveRecord()</span></td>
+  <td>Both &mdash; Chat + Email</td>
+  <td class="note"><code>CH: booking_moved</code> + <code>EM: onBookingMoved</code></td>
+  <td class="note">Both fired inside <code>writeMoveRecord()</code> &checkmark; (moved from consumer code in CRUD refactor)</td>
+  <td><span class="ok">OK</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>3 &mdash; Email Infrastructure</h2>
+<table>
+<thead><tr><th>Component</th><th>Doc says</th><th>Actual implementation</th><th>Status</th></tr></thead>
+<tbody>
+<tr>
+  <td class="fn">Email delivery<br><span class="file">email.js</span></td>
+  <td>POST to <code>/api/send-email</code>, Mailgun backend. Mock mode for dev.</td>
+  <td class="note"><code>_MOCK_MODE = true</code> &mdash; logs to console + localStorage only. No HTTP call made.</td>
+  <td><span class="partial">MOCK ONLY</span></td>
+</tr>
+<tr>
+  <td class="fn">User email address<br><span class="file">app_users store</span></td>
+  <td>Each user needs <code>email</code> field.</td>
+  <td class="note">Catalog seed users have emails. Users created via admin have <code>email: ''</code>. EmailService skips silently when empty.</td>
+  <td><span class="broken">BROKEN</span></td>
+</tr>
+<tr>
+  <td class="fn">Cross-tab badge update<br><span class="file">chat.js: ChatPanel</span></td>
+  <td>Teacher badge should update when student sends request from another tab.</td>
+  <td class="note">Previously: badge only updated on page reload or within same session. Now: <code>window.addEventListener('storage')</code> triggers badge refresh when <code>app_chat_messages</code> changes.</td>
+  <td><span class="fixed">FIXED</span></td>
+</tr>
+</tbody>
+</table>
+
+<h2>4 &mdash; Known Gaps (not fixed, lower priority)</h2>
+<table>
+<thead><tr><th>Event</th><th>Gap</th><th>Priority</th></tr></thead>
+<tbody>
+<tr><td class="fn">Lesson confirmed</td><td class="note">No chat or email notification when teacher or student confirms a lesson.</td><td><span class="missing">P3</span></td></tr>
+<tr><td class="fn">Escrow released</td><td class="note">No chat notification when teacher releases payment to student.</td><td><span class="missing">P4</span></td></tr>
+<tr><td class="fn">Deposit paid</td><td class="note">No notification when deposit is charged.</td><td><span class="missing">P4</span></td></tr>
+<tr><td class="fn">Remainder due</td><td class="note">No notification when remainder payment is outstanding.</td><td><span class="missing">P4</span></td></tr>
+</tbody>
+</table>
+
+</body>
+</html>

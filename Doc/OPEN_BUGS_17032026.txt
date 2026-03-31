@@ -1,0 +1,160 @@
+================================================================================
+OFFENE BUGS — Aktueller Stand nach Code-Prüfung
+17.03.2026 — Direkt aus Quellcode verifiziert
+================================================================================
+
+LEGENDE
+  🔴 Kritisch   — Datenverlust, falsche Geldflüsse, Security
+  🟡 Mittel     — Sichtbarer Fehler oder falsches Verhalten
+  🔵 Niedrig    — Code-Qualität, keine sichtbare Fehlfunktion
+  ✅ Erledigt   — war auf der Liste, ist aber bereits gefixt
+
+================================================================================
+ESCROW / WALLET
+================================================================================
+
+🔴 BUG 1 — requestDepositRefund schlägt fehl bei cash_on_site / Deposit nicht gezahlt
+  Datei:    adapter-localstorage.js ~912
+  Code:     if (escrow.depositStatus !== 'held') { return Error(...) }
+  Problem:  Bei cash_on_site oder wenn payDeposit beim Buchen fehlschlug,
+            bleibt depositStatus='unpaid'. cancelSlotWithPolicy erkennt
+            das zwar (tier='no_escrow') und ruft writeCancellationRecord auf —
+            ABER: wenn ein Escrow existiert mit status='unpaid' (Escrow angelegt,
+            Deposit aber nicht abgezogen), läuft die no_escrow-Prüfung korrekt
+            und schreibt die cancellation-TX. Eigentlich bereits teilweise
+            gehandhabt — aber der Fehler-Toast bei mismatched Status ist verwirrend.
+  Fix:      In requestDepositRefund: wenn Status 'unpaid', statt Fehler
+            direkt success zurückgeben (nichts zu tun — kein Geld hinterlegt).
+
+🟡 BUG 2 — WalletPanel.refresh fehlt in _showCancelPolicyDialog (ui.js)
+  Datei:    ui.js ~885–912
+  Code:     Nach cancelSlotWithPolicy: Navbar-Badge wird aktualisiert,
+            aber WalletPanel.refresh() wird NICHT aufgerufen.
+  Problem:  Wenn der Policy-Dialog direkt aus dem Detail-Panel aufgerufen wird
+            (ohne anschließenden Save-Button), sieht der User den Refund
+            im Navbar-Badge aber NICHT im eingebetteten Wallet-Panel.
+  Fix:      Nach dem getWallet-Call für Navbar:
+            if (typeof WalletPanel !== 'undefined') WalletPanel.refresh(wUid);
+  Aufwand:  1 Zeile
+
+🟡 BUG 3 — Partial-Refund (24–48h Tier) ist MVP: volles Deposit an Lehrer
+  Datei:    app-service.js ~683
+  Code:     /* partial — MVP: forfeit full deposit */
+  Problem:  Bei 24–48h Vorankündigung sollten 50% zurück an Schüler,
+            50% an Lehrer. Derzeit geht alles an den Lehrer.
+  Fix:      cancelSlotWithPolicy: bei tier='partial' splitten:
+            - forfeitDeposit für policy.forfeitAmount
+            - eigene Wallet-Gutschrift für policy.refundAmount
+            (oder neuen Adapter-Aufruf für partial-split)
+  Aufwand:  Mittel (~20 Zeilen)
+
+================================================================================
+TEACHER / STUDENT SELECTION FLOW
+================================================================================
+
+🔴 BUG 4 — Store.Selections.delete direkt in chat.js (Architektur-Verletzung)
+  Datei:    chat.js ~1064
+  Code:     Store.Selections.delete(studentId, teacherId);
+  Problem:  Direkter Store-Zugriff in Consumer-Code. Bricht bei Firestore-Swap.
+  Fix:      AppService.deleteSelection(studentId, teacherId, cb)
+  Aufwand:  1 Zeile
+
+🔵 BUG 5 — Store.Users.byUid / Store.Users.all direkt in chat.js
+  Datei:    chat.js ~430, ~791, ~1538
+  Code:     Store.Users.byUid(opts.uid), Store.Users.all()
+  Problem:  Architektur-Verletzung. Bricht bei Firestore-Swap.
+  Fix:      AppService.getUserSync(uid) / AppService.getUsersByRoleSync()
+  Aufwand:  3 Einzelzeilen
+
+================================================================================
+PROFIL / PAYMENT SETTINGS
+================================================================================
+
+🟡 BUG 6 — Zahlungseinstellungen in profile-edit.html fehlen
+  Datei:    profile-edit.html (kein Abschnitt für Payment-Settings)
+  Status:   profile.js hat die Felder (requiresDeposit, depositMode,
+            depositFixed, depositPercent, paymentMode, cancellationWindow,
+            cancellationPartial, cancellationStrict) mit Defaults und
+            i18n-Labels vollständig definiert. Auch _setDropdownVal und
+            _setVal laden sie korrekt. ABER: in profile-edit.html existiert
+            kein UI-Abschnitt "Zahlungseinstellungen" der diese Felder anzeigt.
+  Problem:  Lehrer können ihre Deposit- und Stornierungseinstellungen
+            nicht über die UI ändern — nur per localStorage direkt.
+  Fix:      Neuen Accordion-Abschnitt in profile-edit.html einfügen
+            (analog zu bestehenden Accordion-Sections). profile.js lädt
+            die Werte bereits — nur das HTML fehlt.
+  Aufwand:  Mittel (HTML-Abschnitt + CSS)
+
+================================================================================
+CSS / MOBILE
+================================================================================
+
+🟡 BUG 7 — Horizontaler Scroll auf student.html (mobile)
+  Datei:    css/base.css, css/student.css
+  Status:   html,body { overflow-x: hidden } ist gesetzt.
+            3 Lösungsversuche scheiterten (min-width:0, overflow:hidden body,
+            day-nav-bar left:0/right:0).
+  Problem:  Seite scrollt horizontal nach rechts auf Android Chrome.
+            Day-Slot-Liste wird links abgeschnitten.
+  Ursache:  Noch unbekannt — vermutlich ein Element mit fester Breite oder
+            negativem Margin außerhalb des Viewports.
+  Fix:      Systematisch mit Chrome DevTools "Computed" + Scroll-Container
+            identifizieren. Kandidat: .day-nav-bar oder .all-booking-block-wrapper.
+  Aufwand:  Diagnose nötig
+
+🔵 BUG 8 — Hover "klebt" auf Touch-Screens (Bugs/Style 1.txt)
+  Problem:  Hover-State bleibt nach Tap auf iOS/Android aktiv.
+  Fix:      Alle Hover-States in @media (hover: hover) and (pointer: fine) wrappen.
+  Aufwand:  CSS-Durchlauf
+
+================================================================================
+MEMORY LEAKS
+================================================================================
+
+🔵 BUG 9 — _closeSgridTeacherDropdown: removeEventListener vor add fehlt in openStudentGrid
+  Datei:    student.js ~986
+  Status:   BEREITS GEFIXT — removeEventListener ist vorhanden (Zeile 986).
+            _closeTeacherPickerDropdown und _closeMbTeacherDropdown
+            haben ebenfalls korrekte remove-vor-add Patterns.
+  ✅ Kein echtes Problem.
+
+🔵 BUG 10 — document.addEventListener in Render-Funktionen (renderMyBookings, renderAllBookings)
+  Datei:    student.js ~1357, teacher.js (renderAllBookings)
+  Problem:  Dropdown-Close-Listener wird bei jedem Render neu gebunden.
+            Quality check 1.txt meldet Delta von 41 (student) und 74 (teacher).
+  Status:   Für _closeMbTeacherDropdown: remove-vor-add ist vorhanden.
+            Für andere addEventListener in Render: zu prüfen.
+  Aufwand:  Code-Audit addEventListener ohne removeEventListener
+
+================================================================================
+DEAD CODE (noch im Code vorhanden?)
+================================================================================
+
+✅ Alle 8 Funktionen aus Quality check 1.txt wurden geprüft:
+   getEffectiveStudentSlot, bookDaySlot, cancelDaySlot,
+   _cancelBookingBlock, _cancelBookingFromList (student.js),
+   _getFilter, cancelBookingFromPanel, openMoveDialog (teacher.js)
+   — KEINE davon existiert noch im aktuellen Code. Bereits bereinigt.
+
+================================================================================
+ZUSAMMENFASSUNG — PRIORISIERTE REIHENFOLGE
+================================================================================
+
+Sofort (1 Zeile / trivial):
+  BUG 2   — WalletPanel.refresh in ui.js _showCancelPolicyDialog   (1 Zeile)
+  BUG 4   — Store.Selections.delete → AppService in chat.js        (1 Zeile)
+  BUG 5   — Store.Users.* → AppService in chat.js                  (3 Zeilen)
+
+Diese Woche (klein):
+  BUG 1   — requestDepositRefund: unpaid graceful handling
+  BUG 10  — Memory leak audit addEventListener
+
+Nächste Iteration (mittel):
+  BUG 6   — Zahlungseinstellungen UI in profile-edit.html
+  BUG 3   — Partial-Refund 50/50-Split implementieren
+  BUG 7   — Horizontaler Scroll diagnostizieren und fixen
+
+Später:
+  BUG 8   — Hover-Sticky auf Touch-Screens (CSS)
+
+================================================================================

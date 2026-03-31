@@ -1,0 +1,318 @@
+<!--
+  MOCKUP: _tdvBuildRowV2 — Badge-Layout + kein Add-Button auf leeren Slots
+  FILE:   teacher.js : line 3382 — _tdvBuildRowV2() booked branch — info layout
+          teacher.js : line 3593 — _tdvBuildRowV2() end — remove addBtnV2 on empty/available
+          teacher.js : line 3480 — _tdvBuildRowV2() empty branch — remove Hinzufügen/Timeout
+  CSS:    teacher.css — CHANGE: .dv-s-booked-v2 .dv-slot-info → column layout
+                                 .dv-v2-info-top → new row for avatars
+                                 .dv-v2-info-badges → new row for vis badges
+  CHANGE: 1) V2 booked rows: vis-badges go BELOW avatar stack, not next to them
+          2) V2 available/empty rows: no Hinzufügen/Timeout/+ buttons
+             (availability is managed in Verfügbarkeit 1 tab only)
+  DATE:   2026-03-25 09:30
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mockup — V2 Badge Layout + No Add Buttons</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-600:#2b4d6b;
+  --color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-400:#9aa3af;--neutral-500:#6b7685;
+  --neutral-700:#2d3540;
+  --font:'Figtree',sans-serif;
+  --text-caption:12px;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;
+  --radius-sm:4px;--radius-md:8px;
+  --transition:150ms ease;
+  --vis-new:#8b5cf6;--vis-white:#0ea5e9;--vis-black:#f97316;--vis-group:#10b981;
+  --booked-bg:#0f2a3f;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;padding:20px 16px 60px;}
+.page{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:36px;}
+.mock-label{font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.mock-note{font-size:12px;color:#505a68;background:var(--neutral-100);border-radius:4px;padding:8px 12px;border-left:3px solid var(--color-300);margin-bottom:10px;line-height:1.5;}
+.mock-note strong{color:var(--neutral-700);}
+.mock-note code{font-family:monospace;font-size:11px;background:rgba(6,15,28,.08);padding:1px 4px;border-radius:3px;}
+.divider{height:1px;background:var(--neutral-200);margin:4px 0;}
+
+/* ── Base slot row (1:1) ── */
+.slot-list{display:flex;flex-direction:column;gap:4px;}
+.dv-slot-row{display:flex;align-items:stretch;border-radius:6px;overflow:hidden;border:1px solid var(--neutral-200);}
+.dv-s-available{background:var(--color-50);border-color:var(--color-200);}
+.dv-s-booked-v2{background:var(--color-900);border-color:var(--color-900);}
+.dv-s-empty{background:var(--neutral-50);border-color:var(--neutral-200);}
+.dv-slot-time{width:52px;flex-shrink:0;padding:8px 6px;font-size:11px;font-family:monospace;display:flex;flex-direction:column;justify-content:center;}
+.dv-s-available .dv-slot-time{color:var(--color-600);background:var(--color-50);border-right:1px solid var(--color-200);}
+.dv-s-booked-v2 .dv-slot-time{color:rgba(255,255,255,.6);background:rgba(255,255,255,.05);border-right:1px solid rgba(255,255,255,.08);}
+.dv-s-empty .dv-slot-time{color:var(--neutral-400);background:var(--neutral-100);border-right:1px solid var(--neutral-200);}
+.dv-time-start{font-weight:var(--weight-semibold);font-size:12px;}
+.dv-time-end{font-size:10px;opacity:.65;}
+.dv-slot-sep{width:1px;flex-shrink:0;}
+.dv-s-available .dv-slot-sep{background:var(--color-200);}
+.dv-s-booked-v2 .dv-slot-sep{background:rgba(255,255,255,.08);}
+.dv-s-empty .dv-slot-sep{background:var(--neutral-200);}
+.dv-slot-action{padding:0 12px;display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.dv-empty-hint{font-size:12px;color:var(--neutral-400);}
+.dv-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:var(--weight-semibold);padding:2px 8px;border-radius:99px;}
+.dv-pill-available{background:var(--color-100);color:var(--color-700);}
+.dv-pill-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.dv-inline-btn{font-family:var(--font);font-size:11px;font-weight:var(--weight-semibold);background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:var(--radius-sm);color:var(--neutral-700);cursor:pointer;padding:0 8px;height:28px;display:inline-flex;align-items:center;}
+.dv-vis-btn{width:30px;height:30px;border-radius:var(--radius-sm);border:1px solid var(--color-200);background:transparent;color:var(--color-400);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dv-vis-btn.is-active{background:var(--color-900);border-color:var(--color-900);color:#fff;}
+
+/* V2 add btn */
+.dv-v2-add-btn{width:28px;height:28px;border-radius:50%;border:1.5px solid rgba(255,255,255,.22);background:transparent;color:rgba(255,255,255,.6);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dv-v2-add-btn-avail{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--color-300);background:transparent;color:var(--color-400);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dv-chevron-v2{width:26px;height:26px;border-radius:50%;border:1.5px solid rgba(255,255,255,.18);background:transparent;color:rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* Avatar stack (1:1) */
+.dv-v2-avatar-stack{display:flex;align-items:center;}
+.dv-v2-avatar-stack-item{width:26px;height:26px;border-radius:50%;border:2px solid var(--booked-bg);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-0);flex-shrink:0;margin-left:-8px;overflow:hidden;background:var(--color-700);}
+.dv-v2-avatar-stack-item:first-child{margin-left:0;}
+
+/* Vis badge pill */
+.dv-vis-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;width:fit-content;}
+.dv-vis-badge-sq{width:7px;height:7px;border-radius:2px;flex-shrink:0;display:inline-block;}
+
+/* ════════════════════════════════════
+   PROBLEM: Current layout (BEFORE)
+   info = flex-row → avatars + badges side by side → badges overflow
+   ════════════════════════════════════ */
+.info-before{
+  flex:1;display:flex;flex-direction:row;align-items:center;
+  flex-wrap:nowrap;gap:8px;padding:0 8px 0 12px;min-width:0;overflow:hidden;
+}
+
+/* ════════════════════════════════════
+   FIX: New layout (AFTER)
+   NEW CSS class: .dv-v2-info-top (avatars row)
+                  .dv-v2-info-badges (badges row below)
+   Change: .dv-s-booked-v2 .dv-slot-info → flex-direction: column
+   ════════════════════════════════════ */
+.info-after{
+  flex:1;display:flex;flex-direction:column; /* CHANGED: column */
+  justify-content:center;
+  gap:4px;
+  padding:8px 8px 8px 12px;min-width:0;
+}
+/* NEW: .dv-v2-info-top — avatars row */
+.dv-v2-info-top{
+  display:flex;align-items:center;gap:6px;
+}
+/* NEW: .dv-v2-info-badges — badges row, wraps if needed */
+.dv-v2-info-badges{
+  display:flex;align-items:center;flex-wrap:wrap;gap:4px;
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ══ PROBLEM ══ -->
+  <div>
+    <div class="mock-label">Problem — Vorher</div>
+    <div class="mock-note">
+      <strong>Problem 1:</strong> <code>dv-slot-info</code> ist <code>flex-direction:row</code> — Avatare und Badges stehen nebeneinander, Badges werden abgeschnitten.<br>
+      <strong>Problem 2:</strong> V2 zeigt „Hinzufügen" / „Timeout" / „+" auf leeren und verfügbaren Slots — soll nicht sein.
+    </div>
+    <div class="slot-list">
+
+      <!-- Booked + Badge — BEFORE: badge pushed off-screen -->
+      <div class="dv-slot-row dv-s-booked-v2">
+        <div class="dv-slot-time"><span class="dv-time-start">12:00</span><span class="dv-time-end">–12:30</span></div>
+        <div class="dv-slot-sep"></div>
+        <!-- BAD: row layout clips badge -->
+        <div class="info-before">
+          <div class="dv-v2-avatar-stack">
+            <div class="dv-v2-avatar-stack-item">S</div>
+            <div class="dv-v2-avatar-stack-item">S</div>
+          </div>
+          <!-- Badge gets shoved to right and clipped -->
+          <span class="dv-vis-badge" style="background:#ede9fe;color:#5b21b6;flex-shrink:0;">
+            <span class="dv-vis-badge-sq" style="background:#8b5cf6;"></span>Nur neue Schüler
+          </span>
+        </div>
+        <div class="dv-slot-action">
+          <button class="dv-v2-add-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="dv-chevron-v2"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Available — BEFORE: has Hinzufügen + Timeout + + button (wrong) -->
+      <div class="dv-slot-row dv-s-available">
+        <div class="dv-slot-time"><span class="dv-time-start">12:30</span><span class="dv-time-end">–13:00</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-before">
+          <span class="dv-pill dv-pill-available"><span class="dv-pill-dot"></span>Verfügbar</span>
+          <span class="dv-vis-badge" style="background:#ede9fe;color:#5b21b6;flex-shrink:0;">
+            <span class="dv-vis-badge-sq" style="background:#8b5cf6;"></span>Nur neue Schüler
+          </span>
+        </div>
+        <div class="dv-slot-action">
+          <!-- WRONG: these buttons should not be in V2 -->
+          <button class="dv-vis-btn is-active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+          <button class="dv-v2-add-btn-avail"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Empty — BEFORE: has Hinzufügen + Timeout (wrong) -->
+      <div class="dv-slot-row dv-s-empty">
+        <div class="dv-slot-time"><span class="dv-time-start">13:00</span><span class="dv-time-end">–13:30</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-before">
+          <span class="dv-empty-hint">Kein Slot angelegt</span>
+        </div>
+        <div class="dv-slot-action">
+          <!-- WRONG: these should not be in V2 -->
+          <button class="dv-inline-btn">Hinzufügen</button>
+          <button class="dv-inline-btn">Timeout</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ══ FIX ══ -->
+  <div>
+    <div class="mock-label">Fix — Nachher</div>
+    <div class="mock-note">
+      <strong>Fix 1:</strong> <code>.dv-s-booked-v2 .dv-slot-info</code> → <code>flex-direction: column</code>. Neue Klasse <code>.dv-v2-info-top</code> für Avatars, <code>.dv-v2-info-badges</code> für Badges darunter. Badges wrappen bei mehreren.<br>
+      <strong>Fix 2:</strong> V2 <code>available</code> und <code>empty</code> Rows: keine Hinzufügen/Timeout/+ Buttons. Nur Gear-Button wenn Slot vorhanden.
+    </div>
+    <div class="slot-list">
+
+      <!-- Booked + 1 Badge — AFTER -->
+      <div class="dv-slot-row dv-s-booked-v2">
+        <div class="dv-slot-time"><span class="dv-time-start">12:00</span><span class="dv-time-end">–12:30</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-after">
+          <div class="dv-v2-info-top">
+            <div class="dv-v2-avatar-stack">
+              <div class="dv-v2-avatar-stack-item">S</div>
+              <div class="dv-v2-avatar-stack-item">S</div>
+            </div>
+          </div>
+          <!-- Badges go BELOW avatars -->
+          <div class="dv-v2-info-badges">
+            <span class="dv-vis-badge" style="background:rgba(139,92,246,.2);color:#c4b5fd;">
+              <span class="dv-vis-badge-sq" style="background:#8b5cf6;"></span>Nur neue Schüler
+            </span>
+          </div>
+        </div>
+        <div class="dv-slot-action">
+          <button class="dv-v2-add-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="dv-chevron-v2"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Booked + 2 Badges (kombiniert: Gruppe + Whitelist) — AFTER -->
+      <div class="dv-slot-row dv-s-booked-v2">
+        <div class="dv-slot-time"><span class="dv-time-start">12:30</span><span class="dv-time-end">–13:00</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-after">
+          <div class="dv-v2-info-top">
+            <div class="dv-v2-avatar-stack">
+              <div class="dv-v2-avatar-stack-item">S</div>
+              <div class="dv-v2-avatar-stack-item" style="background:#3a6285;">A</div>
+              <div class="dv-v2-avatar-stack-item" style="background:#1a3249;">B</div>
+            </div>
+          </div>
+          <div class="dv-v2-info-badges">
+            <span class="dv-vis-badge" style="background:rgba(16,185,129,.18);color:#6ee7b7;">
+              <span class="dv-vis-badge-sq" style="background:#10b981;"></span>Gruppe 2/3
+            </span>
+            <span class="dv-vis-badge" style="background:rgba(14,165,233,.18);color:#7dd3fc;">
+              <span class="dv-vis-badge-sq" style="background:#0ea5e9;"></span>Whitelist
+            </span>
+          </div>
+        </div>
+        <div class="dv-slot-action">
+          <button class="dv-v2-add-btn"><svg width="12" height="12" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <button class="dv-chevron-v2"><svg width="10" height="10" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Available — AFTER: only gear button, no add/hinzufügen -->
+      <div class="dv-slot-row dv-s-available">
+        <div class="dv-slot-time"><span class="dv-time-start">13:00</span><span class="dv-time-end">–13:30</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-after" style="flex-direction:row;align-items:center;padding:0 8px 0 12px;">
+          <div style="flex:1;">
+            <span class="dv-vis-badge" style="background:#ede9fe;color:#5b21b6;">
+              <span class="dv-vis-badge-sq" style="background:#8b5cf6;"></span>Nur neue Schüler
+            </span>
+          </div>
+        </div>
+        <!-- CORRECT: only gear, no + button -->
+        <div class="dv-slot-action">
+          <button class="dv-vis-btn is-active"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg></button>
+        </div>
+      </div>
+
+      <!-- Available no config — AFTER: just color stripe, nothing -->
+      <div class="dv-slot-row dv-s-available">
+        <div class="dv-slot-time"><span class="dv-time-start">13:30</span><span class="dv-time-end">–14:00</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-after" style="flex-direction:row;align-items:center;padding:0 8px 0 12px;">
+          <!-- Nothing — just color indicates availability -->
+        </div>
+        <!-- CORRECT: no buttons at all -->
+        <div class="dv-slot-action"></div>
+      </div>
+
+      <!-- Empty — AFTER: just "Kein Slot", no buttons -->
+      <div class="dv-slot-row dv-s-empty">
+        <div class="dv-slot-time"><span class="dv-time-start">14:00</span><span class="dv-time-end">–14:30</span></div>
+        <div class="dv-slot-sep"></div>
+        <div class="info-after" style="flex-direction:row;align-items:center;padding:0 8px 0 12px;">
+          <span class="dv-empty-hint">Kein Slot angelegt</span>
+        </div>
+        <!-- CORRECT: no buttons -->
+        <div class="dv-slot-action"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ CSS CHANGES ══ -->
+  <div>
+    <div class="mock-label">CSS-Änderungen (teacher.css)</div>
+    <div class="mock-note" style="font-family:monospace;font-size:11px;white-space:pre-wrap;line-height:1.7;">/* CHANGE: .dv-s-booked-v2 .dv-slot-info */
+.dv-s-booked-v2 .dv-slot-info {
+  flex-direction: column;    /* was: row */
+  align-items: flex-start;   /* was: center */
+  justify-content: center;
+  gap: var(--sp-1);
+  padding: 8px 8px 8px 12px; /* add vertical padding */
+}
+
+/* NEW: avatar row inside booked V2 */
+.dv-v2-info-top {
+  display: flex; align-items: center; gap: 6px;
+}
+
+/* NEW: badges row — wraps if multiple */
+.dv-v2-info-badges {
+  display: flex; align-items: center;
+  flex-wrap: wrap; gap: 4px;
+}
+
+/* Adjust badge colors for dark background */
+.dv-s-booked-v2 .dv-vis-badge {
+  /* use rgba versions for dark bg */
+}</div>
+  </div>
+
+</div>
+</body>
+</html>

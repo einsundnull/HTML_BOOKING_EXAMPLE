@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Buchungs-Pipeline — Vollständige Dokumentation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@300;400;600;700&display=swap');
+:root{
+  --ink:#0f1117;--paper:#f8f9fa;--muted:#64748b;--border:#e2e8f0;
+  --accent:#2563eb;--green:#16a34a;--red:#dc2626;--amber:#d97706;
+  --surface:#fff;--code-bg:#f1f5f9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sora',sans-serif;background:var(--paper);color:var(--ink);
+  font-size:14px;line-height:1.7;padding:48px 24px 120px;max-width:1080px;margin:0 auto}
+h1{font-size:30px;font-weight:700;letter-spacing:-.6px;margin-bottom:6px}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:48px}
+h2{font-size:18px;font-weight:700;margin:52px 0 16px;padding-left:14px;
+  border-left:4px solid var(--accent)}
+h3{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.9px;
+  color:var(--muted);margin:28px 0 10px}
+p{margin-bottom:12px;color:#374151;max-width:780px}
+code{font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  background:var(--code-bg);padding:1px 6px;border-radius:4px;color:var(--accent)}
+pre{font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.65;
+  background:#1e1e2e;color:#cdd6f4;padding:22px 24px;border-radius:10px;
+  overflow-x:auto;margin:14px 0}
+pre .kw{color:#cba6f7} pre .fn{color:#89dceb} pre .str{color:#a6e3a1}
+pre .cm{color:#6c7086;font-style:italic}
+.tw{border:1px solid var(--border);border-radius:10px;overflow:hidden;margin:14px 0;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#f8fafc;padding:9px 14px;text-align:left;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.6px;color:var(--muted);border-bottom:1px solid var(--border)}
+td{padding:8px 14px;border-bottom:1px solid #f1f5f9;vertical-align:top;line-height:1.5}
+tr:last-child td{border-bottom:none}
+.ok{color:var(--green);font-weight:600}
+.no{color:var(--red);font-weight:600}
+.fix{color:var(--accent);font-weight:600}
+.warn{color:var(--amber);font-weight:600}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px}
+.pill-new{background:#eff6ff;color:var(--accent)}
+.pill-fix{background:#fef3c7;color:var(--amber)}
+.pill-ok{background:#dcfce7;color:var(--green)}
+.pill-bad{background:#fee2e2;color:var(--red)}
+.box{border:1px solid var(--border);border-radius:10px;padding:18px 22px;margin:14px 0;background:var(--surface)}
+.box-info{border-color:#bfdbfe;background:#eff6ff}
+.box-warn{border-color:#fde68a;background:#fffbeb}
+.box-green{border-color:#bbf7d0;background:#f0fdf4}
+.divider{border:none;border-top:2px solid var(--border);margin:52px 0}
+.flow{display:flex;flex-direction:column;gap:3px;margin:14px 0}
+.flow-step{display:flex;align-items:flex-start;gap:12px;padding:10px 14px;
+  background:var(--surface);border:1px solid var(--border);border-radius:8px}
+.flow-num{background:var(--accent);color:#fff;width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px}
+.flow-num.red{background:var(--red)}
+.flow-num.green{background:var(--green)}
+.flow-num.amber{background:var(--amber)}
+.flow-text{font-size:13px;color:#374151;line-height:1.6}
+.flow-arrow{text-align:center;color:var(--muted);font-size:20px;line-height:1.2;padding:0 0 0 36px}
+.state{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.state-staged{background:#fef3c7;color:#92400e}
+.state-confirmed{background:#dcfce7;color:#166534}
+.state-cancelled{background:#fee2e2;color:#991b1b}
+.state-pending{background:#e0f2fe;color:#0369a1}
+</style>
+</head>
+<body>
+
+<h1>Buchungs-Pipeline</h1>
+<p class="subtitle">Vollständige Dokumentation · BookingSystem · 18.03.2026</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>1 — Überblick: Staged-Commit-Prinzip</h2>
+
+<p>Das System verwendet ein <strong>Staged-Commit-Modell</strong> — alle Änderungen (Buchen, Stornieren) werden zuerst lokal in einer <code>pendingMap</code> vorgemerkt (gestaged). Erst beim Klick auf <strong>Done / Speichern</strong> werden sie tatsächlich ausgeführt. Solange etwas staged ist, kann es per <strong>Undo</strong> rückgängig gemacht werden.</p>
+
+<div class="box box-info">
+  <strong>Kernprinzip:</strong> Kein API-Aufruf, keine Datenbankschreibung, keine E-Mail — bis der Nutzer explizit bestätigt. Der Policy-Dialog erscheint erst am Ende, nicht beim Klick auf Cancel.
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>2 — pendingMap Struktur</h2>
+
+<pre><code><span class="cm">/* pendingDayChanges (student.js) / pendingBookings (teacher.js) */</span>
+{
+  <span class="str">"slot_abc123"</span>: {
+    action:       <span class="str">'book'</span> | <span class="str">'cancel'</span>,
+    originalSlot: { slotId, teacherId, studentId, date, time, price, ... },
+    newStudentId: <span class="str">'s1'</span>  <span class="cm">/* null for cancel */</span>
+  }
+}</code></pre>
+
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Wert bei book</th><th>Wert bei cancel</th></tr></thead>
+<tbody>
+  <tr><td><code>action</code></td><td><code>'book'</code></td><td><code>'cancel'</code></td></tr>
+  <tr><td><code>originalSlot</code></td><td>Freier Slot</td><td>Gebuchter Slot</td></tr>
+  <tr><td><code>newStudentId</code></td><td>UID des Schülers</td><td><code>null</code></td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>3 — Schüler: Vollständige Pipeline</h2>
+
+<h3>Phase A — Stornierung stagen (Klick auf „Cancel")</h3>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Schüler klickt <strong>Cancel</strong> auf einem gebuchten Slot</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num amber">2</div><div class="flow-text"><code>onCancelSlot(s, map, onAction)</code> in <code>student.js</code><br>→ Schreibt <code>pendingDayChanges[slotId] = { action: 'cancel', ... }</code><br><strong>Kein Dialog, kein API-Aufruf</strong></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num amber">3</div><div class="flow-text">Slot wird <span class="state state-staged">amber</span> dargestellt mit <strong>Undo</strong>-Button<br><code>renderDaySlots()</code> liest <code>pendingDayChanges</code> und rendert Amber-State</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">4</div><div class="flow-text">Done-Button zeigt Badge-Count (z.B. <strong>Done 1</strong>)<br>Schüler kann jederzeit <strong>Undo</strong> klicken → Cancel aus pendingMap entfernt</div></div>
+</div>
+
+<h3>Phase B — Commit (Klick auf „Done")</h3>
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Schüler klickt <strong>Done</strong> → <code>confirmAndCommit()</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">2</div><div class="flow-text">Prüfung: gibt es staged Cancels? (<code>pendingDayChanges.filter(action==='cancel')</code>)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text"><strong>Policy-Dialog</strong> für jeden Cancel sequenziell:<br>
+    <code>AppService.calcCancellationPolicy(sid, 'student', ...)</code><br>
+    Zeigt: Verbleibende Zeit · Tier (Volle/Teil/Forfeit) · Betrag<br>
+    Buttons: <strong>Nicht stornieren</strong> / <strong>Jetzt stornieren</strong></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num red">4a</div><div class="flow-text"><strong>„Nicht stornieren":</strong> Cancel aus <code>pendingDayChanges</code> entfernt → Slot wieder normal → nächster Cancel-Dialog</div></div>
+  <div class="flow-step"><div class="flow-num green">4b</div><div class="flow-text"><strong>„Jetzt stornieren":</strong> Cancel bleibt in pending → nächster Cancel-Dialog</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">5</div><div class="flow-text">Alle Cancel-Dialoge abgearbeitet → <strong>Booking-Dialog</strong> (falls es auch staged Buchungen gibt)</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num green">6</div><div class="flow-text"><code>commitDayChanges()</code> → führt alle verbleibenden pending-Änderungen aus:<br>
+    • book → <code>AppService.bookSlotWithEscrowSilent(..., 'student')</code><br>
+    • cancel → <code>AppService.cancelSlotWithPolicy(sid, 'student', cb)</code></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>4 — Schüler: Buchungs-Pipeline (+ Add)</h2>
+
+<div class="flow">
+  <div class="flow-step"><div class="flow-num">1</div><div class="flow-text">Klick auf <strong>+ Add</strong> auf freiem Slot → <code>onAddSlot(s, map)</code><br>→ <code>pendingDayChanges[slotId] = { action: 'book', ... }</code></div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num amber">2</div><div class="flow-text">Slot wird <span class="state state-staged">amber/pending</span> + <strong>Undo</strong>-Button</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num">3</div><div class="flow-text">Klick <strong>Done</strong> → <code>confirmAndCommit()</code> → Booking-Bestätigungsdialog mit Kostenzusammenfassung</div></div>
+  <div class="flow-arrow">↓</div>
+  <div class="flow-step"><div class="flow-num green">4</div><div class="flow-text">Bestätigt → <code>commitDayChanges()</code> → <code>bookSlotWithEscrowSilent(..., 'student')</code></div></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>5 — Lehrer: Buchungs-Pipeline</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Aktion</th><th>Staging</th><th>Ausführung bei</th><th>bookedByRole</th></tr></thead>
+<tbody>
+  <tr>
+    <td>Lehrer bucht Schüler (+ Add)</td>
+    <td><code>pendingBookings[slotId] = { action:'book', newStudentId }</code></td>
+    <td>„Speichern"-Button → <code>saveDayChanges()</code></td>
+    <td><code>'teacher'</code></td>
+  </tr>
+  <tr>
+    <td>Lehrer storniert (Cancel)</td>
+    <td><code>pendingBookings[slotId] = { action:'cancel' }</code></td>
+    <td>„Speichern"-Button → <code>saveDayChanges()</code></td>
+    <td>n/a (teacher_cancel = full refund)</td>
+  </tr>
+  <tr>
+    <td>Lehrer bestätigt Block (✓ Bestätigen)</td>
+    <td>Sofortiger Dialog</td>
+    <td>Modal-Bestätigung → <code>AppService.confirmBlock()</code></td>
+    <td>n/a</td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>6 — bookingPermission: Wer darf was buchen?</h2>
+
+<div class="tw"><table>
+<thead><tr><th>bookingPermission</th><th>Schüler bucht selbst</th><th>Lehrer bucht Schüler</th></tr></thead>
+<tbody>
+  <tr><td><code>'always'</code></td><td><span class="pill pill-ok">+ Add</span></td><td><span class="pill pill-ok">+ Add</span></td></tr>
+  <tr><td><code>'on_request'</code></td><td><span class="pill pill-ok">+ Add</span></td><td><span class="pill pill-fix">? Anfragen</span> → booking_request Chat-Message</td></tr>
+  <tr><td><code>'never'</code></td><td><span class="pill pill-ok">+ Add</span></td><td><span class="pill pill-bad">⊘ disabled</span> + Tooltip</td></tr>
+</tbody>
+</table></div>
+
+<p><strong>Regel:</strong> <code>bookingPermission</code> wird nur geprüft wenn <code>opts.actorRole === 'teacher'</code>. Der Schüler selbst ist immer uneingeschränkt.</p>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>7 — bookedByRole &amp; Stornierungsrichtlinie</h2>
+
+<div class="tw"><table>
+<thead><tr><th>bookedByRole</th><th>actorRole (storniert)</th><th>Ergebnis</th></tr></thead>
+<tbody>
+  <tr><td><code>'student'</code></td><td>student</td><td>Zeitfenster-Policy (48h/24h/forfeit)</td></tr>
+  <tr><td><code>'student'</code></td><td>teacher/admin</td><td>Volle Rückerstattung</td></tr>
+  <tr style="background:#f0fdf4"><td><code>'teacher'</code></td><td>student</td><td><strong>Volle Rückerstattung</strong> (bookedByTeacher:true)</td></tr>
+  <tr><td><code>'teacher'</code></td><td>teacher/admin</td><td>Volle Rückerstattung</td></tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>8 — Geänderte Funktionen (dieser Fix)</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Funktion</th><th>Vorher</th><th>Nachher</th></tr></thead>
+<tbody>
+  <tr>
+    <td><code>student.js</code></td>
+    <td><code>onCancelSlot()</code></td>
+    <td class="no">Öffnete sofort Policy-Dialog + führte cancelSlotWithPolicy aus</td>
+    <td class="ok">Schreibt nur <code>{ action:'cancel' }</code> in pendingMap. Kein Dialog, kein API-Aufruf.</td>
+  </tr>
+  <tr>
+    <td><code>student.js</code></td>
+    <td><code>confirmAndCommit()</code></td>
+    <td class="no">Zeigte nur Booking-Dialog, ignorierte staged Cancels</td>
+    <td class="ok">Zeigt sequenziell Policy-Dialog für jeden staged Cancel, dann Booking-Dialog</td>
+  </tr>
+  <tr>
+    <td><code>student.js</code></td>
+    <td><code>_confirmBookings()</code></td>
+    <td>—</td>
+    <td class="ok">Neue Hilfsfunktion: enthält den alten Booking-Dialog-Code von confirmAndCommit</td>
+  </tr>
+  <tr>
+    <td><code>student.js</code></td>
+    <td><code>commitDayChanges()</code></td>
+    <td class="no">Hatte „Skip if already cancelled"-Guard (war Workaround für sofortige Ausführung)</td>
+    <td class="ok">Guard entfernt — Cancels werden direkt ausgeführt</td>
+  </tr>
+  <tr>
+    <td><code>ui.js</code></td>
+    <td><code>populateBookingDetail()</code> bookingPermission</td>
+    <td class="no">Prüfte Permission gegen stuId — auch wenn Schüler sich selbst bucht</td>
+    <td class="ok">Permission nur geprüft wenn <code>opts.actorRole === 'teacher'</code></td>
+  </tr>
+</tbody>
+</table></div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>9 — Zustandsdiagramm eines Slots</h2>
+
+<pre><code>available ──[+ Add staged]──► pending_book ──[Undo]──► available
+                                    │
+                               [Done + confirm]
+                                    │
+                                    ▼
+                                  booked ──[Cancel staged]──► pending_cancel ──[Undo]──► booked
+                                               │
+                                          [Done → Policy-Dialog → Jetzt stornieren]
+                                               │
+                                               ▼
+                                           cancelled / available</code></pre>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<h2>10 — Versionen</h2>
+
+<div class="tw"><table>
+<thead><tr><th>Datei</th><th>Version</th><th>Änderung</th></tr></thead>
+<tbody>
+  <tr><td><code>student.js</code></td><td>v=49</td><td>onCancelSlot staging, confirmAndCommit sequential dialogs, _confirmBookings</td></tr>
+  <tr><td><code>ui.js</code></td><td>v=39</td><td>bookingPermission nur bei actorRole=teacher</td></tr>
+</tbody>
+</table></div>
+
+</body>
+</html>

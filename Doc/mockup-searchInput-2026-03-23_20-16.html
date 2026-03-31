@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>mockup-searchInput-2026-03-23_20-16</title>
+<!--
+  MOCKUP: searchInput
+  USAGE A: teacher.js — buildBookingForm() — Schüler-Liste filtern
+           teacher.js : line 761 — function buildBookingForm(startSlot, dateStr, allSlots)
+           teacher.js — renderStudentList() — Schülerliste im Schedule-Tab
+  USAGE B: student.js — renderCatalog() / skiing-catalog.js — Lehrer-Liste filtern
+  CSS:     components.css — new: .search-input-wrap, .search-input, .search-input-clear
+  JS:      ui.js — new shared utility: filterListBySearch(items, query, getLabel)
+  DATE:    2026-03-23 20:16
+-->
+
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&amp;display=swap" rel="stylesheet">
+<style>
+/* ── Tokens (from tokens.css) ── */
+:root {
+  --font:'Figtree',sans-serif;
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-700:#2d3540;--neutral-900:#0d1117;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --text-caption:12px;--text-small:14px;--text-body:16px;
+  --weight-regular:400;--weight-semibold:600;
+  --focus-ring:0 0 0 3px rgba(77,122,160,0.30);
+  --transition:150ms ease;
+  --shadow:0 1px 3px rgba(6,15,28,0.08);
+  --shadow-lg:0 4px 16px rgba(6,15,28,0.12);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:var(--font);
+  background:#e5e8ec;
+  padding:24px 16px;
+  display:flex;
+  gap:24px;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:flex-start;
+}
+.col{display:flex;flex-direction:column;gap:8px;align-items:center;width:320px;}
+.lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:#6b7685;text-align:center;}
+
+/* ── Modal shell (from components.css) ── */
+.modal{
+  background:var(--neutral-0);
+  border:1px solid var(--neutral-200);
+  border-radius:var(--radius-lg);
+  padding:var(--sp-4);
+  width:100%;
+  box-shadow:var(--shadow-lg);
+}
+.modal-title{font-size:var(--text-body);font-weight:var(--weight-semibold);color:var(--neutral-900);margin-bottom:var(--sp-3);display:flex;align-items:center;justify-content:space-between;}
+.modal-close{width:28px;height:28px;border:none;background:transparent;color:var(--neutral-400);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:var(--radius-sm);}
+.booking-form-label{font-size:var(--text-caption);font-weight:var(--weight-semibold);color:var(--neutral-500);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:var(--sp-2);}
+
+/* ── Existing student row (from teacher.css) ── */
+.booking-form-check-row{display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-caption);cursor:pointer;padding:var(--sp-1) 0;}
+.booking-form-checkbox{width:14px;height:14px;cursor:pointer;accent-color:var(--color-900);flex-shrink:0;}
+.booking-form-students{display:flex;flex-direction:column;gap:var(--sp-1);}
+.booking-form-check-row--booked{opacity:.5;cursor:default;pointer-events:none;}
+.booking-form-already-badge{display:inline-flex;align-items:center;gap:var(--sp-1);font-size:10px;font-weight:var(--weight-semibold);color:#14532d;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:1px var(--sp-2);margin-left:var(--sp-1);}
+.booking-form-divider{display:flex;align-items:center;gap:var(--sp-2);margin:var(--sp-1) 0;}
+.booking-form-divider-line{flex:1;height:1px;background:var(--neutral-200);}
+.booking-form-divider-label{font-size:10px;font-weight:var(--weight-semibold);color:var(--neutral-400);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;}
+
+/* ──────────────────────────────────────────
+   NEW: Search input — components.css
+   .search-input-wrap
+   .search-input
+   .search-input-clear
+   ────────────────────────────────────────── */
+.search-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--sp-2);
+}
+.search-input-wrap .search-icon {
+  position: absolute;
+  left: var(--sp-2);
+  color: var(--neutral-400);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+}
+.search-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 var(--sp-4) 0 calc(var(--sp-2) + 16px + var(--sp-1));
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-md);
+  background: var(--neutral-50);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  color: var(--neutral-900);
+  outline: none;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.search-input::placeholder { color: var(--neutral-400); }
+.search-input:focus {
+  border-color: var(--color-400);
+  background: var(--neutral-0);
+  box-shadow: var(--focus-ring);
+}
+.search-input-clear {
+  position: absolute;
+  right: var(--sp-2);
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: none;
+  background: var(--neutral-300);
+  color: var(--neutral-0);
+  cursor: pointer;
+  display: none; /* shown via JS when input has value */
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  line-height: 1;
+  touch-action: manipulation;
+}
+.search-input-wrap.has-value .search-input-clear { display: flex; }
+/* ── end new classes ── */
+
+/* No results */
+.search-empty{font-size:var(--text-caption);color:var(--neutral-400);padding:var(--sp-2) 0;text-align:center;}
+
+/* Footer buttons */
+.modal-footer{display:flex;justify-content:flex-end;gap:var(--sp-2);margin-top:var(--sp-4);}
+.btn{font-family:var(--font);font-size:var(--text-caption);font-weight:var(--weight-semibold);border-radius:var(--radius-sm);padding:0 var(--sp-3);height:36px;cursor:pointer;border:none;display:inline-flex;align-items:center;}
+.btn-ghost{background:transparent;color:var(--neutral-500);}
+.btn-secondary{background:var(--color-100);color:#2b4d6b;}
+.btn-primary{background:var(--color-900);color:var(--neutral-0);}
+.btn-primary.is-hidden{display:none;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════
+     STATE A: Leer — kein Suchbegriff
+     ═══════════════════════════════════════ -->
+<div class="col">
+  <div class="lbl">A — Leer (kein Suchbegriff)</div>
+  <div class="modal">
+    <div class="modal-title">
+      Buchung erstellen
+      <button class="modal-close"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <div class="booking-form-label">Schüler</div>
+
+    <!-- Search input — empty state -->
+    <div class="search-input-wrap">
+      <span class="search-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <input type="text" class="search-input" placeholder="Schüler suchen…">
+      <button class="search-input-clear">✕</button>
+    </div>
+
+    <div class="booking-form-students">
+      <label class="booking-form-check-row booking-form-check-row--booked">
+        <input type="checkbox" class="booking-form-checkbox" disabled checked>
+        <span>s1</span>
+        <span class="booking-form-already-badge">✓ Bereits gebucht</span>
+      </label>
+      <label class="booking-form-check-row booking-form-check-row--booked">
+        <input type="checkbox" class="booking-form-checkbox" disabled checked>
+        <span>s2</span>
+        <span class="booking-form-already-badge">✓ Bereits gebucht</span>
+      </label>
+      <div class="booking-form-divider">
+        <div class="booking-form-divider-line"></div>
+        <span class="booking-form-divider-label">Hinzufügen</span>
+        <div class="booking-form-divider-line"></div>
+      </div>
+      <label class="booking-form-check-row">
+        <input type="checkbox" class="booking-form-checkbox" checked>
+        <span>s3</span>
+      </label>
+      <label class="booking-form-check-row">
+        <input type="checkbox" class="booking-form-checkbox">
+        <span>s4</span>
+      </label>
+      <label class="booking-form-check-row">
+        <input type="checkbox" class="booking-form-checkbox">
+        <span>s5</span>
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-secondary">Prüfen</button>
+      <button class="btn btn-primary is-hidden">Buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STATE B: Suchbegriff "s3" — 1 Treffer
+     ═══════════════════════════════════════ -->
+<div class="col">
+  <div class="lbl">B — Suchbegriff "s3" — 1 Treffer</div>
+  <div class="modal">
+    <div class="modal-title">
+      Buchung erstellen
+      <button class="modal-close"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <div class="booking-form-label">Schüler</div>
+
+    <!-- Search input — has value -->
+    <div class="search-input-wrap has-value">
+      <span class="search-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <input type="text" class="search-input" value="s3" style="border-color:var(--color-400);background:var(--neutral-0);">
+      <button class="search-input-clear" style="display:flex;">✕</button>
+    </div>
+
+    <!-- Only matching results shown -->
+    <div class="booking-form-students">
+      <label class="booking-form-check-row">
+        <input type="checkbox" class="booking-form-checkbox" checked>
+        <span>s3</span>
+      </label>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-secondary">Prüfen</button>
+      <button class="btn btn-primary is-hidden">Buchen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     STATE C: Kein Treffer
+     ═══════════════════════════════════════ -->
+<div class="col">
+  <div class="lbl">C — Kein Treffer</div>
+  <div class="modal">
+    <div class="modal-title">
+      Buchung erstellen
+      <button class="modal-close"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
+    </div>
+
+    <div class="booking-form-label">Schüler</div>
+
+    <div class="search-input-wrap has-value">
+      <span class="search-icon"><svg width="14" height="14" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+      <input type="text" class="search-input" value="xyz" style="border-color:var(--color-400);background:var(--neutral-0);">
+      <button class="search-input-clear" style="display:flex;">✕</button>
+    </div>
+
+    <div class="search-empty">Kein Schüler gefunden.</div>
+
+    <div class="modal-footer">
+      <button class="btn btn-ghost">Abbrechen</button>
+      <button class="btn btn-secondary">Prüfen</button>
+      <button class="btn btn-primary is-hidden">Buchen</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

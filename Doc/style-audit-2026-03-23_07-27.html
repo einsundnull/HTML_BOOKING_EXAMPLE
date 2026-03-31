@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style & Layout Audit</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;--n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;--n900:#0d1117;--c400:#4d7aa0;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:11px;background:var(--n50);padding:16px;}
+h1{font-size:17px;font-weight:600;margin-bottom:4px;}
+.meta{font-size:10px;color:var(--n500);margin-bottom:20px;}
+h2{font-size:12px;font-weight:600;color:var(--c400);margin:24px 0 6px;text-transform:uppercase;letter-spacing:.05em;border-bottom:2px solid #dde4ed;padding-bottom:3px;}
+table{width:100%;border-collapse:collapse;background:var(--n0);border-radius:7px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.07);margin-bottom:6px;font-size:10px;}
+th{background:var(--n900);color:var(--n0);padding:6px 8px;text-align:left;font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+td{padding:5px 8px;border-bottom:1px solid var(--n100);vertical-align:top;line-height:1.5;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--n50);}
+.fn{font-family:monospace;font-size:10px;color:var(--n900);}
+.file{font-family:monospace;font-size:9px;color:var(--c400);}
+.hard{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#fee2e2;color:#991b1b;}
+.soft{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#fef9ec;color:#7a5c00;}
+.ok{display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:600;background:#f0fdf4;color:#14532d;}
+.note{font-size:10px;color:var(--n500);}
+code{font-family:monospace;font-size:9px;background:var(--n100);padding:1px 3px;border-radius:2px;}
+</style>
+</head>
+<body>
+<h1>Style &amp; Layout Audit</h1>
+<div class="meta">Generated 2026-03-23 · Rules: Guideline_Layout_and_Styling, STYLE-GUIDE, UI-Guide Lines Premium, GUIDELINE_NEW_STYLING<br>
+<span class="hard">HARD</span> = hard-rule violation, not negotiable &nbsp;·&nbsp; <span class="soft">SOFT</span> = soft-rule, needs justification &nbsp;·&nbsp; <span class="ok">OK</span> = compliant</div>
+
+<h2>1. Hardcoded Colors — Token Rule Violations</h2>
+<table>
+<thead><tr><th>File : Line</th><th>Violation</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">skiing-catalog.css:350,355,362,389,396</td><td class="fn">#16a34a, #f0fff4, #e53e3e, #fff5f5</td><td><span class="hard">HARD</span></td><td class="note">Replace with <code>var(--success-strong-tx)</code>, <code>var(--success-bg)</code>, <code>var(--danger-*)</code> tokens.</td></tr>
+<tr><td class="file">student.js:146</td><td class="fn">style.cssText = 'color:#991b1b;font-size:13px;margin-left:4px'</td><td><span class="hard">HARD</span></td><td class="note">Use CSS class with token. Remove cssText entirely.</td></tr>
+<tr><td class="file">student.js:333–349</td><td class="fn">#f0fdf4, #fee2e2, #166534, #991b1b, #e5e7eb inline style strings</td><td><span class="hard">HARD</span></td><td class="note">Extract to CSS classes <code>.payment-ok</code>, <code>.payment-warn</code>. No inline styles in HTML strings.</td></tr>
+<tr><td class="file">admin.js:899–900</td><td class="fn">#16a34a, #d97706 inline style strings</td><td><span class="hard">HARD</span></td><td class="note">Use <code>.status-confirmed</code> / <code>.status-pending</code> CSS classes.</td></tr>
+<tr><td class="file">ui.js:882,923,1506–1507</td><td class="fn">#16a34a, #d97706 inline color + font-weight:700</td><td><span class="hard">HARD</span></td><td class="note">Extract to CSS classes. Move out of JS HTML strings entirely.</td></tr>
+<tr><td class="file">teacher.css:136,209,210,268–282</td><td class="fn">rgba(255,255,255,0.08–0.70) in grid-topbar</td><td><span class="soft">SOFT</span></td><td class="note">Dark navy header with white overlays — acceptable for dark surface context. Define as named local vars: <code>--topbar-border: rgba(255,255,255,0.10)</code>.</td></tr>
+</tbody>
+</table>
+
+<h2>2. Font Size Violations — 4-Size System (12/16/24/48px only)</h2>
+<table>
+<thead><tr><th>File : Lines</th><th>Values found</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">admin.css:20,33,136,260</td><td class="fn">11px</td><td><span class="hard">HARD</span></td><td class="note">11px is not in the 4-size system. Use <code>var(--text-caption)</code> (12px) or reduce content density.</td></tr>
+<tr><td class="file">admin.css:55,117,179,190</td><td class="fn">13px</td><td><span class="hard">HARD</span></td><td class="note">13px not allowed. Use <code>var(--text-caption)</code> 12px.</td></tr>
+<tr><td class="file">admin.css:252,269</td><td class="fn">20px</td><td><span class="hard">HARD</span></td><td class="note">Use <code>var(--text-heading)</code> 24px.</td></tr>
+<tr><td class="file">admin.css:244</td><td class="fn">10px</td><td><span class="hard">HARD</span></td><td class="note">Below minimum. Use <code>var(--text-caption)</code> 12px.</td></tr>
+<tr><td class="file">base.css:229,463</td><td class="fn">11px (badges, avatar-sm)</td><td><span class="soft">SOFT</span></td><td class="note">Small UI elements — pragmatic exception. Document as intentional.</td></tr>
+<tr><td class="file">base.css:464</td><td class="fn">14px (avatar-md label)</td><td><span class="hard">HARD</span></td><td class="note">Use 12px or 16px.</td></tr>
+<tr><td class="file">teacher.css:387</td><td class="fn">13px (.grid-day-num)</td><td><span class="hard">HARD</span></td><td class="note">Use <code>var(--text-caption)</code> 12px.</td></tr>
+<tr><td class="file">teacher.css:751</td><td class="fn">11px</td><td><span class="hard">HARD</span></td><td class="note">Use <code>var(--text-caption)</code> 12px.</td></tr>
+<tr><td class="file">teacher.css:1221</td><td class="fn">14px (.confirm-detail-release)</td><td><span class="hard">HARD</span></td><td class="note">Use 12px or 16px.</td></tr>
+<tr><td class="file">chat.css:220,277,328,342,599</td><td class="fn">11px, 10px</td><td><span class="soft">SOFT</span></td><td class="note">Compact chat timestamps — acceptable. Document as intentional exception.</td></tr>
+<tr><td class="file">catalog-filter-drawer.css:200,384,535</td><td class="fn">11px</td><td><span class="soft">SOFT</span></td><td class="note">Filter pill labels — tight context. Document as intentional.</td></tr>
+<tr><td class="file">student.js:146,349</td><td class="fn">font-size:13px, font-size:14px in inline styles</td><td><span class="hard">HARD</span></td><td class="note">Remove inline styles. Use CSS classes with correct token sizes.</td></tr>
+</tbody>
+</table>
+
+<h2>3. Font Weight Violations — Only 400 + 600 Allowed</h2>
+<table>
+<thead><tr><th>File : Line</th><th>Value</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">wallet.css:435</td><td class="fn">font-weight: 500</td><td><span class="hard">HARD</span></td><td class="note">Replace with <code>var(--weight-regular)</code> (400) or <code>var(--weight-semibold)</code> (600). 500 is explicitly forbidden.</td></tr>
+<tr><td class="file">ui.js:882,923,1506–1507</td><td class="fn">font-weight:700 in inline style strings</td><td><span class="hard">HARD</span></td><td class="note">700 is not in the 2-weight system. Use CSS class with <code>var(--weight-semibold)</code> 600.</td></tr>
+<tr><td class="file">admin.js:899–900</td><td class="fn">font-weight:700 in inline style strings</td><td><span class="hard">HARD</span></td><td class="note">Same — move to CSS class with 600.</td></tr>
+</tbody>
+</table>
+
+<h2>4. Inline Styles — style= / style.x / cssText Violations</h2>
+<table>
+<thead><tr><th>File : Line</th><th>Violation</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">teacher.js:251,710</td><td class="fn">empty.style.padding, freeDetail.style.padding</td><td><span class="hard">HARD</span></td><td class="note">Add CSS class e.g. <code>.empty-state-padded</code>, <code>.free-detail-padded</code>.</td></tr>
+<tr><td class="file">student.js:146</td><td class="fn">warnBadge.style.cssText = 'color:#991b1b;font-size:13px…'</td><td><span class="hard">HARD</span></td><td class="note">Define <code>.warn-badge</code> in student.css.</td></tr>
+<tr><td class="file">student.js:2634,2667</td><td class="fn">priceEl.style.color, minePastLabel.style.color</td><td><span class="hard">HARD</span></td><td class="note">Use <code>classList.add('text-accent')</code> / <code>classList.add('text-muted')</code>.</td></tr>
+<tr><td class="file">ui.js:53 inline style= strings</td><td class="fn">Recurring dialog tables use style= for widths, colors, alignment</td><td><span class="hard">HARD</span></td><td class="note">Extract table styles to <code>.recur-table</code>, <code>.recur-td--right</code>, <code>.recur-row--ok</code>, <code>.recur-row--warn</code> etc. in components.css.</td></tr>
+<tr><td class="file">ui.js:1738–1747</td><td class="fn">bar.style.left, bar.style.width (sticky tab bar positioning)</td><td><span class="ok">OK</span></td><td class="note">Dynamic pixel positioning via JS is acceptable — cannot be done in CSS.</td></tr>
+<tr><td class="file">student.js:333–349</td><td class="fn">Inline style= with background, border-radius, padding, font-size, color</td><td><span class="hard">HARD</span></td><td class="note">Extract to <code>.payment-status-block</code>, <code>.payment-status-ok</code>, <code>.payment-status-warn</code>.</td></tr>
+</tbody>
+</table>
+
+<h2>5. Spacing Grid Violations — Must be 4px or 8px multiples</h2>
+<table>
+<thead><tr><th>File : Line</th><th>Value</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">teacher.css:495,1203,1617,1759</td><td class="fn">gap: 3px</td><td><span class="soft">SOFT</span></td><td class="note">3px is off-grid. Use 4px (<code>var(--sp-1)</code>) or 2px. Tight-packed icon rows are a common exception — document.</td></tr>
+<tr><td class="file">teacher.css:1569</td><td class="fn">gap: 5px</td><td><span class="soft">SOFT</span></td><td class="note">Use 4px or 8px.</td></tr>
+<tr><td class="file">teacher.css:1624</td><td class="fn">padding: 1px 6px</td><td><span class="soft">SOFT</span></td><td class="note">6px off-grid. Use <code>2px 8px</code> or <code>4px 8px</code>.</td></tr>
+<tr><td class="file">admin.css:19,31</td><td class="fn">margin-top: 3px</td><td><span class="soft">SOFT</span></td><td class="note">Use 4px.</td></tr>
+<tr><td class="file">admin.css:89</td><td class="fn">padding: 5px 8px</td><td><span class="soft">SOFT</span></td><td class="note">5px off-grid. Use 4px or 8px.</td></tr>
+<tr><td class="file">student.css:300</td><td class="fn">gap: 6px</td><td><span class="soft">SOFT</span></td><td class="note">Use 4px or 8px.</td></tr>
+<tr><td class="file">base.css:501,515</td><td class="fn">margin-bottom: 3px</td><td><span class="soft">SOFT</span></td><td class="note">Use 4px.</td></tr>
+</tbody>
+</table>
+
+<h2>6. Gradient Violations — Flat Colors Only</h2>
+<table>
+<thead><tr><th>File : Line</th><th>Violation</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">teacher.css:1493,1834</td><td class="fn">repeating-linear-gradient(…)</td><td><span class="hard">HARD</span></td><td class="note">Gradients are forbidden. Used for diagonal stripe pattern (timeout/disabled cells). Replace with a CSS pattern using <code>background-color</code> + <code>opacity</code>, or a hatching CSS class without gradient.</td></tr>
+</tbody>
+</table>
+
+<h2>7. touch-action: manipulation — Missing on Interactive Elements</h2>
+<table>
+<thead><tr><th>File</th><th>Status</th><th>Rule</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td class="file">components.css</td><td class="fn">touch-action NOT set on .btn globally</td><td><span class="hard">HARD</span></td><td class="note">Add <code>touch-action: manipulation</code> to <code>.btn</code> base class in components.css. Currently only set per-component in base.css/navbar.css/student.css.</td></tr>
+</tbody>
+</table>
+
+<h2>8. JS Coding Rule Violations (ES5)</h2>
+<table>
+<thead><tr><th>File</th><th>Violation</th><th>Rule</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="file">app-service.js (notification blocks added)</td><td class="fn">Arrow function risk — new code uses ES5 correctly ✓</td><td><span class="ok">OK</span></td><td class="note">All new code is ES5 compliant.</td></tr>
+<tr><td class="file">ui.js — _openRecurringBookingDialog</td><td class="fn">53 inline style= attributes in HTML strings</td><td><span class="hard">HARD</span></td><td class="note">Entire recurring dialog table output uses inline styles. Extract to CSS classes in components.css.</td></tr>
+</tbody>
+</table>
+
+<h2>9. Compliant — No Violations Found</h2>
+<table>
+<thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="note">window.alert / window.confirm</td><td><span class="ok">OK</span></td><td class="note">All dialogs use Modal.show(). No native dialogs found.</td></tr>
+<tr><td class="note">style.display violations</td><td><span class="ok">OK</span></td><td class="note">No style.display = 'none'/'block' found. All use classList + is-hidden.</td></tr>
+<tr><td class="note">CSS load order (tokens → base → components → navbar → page)</td><td><span class="ok">OK</span></td><td class="note">Correct in teacher.html and student.html.</td></tr>
+<tr><td class="note">viewport-fit=cover</td><td><span class="ok">OK</span></td><td class="note">Present in all HTML files.</td></tr>
+<tr><td class="note">Inline &lt;style&gt; blocks in HTML body</td><td><span class="ok">OK</span></td><td class="note">None found in teacher.html, student.html.</td></tr>
+<tr><td class="note">Inline style= in HTML files</td><td><span class="ok">OK</span></td><td class="note">Zero occurrences in teacher.html and student.html.</td></tr>
+<tr><td class="note">Font family (Figtree only)</td><td><span class="ok">OK</span></td><td class="note">No second font found in CSS files.</td></tr>
+<tr><td class="note">Hardcoded colors in teacher.css / student.css</td><td><span class="ok">OK</span></td><td class="note">Both files use var() tokens throughout.</td></tr>
+</tbody>
+</table>
+
+<h2>Summary — Priority Order</h2>
+<table>
+<thead><tr><th>#</th><th>Priority</th><th>Category</th><th>Count</th><th>Files</th></tr></thead>
+<tbody>
+<tr><td>1</td><td><span class="hard">HARD</span></td><td>Inline styles in JS HTML strings</td><td>53 occurrences</td><td class="file">ui.js (recurring dialog), student.js, admin.js</td></tr>
+<tr><td>2</td><td><span class="hard">HARD</span></td><td>Font-size off the 4-size system</td><td>~20 rules</td><td class="file">admin.css, teacher.css, base.css, chat.css</td></tr>
+<tr><td>3</td><td><span class="hard">HARD</span></td><td>Font-weight 700 / 500 (forbidden)</td><td>5 occurrences</td><td class="file">ui.js, admin.js, wallet.css</td></tr>
+<tr><td>4</td><td><span class="hard">HARD</span></td><td>Hardcoded hex colors</td><td>~15 occurrences</td><td class="file">skiing-catalog.css, student.js, admin.js, ui.js</td></tr>
+<tr><td>5</td><td><span class="hard">HARD</span></td><td>style.x / cssText in JS</td><td>7 occurrences</td><td class="file">teacher.js, student.js, ui.js</td></tr>
+<tr><td>6</td><td><span class="hard">HARD</span></td><td>repeating-linear-gradient (forbidden)</td><td>2 rules</td><td class="file">teacher.css:1493,1834</td></tr>
+<tr><td>7</td><td><span class="hard">HARD</span></td><td>touch-action missing on .btn globally</td><td>1 rule</td><td class="file">components.css</td></tr>
+<tr><td>8</td><td><span class="soft">SOFT</span></td><td>Spacing off 4/8pt grid</td><td>~15 rules</td><td class="file">teacher.css, admin.css, student.css, base.css</td></tr>
+<tr><td>9</td><td><span class="soft">SOFT</span></td><td>Hardcoded rgba in dark header context</td><td>8 rules</td><td class="file">teacher.css (grid-topbar)</td></tr>
+</tbody>
+</table>
+</body>
+</html>

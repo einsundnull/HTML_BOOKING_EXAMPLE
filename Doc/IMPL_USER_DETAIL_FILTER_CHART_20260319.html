@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>IMPL — User-Detail: Filter, Chart, Personen</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;background:#f8f9fb;color:#0d1117;line-height:1.6}
+    :root{
+      --navy:#060f1c;--navy-800:#0f2035;
+      --n0:#fff;--n50:#f8f9fb;--n100:#f0f2f5;--n200:#e2e6eb;
+      --n400:#9aa3af;--n500:#6b7685;--n700:#2d3540;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a;--ok-bg:#f0fff4;--info:#2563eb;--info-bg:#eff6ff;--info-bd:#bfdbfe;
+      --warn:#d97706;--warn-bg:#fffbeb;
+    }
+    .ph{background:var(--navy);padding:28px 40px 24px}
+    .ph-eye{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:6px}
+    .ph-title{font-size:26px;font-weight:700;color:#fff;margin-bottom:5px}
+    .ph-sub{font-size:13px;color:rgba(255,255,255,.5);max-width:820px;margin-bottom:14px}
+    .ph-meta{display:flex;gap:8px;flex-wrap:wrap}
+    .ph-badge{display:inline-flex;padding:3px 10px;border-radius:999px;font-size:11px;font-weight:600;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);border:1px solid rgba(255,255,255,.15)}
+    .page{padding:28px 40px;max-width:1100px;margin:0 auto}
+    @media(max-width:700px){.ph,.page{padding:16px}}
+    .sec{margin-bottom:44px}
+    .sec-hdr{display:flex;align-items:baseline;gap:10px;margin-bottom:16px;padding-bottom:9px;border-bottom:2px solid var(--n200)}
+    .sec-num{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;flex-shrink:0}
+    .sec-title{font-size:17px;font-weight:700}
+    .callout{padding:11px 16px;border-radius:8px;border-left:3px solid;font-size:13px;line-height:1.6;margin-bottom:14px}
+    .c-ok{background:var(--ok-bg);border-color:var(--ok);color:#14532d}
+    .c-inf{background:var(--info-bg);border-color:var(--info);color:#1a3a6b}
+    .callout strong{font-weight:700}
+    .callout code{font-family:var(--mono);font-size:11.5px;background:rgba(0,0,0,.08);padding:1px 4px;border-radius:3px}
+    .tw{overflow-x:auto;border-radius:8px;border:1px solid var(--n200);margin-bottom:16px}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    thead th{background:var(--navy-800);color:rgba(255,255,255,.82);text-align:left;padding:9px 13px;font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap}
+    tbody td{padding:9px 13px;border-bottom:1px solid var(--n200);vertical-align:top;color:var(--n700);line-height:1.5}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr.r-new{background:var(--info-bg)}
+    code{font-family:var(--mono);font-size:11.5px;background:rgba(6,15,28,.07);padding:1px 5px;border-radius:3px;color:#1a3249}
+
+    /* Pipeline */
+    .pipe{display:flex;flex-direction:column;gap:0;margin-bottom:20px}
+    .pipe-step{display:grid;grid-template-columns:200px 1fr;border:1px solid var(--n200);border-bottom:none;background:var(--n0)}
+    .pipe-step:first-child{border-radius:8px 8px 0 0}
+    .pipe-step:last-child{border-bottom:1px solid var(--n200);border-radius:0 0 8px 8px}
+    .pipe-step.hi{background:var(--ok-bg)}
+    .pipe-step.inf{background:var(--info-bg)}
+    .pipe-step.ctx{background:var(--n50)}
+    .pipe-left{padding:10px 14px;border-right:1px solid var(--n200);display:flex;flex-direction:column;gap:3px}
+    .pipe-file{font-family:var(--mono);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--n400)}
+    .pipe-fn{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--navy)}
+    .pipe-right{padding:10px 14px;font-size:12px;color:var(--n500);line-height:1.6}
+    .pipe-arrow{text-align:center;padding:2px 0;font-size:14px;color:var(--n400)}
+
+    /* Filter mock */
+    .filter-mock{background:#fff;border:1px solid #e2e6eb;border-radius:12px;overflow:hidden;max-width:600px;margin-bottom:16px}
+    .fm-bar{padding:12px 16px;border-bottom:1px solid #f0f2f5;display:flex;flex-direction:column;gap:8px}
+    .fm-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .fm-input{height:34px;padding:0 10px;border:1px solid #e2e6eb;border-radius:6px;font-size:12px;color:#6b7685;background:#f8f9fb;min-width:130px}
+    .fm-pill{height:34px;padding:0 10px;border:1px solid #e2e6eb;border-radius:6px;font-size:12px;color:#6b7685;background:#fff;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+    .fm-footer{display:flex;gap:10px;align-items:center}
+    .fm-count{font-size:11px;color:#9aa3af}
+    .fm-reset{font-size:11px;color:#4d7aa0;cursor:pointer}
+    /* Chart mock */
+    .chart-mock{padding:12px 16px 0;border-bottom:1px solid #f0f2f5}
+
+    /* Party drawer mock */
+    .drawer-mock{max-width:380px;border:1px solid #e2e6eb;border-radius:12px;overflow:hidden;margin-bottom:16px}
+    .dm-hdr{display:flex;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f2f5}
+    .dm-title{font-weight:600;font-size:15px}
+    .dm-item{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #f8f9fb}
+    .dm-chk{width:18px;height:18px;accent-color:#4d7aa0;flex-shrink:0}
+    .dm-name{font-size:14px;color:#0d1117;flex:1}
+    .dm-uid{font-size:11px;color:#9aa3af;font-family:monospace}
+    .dm-footer{display:flex;justify-content:space-between;padding:12px 16px;border-top:1px solid #e2e6eb}
+
+    footer{margin-top:48px;padding:14px 0;border-top:1px solid var(--n200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+    footer span{font-family:var(--mono);font-size:11px;color:var(--n500)}
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Admin</div>
+  <div class="ph-title">User-Detail: Filter, Chart &amp; Personen-Auswahl</div>
+  <div class="ph-sub">
+    Die Transaktionshistorie auf user-detail.html erhält eine vollständige Filter-Bar,
+    ein Kontostand-Verlaufsdiagramm (SVG) und einen Personen-Drawer mit Checkboxen.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">user-detail.js · user-detail.html · user-detail.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-48</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- FILTER UI MOCK -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">1</span><div class="sec-title">Filter-UI — Aufbau</div></div>
+
+    <div class="filter-mock">
+      <div class="fm-bar">
+        <div class="fm-row">
+          <div class="fm-input" style="flex:1">🔍 TX-ID suchen…</div>
+          <div class="fm-pill">Typ: Alle ▾</div>
+          <div class="fm-pill">Status: Alle ▾</div>
+        </div>
+        <div class="fm-row">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:11px;color:#9aa3af">Von</span>
+            <div class="fm-input" style="width:120px">__.__.____</div>
+            <span style="font-size:11px;color:#9aa3af">Bis</span>
+            <div class="fm-input" style="width:120px">__.__.____</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px">
+            <div class="fm-input" style="width:90px">Betrag von €</div>
+            <span style="font-size:11px;color:#9aa3af">–</span>
+            <div class="fm-input" style="width:70px">bis €</div>
+          </div>
+          <div class="fm-pill" style="cursor:pointer">👥 Personen</div>
+        </div>
+        <div class="fm-footer">
+          <span class="fm-count">8 von 12 Transaktionen</span>
+          <span class="fm-reset">Zurücksetzen</span>
+        </div>
+      </div>
+      <div class="chart-mock">
+        <svg width="100%" height="90" viewBox="0 0 560 90">
+          <line x1="48" x2="548" y1="10" y2="10" stroke="#e2e6eb" stroke-width="1"/>
+          <line x1="48" x2="548" y1="32" y2="32" stroke="#e2e6eb" stroke-width="1"/>
+          <line x1="48" x2="548" y1="54" y2="54" stroke="#e2e6eb" stroke-width="1"/>
+          <line x1="48" x2="548" y1="76" y2="76" stroke="#e2e6eb" stroke-width="1"/>
+          <text x="44" y="14" font-size="9" fill="#9aa3af" text-anchor="end">800€</text>
+          <text x="44" y="36" font-size="9" fill="#9aa3af" text-anchor="end">600€</text>
+          <text x="44" y="58" font-size="9" fill="#9aa3af" text-anchor="end">400€</text>
+          <text x="44" y="80" font-size="9" fill="#9aa3af" text-anchor="end">200€</text>
+          <path d="M48 76 L148 54 L248 65 L348 32 L448 20 L548 10 L548 76 Z" fill="rgba(77,122,160,0.12)"/>
+          <polyline points="48,76 148,54 248,65 348,32 448,20 548,10" fill="none" stroke="#4d7aa0" stroke-width="2" stroke-linejoin="round"/>
+          <circle cx="48" cy="76" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="148" cy="54" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="248" cy="65" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="348" cy="32" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="448" cy="20" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <circle cx="548" cy="10" r="3" fill="#4d7aa0" stroke="#fff" stroke-width="1.5"/>
+          <text x="48" y="90" font-size="9" fill="#9aa3af" text-anchor="middle">01.03.</text>
+          <text x="548" y="90" font-size="9" fill="#9aa3af" text-anchor="middle">20.03.</text>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- PERSONEN DRAWER MOCK -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">2</span><div class="sec-title">Personen-Drawer — Aufbau</div></div>
+
+    <div class="drawer-mock">
+      <div class="dm-hdr">
+        <div class="dm-title">Schüler filtern</div>
+        <div style="width:32px;height:32px;border:none;background:#f0f2f5;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#6b7685">✕</div>
+      </div>
+      <div class="dm-item">
+        <input type="checkbox" class="dm-chk" checked/>
+        <span class="dm-name">Matthias S.</span>
+        <span class="dm-uid">s1</span>
+      </div>
+      <div class="dm-item">
+        <input type="checkbox" class="dm-chk"/>
+        <span class="dm-name">Anna K.</span>
+        <span class="dm-uid">s2</span>
+      </div>
+      <div class="dm-item" style="border-bottom:none">
+        <input type="checkbox" class="dm-chk"/>
+        <span class="dm-name">Lukas B.</span>
+        <span class="dm-uid">s3</span>
+      </div>
+      <div class="dm-footer">
+        <button style="border:none;background:none;font-size:13px;color:#6b7685;cursor:pointer">Alle abwählen</button>
+        <button style="background:#4d7aa0;color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:13px;cursor:pointer">Anwenden</button>
+      </div>
+    </div>
+
+    <div class="callout c-inf">
+      <strong>Rollenabhängig:</strong> Ist der angezeigte User ein <strong>Lehrer</strong>, zeigt der Drawer
+      seine <strong>Schüler</strong> (via <code>AppService.getSelectionsByTeacherSync(uid)</code>).
+      Ist es ein <strong>Schüler</strong>, zeigt er seine <strong>Lehrer</strong>
+      (via <code>AppService.getSelectionsByStudentSync(uid)</code>).
+    </div>
+  </div>
+
+  <!-- FILTER FELDER -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">3</span><div class="sec-title">Filter-Felder</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Filter</th><th>HTML-Element</th><th>ID</th><th>Filter-Logik</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td>TX-ID Suche</td><td><code>&lt;input type="text"&gt;</code></td><td><code>#ud-filter-txid</code></td><td>Substring-Match (case-insensitive) auf <code>tx.txId</code></td></tr>
+          <tr class="r-new"><td>Typ</td><td>Custom Dropdown</td><td><code>[data-dropdown-id="ud-type"]</code></td><td><code>tx.type === value</code>; Sonderfall <code>cancellation</code> matched auch <code>teacher_cancel</code></td></tr>
+          <tr class="r-new"><td>Status</td><td>Custom Dropdown</td><td><code>[data-dropdown-id="ud-status"]</code></td><td><code>(tx.status || 'completed') === value</code></td></tr>
+          <tr class="r-new"><td>Datum Von</td><td><code>&lt;input type="date"&gt;</code></td><td><code>#ud-filter-from</code></td><td><code>tx.createdAt.slice(0,10) &gt;= value</code></td></tr>
+          <tr class="r-new"><td>Datum Bis</td><td><code>&lt;input type="date"&gt;</code></td><td><code>#ud-filter-to</code></td><td><code>tx.createdAt.slice(0,10) &lt;= value</code></td></tr>
+          <tr class="r-new"><td>Betrag Von</td><td><code>&lt;input type="number"&gt;</code></td><td><code>#ud-filter-amt-min</code></td><td><code>|tx.amount| &gt;= value</code></td></tr>
+          <tr class="r-new"><td>Betrag Bis</td><td><code>&lt;input type="number"&gt;</code></td><td><code>#ud-filter-amt-max</code></td><td><code>|tx.amount| &lt;= value</code></td></tr>
+          <tr class="r-new"><td>Personen</td><td>Drawer mit Checkboxen</td><td><code>#ud-party-btn</code></td><td>Match auf <code>tx.relatedUid</code>, <code>tx.meta.teacherId</code> oder <code>tx.meta.studentId</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CALL PIPELINE -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">4</span><div class="sec-title">Call-Pipeline — Jeder Filter-Auslöser</div></div>
+    <div class="pipe">
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">DOM Event</div><div class="pipe-fn">input / change / click</div></div>
+        <div class="pipe-right">User ändert einen Filter-Wert (Text, Datum, Betrag, Dropdown-Auswahl) oder klickt „Anwenden" im Personen-Drawer.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step ctx">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">Event-Handler in _bindFilterBar()</div></div>
+        <div class="pipe-right">Schreibt den neuen Wert in <code>_fs</code> (Filter-State-Objekt) bzw. <code>_selParties</code> (Personen-Map). Ruft danach <code>_refilter()</code> auf.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_refilter()</div></div>
+        <div class="pipe-right">Ruft <code>_applyFilters(_allTxs)</code> → gibt gefilterte TX-Liste zurück. Gibt diese an <code>_renderTransactions(filtered)</code>, <code>_renderChart(filtered)</code> und <code>_updateFilterUI(count)</code>.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step hi">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_applyFilters(txs)</div></div>
+        <div class="pipe-right">Wendet alle 8 Filter sequenziell an. Gibt <code>Array</code> zurück. Liest aus <code>_fs</code> + <code>_selParties</code>.</div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step inf">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_renderTransactions(txs)</div></div>
+        <div class="pipe-right">Baut TX-Liste neu auf. Jedes <code>&lt;li&gt;</code> via <code>_buildTxItem(tx)</code> mit Click → <code>WalletCore.showTxDetail(tx, _uid)</code>.</div>
+      </div>
+      <div class="pipe-step inf">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_renderChart(txs)</div></div>
+        <div class="pipe-right">Zeichnet SVG-Chart neu. Braucht mind. 2 TXs mit <code>balance</code>-Feld. Zeigt nur gefilterte Datenpunkte.</div>
+      </div>
+      <div class="pipe-step inf">
+        <div class="pipe-left"><div class="pipe-file">user-detail.js</div><div class="pipe-fn">_updateFilterUI(count)</div></div>
+        <div class="pipe-right">Setzt Zähler-Text (<code>#ud-filter-count</code>), zeigt/versteckt Reset-Button, aktualisiert Personen-Button-Label mit aktiver Anzahl.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALLE FUNKTIONEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">5</span><div class="sec-title">Alle neuen Funktionen</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Funktion</th><th>Signatur</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>_applyFilters</code></td><td><code>(txs[]) → tx[]</code></td><td>Alle 8 Filter sequenziell. Liest <code>_fs</code> + <code>_selParties</code>.</td></tr>
+          <tr class="r-new"><td><code>_isFiltered</code></td><td><code>() → boolean</code></td><td>True wenn mindestens ein Filter aktiv ist. Steuert Reset-Button-Sichtbarkeit.</td></tr>
+          <tr class="r-new"><td><code>_refilter</code></td><td><code>() → void</code></td><td>Zentrale Orchestrierung: applyFilters → renderTransactions + renderChart + updateUI.</td></tr>
+          <tr class="r-new"><td><code>_updateFilterUI</code></td><td><code>(count) → void</code></td><td>Zähler, Reset-Button, Party-Button-Label.</td></tr>
+          <tr class="r-new"><td><code>_bindFilterBar</code></td><td><code>() → void</code></td><td>Registriert alle Event-Listener. Aufgerufen einmalig in <code>_load()</code>.</td></tr>
+          <tr class="r-new"><td><code>_bindUdDropdown</code></td><td><code>(ddId, onChange) → void</code></td><td>Bindet Custom Dropdown (Typ + Status). Gleiche Logik wie admin.js <code>_bindAdminDropdowns</code>.</td></tr>
+          <tr class="r-new"><td><code>_resetUdDropdown</code></td><td><code>(ddId, placeholder) → void</code></td><td>Setzt Dropdown auf ersten Eintrag zurück.</td></tr>
+          <tr class="r-new"><td><code>_closeAllUdDropdowns</code></td><td><code>() → void</code></td><td>Schließt alle offenen Filter-Dropdowns.</td></tr>
+          <tr class="r-new"><td><code>_openPartyDrawer</code></td><td><code>() → void</code></td><td>Erstellt Bottom-Sheet mit Checkboxen der verbundenen Personen. Schreibt Ergebnis in <code>_selParties</code>.</td></tr>
+          <tr class="r-new"><td><code>_loadParties</code></td><td><code>() → void</code></td><td>Füllt <code>_parties[]</code> via <code>getSelectionsByTeacherSync</code> oder <code>getSelectionsByStudentSync</code>.</td></tr>
+          <tr class="r-new"><td><code>_renderChart</code></td><td><code>(txs[]) → void</code></td><td>SVG-Liniendiagramm: X = Datum, Y = Balance. Grid-Linien, Area-Fill, Dots mit Tooltip.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- STATE VARIABLEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">6</span><div class="sec-title">State-Variablen (Modul-global)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Variable</th><th>Typ</th><th>Inhalt</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>_allTxs</code></td><td><code>TX[]</code></td><td>Alle TXs des Users, geladen einmalig, nach Datum absteigend sortiert. Wird nie mutiert.</td></tr>
+          <tr class="r-new"><td><code>_fs</code></td><td><code>Object</code></td><td>Filter-State: <code>{ txid, type, status, from, to, amtMin, amtMax }</code>. Wird bei Reset komplett neu gesetzt.</td></tr>
+          <tr class="r-new"><td><code>_parties</code></td><td><code>[{uid, name}]</code></td><td>Verbundene Personen. Einmalig in <code>_loadParties()</code> befüllt.</td></tr>
+          <tr class="r-new"><td><code>_selParties</code></td><td><code>{ uid: boolean }</code></td><td>Aktive Personen-Auswahl aus dem Drawer. Key = uid, Value = true wenn ausgewählt.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHART DETAILS -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">7</span><div class="sec-title">Chart — Technische Details</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Aspekt</th><th>Implementierung</th></tr></thead>
+        <tbody>
+          <tr><td>Typ</td><td>Liniendiagramm mit Area-Fill — reines SVG, kein Framework</td></tr>
+          <tr><td>X-Achse</td><td><code>tx.createdAt</code> — gleichmäßig verteilt (linear, nicht zeitproportional)</td></tr>
+          <tr><td>Y-Achse</td><td><code>tx.balance</code> — Kontostand <em>nach</em> der TX. Min/Max dynamisch.</td></tr>
+          <tr><td>Grid</td><td>4 horizontale Linien mit Y-Labels in Euro</td></tr>
+          <tr><td>Dots</td><td>Jeder Datenpunkt als Kreis mit SVG <code>&lt;title&gt;</code>-Tooltip (Typ + Datum + Saldo)</td></tr>
+          <tr><td>Reaktivität</td><td>Bei jedem <code>_refilter()</code>-Aufruf wird SVG komplett neu gezeichnet</td></tr>
+          <tr><td>Min. Datenpunkte</td><td>Mind. 2 TXs mit <code>balance</code>-Feld. Sonst: <code>.ud-chart-wrap.is-hidden</code></td></tr>
+          <tr><td>Breite</td><td><code>wrap.offsetWidth</code> — responsive, passt sich dem Container an</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GEÄNDERTE DATEIEN -->
+  <div class="sec">
+    <div class="sec-hdr"><span class="sec-num">8</span><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>js/user-detail.js</code></td><td>Komplett neu geschrieben: <code>_fs</code>, <code>_parties</code>, <code>_selParties</code>, <code>_allTxs</code>. 11 neue Funktionen. TX-Click → <code>WalletCore.showTxDetail</code> beibehalten.</td></tr>
+          <tr class="r-new"><td><code>user-detail.html</code></td><td>Transaktions-Card: Filter-Bar HTML (2 Reihen + Footer), Chart <code>&lt;svg&gt;</code>-Container, TX-Liste. Card bekommt <code>.ud-tx-card</code> für volle Grid-Breite.</td></tr>
+          <tr class="r-new"><td><code>css/user-detail.css</code></td><td>Filter-Bar (<code>.ud-filter-*</code>), Chart (<code>.ud-chart-*</code>), Party-Drawer (<code>.ud-party-*</code>) — 20 neue Klassen, alle via Design-Tokens.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_USER_DETAIL_FILTER_CHART_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-48 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Audit — HTML #52</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root {
+    --bg:#0d1117; --surface:#161b22; --surface2:#1c2330;
+    --border:#30363d; --text:#e6edf3; --muted:#8b949e; --dim:#484f58;
+    --accent:#58a6ff; --green:#3fb950; --red:#f85149; --amber:#d29922; --purple:#bc8cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:13.5px;line-height:1.6;padding:36px 28px 80px;max-width:1440px;margin:0 auto;}
+
+  h1{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;margin-bottom:6px;}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:36px;}
+
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:36px;}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px;}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+  .stat-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:3px;}
+
+  .sec{margin-bottom:40px;}
+  .st{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-bottom:14px;
+    display:flex;align-items:center;gap:10px;}
+  .st::after{content:'';flex:1;height:1px;background:var(--border);}
+
+  .tbl-wrap{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;margin-bottom:6px;}
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 13px;
+    background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap;}
+  td{padding:7px 13px;border-bottom:1px solid var(--border);vertical-align:top;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:rgba(255,255,255,.018);}
+
+  /* severity stripes */
+  tr.crit  td:first-child{border-left:3px solid var(--red);}
+  tr.high  td:first-child{border-left:3px solid #f97316;}
+  tr.med   td:first-child{border-left:3px solid var(--amber);}
+  tr.low   td:first-child{border-left:3px solid var(--dim);}
+  tr.info  td:first-child{border-left:3px solid var(--accent);}
+
+  code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:rgba(255,255,255,.07);
+    padding:1px 5px;border-radius:4px;color:var(--purple);}
+  .file{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;white-space:nowrap;}
+  .b-crit{background:rgba(248,81,73,.18);color:var(--red);border:1px solid rgba(248,81,73,.35);}
+  .b-high{background:rgba(249,115,22,.15);color:#f97316;border:1px solid rgba(249,115,22,.3);}
+  .b-med {background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3);}
+  .b-low {background:rgba(255,255,255,.06);color:var(--muted);border:1px solid rgba(255,255,255,.1);}
+  .b-ok  {background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25);}
+
+  @media(max-width:900px){.stats{grid-template-columns:1fr 1fr 1fr;}body{padding:18px 14px 60px;}}
+</style>
+</head>
+<body>
+
+<h1>Code Audit — BookingSystem HTML #52</h1>
+<p class="sub">Redundanz · Dead Code · Phantom Code · Memory Leaks · Endlosschleifen · Architektur-Verletzungen · 17.03.2026</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Kritisch</div><div class="stat-value" style="color:var(--red)">2</div></div>
+  <div class="stat"><div class="stat-label">Hoch</div><div class="stat-value" style="color:#f97316">4</div></div>
+  <div class="stat"><div class="stat-label">Mittel</div><div class="stat-value" style="color:var(--amber)">9</div></div>
+  <div class="stat"><div class="stat-label">Niedrig</div><div class="stat-value" style="color:var(--muted)">6</div></div>
+  <div class="stat"><div class="stat-label">Syntax-Fehler</div><div class="stat-value" style="color:var(--green)">0</div></div>
+  <div class="stat"><div class="stat-label">Gesamt</div><div class="stat-value">21</div></div>
+</div>
+
+
+<!-- ═══ 1. KRITISCH ═══ -->
+<div class="sec">
+<div class="st">1 — Kritisch</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Kategorie</th><th>Befund</th><th>Datei / Zeile</th><th>Auswirkung</th></tr></thead>
+<tbody>
+
+<tr class="crit">
+  <td>C1</td>
+  <td><span class="b b-crit">Phantom Code</span></td>
+  <td>
+    <strong>wallet-core.js in keiner einzigen HTML-Datei geladen</strong><br>
+    <code>wallet-panel.js</code> und <code>wallet.js</code> rufen beide <code>WalletCore.loadI18n()</code>,
+    <code>WalletCore.createInstance()</code> und <code>WalletCore.formatAmount()</code> auf —
+    aber <code>wallet-core.js</code> existiert in keinem <code>&lt;script&gt;</code>-Tag in
+    <code>student.html</code>, <code>teacher.html</code>, <code>wallet.html</code>
+    oder <code>wallet-standalone.html</code>.<br>
+    <em>Ergebnis:</em> <code>ReferenceError: WalletCore is not defined</code> beim Öffnen
+    des Wallet-Tabs auf jeder Seite. Das Wallet ist komplett nicht benutzbar.
+  </td>
+  <td>
+    <span class="file">student.html</span><br>
+    <span class="file">teacher.html</span><br>
+    <span class="file">wallet.html</span><br>
+    <span class="file">wallet-standalone.html</span>
+  </td>
+  <td><span class="b b-crit">Runtime-Crash</span> — Wallet vollständig kaputt</td>
+</tr>
+
+<tr class="crit">
+  <td>C2</td>
+  <td><span class="b b-crit">Architektur</span></td>
+  <td>
+    <strong>admin.js nutzt <code>Store.Users.update()</code> direkt — Methode existiert nicht in AppService</strong><br>
+    <code>admin.js:277</code> ruft <code>Store.Users.update(uid, {...})</code> direkt auf.
+    <code>AppService</code> exportiert kein <code>updateUser()</code>.
+    Das ist sowohl eine Architektur-Verletzung (Consumer greift direkt auf Store zu)
+    als auch ein Missing-Service-Problem: Es gibt keinen sicheren Weg für die Admin-UI,
+    User-Daten zu aktualisieren ohne den Adapter zu umgehen.<br>
+    Betrifft auch: <code>Store.Users.create()</code> in <code>admin.js:199</code> und
+    <code>landing.js:341</code> — AppService hat <code>createUser()</code>, wird aber nicht genutzt.
+  </td>
+  <td>
+    <span class="file">admin.js</span> ~199, 277<br>
+    <span class="file">landing.js</span> ~341<br>
+    <span class="file">app-service.js</span> (fehlt)
+  </td>
+  <td><span class="b b-crit">Firestore-Swap bricht</span> + Architektur-Verletzung</td>
+</tr>
+
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 2. HOCH ═══ -->
+<div class="sec">
+<div class="st">2 — Hoch</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Kategorie</th><th>Befund</th><th>Datei / Zeile</th><th>Fix</th></tr></thead>
+<tbody>
+
+<tr class="high">
+  <td>H1</td>
+  <td><span class="b b-high">Architektur</span></td>
+  <td>
+    <strong>admin.html: falsche Script-Ladereihenfolge</strong><br>
+    Guideline schreibt vor: <code>store → profile → auth → ui → navbar → [page]</code><br>
+    Tatsächliche Reihenfolge: <code>store → profile → adapter → app-config → app-service → <strong>auth → ui</strong> → navbar → admin</code><br>
+    <code>auth.js</code> kommt nach <code>app-service.js</code> — <code>Auth</code> ist beim Laden von
+    <code>app-service.js</code> noch nicht definiert. Außerdem fehlt <code>email.js</code>
+    ganz in <code>admin.html</code>, obwohl <code>AppService</code> intern <code>EmailService</code>
+    referenzieren könnte.
+  </td>
+  <td><span class="file">admin.html</span> ~script-Block</td>
+  <td>Reihenfolge korrigieren: <code>store → profile → auth → ui → navbar → adapter → app-config → app-service → admin</code></td>
+</tr>
+
+<tr class="high">
+  <td>H2</td>
+  <td><span class="b b-high">Architektur</span></td>
+  <td>
+    <strong>wallet.html: falsche Script-Ladereihenfolge + wallet-core.js fehlt</strong><br>
+    Reihenfolge: <code>store → auth → <strong>profile</strong></code> — <code>profile.js</code> kommt nach
+    <code>auth.js</code>, obwohl <code>ProfileStore</code> intern <code>Store.Users</code> braucht
+    und vor <code>auth.js</code> stehen sollte.<br>
+    Zusätzlich: <code>wallet-core.js</code> fehlt vor <code>wallet.js</code> (→ C1).
+  </td>
+  <td><span class="file">wallet.html</span> ~script-Block</td>
+  <td>Reihenfolge: <code>store → profile → auth → ui → navbar → adapter → app-config → app-service → wallet-core → wallet</code></td>
+</tr>
+
+<tr class="high">
+  <td>H3</td>
+  <td><span class="b b-high">Architektur</span></td>
+  <td>
+    <strong>chat.js: 4× direkte Store.*-Zugriffe</strong><br>
+    <code>chat.js:430</code> — <code>Store.Users.byUid(opts.uid)</code><br>
+    <code>chat.js:791</code> — <code>Store.Users.all()</code><br>
+    <code>chat.js:1064</code> — <code>Store.Selections.delete(studentId, teacherId)</code><br>
+    <code>chat.js:1538</code> — <code>Store.Users.byUid(partnerUid)</code><br>
+    Laut Guideline: Consumer-Code darf niemals direkt auf <code>Store.*</code> zugreifen.
+    Besonders kritisch: <code>Store.Selections.delete</code> hat ein direktes AppService-Äquivalent
+    (<code>AppService.deleteSelection</code>), wird aber nicht verwendet.
+  </td>
+  <td><span class="file">chat.js</span> ~430, 791, 1064, 1538</td>
+  <td><code>AppService.getUserSync()</code>, <code>AppService.getUsersByRoleSync()</code>, <code>AppService.deleteSelection()</code></td>
+</tr>
+
+<tr class="high">
+  <td>H4</td>
+  <td><span class="b b-high">Architektur</span></td>
+  <td>
+    <strong>landing.js + admin.js: Store.Users direkt statt AppService</strong><br>
+    <code>landing.js:332</code> — <code>Store.Users.all()</code> für Duplicate-Check beim Sign-Up<br>
+    <code>landing.js:341</code> — <code>Store.Users.create()</code> statt <code>AppService.createUser()</code><br>
+    <code>admin.js:199</code> — <code>Store.Users.create()</code><br>
+    <code>admin.js:223,290</code> — <code>Store.Users.byUid()</code><br>
+    <code>admin.js:307</code> — <code>Store.Users.delete()</code> statt <code>AppService.deleteUser()</code><br>
+    <code>admin.js:320,340</code> — <code>Store.Users.all()</code>, <code>Store.Users.byRole()</code><br>
+    <code>admin.js:323,355–359</code> — <code>Store.Slots.*</code>, <code>Store.Selections.*</code>
+  </td>
+  <td><span class="file">admin.js</span> ~199–359<br><span class="file">landing.js</span> ~332–341</td>
+  <td>AppService-Äquivalente nutzen. Für fehlende: <code>AppService.updateUser()</code> und <code>AppService.getUserStats()</code> sind bereits in AppService exportiert.</td>
+</tr>
+
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 3. MITTEL ═══ -->
+<div class="sec">
+<div class="st">3 — Mittel</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Kategorie</th><th>Befund</th><th>Datei / Zeile</th><th>Fix</th></tr></thead>
+<tbody>
+
+<tr class="med">
+  <td>M1</td>
+  <td><span class="b b-med">Dead Code</span></td>
+  <td>
+    <strong><code>_calcStudentBlockCounts()</code> definiert, nirgends aufgerufen</strong><br>
+    Definiert in <code>student.js:1420</code>. Kein einziger Aufruf in student.js, teacher.js oder ui.js.
+    Die Funktion ist ein Wrapper um <code>_calcBookingBlockCounts</code> — ihr Aufrufer wurde
+    vermutlich durch die Refactoring-Arbeiten entfernt, die Funktion selbst aber vergessen.
+  </td>
+  <td><span class="file">student.js</span> ~1420</td>
+  <td>Löschen</td>
+</tr>
+
+<tr class="med">
+  <td>M2</td>
+  <td><span class="b b-med">Dead Code</span></td>
+  <td>
+    <strong><code>loop.html</code> und <code>wallet-standalone.html</code> noch vorhanden</strong><br>
+    <code>loop.html</code>: Standalone Morphing-Colors-Visualizer ohne Verbindung zum System.<br>
+    <code>wallet-standalone.html</code>: Nahezu identische Kopie von <code>wallet.html</code>
+    (einziger Unterschied: fehlendes <code>viewport-fit=cover</code> und kein <code>navbar-root</code>).
+    Keine eingehenden Links von anderen Seiten. Beide waren bereits in der letzten Session
+    zur Löschung markiert.
+  </td>
+  <td><span class="file">loop.html</span><br><span class="file">wallet-standalone.html</span></td>
+  <td>Löschen</td>
+</tr>
+
+<tr class="med">
+  <td>M3</td>
+  <td><span class="b b-med">Dead Code</span></td>
+  <td>
+    <strong><code>CRUD_SERVICE_REFERENCE.md</code> (v1) neben v2 vorhanden</strong><br>
+    Beide Dateien im <code>Doc/</code>-Ordner. v2 ist aktueller und vollständiger (Escrow-Schema).
+    v1 ist überholt.
+  </td>
+  <td><span class="file">Doc/CRUD_SERVICE_REFERENCE.md</span></td>
+  <td>Löschen — v2 behalten</td>
+</tr>
+
+<tr class="med">
+  <td>M4</td>
+  <td><span class="b b-med">Offen: Bug</span></td>
+  <td>
+    <strong>WalletPanel.refresh() fehlt in <code>_showCancelPolicyDialog</code></strong><br>
+    Nach einer direkten Stornierung über den Policy-Dialog (ohne Save-Button) wird
+    nur das Navbar-Badge aktualisiert (<code>AppService.getWallet</code> inline).
+    <code>WalletPanel.refresh()</code> wird nicht aufgerufen → Refund-Betrag erscheint
+    im eingebetteten Wallet-Panel nicht sofort.
+  </td>
+  <td><span class="file">ui.js</span> ~905–912</td>
+  <td>1 Zeile: <code>if (typeof WalletPanel !== 'undefined') WalletPanel.refresh(wUid);</code> nach Navbar-Update</td>
+</tr>
+
+<tr class="med">
+  <td>M5</td>
+  <td><span class="b b-med">Offen: Bug</span></td>
+  <td>
+    <strong>Zahlungseinstellungen fehlen in <code>profile-edit.html</code></strong><br>
+    <code>profile.js</code> hat alle Felder vollständig definiert (<code>requiresDeposit</code>,
+    <code>depositMode</code>, <code>depositFixed</code>, <code>depositPercent</code>,
+    <code>paymentMode</code>, <code>cancellationWindow</code>, <code>cancellationPartial</code>,
+    <code>cancellationStrict</code>) inkl. i18n-Labels und Lade-/Speicher-Logik.
+    In <code>profile-edit.html</code> gibt es jedoch keinen UI-Abschnitt dafür.
+    Lehrer können ihre Deposit- und Stornierungseinstellungen nicht über die UI ändern.
+  </td>
+  <td><span class="file">profile-edit.html</span><br><span class="file">profile.js</span> ~282–289</td>
+  <td>Neuen Accordion-Abschnitt in profile-edit.html einfügen</td>
+</tr>
+
+<tr class="med">
+  <td>M6</td>
+  <td><span class="b b-med">Redundanz</span></td>
+  <td>
+    <strong><code>_mergeStudentBookingBlocks</code> und <code>mergeAllBookingBlocks</code> — beide Wrapper, aber beide behalten</strong><br>
+    Beide sind bereits Thin-Wrapper um <code>mergeBookingBlocks()</code> in <code>ui.js</code>
+    mit unterschiedlichem <code>groupField</code>. Das ist korrekt strukturiert.
+    Verbleibende Redundanz: <code>_calcStudentBlockCounts</code> (dead, siehe M1) und
+    <code>_calcBlockCounts</code> in teacher.js sind beide Wrapper um <code>_calcBookingBlockCounts</code>
+    — aber <code>_calcBlockCounts</code> wird verwendet.
+  </td>
+  <td><span class="file">student.js</span> ~1420, ~1528<br><span class="file">teacher.js</span> ~1548</td>
+  <td>M1 beheben (dead wrapper löschen). Rest ist akzeptabel.</td>
+</tr>
+
+<tr class="med">
+  <td>M7</td>
+  <td><span class="b b-med">Architektur</span></td>
+  <td>
+    <strong><code>ui.js:1603</code> — <code>element.style.display</code> statt <code>is-hidden</code></strong><br>
+    In <code>setPriceBadge()</code>: <code>el.style.display = total > 0 ? '' : 'none'</code><br>
+    Guideline: "IMMER <code>classList.add('is-hidden')</code> — NIEMALS <code>element.style.display</code>"
+  </td>
+  <td><span class="file">ui.js</span> ~1603</td>
+  <td><code>el.classList.toggle('is-hidden', total === 0)</code></td>
+</tr>
+
+<tr class="med">
+  <td>M8</td>
+  <td><span class="b b-med">Architektur</span></td>
+  <td>
+    <strong><code>ui.js:1067–1073</code> — <code>bar.style.left/width/right</code> in <code>checkDayNavStickyShared</code></strong><br>
+    Die Sticky-Positionierung des Day-Nav-Bars setzt <code>style.left</code>,
+    <code>style.width</code>, <code>style.right</code> direkt.
+    Guideline: "Inline CSS in JS → IMMER classList".
+    Ausnahme laut Guideline nur für dynamisch berechnete Werte (Pixel-Positionen) —
+    hier sind es berechnete Werte aus <code>getBoundingClientRect()</code>, was als
+    begründete Ausnahme gelten kann. Dennoch dokumentieren.
+  </td>
+  <td><span class="file">ui.js</span> ~1067–1073</td>
+  <td>Akzeptable Ausnahme (dynamisch berechnete Pixelwerte). Als Kommentar dokumentieren.</td>
+</tr>
+
+<tr class="med">
+  <td>M9</td>
+  <td><span class="b b-med">Offen: Bug</span></td>
+  <td>
+    <strong>Partial-Refund (24–48h Tier) MVP — volles Deposit an Lehrer statt 50/50</strong><br>
+    <code>app-service.js:683</code>: <code>/* partial — MVP: forfeit full deposit */</code><br>
+    Bei 24–48h Vorankündigung sollten laut Cancellation-Policy 50% zurück an Schüler,
+    50% an Lehrer. Aktuell geht das gesamte Deposit an den Lehrer.
+    <code>calcCancellationPolicy</code> berechnet <code>refundAmount</code> und <code>forfeitAmount</code>
+    korrekt — aber <code>cancelSlotWithPolicy</code> ignoriert den Split und
+    ruft nur <code>forfeitDeposit</code> auf.
+  </td>
+  <td><span class="file">app-service.js</span> ~683</td>
+  <td>Bei <code>tier='partial'</code>: Wallet direkt um <code>refundAmount</code> erhöhen + <code>forfeitDeposit</code> für <code>forfeitAmount</code></td>
+</tr>
+
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 4. NIEDRIG ═══ -->
+<div class="sec">
+<div class="st">4 — Niedrig / Info</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>#</th><th>Kategorie</th><th>Befund</th><th>Datei / Zeile</th><th>Notiz</th></tr></thead>
+<tbody>
+
+<tr class="low">
+  <td>L1</td>
+  <td><span class="b b-low">Memory Leak</span></td>
+  <td>
+    <strong>Kalender-Zellen: <code>addEventListener</code> bei jedem <code>renderCalendar()</code>-Aufruf neu</strong><br>
+    <code>student.js:702</code> und <code>teacher.js:459</code>: Jede Kalender-Zelle wird mit
+    <code>cell.addEventListener('click', ...)</code> belegt. Da <code>container.innerHTML = ''</code>
+    vor dem Aufbau steht, werden die alten DOM-Elemente ersetzt — die alten Listener
+    werden zusammen mit den Elementen vom GC entfernt. <strong>Kein echter Leak</strong>
+    solange <code>innerHTML = ''</code> korrekt aufgerufen wird.
+    <em>Dokumentieren als bekanntes Muster.</em>
+  </td>
+  <td><span class="file">student.js</span> ~702<br><span class="file">teacher.js</span> ~459</td>
+  <td>Kein aktiver Leak. Muster ist korrekt durch innerHTML-Reset.</td>
+</tr>
+
+<tr class="low">
+  <td>L2</td>
+  <td><span class="b b-low">Memory Leak</span></td>
+  <td>
+    <strong>Dropdown-Listener: alle 4 Stellen haben korrekte remove-vor-add-Pattern</strong><br>
+    <code>_closeTeacherPickerDropdown</code> (student.js:603), <code>_closeSgridTeacherDropdown</code>
+    (student.js:986), <code>_closeMbTeacherDropdown</code> (student.js:1351),
+    <code>_closeBookingDropdown</code> (teacher.js:1488) — alle vier rufen
+    <code>document.removeEventListener()</code> vor dem neuen <code>addEventListener()</code> auf.
+    <strong>Kein Leak.</strong>
+  </td>
+  <td>student.js, teacher.js</td>
+  <td>✓ Bereits korrekt implementiert.</td>
+</tr>
+
+<tr class="low">
+  <td>L3</td>
+  <td><span class="b b-low">Endlosschleife</span></td>
+  <td>
+    <strong>AppService.onChange → renderDayPanel → kein Storage-Write → kein Loop</strong><br>
+    Der <code>onChange</code>-Handler in teacher.js (Zeile ~1946) reagiert auf
+    <code>app_slots / app_selections / app_users</code>-Änderungen mit reinen
+    Render-Aufrufen (<code>renderCalendar</code>, <code>renderDayPanel</code> etc.).
+    Diese Render-Funktionen schreiben <strong>nicht</strong> in localStorage →
+    kein Cross-Tab-Loop möglich. <strong>Kein Risiko.</strong>
+  </td>
+  <td><span class="file">teacher.js</span> ~1945</td>
+  <td>✓ Kein Loop-Risiko. Render-Funktionen sind read-only.</td>
+</tr>
+
+<tr class="low">
+  <td>L4</td>
+  <td><span class="b b-low">Dead Code</span></td>
+  <td>
+    <strong>Veraltete Dokumentations-Duplikate im Doc/-Ordner</strong><br>
+    <code>CRUD_SERVICE_REFERENCE.md</code> (v1) ist durch v2 obsolet.<br>
+    <code>INIT.md</code>, <code>SUMMARY.md</code>, <code>JOURNAL.md</code> sind durch
+    <code>HANDOFF_17032026.txt</code> ersetzt.<br>
+    <code>Folder Hierarchie .txt</code> ist durch HANDOFF ersetzt.
+  </td>
+  <td><span class="file">Doc/</span> (4 Dateien)</td>
+  <td>Löschen — Details in DOKUMENTEN_AUDIT_17032026.txt</td>
+</tr>
+
+<tr class="low">
+  <td>L5</td>
+  <td><span class="b b-low">Redundanz</span></td>
+  <td>
+    <strong><code>fmtDate</code> in ui.js zentralisiert — korrekt, aber kein window-Export check</strong><br>
+    <code>fmtDate</code> ist nur in <code>ui.js:546</code> definiert und via
+    <code>window.fmtDate = fmtDate</code> (Zeile 552) global verfügbar.
+    student.js und teacher.js nutzen es korrekt global. Kein Duplikat.
+    <code>fmtDateLocal</code> ist eine zweite lokale Hilfsfunktion in <code>ui.js:403</code>
+    — andere Formatierung (für Recursion-Kalender). Kein Duplikat.
+  </td>
+  <td><span class="file">ui.js</span> ~546, ~403</td>
+  <td>✓ Korrekt. Keine Redundanz.</td>
+</tr>
+
+<tr class="low">
+  <td>L6</td>
+  <td><span class="b b-low">Offen: Bug</span></td>
+  <td>
+    <strong>Horizontaler Scroll auf student.html (mobile) — Ursache unbekannt</strong><br>
+    3 Lösungsversuche gescheitert (dokumentiert in HORIZONTAL_SCROLL_BUG.md).
+    <code>html, body { overflow-x: hidden }</code> ist gesetzt — auf Android Chrome
+    ist der Scroll-Container jedoch <code>html</code>, nicht <code>body</code>.
+    Kandidat: <code>.day-nav-bar.is-sticky</code> mit berechneten
+    <code>style.left/width</code>-Werten aus <code>checkDayNavStickyShared()</code>.
+  </td>
+  <td><span class="file">css/base.css</span><br><span class="file">ui.js</span> ~1051</td>
+  <td>Diagnose mit Chrome DevTools Scroll-Container nötig</td>
+</tr>
+
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ PRIORITÄTSLISTE ═══ -->
+<div class="sec">
+<div class="st">Priorisierte Aktionsliste</div>
+<div class="tbl-wrap"><table>
+<thead><tr><th>Prio</th><th>Fix</th><th>Aufwand</th><th>Befund</th></tr></thead>
+<tbody>
+<tr class="crit"><td>1</td><td>wallet-core.js in student.html, teacher.html, wallet.html, wallet-standalone.html laden — vor wallet-panel.js bzw. wallet.js</td><td><span class="b b-ok">4 Zeilen</span></td><td>C1</td></tr>
+<tr class="crit"><td>2</td><td>AppService.updateUser() implementieren + admin.js auf AppService umstellen</td><td><span class="b b-med">Mittel</span></td><td>C2</td></tr>
+<tr class="high"><td>3</td><td>admin.html Script-Reihenfolge korrigieren (auth vor app-service)</td><td><span class="b b-ok">1 Zeile</span></td><td>H1</td></tr>
+<tr class="high"><td>4</td><td>wallet.html Script-Reihenfolge + wallet-core.js einfügen</td><td><span class="b b-ok">2 Zeilen</span></td><td>H2</td></tr>
+<tr class="high"><td>5</td><td>chat.js: Store.Users.* + Store.Selections.delete → AppService</td><td><span class="b b-ok">4 Zeilen</span></td><td>H3</td></tr>
+<tr class="high"><td>6</td><td>landing.js Store.Users.* → AppService.createUser / getUsersByRoleSync</td><td><span class="b b-ok">3 Zeilen</span></td><td>H4</td></tr>
+<tr class="med"><td>7</td><td>WalletPanel.refresh() in ui.js _showCancelPolicyDialog ergänzen</td><td><span class="b b-ok">1 Zeile</span></td><td>M4</td></tr>
+<tr class="med"><td>8</td><td>_calcStudentBlockCounts löschen (dead code)</td><td><span class="b b-ok">5 Zeilen</span></td><td>M1</td></tr>
+<tr class="med"><td>9</td><td>loop.html + wallet-standalone.html löschen</td><td><span class="b b-ok">rm 2 Dateien</span></td><td>M2</td></tr>
+<tr class="med"><td>10</td><td>ui.js setPriceBadge: style.display → classList.toggle('is-hidden')</td><td><span class="b b-ok">1 Zeile</span></td><td>M7</td></tr>
+<tr class="med"><td>11</td><td>profile-edit.html: Zahlungseinstellungen-Abschnitt ergänzen</td><td><span class="b b-med">Mittel</span></td><td>M5</td></tr>
+<tr class="med"><td>12</td><td>Partial-Refund 50/50-Split in cancelSlotWithPolicy implementieren</td><td><span class="b b-med">Mittel</span></td><td>M9</td></tr>
+<tr class="low"><td>13</td><td>CRUD_SERVICE_REFERENCE v1 + alte Doc-Dateien löschen</td><td><span class="b b-ok">rm Dateien</span></td><td>L4</td></tr>
+<tr class="low"><td>14</td><td>Horizontalen Scroll auf mobile diagnostizieren</td><td><span class="b b-med">Diagnose</span></td><td>L6</td></tr>
+</tbody></table></div>
+</div>
+
+</body>
+</html>

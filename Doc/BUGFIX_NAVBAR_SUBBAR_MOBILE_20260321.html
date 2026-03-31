@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="BUGFIX">
+  <meta name="doc-subject"  content="Navbar Sub-Bar auf Mobile unsichtbar — Hero-Sektion überlappt Sub-Bar">
+  <title>BUGFIX — Navbar Sub-Bar Mobile Visibility 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.sev { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug  { background: #fff8f8; }
+    tbody tr.r-fix  { background: #f8fff8; }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+    .pipe { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .pipe-step { display: grid; grid-template-columns: 170px 1fr;
+                 border: 1px solid var(--n200); border-bottom: none; background: var(--n0); }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .pipe-step.bug  { background: #fff8f8; }
+    .pipe-step.fix  { background: #f8fff8; }
+    .pipe-step.ctx  { background: var(--n50); }
+    .pipe-left { padding: 10px 14px; border-right: 1px solid var(--n200);
+                 display: flex; flex-direction: column; gap: 3px; }
+    .pipe-file { font-family: var(--mono); font-size: 10px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; color: var(--n400); }
+    .pipe-fn   { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy); }
+    .pipe-right { padding: 10px 14px; font-size: 12px; color: var(--n500); line-height: 1.6; }
+    .pipe-arrow { text-align: center; padding: 3px 0; font-size: 14px; color: var(--n400); }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+    .sev-crit { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .sev-ok   { background: var(--ok-bg);  color: var(--ok-tx);  border: 1px solid var(--ok-bd); }
+    .sev-warn { background: var(--warn-bg); color: var(--warn-tx); border: 1px solid var(--warn-bd); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+    .col-card { border: 1px solid var(--n200); border-radius: 8px; overflow: hidden; }
+    .col-title { padding: 8px 12px; font-size: 11px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; }
+    .col-title.bug { background: var(--err-bg); color: var(--err-tx);
+                     border-bottom: 1px solid var(--err-bd); }
+    .col-title.fix { background: var(--ok-bg); color: var(--ok-tx);
+                     border-bottom: 1px solid var(--ok-bd); }
+    .col-body { padding: 12px; font-size: 12px; color: var(--n700); line-height: 1.7; }
+    .col-body li { margin-left: 16px; }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+    .layout-diagram { background: var(--navy); border-radius: 8px; padding: 18px 20px;
+                      margin-bottom: 16px; font-family: var(--mono); font-size: 12px; }
+    .layout-diagram code { background: none; padding: 0; color: #e2e8f0;
+                            white-space: pre; display: block; line-height: 1.9; border-radius: 0; }
+    .ld-ok  { color: #86efac; }
+    .ld-err { color: #fca5a5; }
+    .ld-dim { color: #64748b; }
+    .ld-hi  { color: #fde68a; }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">BUGFIX · UI · Landing Page · BookingSystem</div>
+  <div class="ph-title">Navbar Sub-Bar — Mobile unsichtbar</div>
+  <div class="ph-sub">
+    Auf <code>landing.html</code> (mobil, ≤768px) war der Sub-Bar mit den
+    Währungs- und Sprachschaltern vollständig unsichtbar. Das Element war
+    korrekt im DOM vorhanden, wurde aber von der Hero-Sektion überlagert, weil
+    <code>&lt;main&gt;</code> keinen <code>padding-top</code> hatte, der die
+    Höhe von navbar (52px) + sub-bar (36px = 88px gesamt) berücksichtigt.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge sev">🟡 Visual · Mittel</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">3 Dateien geändert · landing.css · landing.js · app-config.js</span>
+    <span class="ph-badge ok">✅ Behoben · APP_VERSION 2026-03-21-30</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — ROOT CAUSE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-root">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-root">Root Cause</h2>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Kern des Problems:</strong> Die Navbar ist <code>position: fixed</code>
+      und nimmt keinen Platz im Dokumentfluss ein. Der Sub-Bar ist
+      <code>position: static</code> und befindet sich im Dokumentfluss — direkt nach
+      der Navbar, also an y=52px. <code>&lt;main&gt;</code> auf <code>landing.html</code>
+      hatte kein <code>padding-top</code>, weshalb die Hero-Sektion ab y=0 begann und
+      sowohl Navbar als auch Sub-Bar überlagerte. Der Sub-Bar war im DOM vorhanden,
+      aber vollständig hinter der Hero-Sektion versteckt.
+    </div>
+
+    <div class="callout c-info">
+      <strong>Warum Desktop nicht betroffen war:</strong> Auf Desktop (≥769px) ist
+      <code>.navbar-subbar { display: none }</code> — er wird gar nicht gerendert.
+      Die Währungs- und Sprach-Pills sitzen dort in <code>.navbar-selects-desktop</code>
+      innerhalb der Hauptnavbar-Zeile. Das fehlende <code>padding-top</code> auf
+      <code>&lt;main&gt;</code> war auf Desktop zwar ebenfalls vorhanden, aber die
+      50px-Überlappung fiel im Hero-Bereich (der dunkel und höhengroßzügig ist)
+      optisch nicht auf. Auf Mobile war der 88px-Offset entscheidend.
+    </div>
+
+    <p style="font-size:13px; color:var(--n500); margin-bottom:16px;">
+      Layout-Situation vor dem Fix (Mobile, ≤768px):
+    </p>
+
+    <div class="layout-diagram">
+      <code><span class="ld-dim">y=0   ┌─────────────────────────────────────────┐
+      │  .navbar  (position: fixed, 52px)       │  &lt;-- schwebt über allem
+      ├─────────────────────────────────────────┤
+y=52  │  .navbar-subbar  (position: static)     │  &lt;-- im Dokumentfluss
+      ├─────────────────────────────────────────┤</span>
+<span class="ld-err">y=0   │  &lt;main&gt; / .landing-hero                 │  &lt;-- beginnt bei y=0 !</span>
+<span class="ld-err">      │  (überlagert navbar + subbar komplett)  │</span>
+<span class="ld-dim">      └─────────────────────────────────────────┘</span></code>
+    </div>
+
+    <p style="font-size:13px; color:var(--n500); margin-bottom:16px;">
+      Layout-Situation nach dem Fix:
+    </p>
+
+    <div class="layout-diagram">
+      <code><span class="ld-dim">y=0   ┌─────────────────────────────────────────┐
+      │  .navbar  (position: fixed, 52px)       │
+      ├─────────────────────────────────────────┤
+y=52  │  .navbar-subbar  (position: static)     │
+      ├─────────────────────────────────────────┤</span>
+<span class="ld-ok">y=88  │  &lt;main&gt;  (padding-top: 88px auf mobile) │  &lt;-- korrekt versetzt</span>
+<span class="ld-ok">      │  .landing-hero sichtbar unterhalb        │</span>
+<span class="ld-dim">      └─────────────────────────────────────────┘</span></code>
+    </div>
+
+    <div class="two-col">
+      <div class="col-card">
+        <div class="col-title bug">❌ Vorher — Mobile</div>
+        <div class="col-body">
+          <ul>
+            <li>Sub-Bar im DOM vorhanden, aber vollständig hinter Hero versteckt</li>
+            <li>Kein <code>padding-top</code> auf <code>&lt;main&gt;</code></li>
+            <li>Hero beginnt bei y=0, überlagert navbar (52px) + sub-bar (36px)</li>
+            <li>Währungs- und Sprachschalter für mobile User nicht zugänglich</li>
+          </ul>
+        </div>
+      </div>
+      <div class="col-card">
+        <div class="col-title fix">✅ Nachher — Mobile</div>
+        <div class="col-body">
+          <ul>
+            <li><code>main { padding-top: 88px }</code> auf ≤768px</li>
+            <li>Sub-Bar vollständig sichtbar als zweite Navbar-Zeile</li>
+            <li>Währungs- (<code>€ EUR ˅</code>) und Sprachschalter (<code>DE ˅</code>) zugänglich</li>
+            <li>Desktop unverändert: <code>padding-top: 52px</code>, sub-bar hidden</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — ANALYSE DER SYMPTOME
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-symptoms">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-symptoms">Symptome pro Breakpoint</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Breakpoint</th>
+            <th>Sub-Bar</th>
+            <th>Desktop-Pills (.navbar-selects-desktop)</th>
+            <th>Status vor Fix</th>
+            <th>Status nach Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><strong>≤768px (Mobile)</strong></td>
+            <td>Vorhanden, <code>display: flex</code></td>
+            <td><code>display: none</code> (via Media Query)</td>
+            <td><span class="sev sev-crit">🔴 Sub-Bar versteckt hinter Hero</span></td>
+            <td><span class="sev sev-ok">✅ Sichtbar, 36px unterhalb Navbar</span></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>≥769px (Desktop)</strong></td>
+            <td><code>display: none</code> (via Media Query)</td>
+            <td>Sichtbar in Navbar-Zeile 1</td>
+            <td><span class="sev sev-ok">✅ Korrekt (pills in navbar)</span></td>
+            <td><span class="sev sev-ok">✅ Unverändert korrekt</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Wichtig — kein gleichzeitiges Rendering:</strong> Sub-Bar und
+      <code>.navbar-selects-desktop</code> werden nie gleichzeitig gezeigt.
+      Die CSS-Regeln <code>@media (max-width: 768px) { .navbar-selects-desktop { display: none } }</code>
+      und <code>@media (min-width: 769px) { .navbar-subbar { display: none } }</code>
+      stellen das sicher. Kein JS-Eingriff nötig.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — IMPLEMENTIERTER FIX
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-fix">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-fix">Implementierter Fix</h2>
+      <span class="sec-sub">3 Dateien · landing.css · landing.js · app-config.js</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Fix-Strategie:</strong> Reines CSS-Fix — kein JS, kein Inline-Style.
+      <code>main</code> erhält in <code>landing.css</code> ein
+      <code>padding-top: 52px</code> (Desktop, nur Navbar) und per Media Query
+      <code>padding-top: 88px</code> (Mobile, Navbar 52px + Sub-Bar 36px).
+      Zusätzlich wird in <code>landing.js</code> die <code>navH</code>-Berechnung
+      für den Scroll-Jump-Button korrigiert, um die Sub-Bar-Höhe einzuschließen.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Stelle</th>
+            <th>Änderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>css/landing.css</code></td>
+            <td>Anfang der Datei, vor <code>.landing-hero</code></td>
+            <td>
+              Neuer Block <code>main { padding-top: 52px }</code> +
+              Media Query <code>@media (max-width: 768px) { main { padding-top: 88px } }</code>.
+              Reserviert Platz für die fixe Navbar und den statischen Sub-Bar.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/landing.js</code></td>
+            <td><code>_updateLandingScrollBtn()</code> — ca. Zeile 656</td>
+            <td>
+              <code>navH</code>-Berechnung erweitert: addiert
+              <code>.navbar-subbar</code> <code>offsetHeight</code> zur Navbar-Höhe.
+              Verhindert, dass der Scroll-Jump-Button zu früh eingeblendet wird.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><code>'2026-03-21-29'</code> → <code>'2026-03-21-30'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">css/landing.css — main padding-top (neu, vor .landing-hero)</div>
+    <div class="code-block"><code><span class="cm">/* ── Page offset — accounts for fixed navbar + static sub-bar ─────────── */</span>
+<span class="cm">/* Desktop (≥769px): navbar only (52px). Sub-bar is hidden at ≥769px.    */</span>
+<span class="cm">/* Mobile (≤768px):  navbar (52px) + sub-bar (36px) = 88px.              */</span>
+<span class="cm">/* landing.html has no .app-shell wrapper, so we offset &lt;main&gt; directly. */</span>
+<span class="ck">main</span> {
+  <span class="cs">padding-top</span>: <span class="cn">52px</span>;
+}
+
+<span class="ck">@media (max-width: 768px)</span> {
+  <span class="ck">main</span> {
+    <span class="cs">padding-top</span>: <span class="cn">88px</span>; <span class="cm">/* navbar 52px + sub-bar 36px */</span>
+  }
+}</code></div>
+
+    <div class="code-label">js/landing.js — navH Berechnung korrigiert</div>
+    <div class="code-block"><code><span class="cm">/* Vorher: */</span>
+<span class="ce">var navH = (document.querySelector('.navbar') || {}).offsetHeight || 52;</span>
+
+<span class="cm">/* Nachher — schließt Sub-Bar-Höhe ein (ist 0 auf Desktop, da display:none): */</span>
+<span class="cs">var navH = ((document.querySelector('.navbar') || {}).offsetHeight || 52) +
+           ((document.querySelector('.navbar-subbar') || {}).offsetHeight || 0);</span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — WARUM KEIN position:fixed FÜR SUB-BAR
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-rationale">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-rationale">Design-Entscheidung — Sub-Bar bleibt position: static</h2>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Warum kein <code>position: fixed</code>?</strong>
+      Der Sub-Bar ist ein Landing-Page-only-Element für unauthentifizierte Besucher.
+      Er scrollt intentional aus dem Sichtbereich wenn der User nach unten scrollt —
+      genau wie alle anderen Landing-Page-Sektionen. Die fixe Navbar (mit dem
+      Smart-Scroll-Behavior) ist das einzige persistente Chrome-Element.
+      Einen zweiten fixierten Balken würde wertvolle vertikale Fläche auf Mobile dauerhaft
+      blockieren. <code>position: static</code> ist das korrekte Verhalten.
+    </div>
+
+    <div class="callout c-ok">
+      <strong>Konsequenz:</strong> Das CSS-<code>padding-top</code> auf <code>main</code>
+      ist der einzig korrekte Fix. Der Sub-Bar nimmt seinen 36px Platz im Dokumentfluss
+      ein — <code>main</code> muss nur wissen, dass er erst nach Navbar + Sub-Bar beginnt.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Guideline</th>
+            <th>Anforderung</th>
+            <th>Eingehalten?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_STYLING</code></td>
+            <td>Kein Inline-Style, kein <code>element.style.*</code></td>
+            <td>✅ Ausschließlich CSS-Klassen und Media Queries</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_MOBILE</code></td>
+            <td>Touch-Target ≥44px, mobile-first, Breakpoint 768px</td>
+            <td>✅ Sub-Bar-Buttons haben <code>min-height: 44px</code> (bestehend). Breakpoint korrekt.</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_ARCHITECTURE</code></td>
+            <td>ES5 only — <code>var</code>, <code>function(){}</code></td>
+            <td>✅ landing.js-Änderung verwendet <code>var</code>, kein Arrow-Function</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_ARCHITECTURE</code></td>
+            <td>Asset Versioning — <code>APP_VERSION</code> erhöhen</td>
+            <td>✅ <code>2026-03-21-29</code> → <code>2026-03-21-30</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>GUIDELINE_NEW_STYLING</code></td>
+            <td>8pt Grid, Spacing-Tokens</td>
+            <td>✅ Keine neuen Magic Numbers — 52px und 36px sind definierte Höhen aus navbar.css</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>BUGFIX_NAVBAR_SUBBAR_MOBILE_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-30 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

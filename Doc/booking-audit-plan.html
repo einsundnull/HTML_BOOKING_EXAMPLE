@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Booking Audit & Payment Log — Plan</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+  :root{
+    --bg:#0d1117;--surface:#161b22;--surface2:#1c2330;
+    --border:#30363d;--text:#e6edf3;--muted:#8b949e;--dim:#484f58;
+    --accent:#58a6ff;--green:#3fb950;--red:#f85149;--amber:#d29922;--purple:#bc8cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);
+    font-size:13.5px;line-height:1.65;padding:36px 28px 80px;max-width:1480px;margin:0 auto}
+  h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:12px;margin-bottom:40px}
+
+  /* section */
+  .sec{margin-bottom:44px}
+  .sh{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;
+    text-transform:uppercase;letter-spacing:1.4px;color:var(--muted);margin-bottom:14px;
+    display:flex;align-items:center;gap:10px}
+  .sh::after{content:'';flex:1;height:1px;background:var(--border)}
+
+  /* tables */
+  .tw{border:1px solid var(--border);border-radius:8px;overflow:hidden;overflow-x:auto;margin-bottom:8px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;
+    letter-spacing:.5px;color:var(--muted);text-align:left;padding:8px 13px;
+    background:var(--surface);border-bottom:1px solid var(--border);white-space:nowrap}
+  td{padding:7px 13px;border-bottom:1px solid var(--border);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(255,255,255,.018)}
+
+  tr.ok  td:first-child{border-left:3px solid var(--green)}
+  tr.part td:first-child{border-left:3px solid var(--amber)}
+  tr.miss td:first-child{border-left:3px solid var(--red)}
+  tr.new  td:first-child{border-left:3px solid var(--accent)}
+
+  code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:rgba(255,255,255,.07);
+    padding:1px 5px;border-radius:4px;color:var(--purple)}
+  .file{color:var(--amber);font-family:'IBM Plex Mono',monospace;font-size:11px}
+
+  .b{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10px;
+    padding:2px 7px;border-radius:20px;font-weight:600;vertical-align:middle;white-space:nowrap}
+  .b-ok  {background:rgba(63,185,80,.12);color:var(--green);border:1px solid rgba(63,185,80,.25)}
+  .b-part{background:rgba(210,153,34,.15);color:var(--amber);border:1px solid rgba(210,153,34,.3)}
+  .b-miss{background:rgba(248,81,73,.18);color:var(--red);border:1px solid rgba(248,81,73,.35)}
+  .b-new {background:rgba(88,166,255,.12);color:var(--accent);border:1px solid rgba(88,166,255,.25)}
+
+  .schema{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:16px 18px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    line-height:1.8;overflow-x:auto;margin-bottom:10px}
+  .schema .k{color:var(--accent)}
+  .schema .v{color:var(--purple)}
+  .schema .c{color:var(--muted);font-style:italic}
+
+  .phase{background:var(--surface);border:1px solid var(--border);border-radius:8px;
+    padding:16px 20px;margin-bottom:12px}
+  .phase-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;
+    color:var(--accent);margin-bottom:10px}
+  .phase-steps{padding-left:18px}
+  .phase-steps li{margin-bottom:6px;color:var(--text)}
+  .phase-steps li span{color:var(--muted);font-size:11px;margin-left:8px}
+
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:36px}
+  .stat{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px 14px}
+  .stat-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .stat-value{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;margin-top:3px}
+</style>
+</head>
+<body>
+
+<h1>Booking Audit & Payment Log — Implementierungsplan</h1>
+<p class="sub">Lückenlose Dokumentation aller Buchungen, Moves, Stornierungen und Zahlungen · Analyse des Ist-Stands · Fehlende Funktionen · Umsetzungsplan</p>
+
+<div class="stats">
+  <div class="stat"><div class="stat-label">Vorhanden ✓</div><div class="stat-value" style="color:var(--green)">11</div></div>
+  <div class="stat"><div class="stat-label">Teilweise ⚠</div><div class="stat-value" style="color:var(--amber)">5</div></div>
+  <div class="stat"><div class="stat-label">Fehlt komplett</div><div class="stat-value" style="color:var(--red)">8</div></div>
+  <div class="stat"><div class="stat-label">Neue Felder</div><div class="stat-value" style="color:var(--accent)">6</div></div>
+  <div class="stat"><div class="stat-label">Neue Screens</div><div class="stat-value" style="color:var(--purple)">2</div></div>
+</div>
+
+
+<!-- ═══ 1. EREIGNISSE ═══ -->
+<div class="sec">
+<div class="sh">1 — Ereignisse die lückenlos dokumentiert werden müssen</div>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Ereignis</th><th>Wer ist betroffen</th><th>Daten die gespeichert werden müssen</th><th>Aktuell</th></tr></thead>
+<tbody>
+<tr class="ok">
+  <td>E1</td><td>Buchung (Deposit gezahlt)</td><td>Schüler, Lehrer</td>
+  <td>SlotId, Datum, Uhrzeit, Preis/Slot, Gesamtpreis, DepositBetrag, DepositTyp (fix/%), DepositProzent, ZahlungsModus, BookedAt, StudentId, TeacherId</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>escrow_hold</code> TX mit vollem <code>meta</code></td>
+</tr>
+<tr class="miss">
+  <td>E2</td><td>Buchung (kein Deposit / cash_on_site)</td><td>Schüler, Lehrer</td>
+  <td>Gleiche Felder wie E1 — aber kein Geld bewegt sich → trotzdem Ereignis aufzeichnen</td>
+  <td><span class="b b-miss">✗ Fehlt</span><br>Kein TX geschrieben. <code>bookSlot</code> / <code>createEscrow</code> ohne cash_on_site-Record</td>
+</tr>
+<tr class="miss">
+  <td>E3</td><td>Verschiebung (Move) eines Blocks</td><td>Schüler oder Lehrer</td>
+  <td>OriginalDatum, OriginalZeit, NeuesDatum, NeueZeit, Preis, Initiator (student/teacher), Zeitpunkt der Verschiebung, SlotId alt + neu</td>
+  <td><span class="b b-miss">✗ Fehlt komplett</span><br>Move = cancel + rebook. Beide Aktionen schreiben keine separate Move-TX.</td>
+</tr>
+<tr class="ok">
+  <td>E4</td><td>Stornierung mit Deposit (Schüler, &gt;48h)</td><td>Schüler, Lehrer</td>
+  <td>SlotDaten, Tier (<code>full_refund</code>), RefundBetrag, Zeitpunkt, CancellationPolicy</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>refund</code> TX + <code>escrow_release</code> beim Lehrer</td>
+</tr>
+<tr class="ok">
+  <td>E5</td><td>Stornierung mit Deposit (Schüler, &lt;24h)</td><td>Schüler, Lehrer</td>
+  <td>SlotDaten, Tier (<code>forfeit</code>), ForfeitBetrag, Zeitpunkt</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>escrow_release</code> beim Lehrer via <code>forfeitDeposit</code></td>
+</tr>
+<tr class="ok">
+  <td>E6</td><td>Stornierung ohne Deposit (cash/unpaid)</td><td>Schüler</td>
+  <td>SlotDaten, Grund (<code>no_escrow</code>), Zeitpunkt</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>cancellation</code> TX via <code>writeCancellationRecord</code></td>
+</tr>
+<tr class="miss">
+  <td>E7</td><td>Stornierung durch Lehrer</td><td>Lehrer, Schüler</td>
+  <td>SlotDaten, Tier (<code>teacher_cancel</code>), RefundBetrag, Zeitpunkt — TX beim Lehrer als Initiator fehlt</td>
+  <td><span class="b b-part">⚠ Teilweise</span><br>Refund-TX beim Schüler ✓ — aber keine separate TX beim Lehrer-Account</td>
+</tr>
+<tr class="part">
+  <td>E8</td><td>Stunden-Bestätigung (Confirm)</td><td>Lehrer</td>
+  <td>SlotId, Datum, Preis, DepositBetrag, Zeitpunkt der Bestätigung</td>
+  <td><span class="b b-part">⚠ Teilweise</span><br><code>escrow_release</code> beim Lehrer ✓ — kein Bestätigungs-TX beim Schüler</td>
+</tr>
+<tr class="ok">
+  <td>E9</td><td>Einzahlung (Deposit auf Wallet)</td><td>Schüler oder Lehrer</td>
+  <td>Betrag, Zeitpunkt, Beschreibung</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>deposit</code> TX</td>
+</tr>
+<tr class="ok">
+  <td>E10</td><td>Auszahlung (Withdrawal)</td><td>Schüler oder Lehrer</td>
+  <td>Betrag, Zeitpunkt, Beschreibung</td>
+  <td><span class="b b-ok">✓ Vorhanden</span><br><code>withdrawal</code> TX</td>
+</tr>
+<tr class="miss">
+  <td>E11</td><td>Deposit-Hold (Escrow erstellt)</td><td>Schüler</td>
+  <td>EscrowId, DepositBetrag, DepositStatus, Zeitpunkt</td>
+  <td><span class="b b-miss">✗ Fehlt</span><br>Escrow-Erstellung selbst erzeugt keinen TX — erst <code>payDeposit</code> schreibt</td>
+</tr>
+<tr class="miss">
+  <td>E12</td><td>Block-Bestätigung (mehrere Slots)</td><td>Lehrer</td>
+  <td>Alle SlotIds des Blocks, Datum, Betrag gesamt, Zeitpunkt</td>
+  <td><span class="b b-miss">✗ Fehlt</span><br>Kein Block-Confirm-TX existiert</td>
+</tr>
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 2. VORHANDENE FUNKTIONEN ═══ -->
+<div class="sec">
+<div class="sh">2 — Vorhandene Funktionen (AppService / Adapter / Store)</div>
+<div class="tw"><table>
+<thead><tr><th>Funktion</th><th>Datei</th><th>Was sie tut</th><th>TX-Typ</th><th>Meta vollständig?</th></tr></thead>
+<tbody>
+<tr class="ok">
+  <td><code>bookSlotWithEscrow(slotId, stuId, tId, cb)</code></td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Atomic: bookSlot + createEscrow + payDeposit. Rollback bei Fehler.</td>
+  <td><code>escrow_hold</code></td>
+  <td><span class="b b-ok">✓ Vollständig</span><br>slotDate, slotTime, teacherId, studentId, fullAmount, depositAmount, depositType, depositPercent, requiresDeposit, paymentMode, bookedAt</td>
+</tr>
+<tr class="ok">
+  <td><code>cancelSlotWithPolicy(slotId, role, cb)</code></td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Stornierung mit Policy-Tier-Berechnung + korrektem Escrow-Settlement</td>
+  <td><code>refund</code> / <code>escrow_release</code> / <code>cancellation</code></td>
+  <td><span class="b b-ok">✓ Vollständig</span><br>cancellationTier, cancelledAt, slotDate, slotTime, teacherId, studentId</td>
+</tr>
+<tr class="ok">
+  <td><code>calcCancellationPolicy(slotId, role, cb)</code></td>
+  <td><span class="file">app-service.js</span></td>
+  <td>Berechnet Tier, noticeHours, refundAmount, forfeitAmount</td>
+  <td>—</td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>getTransactions(uid, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Alle TXs eines Users gefiltert nach uid</td>
+  <td>—</td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>deposit(uid, amount, desc, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Wallet-Einzahlung mit TX</td>
+  <td><code>deposit</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>withdraw(uid, amount, desc, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Wallet-Auszahlung mit TX</td>
+  <td><code>withdrawal</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>payDeposit(escrowId, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>unpaid→held, zieht Deposit ab</td>
+  <td><code>escrow_hold</code></td>
+  <td><span class="b b-ok">✓ Vollständig</span></td>
+</tr>
+<tr class="ok">
+  <td><code>releaseDeposit(escrowId, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>refund_requested→refunded, Deposit zurück an Schüler</td>
+  <td><code>refund</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>forfeitDeposit(escrowId, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>→forfeited, Deposit an Lehrer</td>
+  <td><code>escrow_release</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>confirmLesson(escrowId, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Stunde bestätigt, Deposit an Lehrer freigegeben</td>
+  <td><code>escrow_release</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="ok">
+  <td><code>writeCancellationRecord(slotId, stuId, tId, policy, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Schreibt Stornierung-TX auch ohne Geldbewegung</td>
+  <td><code>cancellation</code></td>
+  <td><span class="b b-ok">✓</span></td>
+</tr>
+<tr class="part">
+  <td><code>getAllEscrows(cb)</code></td>
+  <td><span class="file">AppService</span></td>
+  <td>Alle Escrows (Admin)</td>
+  <td>—</td>
+  <td><span class="b b-part">⚠ Kein Filter</span><br>Gibt alle zurück, kein Filter nach User/Datum</td>
+</tr>
+<tr class="part">
+  <td><code>getEscrowsByStudent(uid, cb)</code></td>
+  <td><span class="file">AppService</span></td>
+  <td>Escrows eines Schülers</td>
+  <td>—</td>
+  <td><span class="b b-part">⚠ Kein Datum-Filter</span></td>
+</tr>
+<tr class="part">
+  <td><code>getEscrowsByTeacher(uid, cb)</code></td>
+  <td><span class="file">AppService</span></td>
+  <td>Escrows eines Lehrers</td>
+  <td>—</td>
+  <td><span class="b b-part">⚠ Kein Datum-Filter</span></td>
+</tr>
+<tr class="part">
+  <td><code>getAdminStats(cb)</code></td>
+  <td><span class="file">AppService</span></td>
+  <td>Aggregierte Statistiken</td>
+  <td>—</td>
+  <td><span class="b b-part">⚠ Keine TX-Daten</span><br>Gibt userCount, bookingCount — kein Umsatz, kein Verlauf</td>
+</tr>
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 3. FEHLENDE FUNKTIONEN ═══ -->
+<div class="sec">
+<div class="sh">3 — Fehlende Funktionen (müssen neu implementiert werden)</div>
+<div class="tw"><table>
+<thead><tr><th>#</th><th>Fehlende Funktion</th><th>Wo</th><th>Beschreibung</th><th>Ereignis</th></tr></thead>
+<tbody>
+<tr class="miss">
+  <td>F1</td>
+  <td><code>writeBookingRecord(slotId, stuId, tId, escrow, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Schreibt einen <code>booking</code>-TX beim Schüler UND beim Lehrer — auch wenn kein Deposit gezahlt wird (cash_on_site). Enthält alle Buchungsdetails.</td>
+  <td>E2</td>
+</tr>
+<tr class="miss">
+  <td>F2</td>
+  <td><code>writeMoveRecord(oldSlot, newSlot, initiatorId, role, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span></td>
+  <td>Schreibt einen <code>move</code>-TX mit OriginalDatum/-Zeit, NeuesDatum/-Zeit, Initiator, Preis. Wird nach dem Move-Confirm in ui.js aufgerufen.</td>
+  <td>E3</td>
+</tr>
+<tr class="miss">
+  <td>F3</td>
+  <td><code>getAllTransactions(opts, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span><br><span class="file">AppService</span></td>
+  <td>Admin-Funktion: gibt ALLE TXs zurück. opts: <code>{ uid, role, type, dateFrom, dateTo, teacherId, studentId }</code>. Wird für das Admin-Audit-Log benötigt.</td>
+  <td>Admin</td>
+</tr>
+<tr class="miss">
+  <td>F4</td>
+  <td><code>getBookingHistory(uid, opts, cb)</code></td>
+  <td><span class="file">adapter-localstorage.js</span><br><span class="file">AppService</span></td>
+  <td>Gibt alle Buchungs-Events für einen User (booking, move, cancellation, escrow_hold, refund). Mit Filter: dateFrom, dateTo, counterpartId. Für Schüler- und Lehrer-Ansicht.</td>
+  <td>E1–E8</td>
+</tr>
+<tr class="miss">
+  <td>F5</td>
+  <td>Slot-Schema: <code>bookedAt</code>, <code>movedFrom</code>, <code>movedAt</code></td>
+  <td><span class="file">store.js</span></td>
+  <td><code>bookSlot</code> muss <code>bookedAt: isoNow()</code> setzen. Bei Move muss <code>movedFrom: {date, time}</code> und <code>movedAt: isoNow()</code> geschrieben werden.</td>
+  <td>E1, E3</td>
+</tr>
+<tr class="miss">
+  <td>F6</td>
+  <td>Lehrer-TX bei teacher_cancel</td>
+  <td><span class="file">adapter-localstorage.js</span> <code>cancelSlotWithPolicy</code></td>
+  <td>Bei Lehrer-Stornierung: zusätzlich zum Schüler-Refund eine <code>teacher_cancel</code>-TX beim Lehrer schreiben (Initiator, welchen Slot, wann).</td>
+  <td>E7</td>
+</tr>
+<tr class="miss">
+  <td>F7</td>
+  <td>Schüler-TX bei lesson confirm</td>
+  <td><span class="file">adapter-localstorage.js</span> <code>confirmLesson</code></td>
+  <td>Bei Stunden-Bestätigung: zusätzlich zum Lehrer-TX eine <code>lesson_confirmed</code>-TX beim Schüler schreiben.</td>
+  <td>E8</td>
+</tr>
+<tr class="miss">
+  <td>F8</td>
+  <td>Admin Booking Audit Screen</td>
+  <td><span class="file">admin.html</span> / <span class="file">admin.js</span></td>
+  <td>Neue Tab-Ansicht in admin.html: vollständige TX-Tabelle aller User, filterbar nach Name/UID/Rolle/Datum/Typ. Zeigt: Datum, User, Typ, Betrag, Gegenpartei, SlotDatum, Tier, alle Meta-Felder.</td>
+  <td>Admin</td>
+</tr>
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 4. NEUE TX-TYPEN & SCHEMA ═══ -->
+<div class="sec">
+<div class="sh">4 — Neue TX-Typen und erweitertes Schema</div>
+
+<p style="color:var(--muted);font-size:12px;margin-bottom:14px">
+  Aktuell existierende Typen: <code>deposit</code> · <code>withdrawal</code> · <code>escrow_hold</code> · <code>escrow_release</code> · <code>refund</code> · <code>cancellation</code> · <code>transfer</code>
+</p>
+
+<div class="tw"><table>
+<thead><tr><th>Neuer Typ</th><th>Auslöser</th><th>uid (Wallet-Inhaber)</th><th>Pflicht-Meta-Felder</th></tr></thead>
+<tbody>
+<tr class="new">
+  <td><code>booking</code></td>
+  <td>jede Buchung — auch cash_on_site</td>
+  <td>Schüler + Lehrer (je 1 TX)</td>
+  <td>slotId, slotDate, slotTime, teacherId, studentId, fullAmount, depositAmount, depositType, depositPercent, paymentMode, requiresDeposit, bookedAt</td>
+</tr>
+<tr class="new">
+  <td><code>move</code></td>
+  <td>Block- oder Slot-Verschiebung bestätigt</td>
+  <td>Initiator (student/teacher)</td>
+  <td>slotIdOld, slotIdNew, oldDate, oldTime, newDate, newTime, teacherId, studentId, price, initiatorRole, movedAt</td>
+</tr>
+<tr class="new">
+  <td><code>teacher_cancel</code></td>
+  <td>Lehrer storniert eine Buchung</td>
+  <td>Lehrer</td>
+  <td>slotId, slotDate, slotTime, studentId, depositRefunded, cancelledAt</td>
+</tr>
+<tr class="new">
+  <td><code>lesson_confirmed</code></td>
+  <td>Schüler/Lehrer bestätigt Stunde</td>
+  <td>Schüler</td>
+  <td>slotId, slotDate, slotTime, teacherId, fullAmount, depositAmount, confirmedAt</td>
+</tr>
+</tbody></table></div>
+
+<p style="color:var(--muted);font-size:12px;margin-top:10px;margin-bottom:14px">Neue Felder im Slot-Schema (<span class="file">store.js</span> / <span class="file">app_slots</span>):</p>
+<div class="tw"><table>
+<thead><tr><th>Feld</th><th>Typ</th><th>Beschreibung</th><th>Gesetzt wann</th></tr></thead>
+<tbody>
+<tr class="new"><td><code>bookedAt</code></td><td>ISO-String</td><td>Zeitpunkt der Buchung</td><td><code>bookSlot()</code></td></tr>
+<tr class="new"><td><code>movedAt</code></td><td>ISO-String</td><td>Zeitpunkt der letzten Verschiebung</td><td>Move-Confirm</td></tr>
+<tr class="new"><td><code>movedFrom</code></td><td><code>{date, time}</code></td><td>Ursprüngliches Datum/Uhrzeit vor dem Move</td><td>Move-Confirm</td></tr>
+<tr class="new"><td><code>cancelledAt</code></td><td>ISO-String</td><td>Zeitpunkt der Stornierung</td><td><code>cancelSlotBooking()</code></td></tr>
+<tr class="new"><td><code>cancelledBy</code></td><td>'student'|'teacher'|'admin'</td><td>Wer hat storniert</td><td><code>cancelSlotBooking()</code></td></tr>
+<tr class="new"><td><code>confirmedAt</code></td><td>ISO-String (existiert bereits)</td><td>Bestätigungszeitpunkt</td><td><code>confirmSlot()</code> ✓</td></tr>
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 5. ADMIN-FILTER ═══ -->
+<div class="sec">
+<div class="sh">5 — Admin Audit Screen — Filter und Spalten</div>
+<div class="tw"><table>
+<thead><tr><th>Filter</th><th>Typ</th><th>Implementierung</th></tr></thead>
+<tbody>
+<tr class="new"><td>Benutzer-Name / UID</td><td>Freitext-Suche</td><td>Frontend-Filter über <code>meta.studentId</code> / <code>meta.teacherId</code> + <code>ProfileStore.getDisplayName()</code></td></tr>
+<tr class="new"><td>Rolle</td><td>Dropdown: Alle / Schüler / Lehrer</td><td>Filter auf <code>uid</code> der Benutzerrolle</td></tr>
+<tr class="new"><td>Ereignis-Typ</td><td>Dropdown: Buchung / Move / Stornierung / Zahlung / Alle</td><td>Filter auf <code>tx.type</code></td></tr>
+<tr class="new"><td>Zeitraum</td><td>DateFrom / DateTo</td><td>Filter auf <code>tx.createdAt</code></td></tr>
+<tr class="new"><td>Stundendatum</td><td>DateFrom / DateTo</td><td>Filter auf <code>tx.meta.slotDate</code></td></tr>
+<tr class="new"><td>Gegenpartei</td><td>Name-Suche</td><td>Filter auf <code>tx.relatedUid</code></td></tr>
+</tbody></table></div>
+
+<p style="color:var(--muted);font-size:12px;margin-top:10px;margin-bottom:14px">Spalten in der Admin-Tabelle:</p>
+<div class="tw"><table>
+<thead><tr><th>Spalte</th><th>Quelle</th></tr></thead>
+<tbody>
+<tr><td>Zeitpunkt</td><td><code>tx.createdAt</code></td></tr>
+<tr><td>Benutzer</td><td><code>ProfileStore.getDisplayName(tx.uid)</code></td></tr>
+<tr><td>Rolle</td><td>User-Lookup via uid</td></tr>
+<tr><td>Ereignis</td><td><code>tx.type</code> (menschenlesbar)</td></tr>
+<tr><td>Betrag</td><td><code>tx.amount</code> mit Vorzeichen</td></tr>
+<tr><td>Saldo nach TX</td><td><code>tx.balance</code></td></tr>
+<tr><td>Stundendatum</td><td><code>tx.meta.slotDate + slotTime</code></td></tr>
+<tr><td>Gegenpartei</td><td><code>ProfileStore.getDisplayName(tx.relatedUid)</code></td></tr>
+<tr><td>Preis/Stunde</td><td><code>tx.meta.fullAmount</code></td></tr>
+<tr><td>Deposit</td><td><code>tx.meta.depositAmount</code> + <code>depositType</code> + <code>depositPercent</code></td></tr>
+<tr><td>Zahlungsmodus</td><td><code>tx.meta.paymentMode</code></td></tr>
+<tr><td>Stornierungstier</td><td><code>tx.meta.cancellationTier</code></td></tr>
+<tr><td>Move von/nach</td><td><code>tx.meta.oldDate/oldTime → newDate/newTime</code></td></tr>
+<tr><td>Details</td><td>Aufklapp-Zeile mit allen Meta-Feldern</td></tr>
+</tbody></table></div>
+</div>
+
+
+<!-- ═══ 6. IMPLEMENTIERUNGSPLAN ═══ -->
+<div class="sec">
+<div class="sh">6 — Implementierungsplan (4 Phasen)</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 1 — Slot-Schema + Booking-Record (store.js + adapter-localstorage.js) · ~1h</div>
+  <ol class="phase-steps">
+    <li><code>store.js</code>: <code>bookSlot()</code> setzt <code>bookedAt: isoNow()</code> <span>Datenbasis für alle nachfolgenden TX</span></li>
+    <li><code>store.js</code>: <code>cancelBooking()</code> setzt <code>cancelledAt + cancelledBy</code> <span>Wer hat wann storniert</span></li>
+    <li><code>adapter-localstorage.js</code>: neue Funktion <code>writeBookingRecord()</code> — schreibt <code>booking</code>-TX beim Schüler + Lehrer <span>Auch bei cash_on_site ohne Escrow</span></li>
+    <li><code>bookSlotWithEscrow()</code> in AppService ruft <code>writeBookingRecord()</code> nach erfolgreichem Book auf <span>Zentraler Einstiegspunkt</span></li>
+  </ol>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 2 — Move-Record + Teacher-Cancel-TX + Lesson-Confirm-TX (adapter + AppService) · ~1.5h</div>
+  <ol class="phase-steps">
+    <li><code>adapter-localstorage.js</code>: neue Funktion <code>writeMoveRecord(oldSlot, newSlot, initiatorId, role, cb)</code> <span>Schreibt move-TX mit vorher/nachher</span></li>
+    <li><code>AppService</code>: <code>moveSlotWithRecord(oldSlotId, newSlotId, initiatorId, role, cb)</code> — kombiniert cancel + book + writeMove <span>Atomic Move-Operation</span></li>
+    <li><code>ui.js confirmBtn</code>: ersetzt direkte pending-Map-Manipulation durch <code>AppService.moveSlotWithRecord()</code> <span>Move wird jetzt lückenlos geloggt</span></li>
+    <li><code>cancelSlotWithPolicy()</code>: bei <code>teacher_cancel</code>-Tier zusätzliche TX beim Lehrer schreiben <span>Wer hat wann storniert — aus Lehrer-Sicht</span></li>
+    <li><code>confirmLesson()</code>: zusätzliche <code>lesson_confirmed</code>-TX beim Schüler <span>Stunde bestätigt in Schüler-History</span></li>
+  </ol>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 3 — Admin getAllTransactions + Filter-API (adapter + AppService) · ~1h</div>
+  <ol class="phase-steps">
+    <li><code>adapter-localstorage.js</code>: <code>getAllTransactions(opts, cb)</code> mit opts: <code>{ uid, role, types[], dateFrom, dateTo, teacherId, studentId, counterpartId }</code></li>
+    <li><code>app-service.js</code>: <code>getAllTransactions(opts, cb)</code> und <code>getBookingHistory(uid, opts, cb)</code> exportieren</li>
+    <li><code>adapter-firestore.js</code>: Stubs für beide neuen Funktionen</li>
+  </ol>
+</div>
+
+<div class="phase">
+  <div class="phase-title">Phase 4 — Admin Audit Screen (admin.html + admin.js) · ~3h</div>
+  <ol class="phase-steps">
+    <li>Neuer Tab "Audit Log" in <code>admin.html</code> (neben bestehenden Tabs) mit Tabelle + Filter-Bar</li>
+    <li><code>admin.js</code>: <code>renderAuditLog()</code> — lädt via <code>AppService.getAllTransactions()</code>, rendert gefilterte Tabelle</li>
+    <li>Filter-Bar: Freitext (Name/UID), Rolle, Typ, Zeitraum, Stundendatum, Gegenpartei</li>
+    <li>Aufklapp-Zeile pro TX mit allen Meta-Feldern</li>
+    <li>Export-Button: CSV-Download der gefilterten Ergebnisse</li>
+  </ol>
+</div>
+</div>
+
+
+<!-- ═══ 7. DATENSICHERHEIT ═══ -->
+<div class="sec">
+<div class="sh">7 — Hinweise zur Datensicherheit und Firestore-Migration</div>
+<div class="tw"><table>
+<thead><tr><th>Punkt</th><th>Beschreibung</th></tr></thead>
+<tbody>
+<tr>
+  <td>Unveränderlichkeit</td>
+  <td>TXs werden nur hinzugefügt (prepend), nie bearbeitet. <code>app_transactions</code> ist ein append-only Log. Bei Firestore: eigene Collection <code>/transactions</code> ohne Update-Rechte.</td>
+</tr>
+<tr>
+  <td>Balance-Validierung</td>
+  <td>Jede TX speichert <code>balance</code> = Saldo nach TX. Admin kann Konsistenz prüfen: Summe aller <code>amount</code> eines Users muss <code>balance</code> des letzten TX ergeben.</td>
+</tr>
+<tr>
+  <td>Relationale Integrität</td>
+  <td><code>relatedUid</code> in jeder TX zeigt auf die Gegenpartei. Beide Seiten (Student + Teacher) bekommen bei finanziellen Ereignissen eine eigene TX. Dies ermöglicht vollständige Sicht für beide.</td>
+</tr>
+<tr>
+  <td>Firestore-Kompatibilität</td>
+  <td>Alle neuen Funktionen folgen dem bestehenden Callback-Muster. Firestore-Stubs werden parallel angelegt. localStorage-Keys bleiben kompatibel.</td>
+</tr>
+</tbody></table></div>
+</div>
+
+</body>
+</html>

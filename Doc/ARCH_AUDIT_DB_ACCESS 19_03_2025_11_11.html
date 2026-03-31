@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Architektur-Audit — Datenbankzugriffe</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Figtree', sans-serif;
+      font-size: 15px;
+      background: #f8f9fb;
+      color: #0d1117;
+      line-height: 1.55;
+    }
+
+    /* ── Tokens ── */
+    :root {
+      --color-900: #060f1c;
+      --color-800: #0f2035;
+      --color-400: #4d7aa0;
+      --neutral-0: #fff;
+      --neutral-100: #f0f2f5;
+      --neutral-200: #e2e6eb;
+      --neutral-500: #6b7685;
+      --neutral-700: #2d3540;
+      --red-bg: #fff0f0; --red-border: #e5a5a5; --red-text: #8b1a1a; --red-badge: #c0392b;
+      --orange-bg: #fff8f0; --orange-border: #e5c0a5; --orange-text: #7b3500; --orange-badge: #d97706;
+      --green-bg: #f0fff4; --green-border: #a5d5b0; --green-text: #1a4d2a; --green-badge: #16a34a;
+      --blue-bg: #f0f6ff; --blue-border: #a5c0e5; --blue-text: #1a3a6b; --blue-badge: #2563eb;
+      --gray-bg: #f4f5f7; --gray-border: #d0d5de; --gray-text: #505a68;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 8px;
+      --shadow: 0 1px 3px rgba(6,15,28,0.08);
+    }
+
+    /* ── Header ── */
+    .page-header {
+      background: var(--color-900);
+      padding: 32px 40px 28px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+    .page-eyebrow {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 8px;
+    }
+    .page-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .page-subtitle {
+      font-size: 14px;
+      color: rgba(255,255,255,0.5);
+      max-width: 680px;
+    }
+
+    /* ── Layout ── */
+    .page { padding: 32px 40px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Summary cards ── */
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .summary-card {
+      background: var(--neutral-0);
+      border: 1px solid var(--neutral-200);
+      border-radius: var(--radius);
+      padding: 16px;
+      border-top: 3px solid;
+    }
+    .summary-card-violation { border-top-color: var(--red-badge); }
+    .summary-card-warning   { border-top-color: var(--orange-badge); }
+    .summary-card-ok        { border-top-color: var(--green-badge); }
+    .summary-card-info      { border-top-color: var(--blue-badge); }
+    .summary-card-total     { border-top-color: var(--neutral-700); }
+
+    .summary-val {
+      font-size: 32px;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .summary-card-violation .summary-val { color: var(--red-badge); }
+    .summary-card-warning   .summary-val { color: var(--orange-badge); }
+    .summary-card-ok        .summary-val { color: var(--green-badge); }
+    .summary-card-info      .summary-val { color: var(--blue-badge); }
+    .summary-card-total     .summary-val { color: var(--neutral-700); }
+
+    .summary-label { font-size: 12px; color: var(--neutral-500); }
+
+    /* ── Section ── */
+    .section { margin-bottom: 40px; }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--neutral-200);
+    }
+    .section-title { font-size: 18px; font-weight: 600; }
+    .section-sub { font-size: 13px; color: var(--neutral-500); }
+
+    /* ── Badges ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .03em;
+      white-space: nowrap;
+    }
+    .badge-violation { background: var(--red-bg); color: var(--red-text); border: 1px solid var(--red-border); }
+    .badge-warning   { background: var(--orange-bg); color: var(--orange-text); border: 1px solid var(--orange-border); }
+    .badge-ok        { background: var(--green-bg); color: var(--green-text); border: 1px solid var(--green-border); }
+    .badge-info      { background: var(--blue-bg); color: var(--blue-text); border: 1px solid var(--blue-border); }
+    .badge-gray      { background: var(--gray-bg); color: var(--gray-text); border: 1px solid var(--gray-border); }
+
+    /* ── Table ── */
+    .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--neutral-200); box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th {
+      background: var(--color-800);
+      color: rgba(255,255,255,0.85);
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    tbody tr { border-bottom: 1px solid var(--neutral-200); }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr.row-violation { background: #fff8f8; }
+    tbody tr.row-warning   { background: #fffdf5; }
+    tbody tr.row-ok        { background: #f8fff9; }
+    tbody tr.row-gray      { background: var(--neutral-0); }
+    tbody td { padding: 10px 14px; vertical-align: top; line-height: 1.45; }
+    tbody tr:hover td { filter: brightness(0.97); }
+
+    code {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      background: rgba(6,15,28,0.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: #1a3a6b;
+    }
+    .file-col { font-family: var(--font-mono); font-size: 12px; color: var(--neutral-700); white-space: nowrap; }
+    .line-col { font-family: var(--font-mono); font-size: 11px; color: var(--neutral-500); white-space: nowrap; }
+    .fn-col   { font-family: var(--font-mono); font-size: 12px; }
+    .access-col { font-family: var(--font-mono); font-size: 11px; color: #1a3249; word-break: break-word; }
+    .desc-col { font-size: 12.5px; color: var(--neutral-700); }
+    .verdict-col { min-width: 120px; }
+
+    /* ── Callout ── */
+    .callout {
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      border-left: 3px solid;
+      font-size: 13px;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .callout-warn    { background: var(--orange-bg); border-color: var(--orange-badge); color: var(--orange-text); }
+    .callout-ok      { background: var(--green-bg); border-color: var(--green-badge); color: var(--green-text); }
+    .callout-info    { background: var(--blue-bg); border-color: var(--blue-badge); color: var(--blue-text); }
+    .callout-danger  { background: var(--red-bg); border-color: var(--red-badge); color: var(--red-text); }
+    .callout strong  { font-weight: 600; }
+
+    /* ── Fix block ── */
+    .fix-block {
+      background: var(--color-900);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      margin-top: 6px;
+    }
+    .fix-block code {
+      background: transparent;
+      color: #a8d8a8;
+      font-size: 11.5px;
+      padding: 0;
+    }
+    .fix-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      margin-bottom: 4px;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--neutral-700);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .page-header { padding: 20px 16px; }
+      .page { padding: 16px; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .page-title { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="page-eyebrow">Architektur-Audit · Stand März 2026</div>
+  <div class="page-title">Datenbankzugriff- &amp; Wallet-Audit</div>
+  <div class="page-subtitle">
+    Alle direkten Zugriffe auf Store.*, ProfileStore.*, ChatStore.*, localStorage und Wallet-Daten
+    im Consumer-Code. Geprüft: js/ Verzeichnis + HTML-Seiten. Verletzungen gemäß GUIDELINE_NEW_ARCHITECTURE.
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- Summary -->
+  <div class="summary-grid" role="list">
+    <div class="summary-card summary-card-violation" role="listitem">
+      <div class="summary-val">8</div>
+      <div class="summary-label">⛔ Verletzungen (kritisch)</div>
+    </div>
+    <div class="summary-card summary-card-warning" role="listitem">
+      <div class="summary-val">3</div>
+      <div class="summary-label">⚠️ Warnungen (grenzwertig)</div>
+    </div>
+    <div class="summary-card summary-card-ok" role="listitem">
+      <div class="summary-val">OK</div>
+      <div class="summary-label">✅ Store-Layer intern (korrekt)</div>
+    </div>
+    <div class="summary-card summary-card-info" role="listitem">
+      <div class="summary-val">6</div>
+      <div class="summary-label">📁 Dateien betroffen</div>
+    </div>
+    <div class="summary-card summary-card-total" role="listitem">
+      <div class="summary-val">~90</div>
+      <div class="summary-label">AppService-Aufrufe korrekt</div>
+    </div>
+  </div>
+
+  <!-- Callouts -->
+  <div class="callout callout-info">
+    <strong>Methodik:</strong> Als Verletzung gilt jeder direkte Zugriff auf <code>Store.*</code>, <code>ProfileStore.*</code>, <code>ChatStore.*</code>,
+    <code>localStorage</code> oder rohe Wallet-Daten aus Consumer-Code (UI-Layer).
+    Store-Layer-interne Dateien (<code>store.js</code>, <code>chat.js:ChatStore</code>, <code>profile.js:ProfileStore</code>,
+    <code>adapter-localstorage.js</code>) dürfen localStorage nutzen — das ist ihr definierter Zweck.
+    Consumer-Dateien (<code>admin.js</code>, <code>teacher.js</code>, <code>student.js</code>, <code>user-detail.js</code>, <code>financial.js</code>,
+    <code>navbar.js</code>, <code>email.js</code>, <code>wallet-core.js</code>) dürfen das nicht.
+  </div>
+
+  <div class="callout callout-ok">
+    <strong>Positiv-Befund:</strong> Der weitaus größte Teil des Consumer-Codes (~90 AppService-Aufrufe in teacher.js, student.js, wallet.js, wallet-panel.js, financial.js, landing.js)
+    hält die Architektur korrekt ein. Die unten aufgeführten Verletzungen sind gezielte Ausnahmen,
+    nicht systemisches Versagen.
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><span class="badge badge-violation">⛔ Verletzung</span> Direkter DB-Zugriff im Consumer — muss behoben werden</div>
+    <div class="legend-item"><span class="badge badge-warning">⚠️ Warnung</span> Grenzfall — korrekte Layer, aber fragwürdiges Muster</div>
+    <div class="legend-item"><span class="badge badge-ok">✅ OK</span> Interner Store-Layer-Zugriff — architektonisch korrekt</div>
+    <div class="legend-item"><span class="badge badge-gray">ℹ️ Info</span> Nur String-Vergleich, kein Datenzugriff</div>
+  </div>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 1 — KRITISCHE VERLETZUNGEN
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-violations">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-violations">1. Kritische Verletzungen — direkter Datenbankzugriff im Consumer</h2>
+      <span class="section-sub">8 Fundstellen · müssen behoben werden</span>
+    </div>
+
+    <div class="callout callout-danger">
+      <strong>Regel (GUIDELINE_NEW_ARCHITECTURE §2):</strong>
+      Consumer-Code greift NIEMALS direkt auf <code>Store.*</code>, <code>localStorage</code> oder rohe DB-Keys zu.
+      Einziger erlaubter Zugriffspunkt: <code>AppService.*</code>.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:110px">Datei</th>
+            <th style="width:60px">Zeile</th>
+            <th style="width:180px">Objekt / Funktion</th>
+            <th style="width:240px">Zugriff (Code)</th>
+            <th>Beschreibung &amp; Fix</th>
+            <th style="width:130px">Urteil</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- V1 -->
+          <tr class="row-violation">
+            <td class="file-col">admin.js</td>
+            <td class="line-col">422</td>
+            <td class="fn-col"><code>renderFinSummary()</code></td>
+            <td class="access-col"><code>localStorage.getItem('app_wallets')</code></td>
+            <td class="desc-col">
+              Wallet-Daten für die Finanzübersicht werden direkt aus localStorage gelesen,
+              weil <code>AppService.getAllWallets()</code> nicht existiert.
+              Der Kommentar im Code selbst bestätigt: <em>"no AppService wrapper for all-wallets"</em>.
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                <code>AppService.getAllWallets(callback)</code> in app-service.js + adapter-localstorage.js ergänzen,
+                dann <code>renderFinSummary()</code> auf diesen Call umstellen.
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span><br><small style="color:#888;font-size:11px;">fehlende AppService-Methode</small></td>
+          </tr>
+
+          <!-- V2 -->
+          <tr class="row-violation">
+            <td class="file-col">admin.js</td>
+            <td class="line-col">507</td>
+            <td class="fn-col"><code>renderStats()</code></td>
+            <td class="access-col"><code>localStorage.getItem('app_escrow')</code></td>
+            <td class="desc-col">
+              Offene Escrows werden direkt aus localStorage gezählt statt über <code>AppService.getAllEscrows()</code>,
+              das an anderen Stellen in admin.js korrekt verwendet wird (Zeile 417).
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                <code>renderStats()</code> refactorn: <code>AppService.getAllEscrows(function(err, escrows) &#123; var open = escrows.filter(...).length; &#125;)</code>
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span><br><small style="color:#888;font-size:11px;">AppService vorhanden, nicht genutzt</small></td>
+          </tr>
+
+          <!-- V3 -->
+          <tr class="row-violation">
+            <td class="file-col">user-detail.js</td>
+            <td class="line-col">220</td>
+            <td class="fn-col"><code>_load()</code></td>
+            <td class="access-col"><code>Store.Users.byUid(_uid)</code></td>
+            <td class="desc-col">
+              User wird direkt aus Store geladen statt über <code>AppService.getUser()</code>.
+              user-detail.js ist ein UI-Layer-Consumer (Admin-Detailseite) und darf Store nicht direkt aufrufen.
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                <code>AppService.getUser(_uid, function(err, user) &#123; _user = user; ... &#125;)</code>
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span></td>
+          </tr>
+
+          <!-- V4 -->
+          <tr class="row-violation">
+            <td class="file-col">profile.js</td>
+            <td class="line-col">1801</td>
+            <td class="fn-col"><code>ProfileView._init()</code></td>
+            <td class="access-col"><code>Store.Users.byUid(viewerUid)</code><br><code>Store.Users.byUid(_uid)</code></td>
+            <td class="desc-col">
+              <code>ProfileView</code> ist Consumer-Code (UI-Layer für profile-view.html).
+              Zwei direkte Store-Aufrufe zum Laden von Viewer und Profil-User.
+              <code>ProfileStore</code>-Aufrufe in derselben Datei sind im Store-Layer erlaubt —
+              aber <code>Store.Users</code> direkt aus ProfileView nicht.
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                <code>AppService.getUser(_uid, callback)</code> — AppService.getUserSync ist bereits vorhanden.
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span><br><small style="color:#888;font-size:11px;">2 Stellen in einer Funktion</small></td>
+          </tr>
+
+          <!-- V5 -->
+          <tr class="row-violation">
+            <td class="file-col">profile.js</td>
+            <td class="line-col">2039</td>
+            <td class="fn-col"><code>ProfileView._renderCTA()</code></td>
+            <td class="access-col"><code>Store.Users.byUid(_uid)</code></td>
+            <td class="desc-col">
+              Dritter Store-Direktzugriff in ProfileView — zur Prüfung ob ein User die Rolle "teacher" hat,
+              um den Buchungs-CTA zu rendern.
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                Im <code>_init()</code>-Call bereits geladenen User in einer Variable halten und in <code>_renderCTA()</code> wiederverwenden — kein zweiter Store-Call nötig.
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span></td>
+          </tr>
+
+          <!-- V6 -->
+          <tr class="row-violation">
+            <td class="file-col">email.js</td>
+            <td class="line-col">242</td>
+            <td class="fn-col"><code>EmailService.send()</code></td>
+            <td class="access-col"><code>Store.Users.byUid(opts.toUid)</code></td>
+            <td class="desc-col">
+              <code>EmailService</code> ist ein eigenständiger Service — kein Store-Layer-Objekt.
+              Er löst die E-Mail-Adresse direkt über Store auf statt über AppService.
+              Besonders problematisch weil EmailService bei der Firestore-Migration Store nicht mehr direkt lesen kann.
+              <div class="fix-block">
+                <div class="fix-label">Fix</div>
+                Entweder <code>AppService.getUser(opts.toUid, callback)</code> nutzen,
+                oder den Caller zwingen, die E-Mail-Adresse als <code>opts.toEmail</code> mitzuliefern
+                (saubereres Design: EmailService kennt keine User-IDs).
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span><br><small style="color:#888;font-size:11px;">Migration-Blocker</small></td>
+          </tr>
+
+          <!-- V7 -->
+          <tr class="row-violation">
+            <td class="file-col">profile.js</td>
+            <td class="line-col">276, 330</td>
+            <td class="fn-col"><code>ProfileStore.getDefault()</code><br><code>ProfileStore.getDisplayName()</code></td>
+            <td class="access-col"><code>Store.Users.byUid(uid)</code></td>
+            <td class="desc-col">
+              <strong>Sonderfall / grenzwertig:</strong> ProfileStore ist selbst ein Store-Layer-Objekt
+              und darf grundsätzlich Store.* aufrufen. Allerdings ruft es Store.Users direkt auf
+              anstatt über ein definiertes Interface.
+              Bei Firestore-Migration müsste ProfileStore entweder FirestoreAdapter direkt kennen
+              oder seinen User-Lookup über AppService delegieren.
+              <div class="fix-block">
+                <div class="fix-label">Fix-Empfehlung</div>
+                Als Zwischen-Layer akzeptabel — aber langfristig sollte ein
+                <code>UserStore.getDisplayName(uid)</code>-Interface entstehen,
+                das ProfileStore intern nutzt, ohne direkt Store.Users aufzurufen.
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span><br><small style="color:#888;font-size:11px;">Store→Store OK, aber untrennbar</small></td>
+          </tr>
+
+          <!-- V8 -->
+          <tr class="row-violation">
+            <td class="file-col">navbar.js</td>
+            <td class="line-col">310, 365</td>
+            <td class="fn-col"><code>Navbar._showWelcome()</code><br><code>dismiss()</code></td>
+            <td class="access-col"><code>localStorage.getItem(_WELCOME_KEY)</code><br><code>localStorage.setItem(_WELCOME_KEY)</code></td>
+            <td class="desc-col">
+              Navbar liest und schreibt einen UI-State-Key direkt in localStorage.
+              Das ist kein Datenbankzugriff auf App-Daten (keine <code>app_*</code>-Keys),
+              sondern ein UI-Preference-Schlüssel.
+              <div class="fix-block">
+                <div class="fix-label">Bewertung</div>
+                Tolerierbarer Grenzfall: UI-State (kein App-Domänen-Objekt) darf in localStorage liegen.
+                Empfehlung: Explizit dokumentieren als "UI-only localStorage, kein App-Data".
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span><br><small style="color:#888;font-size:11px;">UI-State, kein App-Data</small></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 2 — WALLET-ZUGRIFFE
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-wallet">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-wallet">2. Wallet-Zugriffe — vollständige Übersicht</h2>
+      <span class="section-sub">Alle Stellen die Wallet-Daten lesen oder schreiben</span>
+    </div>
+
+    <div class="callout callout-info">
+      Wallet-Operationen sollen ausschließlich über <code>AppService.getWallet()</code>,
+      <code>AppService.deposit()</code>, <code>AppService.withdraw()</code>,
+      <code>AppService.getTransactions()</code> und verwandte Methoden laufen.
+      Ein <code>WalletService</code> als eigenständiger Layer existiert noch nicht — alle Wallet-Methoden
+      liegen in AppService.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px">Datei</th>
+            <th style="width:60px">Zeile(n)</th>
+            <th style="width:180px">Objekt / Funktion</th>
+            <th style="width:220px">Zugriff</th>
+            <th>Beschreibung</th>
+            <th style="width:130px">Urteil</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr class="row-violation">
+            <td class="file-col">admin.js</td>
+            <td class="line-col">422</td>
+            <td class="fn-col"><code>renderFinSummary()</code></td>
+            <td class="access-col"><code>localStorage.getItem('app_wallets')</code></td>
+            <td class="desc-col">Direkter Wallet-Lesezugriff. Kein AppService.getAllWallets() vorhanden. Identisch mit Verletzung V1.</td>
+            <td class="verdict-col"><span class="badge badge-violation">⛔ Verletzung</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">wallet-core.js</td>
+            <td class="line-col">390, 394, 403, 422, 465, 781, 812</td>
+            <td class="fn-col"><code>WalletCore._load()</code><br><code>WalletCore._deposit()</code><br><code>WalletCore._withdraw()</code></td>
+            <td class="access-col"><code>AppService.getWallet()</code><br><code>AppService.getTransactions()</code><br><code>AppService.deposit()</code><br><code>AppService.withdraw()</code></td>
+            <td class="desc-col">Alle Wallet-Operationen in wallet-core.js laufen korrekt über AppService. Kein direkter localStorage-Zugriff auf Wallet-Daten.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">wallet-panel.js</td>
+            <td class="line-col">522</td>
+            <td class="fn-col"><code>WalletPanel._loadHistory()</code></td>
+            <td class="access-col"><code>AppService.getTransactions(uid, cb)</code></td>
+            <td class="desc-col">Transaktionen werden korrekt über AppService geladen.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">wallet.js</td>
+            <td class="line-col">—</td>
+            <td class="fn-col">(gesamte Datei)</td>
+            <td class="access-col"><code>AppService.*</code> (via wallet-core)</td>
+            <td class="desc-col">wallet.js kommuniziert ausschließlich über AppService — laut Datei-Header explizit dokumentiert.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">student.js</td>
+            <td class="line-col">172, 1919, 2014</td>
+            <td class="fn-col"><code>_loadWallet()</code><br><code>_buildConfirmModal()</code><br><code>_openSlotDetail()</code></td>
+            <td class="access-col"><code>AppService.getWallet(uid, cb)</code><br><code>AppService.getWalletSync(uid)</code></td>
+            <td class="desc-col">Wallet-Zugriff korrekt über AppService. getWalletSync nur für UI-Anzeige ohne Schreibzugriff.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">navbar.js</td>
+            <td class="line-col">151</td>
+            <td class="fn-col"><code>Navbar._renderUserDropdown()</code></td>
+            <td class="access-col"><code>AppService.getWallet(user.uid, cb)</code></td>
+            <td class="desc-col">Wallet-Balance für Navbar-Badge korrekt über AppService abgefragt.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">user-detail.js</td>
+            <td class="line-col">230, 236</td>
+            <td class="fn-col"><code>_load()</code></td>
+            <td class="access-col"><code>AppService.getWallet(_uid, cb)</code><br><code>AppService.getTransactions(_uid, cb)</code></td>
+            <td class="desc-col">Wallet und Transaktionen korrekt über AppService geladen — auch wenn in derselben Funktion Store.Users direkt aufgerufen wird (Verletzung V3).</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+          <tr class="row-ok">
+            <td class="file-col">financial.js</td>
+            <td class="line-col">187</td>
+            <td class="fn-col"><code>(init closure)</code></td>
+            <td class="access-col"><code>AppService.getWallet(_uid, cb)</code></td>
+            <td class="desc-col">Wallet korrekt über AppService geladen.</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 3 — PROFILESTORE & CHATSTORE
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-stores">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-stores">3. ProfileStore &amp; ChatStore im Consumer-Code</h2>
+      <span class="section-sub">Direkte Aufrufe aus UI-Layer-Dateien</span>
+    </div>
+
+    <div class="callout callout-warn">
+      <strong>Systemproblem:</strong> <code>ProfileStore.getDisplayName(uid)</code> und <code>ChatStore.*</code>
+      werden flächendeckend in Consumer-Dateien direkt aufgerufen.
+      Das verstößt formal gegen die Adapter-Regel, ist aber ein gut dokumentiertes Muster im Projekt —
+      <code>ProfileStore</code> und <code>ChatStore</code> werden als leichtgewichtige Utility-Layer behandelt,
+      nicht als echte Datenbank-Stores. Bei Firestore-Migration müssen diese jedoch zwingend
+      über AppService oder einen eigenen ProfileService / ChatService abstrahiert werden.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px">Datei</th>
+            <th style="width:180px">Objekt / Funktion</th>
+            <th style="width:200px">Zugriff</th>
+            <th>Häufigkeit &amp; Bewertung</th>
+            <th style="width:130px">Urteil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-warning">
+            <td class="file-col">admin.js</td>
+            <td class="fn-col">renderUserTable, renderTxTable, renderSlotTable, renderEscrowTable</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName(uid)</code></td>
+            <td class="desc-col">~15 Aufrufe. Nur Anzeige von Namen — kein Schreibzugriff. Tolerierbar solange ProfileStore ein synchroner Utility-Layer bleibt. Migration-Risiko: mittel.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">student.js</td>
+            <td class="fn-col">buildTeacherCard, renderBookings, renderMyTeachers u.a.</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName()</code><br><code>ProfileStore.get()</code><br><code>ProfileStore.getPrice()</code><br><code>ChatStore.send()</code><br><code>ChatStore.getRequestStatus()</code><br><code>ChatStore.sendServiceMessage()</code></td>
+            <td class="desc-col">~20 ProfileStore + 4 ChatStore-Aufrufe. ProfileStore nur lesend (OK). ChatStore.send() und ChatStore.sendServiceMessage() sind schreibend — hier liegt das eigentliche Migration-Risiko: ChatStore müsste bei Firestore async sein und über AppService laufen.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span><br><small style="color:#888;font-size:11px;">ChatStore.send schreibend</small></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">teacher.js</td>
+            <td class="fn-col">buildStudentCard, renderCalendar, renderMoveDialog u.a.</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName()</code><br><code>ChatStore.send()</code><br><code>ChatStore.sendBookingRequest()</code></td>
+            <td class="desc-col">~18 ProfileStore + 3 ChatStore-Aufrufe. Gleiche Bewertung wie student.js. ChatStore.sendBookingRequest() ist schreibend.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">navbar.js</td>
+            <td class="fn-col">_renderUserDropdown, _updateName</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName(uid)</code><br><code>ProfileStore.get(uid)</code></td>
+            <td class="desc-col">2 lesende Aufrufe für Anzeige-Name. Akzeptabel als Utility-Nutzung.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">financial.js</td>
+            <td class="fn-col">_render, _buildSlotRows, _buildTxRows</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName(uid)</code></td>
+            <td class="desc-col">4 lesende Aufrufe. Nur Anzeige. Kein Schreibzugriff.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">wallet-core.js</td>
+            <td class="fn-col">_buildTxItem, _renderRecipient, _openSendMoneyFlow</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName(uid)</code><br><code>ChatStore.sendTxInquiry()</code></td>
+            <td class="desc-col">3 ProfileStore-Aufrufe lesend. 1 ChatStore-Aufruf schreibend. wallet-core.js ist ein Shared-Utility-Layer — grenzwertig, ob es als Consumer gilt.</td>
+            <td class="verdict-col"><span class="badge badge-warning">⚠️ Warnung</span></td>
+          </tr>
+          <tr class="row-warning">
+            <td class="file-col">chat.js (ChatPanel)</td>
+            <td class="fn-col">_renderContact, _renderMessage u.v.m.</td>
+            <td class="access-col"><code>ProfileStore.getDisplayName()</code><br><code>ProfileStore.getPhoto()</code><br><code>ChatStore.*</code> (intern)</td>
+            <td class="desc-col">ChatPanel ist Consumer-Code (UI). Ruft ChatStore (Store-Layer in derselben Datei) direkt auf — architektonisch inkonsequent, weil beide in chat.js bündeln. ChatStore-Aufrufe innerhalb chat.js selbst sind de facto interne Calls.</td>
+            <td class="verdict-col"><span class="badge badge-gray">ℹ️ Intern</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 4 — CROSS-TAB-SYNC
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-sync">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-sync">4. Cross-Tab-Sync — e.key Vergleiche</h2>
+      <span class="section-sub">Kein Datenzugriff, aber direkte DB-Key-Kenntnis im Consumer</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:120px">Datei</th>
+            <th style="width:60px">Zeile</th>
+            <th style="width:200px">Zugriff</th>
+            <th>Beschreibung</th>
+            <th style="width:130px">Urteil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-gray">
+            <td class="file-col">teacher.js</td>
+            <td class="line-col">2103</td>
+            <td class="access-col"><code>e.key === 'app_slots'</code><br><code>e.key === 'app_selections'</code><br><code>e.key === 'app_users'</code></td>
+            <td class="desc-col">
+              In <code>AppService.onChange(callback)</code> werden raw localStorage-Keys als String-Literale verglichen.
+              Das ist kein Datenzugriff, aber Consumer-Code kennt die internen DB-Key-Namen.
+              Bei einer Umbenennung der Keys müsste teacher.js angefasst werden.
+              <div class="fix-block">
+                <div class="fix-label">Fix-Empfehlung</div>
+                AppService.onChange sollte ein typisiertes Event-Objekt liefern: <code>&#123; collection: 'slots' &#125;</code>
+                statt <code>&#123; key: 'app_slots' &#125;</code> — dann kennt Consumer nur "slots", nicht "app_slots".
+              </div>
+            </td>
+            <td class="verdict-col"><span class="badge badge-gray">ℹ️ Info</span><br><small style="color:#888;font-size:11px;">kein Datenzugriff, aber Key-Leak</small></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 5 — STORE-LAYER INTERN (KORREKT)
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-correct">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-correct">5. Store-Layer-intern — architektonisch korrekt</h2>
+      <span class="section-sub">Diese Dateien dürfen localStorage und Store.* direkt nutzen</span>
+    </div>
+
+    <div class="callout callout-ok">
+      Diese Dateien sind definierte Store-Layer-Objekte. Direkter localStorage-Zugriff ist hier
+      <strong>architektonisch korrekt</strong> und keine Verletzung.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:180px">Datei / Objekt</th>
+            <th>Rolle</th>
+            <th>localStorage-Zugriff auf</th>
+            <th style="width:130px">Urteil</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-ok">
+            <td class="fn-col">store.js · <code>Store.*</code></td>
+            <td class="desc-col">Primärer Store-Layer. Einziger offizieller Zugriffspunkt für adapter-localstorage.js.</td>
+            <td class="access-col"><code>app_users, app_slots, app_recurring, app_selections</code></td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+          <tr class="row-ok">
+            <td class="fn-col">profile.js · <code>ProfileStore</code></td>
+            <td class="desc-col">Profil-Store-Layer. Liest/schreibt Profil-Daten.</td>
+            <td class="access-col"><code>app_profiles</code></td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+          <tr class="row-ok">
+            <td class="fn-col">chat.js · <code>ChatStore</code></td>
+            <td class="desc-col">Chat-Store-Layer. Liest/schreibt Nachrichten.</td>
+            <td class="access-col"><code>app_chat_messages</code></td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+          <tr class="row-ok">
+            <td class="fn-col">adapter-localstorage.js · <code>LocalStorageAdapter</code></td>
+            <td class="desc-col">Einzige Datei die Store.* direkt aufrufen darf (laut Architektur-Guideline).</td>
+            <td class="access-col">via Store.* indirekt</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Korrekt</span></td>
+          </tr>
+          <tr class="row-ok">
+            <td class="fn-col">email.js · <code>EmailService._log()</code></td>
+            <td class="desc-col">Email-Log (UI-internes Debugging, kein App-Domänen-Objekt).</td>
+            <td class="access-col"><code>email_log</code> (eigener Key, kein app_*)</td>
+            <td class="verdict-col"><span class="badge badge-ok">✅ Akzeptabel</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       SECTION 6 — PRIORITISIERTER MASSNAHMENPLAN
+       ══════════════════════════════════════════ -->
+  <section class="section" aria-labelledby="sec-plan">
+    <div class="section-header">
+      <h2 class="section-title" id="sec-plan">6. Priorisierter Maßnahmenplan</h2>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:50px">Prio</th>
+            <th style="width:130px">Datei / Zeile</th>
+            <th>Maßnahme</th>
+            <th style="width:120px">Aufwand</th>
+            <th style="width:110px">Migration-Risiko ohne Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="row-violation">
+            <td><span class="badge badge-violation">P1</span></td>
+            <td class="file-col">admin.js:507</td>
+            <td class="desc-col"><code>renderStats()</code>: <code>localStorage.getItem('app_escrow')</code> → <code>AppService.getAllEscrows(cb)</code> ersetzen. AppService.getAllEscrows bereits vorhanden (Zeile 417).</td>
+            <td class="desc-col">Klein — 1 Funktion, 5 Zeilen</td>
+            <td><span class="badge badge-violation">Hoch</span></td>
+          </tr>
+          <tr class="row-violation">
+            <td><span class="badge badge-violation">P1</span></td>
+            <td class="file-col">user-detail.js:220</td>
+            <td class="desc-col"><code>_load()</code>: <code>Store.Users.byUid()</code> → <code>AppService.getUser(_uid, cb)</code> — _load() async machen.</td>
+            <td class="desc-col">Klein — callback-Umbau</td>
+            <td><span class="badge badge-violation">Hoch</span></td>
+          </tr>
+          <tr class="row-violation">
+            <td><span class="badge badge-violation">P1</span></td>
+            <td class="file-col">email.js:242</td>
+            <td class="desc-col"><code>send()</code>: Entweder <code>AppService.getUser(toUid, cb)</code> verwenden oder API so umbauen, dass Caller <code>toEmail</code> mitliefert.</td>
+            <td class="desc-col">Klein — Interface-Entscheidung nötig</td>
+            <td><span class="badge badge-violation">Sehr hoch</span></td>
+          </tr>
+          <tr class="row-violation">
+            <td><span class="badge badge-warning">P2</span></td>
+            <td class="file-col">admin.js:422</td>
+            <td class="desc-col"><code>renderFinSummary()</code>: <code>AppService.getAllWallets(cb)</code> in app-service.js + adapter-localstorage.js ergänzen, dann localStorage-Direktzugriff ersetzen.</td>
+            <td class="desc-col">Mittel — neue AppService-Methode nötig</td>
+            <td><span class="badge badge-violation">Hoch</span></td>
+          </tr>
+          <tr class="row-violation">
+            <td><span class="badge badge-warning">P2</span></td>
+            <td class="file-col">profile.js:1801, 1809, 2039</td>
+            <td class="desc-col">In <code>ProfileView._init()</code> und <code>_renderCTA()</code>: <code>Store.Users.byUid()</code> → <code>AppService.getUserSync()</code> (bereits vorhanden). User-Objekt in Variable halten und in _renderCTA() weitergeben.</td>
+            <td class="desc-col">Klein — 3 Zeilen tauschen</td>
+            <td><span class="badge badge-warning">Mittel</span></td>
+          </tr>
+          <tr class="row-gray">
+            <td><span class="badge badge-gray">P3</span></td>
+            <td class="file-col">teacher.js:2103</td>
+            <td class="desc-col"><code>AppService.onChange</code> sollte typisierte Collection-Namen liefern (<code>&#123; collection: 'slots' &#125;</code>) statt raw localStorage-Keys — Consumer muss interne Key-Namen nicht kennen.</td>
+            <td class="desc-col">Mittel — AppService + Store + alle Caller</td>
+            <td><span class="badge badge-gray">Niedrig</span></td>
+          </tr>
+          <tr class="row-gray">
+            <td><span class="badge badge-gray">P3</span></td>
+            <td class="file-col">Alle Consumer</td>
+            <td class="desc-col">Langfristig: <code>AppService.getDisplayName(uid, cb)</code> als Wrapper für ProfileStore.getDisplayName ergänzen, sodass Consumer ProfileStore gar nicht mehr kennen müssen.</td>
+            <td class="desc-col">Groß — alle Consumer-Dateien</td>
+            <td><span class="badge badge-warning">Mittel (vor Firestore)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer style="margin-top:48px;padding-top:16px;border-top:1px solid var(--neutral-200);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <span style="font-size:12px;color:var(--neutral-500);font-family:var(--font-mono);">Architektur-Audit · BookingSystem · Stand März 2026 · Geprüft: js/ (27 Dateien)</span>
+    <span style="font-size:12px;color:var(--neutral-500);font-family:var(--font-mono);">Grundlage: GUIDELINE_NEW_ARCHITECTURE.html §2, §3, §5</span>
+  </footer>
+
+</main>
+
+</body>
+</html>

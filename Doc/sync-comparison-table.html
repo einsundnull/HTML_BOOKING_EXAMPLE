@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sync Comparison Table</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;--neutral-500:#6b7685;--neutral-900:#0d1117;--ok:#f0fdf4;--ok-tx:#14532d;--bad:#fee2e2;--bad-tx:#991b1b;--warn:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;background:var(--neutral-50);padding:24px 16px;}
+h1{font-size:16px;font-weight:600;margin-bottom:4px;}
+p{font-size:12px;color:var(--neutral-500);margin-bottom:16px;line-height:1.5;}
+.tbl{width:100%;border-collapse:collapse;background:var(--neutral-0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:24px;}
+th{background:var(--neutral-100);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);border-bottom:2px solid var(--neutral-200);}
+td{padding:8px 12px;border-bottom:1px solid var(--neutral-100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+.cat{background:var(--neutral-100);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);padding:6px 12px;border-bottom:1px solid var(--neutral-200);}
+.ok {display:inline-block;background:var(--ok); color:var(--ok-tx); padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+.bad{display:inline-block;background:var(--bad);color:var(--bad-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+.warn{display:inline-block;background:var(--warn);color:var(--warn-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;white-space:nowrap;}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--neutral-100);padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+<h1>Sync-Vergleich — Welche Views werden nach einem Write aktualisiert?</h1>
+<p>Das Problem: Änderungen aus dem Day View (neu) werden nicht in Day Panel, All Bookings und My Students reflektiert — und umgekehrt.</p>
+
+<table class="tbl">
+<thead>
+<tr>
+  <th style="width:20%">View / Aktion</th>
+  <th style="width:12%">_tdvRenderSlots</th>
+  <th style="width:12%">renderDayPanel</th>
+  <th style="width:12%">renderCalendar</th>
+  <th style="width:12%">renderAllBookings</th>
+  <th style="width:12%">renderStudentList</th>
+  <th style="width:20%">Problem</th>
+</tr>
+</thead>
+<tbody>
+
+<tr><td colspan="7" class="cat">Day Panel (bestehend) — Verfügbarkeit Tab</td></tr>
+<tr>
+  <td>Timeout setzen</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View bleibt veraltet</td>
+</tr>
+<tr>
+  <td>Deaktivieren</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View bleibt veraltet</td>
+</tr>
+<tr>
+  <td>Aktivieren</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View bleibt veraltet</td>
+</tr>
+<tr>
+  <td>Buchung stornieren</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td>Day View + All Bookings veraltet</td>
+</tr>
+
+<tr><td colspan="7" class="cat">Day View (neu) — _tdv* Funktionen</td></tr>
+<tr>
+  <td>Timeout setzen</td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day Panel, All Bookings, Students veraltet</td>
+</tr>
+<tr>
+  <td>Aufheben (removeTimeout)</td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day Panel, All Bookings, Students veraltet</td>
+</tr>
+<tr>
+  <td>Hinzufügen (createSlot)</td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day Panel veraltet</td>
+</tr>
+<tr>
+  <td>Deaktivieren</td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day Panel, All Bookings, Students veraltet</td>
+</tr>
+<tr>
+  <td>Aktivieren</td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day Panel veraltet</td>
+</tr>
+
+<tr><td colspan="7" class="cat">Week Grid (slot-grid-overlay) — saveSlotGrid()</td></tr>
+<tr>
+  <td>Slots speichern</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View + All Bookings veraltet</td>
+</tr>
+
+<tr><td colspan="7" class="cat">All Bookings — confirm / cancel / move</td></tr>
+<tr>
+  <td>Buchung bestätigen</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View + Calendar veraltet</td>
+</tr>
+<tr>
+  <td>Buchung stornieren</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">✗</span></td>
+  <td>Day View + Calendar veraltet</td>
+</tr>
+
+<tr><td colspan="7" class="cat">Cross-Tab Sync (AppService.onChange)</td></tr>
+<tr>
+  <td>storage event</td>
+  <td><span class="bad">✗</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="ok">✓</span></td>
+  <td><span class="bad">Feuert nur in anderen Tabs — NICHT im selben Tab der schreibt.</span> window.storage event ist browser-intern cross-tab only.</td>
+</tr>
+
+<tr><td colspan="7" class="cat">Root Cause</td></tr>
+<tr>
+  <td colspan="2"><strong>Store.onChange</strong></td>
+  <td colspan="5"><span class="bad">BUG</span> Basiert auf <code>window.addEventListener('storage', ...)</code>. Der storage-Event feuert im Browser <strong>nur in anderen Tabs</strong>, nie im selben Tab. Schreibt man in Tab A, sieht Tab A keinen Event — nur Tab B würde ihn empfangen. Alle Views im selben Tab müssen daher manuell nach jedem Write aktualisiert werden.</td>
+</tr>
+
+<tr><td colspan="7" class="cat">Fix — Eine Zeile in jedem _tdv Callback</td></tr>
+<tr>
+  <td colspan="2"><strong>Day View callbacks</strong></td>
+  <td colspan="5">
+    Aktuell: <code>_tdvRenderSlots(); renderCalendar();</code><br>
+    Soll: <code>_tdvRenderSlots(); renderCalendar(); renderDayPanel(); if (activeTeacherView === 'all-bookings') renderAllBookings(); renderStudentList();</code><br><br>
+    Exakt dasselbe Muster wie <code>AppService.onChange</code> — nur manuell aufgerufen.
+  </td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

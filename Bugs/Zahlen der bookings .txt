@@ -1,0 +1,50 @@
+Ich lese den Code systematisch für beide Tabs:
+
+Jetzt habe ich alles. Hier ist die vollständige vergleichende Analyse:
+
+---
+
+## Vergleichstabelle: Schedule-Tab (Buchungen) vs. All Bookings Tab
+
+| Aspekt | Schedule / Day Panel | All Bookings |
+|---|---|---|
+| **State-Variable Zeit** | `dayBookingsTimeFilter` | `allBookingsTimeFilter` |
+| **State-Variable Student** | `dayBookingsFilter` | `allBookingsFilter` |
+| **State-Variable Bestätigt** | `dayBookingsConfirmFilter` | `allBookingsConfirmFilter` |
+| **Render-Funktion** | `renderBookingsPanel()` | `renderAllBookingsList()` |
+| **Merge-Funktion** | `mergeAllBookingBlocks()` | `mergeAllBookingBlocks()` ✅ gleich |
+| **Block-Renderer** | `buildAllBookingBlock()` | `buildAllBookingBlock()` ✅ gleich |
+| **Zählung Badges** | `_calcBlockCounts()` | `_calcBlockCounts()` ✅ gleich |
+| **Badge-Update** | inline in `renderBookingsPanel` | `_updateAllBookingsBadges()` |
+| **Zeitfilter-Logik** | `date < today` / `date >= today` — **2× dupliziert** (Zeile 908–911 für Badges, 942–945 für Anzeige) | `date < today` / `date >= today` — **2× dupliziert** (Zeile 1727–1730 für Badges, 1773–1776 für Anzeige) |
+| **Student-Filter-Logik** | inline in `renderBookingsPanel` | inline in `renderAllBookingsList` — **dupliziert** |
+| **Bestätigt-Filter-Logik** | inline in `renderBookingsPanel` | inline in `renderAllBookingsList` — **dupliziert** |
+| **Scope der querySelectorAll** | dynamisch erstellt → kein DOM-Selector-Problem | `#view-all-bookings .booking-confirm-btn` (gefixt) |
+
+---
+
+## Separate Logiken für My Students
+
+| Aspekt | My Students (Student-Liste) |
+|---|---|
+| **State-Variable** | `studentListFilter.time`, `studentListFilter.confirmed` |
+| **Merge-Funktion** | `mergeStudentBlocks()` — **eigene, ältere Implementierung** |
+| **Unterschied zu `mergeAllBookingBlocks`** | kein Overlap-Handling, keine Schüler-Sortierung, kein `today`-Parameter |
+| **Block-Renderer** | `populateStudentBookings()` + eigenes HTML |
+
+---
+
+## Die zwei konkreten Redundanzen
+
+**Redundanz 1 — Doppelte Merge-Funktion:**
+`mergeStudentBlocks()` (Zeile 314) und `mergeAllBookingBlocks()` (Zeile 1839) machen dasselbe, aber `mergeAllBookingBlocks` ist besser (Overlap-Handling, Schüler-Sortierung). My Students nutzt noch die alte.
+
+**Redundanz 2 — Zeitfilter 4× dupliziert:**
+```
+date < today / date >= today
+```
+steht in: `renderBookingsPanel` (×2), `renderAllBookingsList` (×2), `_updateAllBookingsBadges` (×1), `_calcBlockCounts` nutzt es indirekt. Das sollte eine gemeinsame Hilfsfunktion `_applyTimeFilter(slots, timeFilter, today)` sein.
+
+---
+
+Soll ich beides bereinigen — `mergeStudentBlocks` durch `mergeAllBookingBlocks` ersetzen und `_applyTimeFilter` extrahieren?

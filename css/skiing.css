@@ -1,0 +1,77 @@
+/* ══════════════════════════════════════════════════════════
+   skiing.css — Skiing Placeholder Page
+   Depends on: tokens.css, base.css, components.css, navbar.css
+══════════════════════════════════════════════════════════ */
+
+.skiing-main {
+  min-height: calc(100vh - 52px);
+  background: var(--neutral-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-8) var(--container-pad);
+}
+
+.skiing-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  max-width: 440px;
+  gap: var(--sp-5);
+}
+
+.skiing-placeholder-visual {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+  animation: skiing-pulse 4s ease-in-out infinite;
+}
+
+.skiing-placeholder-visual svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes skiing-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.75; transform: scale(0.97); }
+}
+
+.skiing-placeholder-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.skiing-placeholder-eyebrow {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-500);
+}
+
+.skiing-placeholder-title {
+  font-size: var(--text-heading);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-900);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.skiing-placeholder-actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.skiing-placeholder-desc {
+  font-size: var(--text-body);
+  color: var(--neutral-500);
+  line-height: 1.6;
+  margin: 0;
+  max-width: 360px;
+}

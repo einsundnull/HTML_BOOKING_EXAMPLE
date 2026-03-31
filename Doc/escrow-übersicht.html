@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escrow & Wallet — Analyse-Übersicht</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2330;
+    --border: #30363d;
+    --border-bright: #444c56;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #484f58;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --purple: #bc8cff;
+    --teal: #39d353;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 40px 24px 80px;
+  }
+
+  .page-header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+    margin-bottom: 40px;
+  }
+
+  .page-header h1 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .page-header p {
+    color: var(--text-muted);
+    margin-top: 6px;
+    font-size: 13px;
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 600;
+    vertical-align: middle;
+  }
+  .badge-green  { background: rgba(63,185,80,.15); color: var(--green); border: 1px solid rgba(63,185,80,.3); }
+  .badge-red    { background: rgba(248,81,73,.15); color: var(--red); border: 1px solid rgba(248,81,73,.3); }
+  .badge-amber  { background: rgba(210,153,34,.15); color: var(--amber); border: 1px solid rgba(210,153,34,.3); }
+  .badge-blue   { background: rgba(88,166,255,.12); color: var(--accent); border: 1px solid rgba(88,166,255,.25); }
+  .badge-purple { background: rgba(188,140,255,.12); color: var(--purple); border: 1px solid rgba(188,140,255,.25); }
+
+  .section {
+    margin-bottom: 48px;
+  }
+
+  .section-title {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .section-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  th {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    text-align: left;
+    padding: 8px 12px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    border-top: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th:first-child { border-left: 1px solid var(--border); border-radius: 6px 0 0 0; }
+  th:last-child  { border-right: 1px solid var(--border); border-radius: 0 6px 0 0; }
+
+  td {
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: rgba(255,255,255,.025); }
+
+  .tbl-wrap {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  code {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    background: rgba(255,255,255,.06);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--purple);
+  }
+
+  .fn { color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+  .fn-muted { color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+
+  .icon-ok   { color: var(--green); }
+  .icon-warn { color: var(--amber); }
+  .icon-err  { color: var(--red); }
+
+  .flow-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.9;
+  }
+  .flow-box .hl { color: var(--text); }
+  .flow-box .arrow { color: var(--border-bright); }
+
+  .warn-box {
+    background: rgba(210,153,34,.08);
+    border: 1px solid rgba(210,153,34,.3);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: var(--amber);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .info-card h4 {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 8px;
+  }
+  .info-card ul {
+    list-style: none;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+  .info-card ul li::before { content: '→ '; color: var(--border-bright); }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  @media (max-width: 800px) {
+    .two-col { grid-template-columns: 1fr; }
+    .info-grid { grid-template-columns: 1fr; }
+    body { padding: 20px 16px 60px; }
+    table { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>BookingSystem — Escrow &amp; Wallet Analyse-Übersicht</h1>
+  <p>Stand: 17. März 2026 · Quellen: Guideline_Architecture.txt, alle Escrow-Docs (Fix 1–6), Bugs-Ordner, app-service.js, adapter-localstorage.js, wallet.js, wallet-panel.js</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     1. DOKUMENTEN-CHRONOLOGIE
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">1 — Dokumenten-Chronologie (TXT-Timestamps)</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Datum &amp; Zeit (Dateiname)</th>
+          <th>Datei</th>
+          <th>Inhalt / Zweck</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>12.03.2026 22:55</td>
+          <td><code>Wallet implementation plan Notes_260312_213529.txt</code></td>
+          <td>Wallet-Implementierungsplan (Phase 1)</td>
+          <td><span class="badge badge-green">✓ Abgeschlossen</span></td>
+        </tr>
+        <tr>
+          <td>12.03.2026 22:55</td>
+          <td><code>Escrow implementation 1_260312_225552.txt</code></td>
+          <td>Finaler Escrow-Implementierungsplan: Schema <code>app_escrow</code>, Status-Flow, AppService-Methoden, Badges, Dateiliste, Reihenfolge</td>
+          <td><span class="badge badge-green">✓ Basis implementiert</span></td>
+        </tr>
+        <tr>
+          <td>15.03.2026 20:26</td>
+          <td><code>Teach studen lt logik booking comparison_260315_202526.txt</code></td>
+          <td>Vergleich Teacher-/Student-Buchungslogik</td>
+          <td><span class="badge badge-blue">Doku</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 08:53</td>
+          <td><code>Vollständiger Vergleich Schedule-Bookings vs All_260316_085357.txt</code></td>
+          <td><strong>Bug:</strong> <code>renderBookingsPanel</code> ist parallele Reimplementierung von <code>renderAllBookingsList</code></td>
+          <td><span class="badge badge-amber">⚠ Redundanz</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 12:06</td>
+          <td><code>Implement prices_260316_120641.txt</code></td>
+          <td>Preis-Implementierung Phase 1</td>
+          <td><span class="badge badge-green">✓</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 14:06</td>
+          <td><code>Student add booking bug_260316_140613.txt</code></td>
+          <td><strong>Bug:</strong> „+ Add"-Button geht über separaten Code-Pfad statt <code>populateBookingDetail</code></td>
+          <td><span class="badge badge-amber">⚠ Fix vorgeschlagen</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 15:44</td>
+          <td><code>Implement Escrow 1_260316_154409.txt</code></td>
+          <td>Escrow in UI verankern (Badges, Day-Panel)</td>
+          <td><span class="badge badge-green">✓</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 18:11</td>
+          <td><code>Cancellation — Best Practice Proposal_260316_181156.txt</code></td>
+          <td>Stornierungsrichtlinie: Tier-System (>48h / 24–48h / &lt;24h / No-Show)</td>
+          <td><span class="badge badge-amber">⚠ UI noch zu bauen</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 20:27</td>
+          <td><code>Accept Student Bug_260316_202746.txt</code></td>
+          <td><strong>Bug:</strong> Schüler sieht Lehrer erst nach Annahme in seiner Teacher-Liste</td>
+          <td><span class="badge badge-amber">⚠</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 21:19</td>
+          <td><code>Escrow refund fix_260316_211905.txt</code></td>
+          <td>Analyse: <code>requestDepositRefund</code> scheitert still, Escrow nicht vorhanden für alte Buchungen, Navbar-Wallet nicht aktualisiert</td>
+          <td><span class="badge badge-red">✗ Root-Cause-Analyse</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 22:35</td>
+          <td><code>Escrow refund fix 2_260316_223520.txt</code></td>
+          <td>Block-Level-Cancel bypasste AppService komplett → <code>Store.Slots.cancelBooking</code> direkt. Fix: <code>_showCancelPolicyDialog</code> auch im Edit-Dialog nutzen</td>
+          <td><span class="badge badge-green">✓ Fix implementiert</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 23:04</td>
+          <td><code>Escrow regund fix 3 Notes_260316_230419.txt</code></td>
+          <td>Schritt-für-Schritt-Vergleich Soll/Ist: Schritte 7–10 fehlten (requestDepositRefund/releaseDeposit bei cash_on_site)</td>
+          <td><span class="badge badge-amber">⚠ Detailanalyse</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 23:08</td>
+          <td><code>Escrow refund fix 4_260316_230825.txt</code></td>
+          <td>TX-Schema-Lücken: fehlen <code>slotDate, slotTime, bookedAt, cancelledAt, teacherId, studentId, cancellationTier, escrowId, fullAmount</code>; <code>description</code> zu technisch</td>
+          <td><span class="badge badge-amber">⚠ Implementierungsplan</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 23:52</td>
+          <td><code>Escrow refund fix 5_260316_235249.txt</code></td>
+          <td>Identisch mit Fix 5 (23:56) — Doppeldokument (möglicherweise unsaved version)</td>
+          <td><span class="badge badge-amber">⚠ Duplikat</span></td>
+        </tr>
+        <tr>
+          <td>16.03.2026 23:56</td>
+          <td><code>Escrow refund fix 5_260316_235651.txt</code></td>
+          <td>Fixes A–D: createEscrow speichert slotDate/slotTime, _buildTxMeta + depositType/%, bookSlotWithEscrow-Rollback, writeCancellationRecord</td>
+          <td><span class="badge badge-green">✓ Alle 4 Fixes implementiert</span></td>
+        </tr>
+        <tr>
+          <td>17.03.2026 00:06</td>
+          <td><code>Escrow refund fix 6_260317_000644.txt</code></td>
+          <td>Admin-UI: Click-Handler fehlte, Slot-Datum statt ID, NEU-Badge, korrigierte Status-Labels &amp; Filter-Tabs</td>
+          <td><span class="badge badge-green">✓ admin.js v=13 deployed</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     2. ESCROW STATUS-MASCHINE
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">2 — Escrow-Zustandsmaschine</div>
+  <div class="flow-box">
+    <span class="hl">DEPOSIT-STATUS-FLOW:</span><br>
+    &nbsp;&nbsp;<span style="color:var(--text-muted)">unpaid</span>
+    <span class="arrow"> ──payDeposit──► </span>
+    <span style="color:var(--accent)">held</span>
+    <span class="arrow"> ──requestDepositRefund──► </span>
+    <span style="color:var(--amber)">refund_requested</span>
+    <span class="arrow"> ──releaseDeposit──► </span>
+    <span style="color:var(--green)">refunded</span>
+    <span class="arrow"> (Schüler)</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <span class="arrow">└──forfeitDeposit──► </span>
+    <span style="color:var(--red)">forfeited</span>
+    <span class="arrow"> (Lehrer)</span><br>
+    &nbsp;&nbsp;<span style="color:var(--accent)">held</span>
+    <span class="arrow"> ──confirmLesson──► </span>
+    <span style="color:var(--green)">released</span>
+    <span class="arrow"> (Lehrer)</span><br><br>
+    <span class="hl">STORNO-TIER:</span><br>
+    &nbsp;&nbsp;<span style="color:var(--green)">&gt;48h</span> Vorankündigung → full_refund → Schüler bekommt alles zurück<br>
+    &nbsp;&nbsp;<span style="color:var(--amber)">24–48h</span> Vorankündigung → partial → 50% Deposit an Lehrer (MVP: alles an Lehrer)<br>
+    &nbsp;&nbsp;<span style="color:var(--red)">&lt;24h</span> Vorankündigung → forfeit → volles Deposit an Lehrer<br>
+    &nbsp;&nbsp;<span style="color:var(--purple)">Lehrer storniert</span> → teacher_cancel → immer volle Rückerstattung Schüler<br>
+    &nbsp;&nbsp;<span style="color:var(--text-muted)">kein Escrow</span> → no_escrow → seit Fix D: writeCancellationRecord (kein Geld, aber Protokoll)
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     3. APPSERVICE: WALLET & ESCROW FUNKTIONEN
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">3 — AppService: Wallet &amp; Escrow — Vollständige Funktionsübersicht</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Funktion</th>
+          <th>Kategorie</th>
+          <th>Delegiert an Adapter?</th>
+          <th>Beschreibung</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code class="fn">getWallet(uid, cb)</code></td>
+          <td>Wallet</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Wallet laden oder initialisieren → <code>{ uid, balance, currency, updatedAt }</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getWalletSync(uid)</code></td>
+          <td>Wallet</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Synchroner Zugriff (nur localStorage)</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">deposit(uid, amount, desc, cb)</code></td>
+          <td>Wallet</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Guthaben einzahlen → <code>{ wallet, transaction }</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">withdraw(uid, amount, desc, cb)</code></td>
+          <td>Wallet</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Auszahlen. Fehlt wenn <code>balance &lt; amount</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getTransactions(uid, cb)</code></td>
+          <td>Wallet</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Transaktionshistorie laden</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getTeacherPriceSync(uid)</code></td>
+          <td>Wallet/Preis</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Preis des Lehrers synchron lesen</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">calcDepositInfo(teacherId, fullAmount, cb)</code></td>
+          <td>Escrow/Preis</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Deposit-Einstellungen des Lehrers + Betrag berechnen → <code>{ depositAmount, depositType, depositPercent, requiresDeposit, paymentMode }</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">checkPendingAffordability(pendingSlots, studentId, cb)</code></td>
+          <td>Wallet/Escrow</td>
+          <td>Intern (kombiniert)</td>
+          <td>Kann Schüler ausstehende Buchungen bezahlen? → <code>{ totalCost, walletBalance, canAfford, requiresDeposit, depositAmount, depositCovered, paymentMode }</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getAllEscrows(cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Alle Escrow-Einträge (Admin-Ansicht)</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">createEscrow(slotId, studentId, teacherId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Escrow anlegen. Nach Fix A: speichert <code>slotDate + slotTime</code> direkt im Escrow-Objekt</td>
+          <td><span class="badge badge-green">✓ Fix A</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getEscrowBySlot(slotId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Escrow anhand SlotId finden</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getEscrowsByStudent(studentId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Alle Escrows eines Schülers</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">getEscrowsByTeacher(teacherId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Alle Escrows eines Lehrers</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">payDeposit(escrowId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td><code>unpaid → held</code>. Zieht Deposit vom Schüler-Wallet ab. TX mit vollständigem meta nach Fix B.</td>
+          <td><span class="badge badge-green">✓ Fix B</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">requestDepositRefund(escrowId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td><code>held → refund_requested</code>. Schlägt fehl wenn Status <code>unpaid</code> — bewusste Einschränkung.</td>
+          <td><span class="badge badge-amber">⚠ cash_on_site-Fall</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">releaseDeposit(escrowId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td><code>refund_requested → refunded</code>. Deposit → Schüler-Wallet + TX</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">forfeitDeposit(escrowId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td><code>refund_requested → forfeited</code>. Deposit → Lehrer-Wallet + TX</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">confirmLesson(escrowId, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Schüler bestätigt Stunde → <code>released</code> + Wallet-Buchung + TX</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">bookSlotWithEscrow(slotId, studentId, cb)</code></td>
+          <td>Escrow</td>
+          <td>Intern (kombiniert)</td>
+          <td>Slot buchen + Escrow anlegen + Deposit abziehen. Nach Fix C: Slot-Rollback wenn <code>payDeposit</code> fehlschlägt</td>
+          <td><span class="badge badge-green">✓ Fix C</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">cancelSlotWithPolicy(slotId, role, cb)</code></td>
+          <td>Escrow</td>
+          <td>Intern (kombiniert)</td>
+          <td>Storniert Slot + berechnet Tier + löst Escrow-Aktion aus. Nach Fix D: schreibt <code>writeCancellationRecord</code> auch ohne Escrow</td>
+          <td><span class="badge badge-green">✓ Fix D</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">calcCancellationPolicy(slotId, role, cb)</code></td>
+          <td>Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Berechnet <code>tier, noticeHours, refundAmount, forfeitAmount, depositStatus, depositAmount</code></td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">adminReleaseEscrow(escrowId, adminUid, cb)</code></td>
+          <td>Escrow/Admin</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Admin-Override: Escrow freigeben. Schreibt 2 TX (Lehrer + Admin-Log)</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+        <tr>
+          <td><code class="fn">confirmSlot(slotId, cb)</code></td>
+          <td>Slots/Escrow</td>
+          <td><span class="icon-ok">✓</span></td>
+          <td>Slot bestätigen (Lehrer-Aktion)</td>
+          <td><span class="badge badge-green">✓ OK</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     4. ADAPTER: ALLE WALLET/ESCROW-METHODEN
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">4 — Adapter (LocalStorageAdapter): Interne Wallet &amp; Escrow Methoden</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Methode</th>
+          <th>Typ</th>
+          <th>Beschreibung</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code class="fn-muted">_loadWallets()</code></td><td>Intern</td><td>Wallets aus localStorage lesen</td></tr>
+        <tr><td><code class="fn-muted">_saveWallets(data)</code></td><td>Intern</td><td>Wallets in localStorage schreiben</td></tr>
+        <tr><td><code class="fn-muted">_loadTxs()</code></td><td>Intern</td><td>Transaktionen aus localStorage lesen</td></tr>
+        <tr><td><code class="fn-muted">_saveTxs(data)</code></td><td>Intern</td><td>Transaktionen in localStorage schreiben</td></tr>
+        <tr><td><code class="fn-muted">_txId()</code></td><td>Intern</td><td>Generiert TX-ID: <code>tx_&lt;timestamp&gt;_&lt;random&gt;</code></td></tr>
+        <tr><td><code class="fn-muted">_isoNow()</code></td><td>Intern</td><td>ISO-8601-Timestamp jetzt</td></tr>
+        <tr><td><code class="fn-muted">_loadEscrows()</code></td><td>Intern</td><td>Escrows aus localStorage lesen (<code>app_escrow</code>)</td></tr>
+        <tr><td><code class="fn-muted">_saveEscrows(data)</code></td><td>Intern</td><td>Escrows in localStorage schreiben</td></tr>
+        <tr><td><code class="fn-muted">_escrowId()</code></td><td>Intern</td><td>Generiert Escrow-ID: <code>esc_&lt;timestamp&gt;</code></td></tr>
+        <tr><td><code class="fn-muted">_buildTxMeta(escrow, opts)</code></td><td>Intern</td><td>Erstellt vollständiges <code>meta</code>-Objekt für TX: slotDate, slotTime, teacherId, studentId, escrowId, fullAmount, depositAmount, cancellationTier, cancelledAt, bookedAt <em>+ nach Fix B: depositType, depositPercent</em></td></tr>
+        <tr><td><code class="fn-muted">_calcDeposit(profile, fullAmount)</code></td><td>Intern</td><td>Berechnet Deposit aus Profil-Settings (Fix/Prozent)</td></tr>
+        <tr><td><code class="fn-muted">_tagEscrowTier(escrowId, tier, cb)</code></td><td>Intern</td><td>Markiert Escrow mit Storno-Tier vor Settlement</td></tr>
+        <tr><td><code class="fn">getWallet(uid, cb)</code></td><td>Public</td><td>Wallet laden oder auto-anlegen</td></tr>
+        <tr><td><code class="fn">deposit(uid, amount, desc, cb)</code></td><td>Public</td><td>Einzahlen + TX schreiben</td></tr>
+        <tr><td><code class="fn">withdraw(uid, amount, desc, cb)</code></td><td>Public</td><td>Auszahlen + TX schreiben (Fehler wenn Saldo zu gering)</td></tr>
+        <tr><td><code class="fn">getTransactions(uid, cb)</code></td><td>Public</td><td>TX-History, gefiltert nach uid</td></tr>
+        <tr><td><code class="fn">calcDepositInfo(teacherId, fullAmount, cb)</code></td><td>Public</td><td>Deposit-Einstellungen des Lehrers laden</td></tr>
+        <tr><td><code class="fn">getEscrow(escrowId, cb)</code></td><td>Public</td><td>Einzelnes Escrow per ID</td></tr>
+        <tr><td><code class="fn">getEscrowBySlot(slotId, cb)</code></td><td>Public</td><td>Escrow per SlotId (eindeutig)</td></tr>
+        <tr><td><code class="fn">getEscrowsByStudent(studentId, cb)</code></td><td>Public</td><td>Alle Escrows eines Schülers</td></tr>
+        <tr><td><code class="fn">getEscrowsByTeacher(teacherId, cb)</code></td><td>Public</td><td>Alle Escrows eines Lehrers + Schüler-Name per Profil</td></tr>
+        <tr><td><code class="fn">getAllEscrows(cb)</code></td><td>Public</td><td>Admin: alle Escrows</td></tr>
+        <tr><td><code class="fn">createEscrow(slotId, studentId, teacherId, cb)</code></td><td>Public</td><td>Escrow anlegen. Felder: slotId, studentId, teacherId, depositAmount, depositType, depositPercent, fullAmount, paymentMode, requiresDeposit, depositStatus, createdAt <em>+ nach Fix A: slotDate, slotTime</em></td></tr>
+        <tr><td><code class="fn">payDeposit(escrowId, cb)</code></td><td>Public</td><td><code>unpaid → held</code>, Wallet-Abzug + TX mit meta</td></tr>
+        <tr><td><code class="fn">requestDepositRefund(escrowId, cb)</code></td><td>Public</td><td><code>held → refund_requested</code> (nur wenn Status <code>held</code>)</td></tr>
+        <tr><td><code class="fn">releaseDeposit(escrowId, cb)</code></td><td>Public</td><td><code>refund_requested → refunded</code>, Wallet +Deposit Schüler + TX</td></tr>
+        <tr><td><code class="fn">forfeitDeposit(escrowId, cb)</code></td><td>Public</td><td><code>refund_requested → forfeited</code>, Wallet +Deposit Lehrer + TX</td></tr>
+        <tr><td><code class="fn">confirmLesson(escrowId, cb)</code></td><td>Public</td><td><code>→ released</code>, escrow_release TX</td></tr>
+        <tr><td><code class="fn">adminReleaseEscrow(escrowId, adminUid, cb)</code></td><td>Public</td><td>Admin-Override, 2 TX</td></tr>
+        <tr><td><code class="fn">updateNegotiatedAmount(escrowId, amount, cb)</code></td><td>Public</td><td>Verhandelten Betrag setzen</td></tr>
+        <tr><td><code class="fn">writeCancellationRecord(slotId, studentId, teacherId, policy, cb)</code></td><td>Public (Fix D)</td><td>Schreibt <code>cancellation</code>-TX auch ohne Geldbewegung (cash_on_site, kein Escrow)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     5. WALLET.JS vs. WALLET-PANEL.JS — REDUNDANZANALYSE
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">5 — Redundanzanalyse: wallet.js vs. wallet-panel.js</div>
+
+  <div class="warn-box">
+    ⚠ <strong>Kritische Redundanz:</strong> wallet.js und wallet-panel.js sind zwei nahezu identische Implementierungen derselben Wallet-UI. Alle folgenden Funktionen existieren doppelt mit leicht unterschiedlichen Namen.
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Funktion / Zweck</th>
+          <th>wallet.js (Standalone-Seite)</th>
+          <th>wallet-panel.js (Eingebettet)</th>
+          <th>Redundanz-Typ</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>i18n-Übersetzung</td>
+          <td><code>_t(key, vars)</code></td>
+          <td><code>_t(key, vars)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>i18n laden (XHR)</td>
+          <td><code>_loadI18n(callback)</code></td>
+          <td><code>_loadI18n(callback)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Fehleranzeige</td>
+          <td><code>_showError(context, err)</code></td>
+          <td><code>_showError(context, err)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Betrag formatieren</td>
+          <td><code>_formatAmount(amount)</code></td>
+          <td><code>_fmt(amount)</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Datum formatieren</td>
+          <td><code>_formatDate(iso)</code></td>
+          <td><code>_fmtDate(iso)</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>HTML escapen</td>
+          <td><code>_escHtml(str)</code></td>
+          <td><code>_escHtml(str)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Kontostand rendern</td>
+          <td><code>_renderBalance(wallet)</code></td>
+          <td><code>_renderBalance(wallet)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>TX-Liste rendern</td>
+          <td><code>_renderHistory(txs)</code></td>
+          <td><code>_renderHistory(txs)</code></td>
+          <td><span class="badge badge-amber">Ähnlich (ID-Schema abweichend)</span></td>
+        </tr>
+        <tr>
+          <td>Einzelne TX aufbauen</td>
+          <td><code>_buildTxItem(tx)</code></td>
+          <td><code>_buildTxItem(tx)</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>TX-Meta-Zeile aufbauen</td>
+          <td><code>_buildTxMetaLine(tx)</code></td>
+          <td><em>(fehlt im Panel)</em></td>
+          <td><span class="badge badge-blue">Nur in wallet.js</span></td>
+        </tr>
+        <tr>
+          <td>Wallet + TX laden</td>
+          <td><code>_loadWallet()</code></td>
+          <td><code>_loadData()</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Betrag validieren</td>
+          <td><code>_validateAmount(inputId, errorId)</code></td>
+          <td><code>_validate(amtId, errId)</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Fehlerfeld leeren</td>
+          <td><code>_clearError(errorId)</code></td>
+          <td><code>_clearErr(errId)</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Einzahlung ausführen</td>
+          <td><code>_handleDeposit()</code></td>
+          <td><code>_doDeposit()</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Auszahlung anfordern</td>
+          <td><code>_handleWithdrawRequest()</code></td>
+          <td><code>_requestWithdraw()</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>Auszahlung bestätigen</td>
+          <td><code>_handleWithdrawConfirm()</code></td>
+          <td><code>_doWithdraw()</code></td>
+          <td><span class="badge badge-amber">Gleich, anderer Name</span></td>
+        </tr>
+        <tr>
+          <td>TX-History nachladen</td>
+          <td><code>_loadHistory()</code></td>
+          <td><code>_loadHistory()</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Confirm-Dialog öffnen</td>
+          <td><code>_openConfirm()</code></td>
+          <td><code>_openConfirm()</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Confirm-Dialog schließen</td>
+          <td><code>_closeConfirm()</code></td>
+          <td><code>_closeConfirm()</code></td>
+          <td><span class="badge badge-red">Identisch</span></td>
+        </tr>
+        <tr>
+          <td>Events binden</td>
+          <td><code>_bindEvents()</code></td>
+          <td><code>_bindEvents()</code></td>
+          <td><span class="badge badge-amber">Ähnlich (IDs abweichend)</span></td>
+        </tr>
+        <tr>
+          <td>HTML-Struktur aufbauen</td>
+          <td><em>(in wallet.html inline)</em></td>
+          <td><code>_buildHTML()</code></td>
+          <td><span class="badge badge-blue">Nur in wallet-panel.js</span></td>
+        </tr>
+        <tr>
+          <td>i18n anwenden</td>
+          <td><code>_applyI18n()</code></td>
+          <td><em>(inline in mount)</em></td>
+          <td><span class="badge badge-blue">Nur in wallet.js</span></td>
+        </tr>
+        <tr>
+          <td>UID ermitteln</td>
+          <td><code>_currentUid()</code></td>
+          <td><em>(über <code>_uid</code>-Variable)</em></td>
+          <td><span class="badge badge-blue">Strukturell verschieden</span></td>
+        </tr>
+        <tr>
+          <td>Öffentliche API</td>
+          <td><em>(kein export, IIFE)</em></td>
+          <td><code>mount(containerId, uid)</code> + <code>refresh(uid)</code></td>
+          <td><span class="badge badge-blue">Nur in wallet-panel.js</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section-subtitle">
+    <strong>Fazit:</strong> Ca. 70–75% des Codes ist doppelt vorhanden. Die beiden Dateien könnten auf einen gemeinsamen Wallet-Kern (<code>WalletCore</code>) konsolidiert werden. <code>wallet.js</code> und <code>wallet-panel.js</code> würden dann nur noch Mounting/Layout-spezifische Teile enthalten. Dieses Refactoring wurde in keiner Doc als geplant erwähnt.
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     6. WEITERE REDUNDANZEN (aus Bugs-Ordner)
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">6 — Weitere Code-Redundanzen (identifiziert in Bugs)</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Redundanz</th>
+          <th>Betroffene Funktionen</th>
+          <th>Datei</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>renderBookingsPanel vs. renderAllBookingsList</strong><br>Parallele Reimplementierung für Tages-/Gesamtansicht</td>
+          <td><code>renderBookingsPanel</code> ↔ <code>renderAllBookingsList</code> + <code>buildAllBookingBlock</code> + <code>populateAllBookingDetail</code></td>
+          <td>teacher.js / student.js</td>
+          <td><span class="badge badge-amber">⚠ Bekannt, Fix vorgeschlagen (nicht umgesetzt)</span></td>
+        </tr>
+        <tr>
+          <td><strong>mergeStudentBlocks vs. mergeAllBookingBlocks</strong><br>Zwei Merge-Funktionen für Buchungsblöcke</td>
+          <td><code>mergeStudentBlocks</code> ↔ <code>mergeAllBookingBlocks</code></td>
+          <td>student.js</td>
+          <td><span class="badge badge-amber">⚠ Bekannt, gemeinsame Hilfsfunktion fehlt</span></td>
+        </tr>
+        <tr>
+          <td><strong>Zeitfilter-Logik 5× dupliziert</strong><br><code>_applyTimeFilter</code> sollte extrahiert werden</td>
+          <td><code>renderBookingsPanel</code> (×2), <code>renderAllBookingsList</code> (×2), <code>_updateAllBookingsBadges</code> (×1)</td>
+          <td>teacher.js / student.js</td>
+          <td><span class="badge badge-amber">⚠ Bekannt, nicht umgesetzt</span></td>
+        </tr>
+        <tr>
+          <td><strong>93× Store-Direktzugriffe</strong><br>Consumer-Code greift direkt auf Store.* zu statt AppService.*</td>
+          <td>Store.Slots.*, Store.Users.* direkt in teacher.js / student.js</td>
+          <td>teacher.js, student.js (mehrere)</td>
+          <td><span class="badge badge-red">❌ Architektur-Verletzung</span></td>
+        </tr>
+        <tr>
+          <td><strong>Block-Level-Cancel bypassed AppService</strong><br>Store.Slots.cancelBooking direkt statt cancelSlotWithPolicy</td>
+          <td><code>openMoveBlockDialogShared</code> in ui.js</td>
+          <td>ui.js</td>
+          <td><span class="badge badge-green">✓ Fix 2 behoben (ui.js v=27)</span></td>
+        </tr>
+        <tr>
+          <td><strong>_showCancelPolicyDialog + _buildCancelPolicyBody</strong><br>War in ui.js vorhanden, wurde nicht im Block-Edit-Dialog genutzt</td>
+          <td><code>_showCancelPolicyDialog</code>, <code>_buildCancelPolicyBody</code></td>
+          <td>ui.js</td>
+          <td><span class="badge badge-green">✓ Fix 2: wiederverwendet</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     7. TX-SCHEMA: IST vs. SOLL
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">7 — Transaktions-Schema: Ist-Zustand nach allen Fixes</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Feld</th>
+          <th>Basis-TX</th>
+          <th>Escrow-TX meta</th>
+          <th>Nach Fix B</th>
+          <th>Notiz</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><code>txId</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>uid</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td>Wallet-Inhaber</td></tr>
+        <tr><td><code>type</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td>deposit / withdrawal / escrow_hold / escrow_release / escrow_refund / cancellation</td></tr>
+        <tr><td><code>amount</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>balance</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td>Saldo nach TX</td></tr>
+        <tr><td><code>description</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td>Fix 4 machte lesbar: „Stornierung: Name, Datum, Tier"</td></tr>
+        <tr><td><code>status</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>createdAt</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>relatedUid</code></td><td><span class="icon-ok">✓</span></td><td><span class="icon-ok">✓</span></td><td>—</td><td>Gegenpartei</td></tr>
+        <tr><td><code>meta.slotDate</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td>Via _buildTxMeta + Fix A in createEscrow</td></tr>
+        <tr><td><code>meta.slotTime</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.teacherId</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.studentId</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.escrowId</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.fullAmount</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.depositAmount</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.cancellationTier</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.cancelledAt</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.bookedAt</code></td><td>—</td><td><span class="icon-ok">✓</span></td><td>—</td><td></td></tr>
+        <tr><td><code>meta.depositType</code></td><td>—</td><td><span class="icon-warn">⚠</span></td><td><span class="icon-ok">✓ Fix B</span></td><td>fixed / percent</td></tr>
+        <tr><td><code>meta.depositPercent</code></td><td>—</td><td><span class="icon-warn">⚠</span></td><td><span class="icon-ok">✓ Fix B</span></td><td>z.B. 20</td></tr>
+        <tr><td><code>meta.requiresDeposit</code></td><td>—</td><td><span class="icon-warn">⚠</span></td><td><span class="icon-ok">✓ Fix B</span></td><td>true/false</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════
+     8. OFFENE PUNKTE
+══════════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">8 — Noch offene Punkte</div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Problem</th>
+          <th>Betroffene Datei(en)</th>
+          <th>Priorität</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td>
+          <td><code>requestDepositRefund</code> schlägt fehl wenn <code>depositStatus = 'unpaid'</code> (cash_on_site / kein Deposit). Escrow-Stornierung läuft ins Leere.</td>
+          <td>adapter-localstorage.js</td>
+          <td><span class="badge badge-red">Hoch</span></td>
+        </tr>
+        <tr>
+          <td>2</td>
+          <td>Wallet-Panel und Wallet-Standalone: ~70% Code-Duplizierung. Kein gemeinsamer Kern.</td>
+          <td>wallet.js, wallet-panel.js</td>
+          <td><span class="badge badge-amber">Mittel (Wartbarkeit)</span></td>
+        </tr>
+        <tr>
+          <td>3</td>
+          <td><code>renderBookingsPanel</code> ist parallele Reimplementierung von <code>renderAllBookingsList</code>. Zwei Pfade zu pflegen.</td>
+          <td>teacher.js, student.js</td>
+          <td><span class="badge badge-amber">Mittel</span></td>
+        </tr>
+        <tr>
+          <td>4</td>
+          <td>93× Store-Direktzugriffe in Consumer-Code (Architekturverletzung lt. Guideline)</td>
+          <td>teacher.js, student.js</td>
+          <td><span class="badge badge-amber">Mittel (Architektur)</span></td>
+        </tr>
+        <tr>
+          <td>5</td>
+          <td>Stornierungsrichtlinie (Tier-System) — UI-Teil fehlt noch: Abfrage Lehrer-Profil für benutzerdefinierte Fenster, Teacher-Notification via EmailService</td>
+          <td>teacher.js, student.js, profile-edit.js</td>
+          <td><span class="badge badge-amber">Mittel</span></td>
+        </tr>
+        <tr>
+          <td>6</td>
+          <td>Partial-Refund (24–48h) ist MVP: volles Deposit an Lehrer statt 50/50-Split</td>
+          <td>app-service.js, adapter-localstorage.js</td>
+          <td><span class="badge badge-blue">Niedrig (MVP)</span></td>
+        </tr>
+        <tr>
+          <td>7</td>
+          <td>Student „+ Add"-Button geht über separaten Code-Pfad (renderDaySlots) statt populateBookingDetail</td>
+          <td>student.js</td>
+          <td><span class="badge badge-amber">Mittel</span></td>
+        </tr>
+        <tr>
+          <td>8</td>
+          <td>Navbar-Wallet-Refresh nach Cancel — war im ursprünglichen Fix nicht vollständig für alle Cancel-Pfade</td>
+          <td>student.js, teacher.js</td>
+          <td><span class="badge badge-blue">Niedrig</span></td>
+        </tr>
+        <tr>
+          <td>9</td>
+          <td>Profil-Felder für Zahlungseinstellungen (requiresDeposit, depositMode, depositFixed, depositPercent, paymentMode) — in profile-edit.js noch nicht UI-seitig vollständig</td>
+          <td>profile-edit.js (oder profile.js)</td>
+          <td><span class="badge badge-amber">Mittel</span></td>
+        </tr>
+        <tr>
+          <td>10</td>
+          <td>Admin-Dispute-Resolution-Ansicht für bestrittene Stornierungen fehlt (lt. Cancellation-Proposal)</td>
+          <td>admin.js</td>
+          <td><span class="badge badge-blue">Niedrig</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+</body>
+</html>

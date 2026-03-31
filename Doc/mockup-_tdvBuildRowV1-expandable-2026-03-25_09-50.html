@@ -1,0 +1,417 @@
+<!--
+  MOCKUP: _tdvBuildRowV1 — Expandable detail panel
+  FILE:   teacher.js : _tdvBuildRowV1() available + booked branches
+          NEW: click on row (not buttons) → toggle .dv-v1-detail panel
+          NEW: .dv-v1-detail shows whitelist/blacklist members, group slots count, booked students
+  CSS:    teacher.css — NEW: .dv-v1-detail, .dv-v1-detail-*, .dv-v1-chevron
+  DATE:   2026-03-25 09:50
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockup — V1 Expandable Detail</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-caption:12px;--text-small:14px;--weight-semibold:600;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;
+  --radius-sm:4px;--radius-md:8px;
+  --transition:150ms ease;
+  --slot-timeout-bg:#fef9ec;--slot-timeout-bd:#f5d97e;--slot-timeout-tx:#92650a;
+  --vis-new:#8b5cf6;--vis-new-bg:#ede9fe;--vis-new-tx:#5b21b6;
+  --vis-white:#0ea5e9;--vis-white-bg:#e0f2fe;--vis-white-tx:#0c4a6e;
+  --vis-black:#f97316;--vis-black-bg:#fff7ed;--vis-black-tx:#9a3412;
+  --vis-group:#10b981;--vis-group-bg:#dcfce7;--vis-group-tx:#14532d;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:#e2e8f0;padding:16px 0 60px;}
+.app{max-width:480px;margin:0 auto;background:var(--neutral-0);}
+.topbar{background:var(--color-900);color:#fff;padding:12px 16px;font-size:13px;font-weight:var(--weight-semibold);}
+.section-divider{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--neutral-400);padding:10px 16px 6px;background:var(--neutral-0);}
+
+/* ── Base row ── */
+.dv-slot-row {
+  display: flex; flex-direction: column;
+  border-bottom: 1px solid var(--neutral-100);
+  position: relative; cursor: default;
+  transition: background var(--transition);
+}
+.dv-slot-row::before {
+  content:''; position:absolute; left:0; top:8px; bottom:8px;
+  width:3px; border-radius:0 2px 2px 0; background:var(--neutral-200);
+}
+.dv-s-available { background:var(--color-100); }
+.dv-s-available::before { background:var(--color-500); }
+.dv-s-empty { background:var(--neutral-50); }
+.dv-s-empty::before { background:transparent; }
+.dv-s-timeout { background:var(--slot-timeout-bg); }
+.dv-s-timeout::before { background:var(--slot-timeout-bd); }
+
+/* ── Row top (always visible) ── */
+.dv-row-top {
+  display: flex; align-items: stretch; min-height: 52px;
+  cursor: pointer; /* clickable to expand */
+}
+.dv-slot-time {
+  width:52px;flex-shrink:0;padding:8px 6px;font-size:11px;font-family:monospace;
+  display:flex;flex-direction:column;justify-content:center;
+  color:var(--color-700);font-weight:var(--weight-semibold);
+  background:var(--color-100);border-right:1px solid var(--color-300);
+}
+.dv-s-empty .dv-slot-time { color:var(--neutral-400);font-weight:400;background:var(--neutral-100);border-right-color:var(--neutral-200); }
+.dv-s-timeout .dv-slot-time { color:var(--slot-timeout-tx);background:var(--slot-timeout-bg);border-right-color:var(--slot-timeout-bd); }
+.dv-time-start{font-size:12px;}
+.dv-time-end{font-size:10px;opacity:.65;}
+.dv-slot-sep{width:1px;flex-shrink:0;background:var(--color-300);}
+.dv-s-empty .dv-slot-sep{background:var(--neutral-200);}
+.dv-s-timeout .dv-slot-sep{background:var(--slot-timeout-bd);}
+.dv-slot-info{flex:1;display:flex;flex-direction:row;align-items:center;flex-wrap:wrap;gap:6px;padding:6px 8px 6px 12px;min-width:0;}
+.dv-slot-action{padding:0 10px;display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.dv-empty-hint{font-size:12px;color:var(--neutral-400);}
+
+/* Buttons */
+.dv-inline-btn{font-family:var(--font);font-size:11px;font-weight:var(--weight-semibold);background:var(--neutral-0);border:1px solid var(--neutral-200);border-radius:var(--radius-sm);color:var(--neutral-700);cursor:pointer;padding:0 8px;height:28px;display:inline-flex;align-items:center;flex-shrink:0;}
+.dv-vis-btn{width:30px;height:30px;border-radius:var(--radius-sm);border:1px solid var(--color-200);background:transparent;color:var(--color-400);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.dv-vis-btn.is-active{background:var(--color-900);border-color:var(--color-900);color:#fff;}
+
+/* Vis badge */
+.dv-vis-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;white-space:nowrap;}
+.dv-vis-badge-sq{width:7px;height:7px;border-radius:2px;flex-shrink:0;display:inline-block;}
+
+/* ════════════════════════════════════════════
+   NEW: Chevron on right of row-top
+   NEW CSS class: .dv-v1-chevron
+   ════════════════════════════════════════════ */
+.dv-v1-chevron {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 1.5px solid var(--color-300);
+  background: transparent; color: var(--color-400);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: transform var(--transition), background var(--transition);
+  cursor: pointer;
+}
+.dv-v1-chevron svg { transition: transform var(--transition); }
+.dv-slot-row.is-open .dv-v1-chevron { background: var(--color-200); }
+.dv-slot-row.is-open .dv-v1-chevron svg { transform: rotate(90deg); }
+
+/* ════════════════════════════════════════════
+   NEW: Expandable detail panel
+   NEW CSS class: .dv-v1-detail
+   ════════════════════════════════════════════ */
+.dv-v1-detail {
+  display: none;
+  flex-direction: column;
+  background: var(--color-700);
+  border-top: 1px solid var(--color-600);
+  padding: var(--sp-2) 0;
+}
+.dv-slot-row.is-open .dv-v1-detail { display: flex; }
+
+/* Section header inside detail */
+.dv-v1-detail-section {
+  font-size: 9px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .08em; color: rgba(255,255,255,.35);
+  padding: 8px var(--sp-3) 4px;
+}
+
+/* Row inside detail */
+.dv-v1-detail-row {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 5px var(--sp-3) 5px calc(var(--sp-3) + 4px);
+  border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.dv-v1-detail-row:last-child { border-bottom: none; }
+
+/* Avatar */
+.dv-v1-avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: var(--color-500); color: var(--neutral-0);
+  font-size: 10px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+
+/* Name */
+.dv-v1-detail-name {
+  flex: 1; font-size: 12px; font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,.85);
+}
+
+/* Status tag */
+.dv-v1-detail-tag {
+  font-size: 10px; font-weight: 700; padding: 2px 6px;
+  border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+}
+.dv-v1-tag-booked  { background: rgba(77,122,160,.3); color: #93c5fd; }
+.dv-v1-tag-allowed { background: rgba(14,165,233,.25); color: #7dd3fc; }
+.dv-v1-tag-blocked { background: rgba(249,115,22,.25); color: #fdba74; }
+.dv-v1-tag-new     { background: rgba(139,92,246,.25); color: #c4b5fd; }
+
+/* Group count bar */
+.dv-v1-group-bar {
+  display: flex; align-items: center; gap: var(--sp-2);
+  padding: 8px var(--sp-3);
+}
+.dv-v1-group-label {
+  font-size: 12px; font-weight: var(--weight-semibold);
+  color: rgba(255,255,255,.75); flex: 1;
+}
+.dv-v1-group-count {
+  font-size: 12px; font-weight: 700;
+  color: #6ee7b7;
+}
+.dv-v1-group-track {
+  flex: 1; height: 4px; border-radius: 2px;
+  background: rgba(255,255,255,.12); overflow: hidden; max-width: 80px;
+}
+.dv-v1-group-fill { height: 100%; border-radius: 2px; background: var(--vis-group); }
+
+/* Empty state */
+.dv-v1-detail-empty {
+  font-size: 11px; color: rgba(255,255,255,.3);
+  padding: 8px var(--sp-3); font-style: italic;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">Verfügbarkeit — Mi., 25. März 2026</div>
+
+  <div class="section-divider">Mittag</div>
+
+  <!-- ── 1. Standard available, no config ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1200" onclick="toggle('row-1200')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">12:00</span><span class="dv-time-end">–12:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info"><!-- keine Config --></div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1200')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <div class="dv-v1-detail-empty">Keine Einschränkungen — für alle Schüler sichtbar</div>
+    </div>
+  </div>
+
+  <!-- ── 2. Whitelist: 2 students ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1230" onclick="toggle('row-1230')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">12:30</span><span class="dv-time-end">–13:00</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info">
+        <span class="dv-vis-badge" style="background:var(--vis-white-bg);color:var(--vis-white-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-white);"></span>Whitelist (2)
+        </span>
+      </div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1230')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-vis-btn is-active" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <div class="dv-v1-detail-section">Whitelist — nur sichtbar für</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S1</div>
+        <span class="dv-v1-detail-name">s1</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-allowed">✓ Sichtbar</span>
+      </div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S2</div>
+        <span class="dv-v1-detail-name">s2</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-allowed">✓ Sichtbar</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Blacklist ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1300" onclick="toggle('row-1300')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">13:00</span><span class="dv-time-end">–13:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info">
+        <span class="dv-vis-badge" style="background:var(--vis-black-bg);color:var(--vis-black-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-black);"></span>Blacklist (1)
+        </span>
+      </div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1300')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-vis-btn is-active" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <div class="dv-v1-detail-section">Blacklist — nicht sichtbar für</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S3</div>
+        <span class="dv-v1-detail-name">s3</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-blocked">✗ Gesperrt</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-divider">Nachmittag</div>
+
+  <!-- ── 4. Gruppe 1/3 — available ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1400" onclick="toggle('row-1400')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">14:00</span><span class="dv-time-end">–14:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info">
+        <span class="dv-vis-badge" style="background:var(--vis-group-bg);color:var(--vis-group-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-group);"></span>Gruppe max. 3 · 1 gebucht
+        </span>
+      </div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1400')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-vis-btn is-active" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <!-- Group capacity bar -->
+      <div class="dv-v1-group-bar">
+        <span class="dv-v1-group-label">Gruppenunterricht</span>
+        <span class="dv-v1-group-count">1 / 3 Plätze belegt</span>
+      </div>
+      <div style="padding:0 16px 8px;"><div class="dv-v1-group-track"><div class="dv-v1-group-fill" style="width:33%;"></div></div></div>
+      <div class="dv-v1-detail-section">Gebucht</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S1</div>
+        <span class="dv-v1-detail-name">s1</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-booked">Gebucht</span>
+      </div>
+      <div class="dv-v1-detail-section">Noch 2 freie Plätze</div>
+    </div>
+  </div>
+
+  <!-- ── 5. Gruppe 3/3 voll + Blacklist kombiniert ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1430" onclick="toggle('row-1430')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">14:30</span><span class="dv-time-end">–15:00</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info">
+        <span class="dv-vis-badge" style="background:var(--vis-group-bg);color:var(--vis-group-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-group);"></span>Gruppe 3/3
+        </span>
+        <span class="dv-vis-badge" style="background:var(--vis-black-bg);color:var(--vis-black-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-black);"></span>Blacklist (1)
+        </span>
+      </div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1430')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-vis-btn is-active" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <div class="dv-v1-group-bar">
+        <span class="dv-v1-group-label">Gruppenunterricht</span>
+        <span class="dv-v1-group-count" style="color:#fca5a5;">3 / 3 — Voll</span>
+      </div>
+      <div style="padding:0 16px 8px;"><div class="dv-v1-group-track"><div class="dv-v1-group-fill" style="width:100%;background:#f87171;"></div></div></div>
+      <div class="dv-v1-detail-section">Gebucht</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S1</div>
+        <span class="dv-v1-detail-name">s1</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-booked">Gebucht</span>
+      </div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S2</div>
+        <span class="dv-v1-detail-name">s2</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-booked">Gebucht</span>
+      </div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S4</div>
+        <span class="dv-v1-detail-name">s4</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-booked">Gebucht</span>
+      </div>
+      <div class="dv-v1-detail-section">Blacklist — nicht sichtbar für</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar">S3</div>
+        <span class="dv-v1-detail-name">s3</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-blocked">✗ Gesperrt</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 6. Nur neue Schüler ── -->
+  <div class="dv-slot-row dv-s-available" id="row-1500" onclick="toggle('row-1500')">
+    <div class="dv-row-top">
+      <div class="dv-slot-time"><span class="dv-time-start">15:00</span><span class="dv-time-end">–15:30</span></div>
+      <div class="dv-slot-sep"></div>
+      <div class="dv-slot-info">
+        <span class="dv-vis-badge" style="background:var(--vis-new-bg);color:var(--vis-new-tx);">
+          <span class="dv-vis-badge-sq" style="background:var(--vis-new);"></span>Nur neue Schüler
+        </span>
+      </div>
+      <div class="dv-slot-action">
+        <div class="dv-v1-chevron" onclick="stopAndToggle(event,'row-1500')">
+          <svg width="9" height="9" viewBox="0 0 16 16" fill="none"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </div>
+        <button class="dv-vis-btn is-active" onclick="event.stopPropagation()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        </button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Deaktivieren</button>
+        <button class="dv-inline-btn" onclick="event.stopPropagation()">Timeout</button>
+      </div>
+    </div>
+    <div class="dv-v1-detail">
+      <div class="dv-v1-detail-section">Sichtbar für</div>
+      <div class="dv-v1-detail-row">
+        <div class="dv-v1-avatar" style="background:#5b21b6;">🌟</div>
+        <span class="dv-v1-detail-name">Schüler ohne bisherige Buchung</span>
+        <span class="dv-v1-detail-tag dv-v1-tag-new">Neue</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggle(id) {
+  var row = document.getElementById(id);
+  row.classList.toggle('is-open');
+}
+function stopAndToggle(e, id) {
+  e.stopPropagation();
+  toggle(id);
+}
+</script>
+</body>
+</html>

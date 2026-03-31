@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dismiss Logic Comparison</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--font:'Figtree',sans-serif;--neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;--neutral-200:#e2e6eb;--neutral-500:#6b7685;--neutral-900:#0d1117;--ok:#f0fdf4;--ok-tx:#14532d;--bad:#fee2e2;--bad-tx:#991b1b;--warn:#fef9ec;--warn-tx:#7a5c00;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);font-size:13px;background:var(--neutral-50);padding:24px 16px;}
+h1{font-size:15px;font-weight:600;margin-bottom:16px;}
+.tbl{width:100%;border-collapse:collapse;background:var(--neutral-0);border-radius:8px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:20px;}
+th{background:var(--neutral-100);padding:8px 12px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);border-bottom:2px solid var(--neutral-200);}
+td{padding:8px 12px;border-bottom:1px solid var(--neutral-100);vertical-align:top;line-height:1.6;}
+tr:last-child td{border-bottom:none;}
+.cat{background:var(--neutral-100);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--neutral-500);padding:6px 12px;border-bottom:1px solid var(--neutral-200);}
+.ok{display:inline-block;background:var(--ok);color:var(--ok-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.bad{display:inline-block;background:var(--bad);color:var(--bad-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+.warn{display:inline-block;background:var(--warn);color:var(--warn-tx);padding:2px 6px;border-radius:4px;font-size:11px;font-weight:600;}
+code{font-family:'Courier New',monospace;font-size:11px;background:var(--neutral-100);padding:1px 4px;border-radius:3px;}
+</style>
+</head>
+<body>
+<h1>Dismiss Logic — Two Systems, One Shared State</h1>
+
+<table class="tbl">
+<thead><tr>
+  <th style="width:18%">Aspect</th>
+  <th style="width:8%">Status</th>
+  <th style="width:37%">Old Day Slots (renderDaySlots)</th>
+  <th style="width:37%">New Student Day View (_sdv*)</th>
+</tr></thead>
+<tbody>
+
+<tr><td colspan="4" class="cat">Dismiss function</td></tr>
+<tr>
+  <td>Function called</td>
+  <td><span class="bad">DUPE</span></td>
+  <td><code>discardDayChanges()</code></td>
+  <td><code>_sdvDiscardPending()</code></td>
+</tr>
+<tr>
+  <td>What it does</td>
+  <td><span class="warn">DIFF</span></td>
+  <td><code>pendingDayChanges = {}</code><br><code>updateDaySaveBtn()</code><br><code>renderDaySlots()</code><br><code>Toast.info('Verworfen')</code></td>
+  <td><code>pendingDayChanges = {}</code><br><code>_sdvPending = {}</code><br><code>_sdvRenderSlots()</code><br><code>_sdvUpdateFab()</code><br>No Toast, no renderDaySlots</td>
+</tr>
+<tr>
+  <td>Triggered by</td>
+  <td><span class="bad">OVERLAP</span></td>
+  <td><code>#day-dismiss-btn</code> click when <code>!_sdvOpen</code></td>
+  <td><code>#day-dismiss-btn</code> click when <code>_sdvOpen</code></td>
+</tr>
+
+<tr><td colspan="4" class="cat">Root cause of screenshot bug</td></tr>
+<tr>
+  <td>Summary panel shown in wrong context</td>
+  <td><span class="bad">BUG</span></td>
+  <td colspan="2">
+    <code>updateDaySaveBtn()</code> is called by <strong>both</strong> systems whenever slots are staged.<br>
+    It renders <code>#day-save-summary</code> — a <code>position:fixed</code> element — regardless of which view is active.<br>
+    So when the old day-slots accordion is open AND the student stages a booking in it,<br>
+    the summary panel appears <strong>floating over the old accordion</strong>, not the day view.
+  </td>
+</tr>
+<tr>
+  <td>Dismiss button label</td>
+  <td><span class="bad">DUPE</span></td>
+  <td>"Dismiss" (English)</td>
+  <td>"Verwerfen" was on the old sdv-fab, now both say "Dismiss" since sharing day-dismiss-btn</td>
+</tr>
+
+<tr><td colspan="4" class="cat">Fix — merge into one dismiss function</td></tr>
+<tr>
+  <td colspan="2"><span class="bad">Fix 1</span></td>
+  <td colspan="2">
+    Replace both <code>discardDayChanges()</code> and <code>_sdvDiscardPending()</code> with a single<br>
+    <code>discardAllPending()</code> that: clears <code>pendingDayChanges</code>, calls <code>updateDaySaveBtn()</code>,<br>
+    re-renders whichever view is active (<code>_sdvOpen ? _sdvRenderSlots() : renderDaySlots()</code>),<br>
+    shows Toast, closes day view if needed.
+  </td>
+</tr>
+<tr>
+  <td colspan="2"><span class="bad">Fix 2</span></td>
+  <td colspan="2">
+    <code>#day-dismiss-btn</code> always calls <code>discardAllPending()</code> — no <code>if (_sdvOpen)</code> branching needed.
+  </td>
+</tr>
+<tr>
+  <td colspan="2"><span class="bad">Fix 3</span></td>
+  <td colspan="2">
+    Summary panel (<code>#day-save-summary</code>) should only appear when the correct view is active.<br>
+    Add guard in <code>updateDaySaveBtn()</code>: if <code>_sdvOpen</code>, show summary only above day view overlay.<br>
+    If old slots view active, show summary in its normal fixed position.
+  </td>
+</tr>
+
+</tbody>
+</table>
+</body>
+</html>

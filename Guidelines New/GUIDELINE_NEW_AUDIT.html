@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — Audit &amp; Dokumentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+  <style>
+    /* Audit-page accent colour: amber/gold */
+    --audit-badge: #b45309;
+    --audit-bg:    #fffbeb;
+    --audit-border:#fcd34d;
+    --audit-text:  #78350f;
+
+    /* Filename anatomy diagram */
+    .fn-anatomy {
+      background: var(--color-900);
+      border-radius: var(--radius-md);
+      padding: var(--sp-4);
+      font-family: var(--font-mono);
+      font-size: 14px;
+      line-height: 1;
+      overflow-x: auto;
+      margin: var(--sp-3) 0;
+    }
+    .fn-anatomy .fn-row {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      flex-wrap: nowrap;
+    }
+    .fn-part {
+      padding: 10px 14px;
+      border-radius: 4px;
+      white-space: nowrap;
+      color: var(--color-900);
+      font-weight: 600;
+      font-size: 13px;
+      flex-shrink: 0;
+    }
+    .fn-sep {
+      color: rgba(255,255,255,0.35);
+      padding: 10px 2px;
+      font-size: 15px;
+      font-weight: 400;
+      flex-shrink: 0;
+      align-self: center;
+    }
+    .fn-p-prefix  { background: #bfdbfe; }
+    .fn-p-type    { background: #bbf7d0; }
+    .fn-p-name    { background: #fde68a; }
+    .fn-p-date    { background: #fca5a5; }
+    .fn-p-time    { background: #c4b5fd; }
+    .fn-p-ext     { background: #d1d5db; }
+
+    .fn-labels {
+      display: flex;
+      gap: 0;
+      margin-top: 6px;
+      flex-wrap: nowrap;
+    }
+    .fn-label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: rgba(255,255,255,0.45);
+      text-align: center;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* Example file table */
+    .example-files {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: var(--sp-2);
+    }
+    .example-files th {
+      text-align: left;
+      padding: 9px 14px;
+      background: var(--neutral-700);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .example-files td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    .example-files tr:last-child td { border-bottom: none; }
+    .example-files tr:nth-child(even) td { background: var(--bg-subtle); }
+    .example-files td code {
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      background: rgba(6,15,28,0.06);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+    .example-files td.ok  { color: var(--arch-text); }
+    .example-files td.bad { color: var(--hard-text); }
+
+    /* Timestamp widget — live clock demo */
+    .ts-demo {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--sp-3) var(--sp-4);
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      flex-wrap: wrap;
+      margin: var(--sp-2) 0;
+    }
+    .ts-demo-label {
+      font-size: var(--text-small);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .ts-demo-value {
+      font-family: var(--font-mono);
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--color-400);
+      letter-spacing: 0.04em;
+    }
+    .ts-demo-filename {
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      color: var(--text-secondary);
+      background: var(--bg-subtle);
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────── -->
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-dot" style="background:#b45309;" aria-hidden="true"></span><span class="label">Audit</span>
+    </a></li>
+  </ul>
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+
+<!-- ── Mobile nav ─────────────────────────────────────────── -->
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-mobile-dot" style="background:#b45309;"></span>Audit
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<!-- ── Page ───────────────────────────────────────────────── -->
+<main class="gl-page">
+  <div class="gl-container">
+
+    <!-- Header -->
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:#b45309;" aria-hidden="true"></span>
+        Guideline · Audit &amp; Dokumentation
+      </div>
+      <h1 class="gl-page-title">Audit &amp; Dokumentation</h1>
+      <p class="gl-page-subtitle">
+        Regeln für die Benennung, Ablage und das Format aller Audit- und Dokumentations-Dateien.
+        Jede Datei trägt einen Zeitstempel im Dateinamen — so ist immer sofort erkennbar,
+        wann ein Audit oder eine Dokumentation erstellt wurde, ohne die Datei öffnen zu müssen.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-hard">🔴 Hard-Rule</span>
+        <span class="gl-badge gl-badge-arch">🟢 Arch-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">Stand: März 2026</span>
+      </div>
+    </header>
+
+    <!-- Legend -->
+    <div class="gl-legend" role="list" aria-label="Regeltypen-Legende">
+      <div class="gl-legend-item gl-legend-item-hard" role="listitem">
+        <div class="gl-legend-label">🔴 Hard-Rule</div>
+        <div class="gl-legend-desc">Nicht verhandelbar. Jede abweichende Datei gilt als nicht konform.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-arch" role="listitem">
+        <div class="gl-legend-label">🟢 Arch-Rule</div>
+        <div class="gl-legend-desc">Strukturell unveränderlich. Betrifft Ordner und Namenskonventionen.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-soft" role="listitem">
+        <div class="gl-legend-label">🔵 Soft-Rule</div>
+        <div class="gl-legend-desc">Starke Empfehlung. Abweichung nur mit dokumentierter Begründung.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-neg" role="listitem">
+        <div class="gl-legend-label">⛔ Verboten</div>
+        <div class="gl-legend-desc">Explizit verboten. Führt zu nicht auffindbaren oder nicht zuordenbaren Dateien.</div>
+      </div>
+    </div>
+
+    <!-- ── 1. DATEIFORMAT ─────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-format">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-format">1. Dateiformat</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Audits und Dokumentationen werden ausschließlich als <code style="font-family:var(--font-mono);font-size:13px;">.html</code> gespeichert</div>
+            <div class="gl-rule-desc">
+              Kein .txt, kein .md, kein .docx, kein .pdf als primäres Format für Audits und Docs.
+              HTML ist im Browser direkt lesbar, versionierbar, durchsuchbar und kann Links, Code-Blöcke
+              und Tabellen ohne externe Software darstellen.
+              Einzige Ausnahme: Exporte aus Tools die kein HTML erzeugen
+              (z.B. CSV-Exports aus Audit-Funktionen) — diese werden zusätzlich zur HTML-Datei abgelegt,
+              ersetzen sie aber nicht.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  ARCH_AUDIT_DB_ACCESS_20260319_1045.html</span>
+<span class="c-ok">✅  DOC_BOOKING_SYSTEM_20260317_0830.html</span>
+<span class="c-bad">❌  audit.txt                  /* verboten */</span>
+<span class="c-bad">❌  documentation.md           /* verboten */</span>
+<span class="c-bad">❌  code-quality-audit.docx    /* verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">HTML-Struktur: semantisch, standalone, ohne externe Abhängigkeiten</div>
+            <div class="gl-rule-desc">
+              Jede Audit/Doc-HTML-Datei ist eine vollständige Standalone-Seite.
+              Kein Verweis auf externe CSS-Dateien die möglicherweise nicht verfügbar sind.
+              Inline-CSS ist für Audit/Doc-Seiten ausdrücklich erlaubt und erwünscht —
+              Ausnahme zu den normalen Styling-Guidelines, weil diese Dateien
+              ortsunabhängig und selbst-enthaltend sein müssen.
+            </div>
+            <div class="gl-callout gl-callout-info" style="margin-top:var(--sp-2);">
+              <strong>Ausnahme von GUIDELINE_NEW_STYLING §8 (Inline-CSS verboten):</strong>
+              Audit- und Dokumentations-HTML-Dateien dürfen und sollen <code style="font-family:var(--font-mono);">&lt;style&gt;</code>-Blöcke
+              im <code style="font-family:var(--font-mono);">&lt;head&gt;</code> enthalten, damit sie ohne Webserver
+              in jedem Browser korrekt dargestellt werden.
+            </div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. DATEINAME & ZEITSTEMPEL ────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-naming">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-naming">2. Dateiname &amp; Zeitstempel</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+
+      <!-- Anatomy diagram -->
+      <div style="background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-3);">
+        <div style="font-size:var(--text-small);font-weight:var(--weight-semibold);color:var(--text-secondary);margin-bottom:var(--sp-2);">Dateinamen-Anatomie</div>
+        <div class="fn-anatomy">
+          <div class="fn-row">
+            <span class="fn-part fn-p-prefix">ARCH</span>
+            <span class="fn-sep">_</span>
+            <span class="fn-part fn-p-name">AUDIT_DB_ACCESS</span>
+            <span class="fn-sep">_</span>
+            <span class="fn-part fn-p-date">20260319</span>
+            <span class="fn-sep">_</span>
+            <span class="fn-part fn-p-time">1045</span>
+            <span class="fn-part fn-p-ext" style="margin-left:2px;">.html</span>
+          </div>
+          <div class="fn-labels" style="margin-top:10px;">
+            <span class="fn-label" style="width:60px;">Typ</span>
+            <span class="fn-label" style="width:12px;"></span>
+            <span class="fn-label" style="width:175px;">Beschreibung</span>
+            <span class="fn-label" style="width:12px;"></span>
+            <span class="fn-label" style="width:80px;">Datum</span>
+            <span class="fn-label" style="width:12px;"></span>
+            <span class="fn-label" style="width:42px;">Zeit</span>
+            <span class="fn-label" style="width:46px;">Ext</span>
+          </div>
+        </div>
+        <!-- Legend chips -->
+        <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:var(--sp-2);">
+          <span style="font-size:11px;font-family:var(--font-mono);padding:3px 8px;border-radius:3px;background:#bfdbfe;">TYP</span>
+          <span style="font-size:11px;color:var(--text-secondary);">Kategorisierendes Kürzel: ARCH · DOC · AUDIT · BUG · JOURNAL</span>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:6px;">
+          <span style="font-size:11px;font-family:var(--font-mono);padding:3px 8px;border-radius:3px;background:#fde68a;">BESCHREIBUNG</span>
+          <span style="font-size:11px;color:var(--text-secondary);">Kurze, sprechende Beschreibung. SCREAMING_SNAKE_CASE. Max. 4 Wörter.</span>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:6px;">
+          <span style="font-size:11px;font-family:var(--font-mono);padding:3px 8px;border-radius:3px;background:#fca5a5;">DATUM</span>
+          <span style="font-size:11px;color:var(--text-secondary);">YYYYMMDD — Jahr, Monat, Tag ohne Trennzeichen. ISO 8601 kompakt.</span>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;margin-top:6px;">
+          <span style="font-size:11px;font-family:var(--font-mono);padding:3px 8px;border-radius:3px;background:#c4b5fd;">ZEIT</span>
+          <span style="font-size:11px;color:var(--text-secondary);">HHMM — Stunden und Minuten (24h) ohne Trennzeichen. Zeigt wann die Datei erstellt wurde.</span>
+        </div>
+      </div>
+
+      <!-- Live timestamp demo -->
+      <div class="ts-demo" aria-live="polite" aria-label="Aktueller Zeitstempel-Demo">
+        <span class="ts-demo-label">Aktueller Zeitstempel:</span>
+        <span class="ts-demo-value" id="ts-now">—</span>
+        <span class="ts-demo-label">→ Beispiel-Dateiname:</span>
+        <span class="ts-demo-filename" id="ts-filename">—</span>
+      </div>
+
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Suffix-Format: <code style="font-family:var(--font-mono);font-size:13px;">_YYYYMMDD_HHMM</code> — immer, ohne Ausnahme</div>
+            <div class="gl-rule-desc">
+              Jede Audit- und Dokumentations-HTML-Datei endet mit Datum und Uhrzeit der Erstellung im Format
+              <code style="font-family:var(--font-mono);font-size:12px;">_YYYYMMDD_HHMM</code> direkt vor der <code style="font-family:var(--font-mono);font-size:12px;">.html</code>-Extension.
+              Die Zeit wird in der lokalen Zeitzone des Erstellers zum Zeitpunkt der Erstellung eingetragen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  ARCH_AUDIT_DB_ACCESS_20260319_1045.html</span>
+<span class="c-ok">✅  DOC_ESCROW_SYSTEM_20260317_0830.html</span>
+<span class="c-ok">✅  AUDIT_CODE_QUALITY_20260315_2130.html</span>
+<span class="c-bad">❌  code-quality-audit.html              /* kein Zeitstempel */</span>
+<span class="c-bad">❌  audit_2026.html                      /* unvollständig — kein Tag, keine Zeit */</span>
+<span class="c-bad">❌  audit_19-03-2026_10:45.html          /* falsches Format */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dateinamen: SCREAMING_SNAKE_CASE — nur Großbuchstaben, Ziffern und Unterstriche</div>
+            <div class="gl-rule-desc">
+              Keine Leerzeichen, keine Bindestriche, keine Sonderzeichen.
+              Alle Buchstaben groß. Unterstriche als Trennzeichen zwischen den Segmenten.
+              Grund: Dateinamen müssen auf allen Betriebssystemen, in URLs und in der Versionsverwaltung
+              eindeutig und konsistent sortierbar sein.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  DOC_BOOKING_SYSTEM_20260317_0830.html</span>
+<span class="c-bad">❌  doc-booking-system-2026-03-17.html    /* Bindestriche */</span>
+<span class="c-bad">❌  Doc Booking System 20260317.html      /* Leerzeichen */</span>
+<span class="c-bad">❌  doc_booking_system_20260317.html      /* Kleinbuchstaben */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Typ-Präfix als erstes Segment — kontrolliertes Vokabular</div>
+            <div class="gl-rule-desc">Das erste Segment klassifiziert den Inhalt. Nur diese Werte sind erlaubt:</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Präfix</th><th>Bedeutung</th><th>Beispiel</th></tr></thead>
+              <tbody>
+                <tr><td><code style="font-family:var(--font-mono);">AUDIT</code></td><td>Technischer Audit eines Systems, einer Komponente oder des Codes</td><td><code style="font-family:var(--font-mono);font-size:11px;">AUDIT_CODE_QUALITY_20260315_2130.html</code></td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">ARCH</code></td><td>Architektur-Audit oder architektonische Analyse</td><td><code style="font-family:var(--font-mono);font-size:11px;">ARCH_AUDIT_DB_ACCESS_20260319_1045.html</code></td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">DOC</code></td><td>Technische Dokumentation eines Features, Systems oder Prozesses</td><td><code style="font-family:var(--font-mono);font-size:11px;">DOC_ESCROW_OVERVIEW_20260317_0853.html</code></td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">BUG</code></td><td>Bug-Report oder Bug-Analyse mit Kontext und Lösung</td><td><code style="font-family:var(--font-mono);font-size:11px;">BUG_WALLET_BOOKING_20260317_0120.html</code></td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">JOURNAL</code></td><td>Entwicklungs-Journal, Handoff-Dokument, Session-Protokoll</td><td><code style="font-family:var(--font-mono);font-size:11px;">JOURNAL_HANDOFF_20260317_1200.html</code></td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">PLAN</code></td><td>Implementierungs- oder Refactoring-Plan</td><td><code style="font-family:var(--font-mono);font-size:11px;">PLAN_ESCROW_BUGFIX_20260317_0122.html</code></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. ORDNERSTRUKTUR ──────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-folder">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-folder">3. Ordnerstruktur</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-arch" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🟢 Arch</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alle Audit- und Dokumentationsdateien leben in <code style="font-family:var(--font-mono);font-size:13px;">HTML/Doc/</code></div>
+            <div class="gl-rule-desc">
+              Der bestehende <code style="font-family:var(--font-mono);font-size:12px;">Doc/</code>-Ordner ist der einzige Ablageort.
+              Keine Audit-Dateien im Root, in <code style="font-family:var(--font-mono);font-size:12px;">js/</code>, in <code style="font-family:var(--font-mono);font-size:12px;">css/</code> oder neben den HTML-Seiten.
+              Bug-Reports im Unterordner <code style="font-family:var(--font-mono);font-size:12px;">HTML/Bugs/</code> folgen denselben Namensregeln.
+            </div>
+            <div class="gl-code-block"><code>HTML/
+├── Doc/
+│   ├── <span class="c-ok">ARCH_AUDIT_DB_ACCESS_20260319_1045.html</span>
+│   ├── <span class="c-ok">DOC_ESCROW_OVERVIEW_20260317_0853.html</span>
+│   ├── <span class="c-ok">PLAN_ESCROW_BUGFIX_20260317_0122.html</span>
+│   └── <span class="c-ok">JOURNAL_HANDOFF_20260317_1200.html</span>
+└── Bugs/
+    ├── <span class="c-ok">BUG_WALLET_BOOKING_20260317_0120.html</span>
+    └── <span class="c-ok">BUG_STUDENT_BOOKING_20260316_1406.html</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Keine Unterordner innerhalb von <code style="font-family:var(--font-mono);font-size:13px;">Doc/</code> — Flache Struktur</div>
+            <div class="gl-rule-desc">
+              Der Typ-Präfix und der Zeitstempel im Dateinamen ersetzen Unterordner.
+              Alle Dateien in einer Ebene — sortierbar nach Datum allein durch alphabetische Sortierung.
+              Ausnahme: <code style="font-family:var(--font-mono);font-size:12px;">Bugs/</code> als separater Ordner für Bug-Reports ist etabliert und bleibt.
+            </div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 4. INHALT & AUFBAU ─────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-content">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-content">4. Inhalt &amp; Aufbau</h2>
+        <span class="gl-section-count">3 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Jede Audit/Doc-Datei enthält im <code style="font-family:var(--font-mono);font-size:13px;">&lt;head&gt;</code> einen Metadaten-Block</div>
+            <div class="gl-rule-desc">
+              Drei Pflicht-Meta-Tags direkt nach <code style="font-family:var(--font-mono);font-size:12px;">&lt;meta charset&gt;</code> — damit Erstellungsdatum,
+              Autor und Version maschinell lesbar sind.
+            </div>
+            <div class="gl-code-block"><code><span class="c-key">&lt;meta</span> name=<span class="c-val">"doc-created"</span>  content=<span class="c-val">"2026-03-19T10:45"</span><span class="c-key">&gt;</span>
+<span class="c-key">&lt;meta</span> name=<span class="c-val">"doc-type"</span>     content=<span class="c-val">"ARCH"</span><span class="c-key">&gt;</span>          <span class="c-cmt">&lt;!-- AUDIT|ARCH|DOC|BUG|JOURNAL|PLAN --&gt;</span>
+<span class="c-key">&lt;meta</span> name=<span class="c-val">"doc-subject"</span>  content=<span class="c-val">"Datenbankzugriff-Audit"</span><span class="c-key">&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Sichtbarer Erstellungszeitstempel im Dokument-Header</div>
+            <div class="gl-rule-desc">
+              Datum und Uhrzeit der Erstellung müssen als sichtbarer Text im Header der HTML-Seite erscheinen —
+              zusätzlich zum Zeitstempel im Dateinamen. Beide müssen übereinstimmen.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">&lt;!-- Beispiel Header-Bereich --&gt;</span>
+<span class="c-key">&lt;header&gt;</span>
+  <span class="c-key">&lt;h1&gt;</span>Datenbankzugriff-Audit<span class="c-key">&lt;/h1&gt;</span>
+  <span class="c-key">&lt;p</span> class=<span class="c-val">"doc-meta"</span><span class="c-key">&gt;</span>
+    Erstellt: <span class="c-key">&lt;time</span> datetime=<span class="c-val">"2026-03-19T10:45"</span><span class="c-key">&gt;</span>19. März 2026, 10:45<span class="c-key">&lt;/time&gt;</span>
+  <span class="c-key">&lt;/p&gt;</span>
+<span class="c-key">&lt;/header&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Aufbau-Empfehlung: Kontext → Befunde → Maßnahmen</div>
+            <div class="gl-rule-desc">
+              Für Audits und Bug-Reports gilt diese Struktur als Best Practice — sie macht die Datei
+              schnell überfliegen ohne alle Details lesen zu müssen.
+            </div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Abschnitt</th><th>Inhalt</th><th>Pflicht?</th></tr></thead>
+              <tbody>
+                <tr><td>Zusammenfassung</td><td>1–3 Sätze was untersucht wurde und was das Ergebnis ist</td><td>Ja</td></tr>
+                <tr><td>Kontext</td><td>Welche Dateien/Systeme betroffen, welche Version, welcher Zeitraum</td><td>Ja</td></tr>
+                <tr><td>Befunde</td><td>Konkrete Fundstellen — Datei, Zeile, Code-Snippet</td><td>Ja</td></tr>
+                <tr><td>Bewertung</td><td>Schweregrad (kritisch/mittel/niedrig), Priorität</td><td>Ja für Audits</td></tr>
+                <tr><td>Maßnahmen</td><td>Priorisierter Fix-Plan mit konkreten Schritten</td><td>Ja für Audits</td></tr>
+                <tr><td>Offene Punkte</td><td>Was noch nicht behoben ist und warum</td><td>Soft</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 5. MIGRATION — BESTEHENDE DATEIEN ─────────────── -->
+    <section class="gl-section" aria-labelledby="sec-migration">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-migration">5. Migration — Bestehende Dateien</h2>
+        <span class="gl-section-count">2 Regeln</span>
+      </div>
+      <div class="gl-callout gl-callout-warn">
+        <strong>Bestand im Doc/-Ordner:</strong> Es gibt bereits ~60 Dokumentations- und Audit-Dateien
+        im <code style="font-family:var(--font-mono);">Doc/</code>-Ordner die diese Regel noch nicht einhalten
+        (keine Zeitstempel im Namen, gemischte Formate). Diese müssen nicht sofort umbenannt werden,
+        aber es gilt: ab sofort gilt die Regel für alle neuen Dateien.
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Bestehende .txt/.md-Dateien: bei nächster Bearbeitung zu .html migrieren</div>
+            <div class="gl-rule-desc">
+              Beim nächsten inhaltlichen Update einer bestehenden Dokumentations- oder Audit-Datei
+              wird sie in eine neue HTML-Datei mit korrektem Zeitstempel überführt.
+              Die alte Datei kann gelöscht oder als <code style="font-family:var(--font-mono);font-size:12px;">_DEPRECATED</code>-Suffix behalten werden.
+            </div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Neue Dateien ab sofort immer nach dieser Guideline — keine Ausnahmen</div>
+            <div class="gl-rule-desc">
+              Jede neue Dokumentations- oder Audit-Datei die ab heute erstellt wird,
+              folgt den Regeln dieser Guideline. Es gibt keine Übergangsphase für neue Dateien.
+            </div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 6. VOLLSTÄNDIGES BEISPIEL ─────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-example">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-example">6. Vollständiges Dateiname-Beispiel</h2>
+      </div>
+      <div class="gl-callout gl-callout-ok">
+        <strong>Richtige Benennung auf einen Blick:</strong> Dateiname sagt ohne Öffnen aus:
+        was es ist, worüber, wann erstellt.
+      </div>
+      <div style="overflow-x:auto;border-radius:var(--radius-md);border:1px solid var(--border);">
+        <table class="example-files">
+          <thead>
+            <tr><th>Dateiname</th><th>Typ</th><th>Erstellt</th><th>Thema</th><th>Korrekt?</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ARCH_AUDIT_DB_ACCESS_20260319_1045.html</code></td>
+              <td>Architektur-Audit</td><td>19.03.2026 · 10:45</td>
+              <td>Datenbankzugriffe im Consumer-Code</td>
+              <td class="ok">✅ Korrekt</td>
+            </tr>
+            <tr>
+              <td><code>DOC_ESCROW_OVERVIEW_20260317_0853.html</code></td>
+              <td>Dokumentation</td><td>17.03.2026 · 08:53</td>
+              <td>Escrow-System Übersicht</td>
+              <td class="ok">✅ Korrekt</td>
+            </tr>
+            <tr>
+              <td><code>BUG_WALLET_BOOKING_20260317_0120.html</code></td>
+              <td>Bug-Report</td><td>17.03.2026 · 01:20</td>
+              <td>Wallet-Buchungs-Bug</td>
+              <td class="ok">✅ Korrekt</td>
+            </tr>
+            <tr>
+              <td><code>PLAN_ESCROW_BUGFIX_20260317_0122.html</code></td>
+              <td>Fix-Plan</td><td>17.03.2026 · 01:22</td>
+              <td>Escrow-Bugfix-Plan</td>
+              <td class="ok">✅ Korrekt</td>
+            </tr>
+            <tr>
+              <td><code>JOURNAL_HANDOFF_20260317_1200.html</code></td>
+              <td>Journal/Handoff</td><td>17.03.2026 · 12:00</td>
+              <td>Übergabe-Dokumentation</td>
+              <td class="ok">✅ Korrekt</td>
+            </tr>
+            <tr>
+              <td><code>escrow-übersicht.html</code></td>
+              <td>—</td><td>unbekannt</td><td>unklar</td>
+              <td class="bad">⛔ Kein Typ, kein Zeitstempel, Sonderzeichen</td>
+            </tr>
+            <tr>
+              <td><code>wallet-debug.txt</code></td>
+              <td>—</td><td>unbekannt</td><td>unklar</td>
+              <td class="bad">⛔ Falsches Format (.txt), kein Zeitstempel</td>
+            </tr>
+            <tr>
+              <td><code>HANDOFF_17032026.txt</code></td>
+              <td>—</td><td>17.03.2026</td><td>Handoff</td>
+              <td class="bad">⛔ Falsches Format (.txt), keine Zeit, kein Typ-Präfix</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ── 7. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-forbidden">7. Verbotene Muster</h2>
+        <span class="gl-section-count">4 Einträge</span>
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Audit- oder Dokumentationsdateien ohne Zeitstempel im Dateinamen</div>
+            <div class="gl-rule-desc">Dateien ohne <code style="font-family:var(--font-mono);font-size:12px;">_YYYYMMDD_HHMM</code>-Suffix sind nicht konform — egal wie gut der Dateiinhalt strukturiert ist.</div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Dokumentationen als .txt oder .md speichern</div>
+            <div class="gl-rule-desc">Plain-Text und Markdown haben kein einheitliches Rendering. Tabellen, Code-Blöcke und Struktur sind in HTML zuverlässiger und konsistenter darstellbar.</div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Zeitstempel im Dateiinhalt ohne Übereinstimmung mit dem Dateinamen</div>
+            <div class="gl-rule-desc">Wenn im <code style="font-family:var(--font-mono);font-size:12px;">&lt;meta name="doc-created"&gt;</code> ein anderes Datum steht als im Dateinamen, ist die Datei inkonsistent. Beide müssen identisch sein.</div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Nachträgliches Ändern des Zeitstempels im Dateinamen</div>
+            <div class="gl-rule-desc">Der Zeitstempel dokumentiert wann die Datei erstellt wurde — er darf nicht beim nächsten Update geändert werden. Für Updates: neue Datei mit neuem Zeitstempel erstellen.</div>
+          </div>
+          <span class="gl-rule-source">Neue Guideline</span>
+        </article>
+      </div>
+    </section>
+
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_AUDIT.html · Stand: März 2026 · Neue Guideline — gilt ab sofort für alle neuen Audit- und Dokumentationsdateien</span>
+      <span class="gl-footer-text">← <a href="GUIDELINE_NEW_ARCHITECTURE.html">Architektur</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+<script>
+/* Live timestamp demo — zeigt aktuellen Zeitstempel im YYYYMMDD_HHMM-Format */
+(function() {
+  'use strict';
+  function pad(n) { return n < 10 ? '0' + n : String(n); }
+  function update() {
+    var now = new Date();
+    var ts =
+      now.getFullYear() +
+      pad(now.getMonth() + 1) +
+      pad(now.getDate()) + '_' +
+      pad(now.getHours()) +
+      pad(now.getMinutes());
+    var readable =
+      pad(now.getDate()) + '.' +
+      pad(now.getMonth() + 1) + '.' +
+      now.getFullYear() + ' · ' +
+      pad(now.getHours()) + ':' +
+      pad(now.getMinutes());
+    var tsEl = document.getElementById('ts-now');
+    var fnEl = document.getElementById('ts-filename');
+    if (tsEl) tsEl.textContent = readable;
+    if (fnEl) fnEl.textContent = 'DOC_BEISPIEL_' + ts + '.html';
+  }
+  update();
+  setInterval(update, 30000); /* refresh every 30s */
+}());
+</script>
+
+</body>
+</html>

@@ -1,0 +1,431 @@
+/* ════════════════════════════════════════════════════
+   financial.css — Teacher Financial Planner
+   v=1
+════════════════════════════════════════════════════ */
+
+/* ── Page layout ─────────────────────────────────── */
+.fin-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--sp-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.fin-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+.fin-page-title {
+  font-size: 24px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -.5px;
+  color: var(--neutral-900);
+}
+.fin-page-subtitle {
+  font-size: 13px;
+  color: var(--neutral-500);
+  margin-top: 2px;
+}
+.fin-refresh-btn {
+  flex-shrink: 0;
+}
+
+/* ── Wallet hero card ────────────────────────────── */
+.fin-wallet-hero {
+  background: var(--color-900);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-4);
+  color: var(--neutral-0);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.fin-wallet-hero-label {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  opacity: .6;
+  margin-bottom: 6px;
+}
+.fin-wallet-hero-amount {
+  font-size: var(--text-hero);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.fin-wallet-hero-currency {
+  font-size: var(--text-body);
+  opacity: .7;
+  font-weight: 400;
+  margin-left: 4px;
+}
+.fin-wallet-hero-icon {
+  font-size: 40px;
+  opacity: .2;
+  flex-shrink: 0;
+}
+
+/* ── KPI cards grid ──────────────────────────────── */
+.fin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+}
+@media (max-width: 600px) {
+  .fin-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.fin-kpi-card {
+  position: relative;
+  border-radius: var(--radius);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  border: 1px solid transparent;
+  overflow: hidden;
+  min-height: 88px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.fin-kpi-label {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .7px;
+  opacity: .7;
+}
+.fin-kpi-value {
+  font-size: 20px;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -.5px;
+  line-height: 1.1;
+  margin-top: 2px;
+}
+.fin-kpi-sub {
+  font-size: 11px;
+  opacity: .65;
+}
+.fin-kpi-icon {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  font-size: 20px;
+  opacity: .18;
+  user-select: none;
+}
+
+.fin-kpi--confirmed  { background: var(--status-confirmed-bg); border-color: var(--status-confirmed-bd); color: var(--status-confirmed-tx); }
+.fin-kpi--held       { background: var(--status-pending-bg); border-color: var(--status-held-bd); color: var(--rank-1-tx); }
+.fin-kpi--pending    { background: var(--status-info-bg); border-color: var(--status-info-bd); color: var(--status-info-tx); }
+.fin-kpi--future     { background: var(--status-future-bg); border-color: var(--status-future-bd); color: var(--status-future-tx); }
+.fin-kpi--refund     { background: var(--rank-3-bg); border-color: var(--status-failed-bd); color: var(--rank-3-tx); }
+
+/* ── Section card ────────────────────────────────── */
+.fin-section {
+  background: var(--neutral-0);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.fin-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.fin-section-title {
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-800);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.fin-section-title svg { color: var(--color-400); }
+
+/* ── Monthly bar chart ───────────────────────────── */
+.fin-months-grid {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  height: 160px;
+}
+.fin-month-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.fin-month-bar-wrap {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  flex: 1;
+  gap: 3px;
+}
+.fin-month-bar {
+  width: 40%;
+  border-radius: 4px 4px 0 0;
+  min-height: 3px;
+  transition: height .4s cubic-bezier(.4,0,.2,1);
+}
+.fin-month-bar--confirmed { background: var(--chart-confirmed); }
+.fin-month-bar--booked    { background: var(--chart-booked); }
+.fin-month-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--neutral-400);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.fin-month-amt {
+  font-size: 10px;
+  color: var(--neutral-500);
+  white-space: nowrap;
+}
+.fin-chart-legend {
+  display: flex;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-4) var(--sp-3);
+  flex-wrap: wrap;
+}
+.fin-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--neutral-500);
+}
+.fin-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Top students ────────────────────────────────── */
+.fin-top-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.fin-top-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--neutral-50);
+}
+.fin-top-item:last-child { border-bottom: none; }
+.fin-top-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--neutral-100);
+  color: var(--neutral-500);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.fin-top-rank--1 { background: var(--rank-1-bg); color: var(--rank-1-tx); }
+.fin-top-rank--2 { background: var(--rank-2-bg); color: var(--rank-2-tx); }
+.fin-top-rank--3 { background: var(--rank-3-bg); color: var(--rank-3-tx); }
+.fin-top-name { flex: 1; font-size: 13px; font-weight: 600; color: var(--neutral-800); }
+.fin-top-slots { font-size: 12px; color: var(--neutral-500); }
+.fin-top-amount { font-size: 13px; font-weight: var(--weight-semibold); color: var(--neutral-700); text-align: right; }
+
+/* ── Booking + TX filter bar ─────────────────────── */
+.fin-filter-bar {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.fin-filter-chip {
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--neutral-200);
+  background: var(--neutral-50);
+  color: var(--neutral-600);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+@media (hover: hover) and (pointer: fine) {
+  .fin-filter-chip:hover  { background: var(--neutral-100); }
+}
+.fin-filter-chip.active {
+  background: var(--color-900);
+  border-color: var(--color-900);
+  color: var(--neutral-0);
+}
+
+/* ── Empty state ─────────────────────────────────── */
+.fin-empty {
+  padding: var(--sp-4);
+  text-align: center;
+  color: var(--neutral-400);
+  font-size: 13px;
+}
+
+/* ── Booking rows (reuse wallet-tx-* classes) ────── */
+.fin-booking-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── KPI card clickable + active state ───────────── */
+.fin-kpi-card[data-kpi] {
+  cursor: pointer;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .fin-kpi-card[data-kpi]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,.08);
+  }
+}
+.fin-kpi-card.is-active {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0,0,0,.06);
+  transform: translateY(-1px);
+}
+
+/* ── Day divider in bookings ─────────────────────── */
+.fin-day-divider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px var(--sp-4) 4px;
+  background: var(--neutral-50);
+  border-bottom: 1px solid var(--neutral-100);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.fin-day-label {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: var(--neutral-500);
+}
+.fin-day-total {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-600);
+}
+
+/* ── Booking header row (active label + count) ───── */
+.fin-bk-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px var(--sp-4) 6px;
+  min-height: 24px;
+}
+.fin-bk-active-label {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  color: var(--accent, #2563eb);
+}
+.fin-bk-count {
+  font-size: 11px;
+  color: var(--neutral-400);
+}
+
+/* ── Extra info row in drill-down ────────────────── */
+.fin-extra-info {
+  color: var(--accent, #2563eb) !important;
+  font-weight: 600 !important;
+}
+
+/* ── Booking row hover ───────────────────────────── */
+.fin-bk-row { transition: background var(--transition); }
+@media (hover: hover) and (pointer: fine) {
+  .fin-bk-row:hover { background: var(--neutral-50); }
+}
+
+/* ── Date range row (Von / Bis) ──────────────────── */
+.fin-date-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-2) var(--sp-4);
+  border-bottom: 1px solid var(--neutral-100);
+}
+.fin-date-sub-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.fin-date-label {
+  font-size: var(--text-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--neutral-500);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.fin-date-input {
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  color: var(--neutral-700);
+  border: 1px solid var(--neutral-200);
+  border-radius: var(--radius-sm);
+  padding: 4px var(--sp-2);
+  background: var(--neutral-0);
+  cursor: pointer;
+  flex: 1;
+  min-width: 120px;
+  max-width: 160px;
+}
+.fin-date-input:focus {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-color: var(--color-400);
+}
+.fin-date-reset {
+  color: var(--neutral-500);
+  padding: 4px var(--sp-2);
+  flex-shrink: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .fin-date-reset:hover { color: var(--neutral-900); }
+}
+
+/* ── Status badges (replaces inline styles) ──────── */
+.fin-status-confirmed {
+  color: var(--ok, #16a34a);
+  font-weight: var(--weight-semibold);
+}
+.fin-status-pending {
+  color: var(--warn, #d97706);
+  font-weight: var(--weight-semibold);
+}
+
+/* ── Replaces inline styles (P3-C fix) ───────────────────── */
+.fin-error       { padding: var(--sp-7) var(--sp-4); text-align: center; color: var(--neutral-400); }
+.fin-chart-total { font-size: var(--text-caption); color: var(--neutral-400); }
+.fin-legend-dot--confirmed { background: var(--chart-confirmed); }
+.fin-legend-dot--booked    { background: var(--chart-booked); }

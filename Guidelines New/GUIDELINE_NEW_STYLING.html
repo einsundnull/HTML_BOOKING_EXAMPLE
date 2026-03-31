@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GUIDELINE_NEW — Styling & Layout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="GUIDELINE_NEW_shared.css">
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────── -->
+<nav class="gl-nav" aria-label="Guideline Navigation">
+  <span class="gl-nav-brand">GUIDELINE_NEW</span>
+  <!-- Desktop links -->
+  <ul class="gl-nav-links" role="list">
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-dot gl-nav-dot-red" aria-hidden="true"></span><span class="label">Styling</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-dot gl-nav-dot-green" aria-hidden="true"></span><span class="label">Architektur</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-dot gl-nav-dot-blue" aria-hidden="true"></span><span class="label">i18n</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-dot gl-nav-dot-orange" aria-hidden="true"></span><span class="label">Dialoge</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-dot" style="background:#a855f7;" aria-hidden="true"></span><span class="label">Mobile</span>
+    </a></li>
+    <li><a class="gl-nav-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-dot" style="background:#b45309;" aria-hidden="true"></span><span class="label">Audit</span>
+    </a></li>
+  </ul>
+  <!-- Mobile hamburger -->
+  <button class="gl-nav-toggle" id="gl-nav-toggle"
+          aria-expanded="false" aria-label="Navigation öffnen"
+          aria-controls="gl-nav-mobile">
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+    <span class="gl-nav-toggle-bar"></span>
+  </button>
+</nav>
+<!-- Mobile nav drawer -->
+<nav class="gl-nav-mobile" id="gl-nav-mobile" aria-label="Mobile Navigation">
+  <ul class="gl-nav-mobile-links" role="list">
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_STYLING.html" data-page="GUIDELINE_NEW_STYLING.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-red"></span>Styling
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_ARCHITECTURE.html" data-page="GUIDELINE_NEW_ARCHITECTURE.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-green"></span>Architektur
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_I18N.html" data-page="GUIDELINE_NEW_I18N.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-blue"></span>i18n
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_DIALOGS.html" data-page="GUIDELINE_NEW_DIALOGS.html">
+      <span class="gl-nav-mobile-dot gl-nav-dot-orange"></span>Dialoge
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_MOBILE.html" data-page="GUIDELINE_NEW_MOBILE.html">
+      <span class="gl-nav-mobile-dot" style="background:#a855f7;"></span>Mobile
+    </a></li>
+    <li><a class="gl-nav-mobile-link" href="GUIDELINE_NEW_AUDIT.html" data-page="GUIDELINE_NEW_AUDIT.html">
+      <span class="gl-nav-mobile-dot" style="background:#b45309;"></span>Audit
+    </a></li>
+  </ul>
+</nav>
+<div class="gl-nav-overlay" id="gl-nav-overlay" aria-hidden="true"></div>
+
+<!-- ── Page ───────────────────────────────────────────────── -->
+<main class="gl-page">
+  <div class="gl-container">
+
+    <!-- Header -->
+    <header class="gl-page-header">
+      <div class="gl-page-eyebrow">
+        <span class="gl-page-eyebrow-dot" style="background:var(--hard-badge);" aria-hidden="true"></span>
+        Guideline · Styling &amp; Layout
+      </div>
+      <h1 class="gl-page-title">Styling &amp; Layout</h1>
+      <p class="gl-page-subtitle">
+        Alle visuellen Regeln dieses Projekts — von der Farbe bis zum Grid. Diese Datei ersetzt
+        <em>UI-Guide Lines Premium, Guideline_Layout_and_Styling, STYLE-GUIDE, Styling-Guide</em> und <em>STYLE-DESCRIPTION</em>.
+        Hard-Rules sind nicht verhandelbar. Soft-Rules erfordern eine Begründung bei Abweichung.
+      </p>
+      <div class="gl-page-meta">
+        <span class="gl-badge gl-badge-hard">🔴 Hard-Rule</span>
+        <span class="gl-badge gl-badge-soft">🔵 Soft-Rule</span>
+        <span class="gl-badge gl-badge-neg">⛔ Verboten</span>
+        <span class="gl-badge gl-badge-neutral">Stand: März 2026</span>
+      </div>
+    </header>
+
+    <!-- Legend -->
+    <div class="gl-legend" role="list" aria-label="Regeltypen-Legende">
+      <div class="gl-legend-item gl-legend-item-hard" role="listitem">
+        <div class="gl-legend-label">🔴 Hard-Rule</div>
+        <div class="gl-legend-desc">Nicht verhandelbar. Immer einhalten. Keine Ausnahmen ohne Architekturentscheidung.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-soft" role="listitem">
+        <div class="gl-legend-label">🔵 Soft-Rule</div>
+        <div class="gl-legend-desc">Starke Empfehlung. Abweichung erfordert eine dokumentierte Begründung.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-arch" role="listitem">
+        <div class="gl-legend-label">🟢 Arch-Rule</div>
+        <div class="gl-legend-desc">Strukturell unveränderlich. Betrifft Dateien, Schichten und Konventionen.</div>
+      </div>
+      <div class="gl-legend-item gl-legend-item-neg" role="listitem">
+        <div class="gl-legend-label">⛔ Verboten</div>
+        <div class="gl-legend-desc">Explizit verboten. Bricht Konsistenz, Wartbarkeit oder das Token-System.</div>
+      </div>
+    </div>
+
+    <!-- ── 1. TYPOGRAFIE ──────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-typo">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-typo">1. Typografie</h2>
+        <span class="gl-section-count">5 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Font: ausschließlich Figtree — kein zweiter Font</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">font-family: 'Figtree', sans-serif</code> ist der einzige erlaubte Font im gesamten Projekt.
+              Kein zweiter Schriftzug, kein System-Font außerhalb von Monospace-Ausnahmen (Code-Blöcke: JetBrains Mono).
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  --font: 'Figtree', sans-serif;</span>
+<span class="c-bad">❌  font-family: Inter, Arial, system-ui;  /* verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium · Layout · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Nur 2 Gewichte: 400 Regular + 600 Semibold</div>
+            <div class="gl-rule-desc">
+              Das 4-2-Prinzip. Drittes Gewicht (z.B. 500 Medium) ist verboten — auch nicht über <code style="font-family:var(--font-mono);font-size:12px;">opacity</code>
+              oder <code style="font-family:var(--font-mono);font-size:12px;">filter</code> annähern.
+            </div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  --weight-regular: 400;   /* Fließtext, Captions */</span>
+<span class="c-ok">✅  --weight-semibold: 600;  /* Headlines, CTAs, Nav */</span>
+<span class="c-bad">❌  font-weight: 500;         /* verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Genau 4 Schriftgrößen — alle durch 4 teilbar</div>
+            <div class="gl-rule-desc">Display 48px · Heading 24px · Body 16px · Caption 12px. Keine Zwischengrößen (z.B. 14px, 18px, 20px). Alle Größen via Token.</div>
+            <div class="gl-code-block"><code><span class="c-key">--text-display:</span> <span class="c-val">48px</span><span class="c-cmt">  /* Hero, Seitentitel */</span>
+<span class="c-key">--text-heading:</span> <span class="c-val">24px</span><span class="c-cmt">  /* Section-Titel, Card-Titel */</span>
+<span class="c-key">--text-body:   </span> <span class="c-val">16px</span><span class="c-cmt">  /* Fließtext, Beschreibungen */</span>
+<span class="c-key">--text-caption:</span> <span class="c-val">12px</span><span class="c-cmt">  /* Labels, Metadaten, Timestamps */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium · Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Schriftgrößen immer als CSS-Token — niemals hardcoded</div>
+            <div class="gl-rule-desc">Jede Schriftgröße im CSS referenziert einen Token. Keine <code style="font-family:var(--font-mono);font-size:12px;">font-size: 16px</code> direkt im Component-CSS.</div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE · Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">iOS: <code style="font-family:var(--font-mono);font-size:12px;">-webkit-text-size-adjust: 100%</code> auf html</div>
+            <div class="gl-rule-desc">Verhindert automatische Schriftgrößenanpassung im iOS-Safari bei Landscape-Rotation. Gehört in den globalen Reset.</div>
+          </div>
+          <span class="gl-rule-source">Premium · iOS-Fixes</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 2. FARBE ───────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-color">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-color">2. Farbe</h2>
+        <span class="gl-section-count">6 Regeln</span>
+      </div>
+
+      <div class="gl-callout gl-callout-info">
+        <strong>Single-Hue-Methode (Eric Kennedy):</strong> Alle Farben entstehen aus einer einzigen Basis-Hue (Navy <code style="font-family:var(--font-mono);">#060f1c</code>, HSL 216).
+        Tints (heller) reduzieren Sättigung. Shades (dunkler) halten oder erhöhen sie leicht. Niemals eine zweite Hue einführen.
+      </div>
+
+      <div class="gl-swatches" aria-label="Brand Color Scale">
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#f0f3f7;"></div><div class="gl-swatch-label">50<br>#f0f3f7</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#dde4ed;"></div><div class="gl-swatch-label">100</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#bccada;"></div><div class="gl-swatch-label">200</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#8fa9c0;"></div><div class="gl-swatch-label">300</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#4d7aa0;"></div><div class="gl-swatch-label">400<br>Accent</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#3a6285;"></div><div class="gl-swatch-label">500<br>Hover</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#2b4d6b;"></div><div class="gl-swatch-label">600<br>Active</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#1a3249;"></div><div class="gl-swatch-label">700</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#0f2035;"></div><div class="gl-swatch-label">800</div></div>
+        <div class="gl-swatch"><div class="gl-swatch-color" style="background:#060f1c;"></div><div class="gl-swatch-label">900<br>Base</div></div>
+      </div>
+
+      <div class="gl-rules" role="list" style="margin-top:var(--sp-3);">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Nur eine Hue: Navy #060f1c — keine zweite Hue</div>
+            <div class="gl-rule-desc">Die gesamte Farbpalette besteht aus Tints und Shades dieser einen Basis. Kein zweites Blau, kein Grün für Akzente, keine branchenfremden Farben.</div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alle Farben als CSS-Tokens — niemals Hex-Werte direkt im Component-CSS</div>
+            <div class="gl-rule-desc">Hex-Werte nur in <code style="font-family:var(--font-mono);font-size:12px;">tokens.css</code> innerhalb der <code style="font-family:var(--font-mono);font-size:12px;">:root</code>-Definition. Jede andere CSS-Datei referenziert ausschließlich Tokens.</div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  color: var(--text-primary);</span>
+<span class="c-bad">❌  color: #0d1117;  /* hardcoded — verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · STYLE-GUIDE</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">60-30-10 Farbverteilung auf jeder Seite</div>
+            <div class="gl-rule-desc">
+              60 % Neutral (Hintergründe, Card-Surfaces) — 30 % Komplementär (Text, Navigation, Footer) — 10 % Accent (Buttons, Links, Fokusringe, aktive Indikatoren).
+            </div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Rolle</th><th>%</th><th>Tokens</th><th>Beispiele</th></tr></thead>
+              <tbody>
+                <tr><td>Neutral</td><td>60 %</td><td><code style="font-family:var(--font-mono);">neutral-0 — neutral-100</code></td><td>Page-bg, Card-Surface, White-Space</td></tr>
+                <tr><td>Komplementär</td><td>30 %</td><td><code style="font-family:var(--font-mono);">color-800/900, neutral-700–900</code></td><td>Text, Navbar, Footer, Sidebar</td></tr>
+                <tr><td>Accent</td><td>10 %</td><td><code style="font-family:var(--font-mono);">color-400, color-500</code></td><td>CTAs, Links, Fokusring, aktive States</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Premium · Styling-Guide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Keine Gradients. Nur flache, einfarbige Fills.</div>
+            <div class="gl-rule-desc">Tiefe entsteht durch Spacing und Kontrast — nicht durch Farbverläufe oder Texturen. Shadows sind erlaubt, aber subtil: <code style="font-family:var(--font-mono);font-size:12px;">0 1px 3px rgba(6,15,28,0.08)</code>.</div>
+          </div>
+          <span class="gl-rule-source">Premium · Styling-Guide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Kontrast ≥ 4.5:1 für Fließtext (WCAG AA)</div>
+            <div class="gl-rule-desc">Headings nie grau. Muted-Text (<code style="font-family:var(--font-mono);font-size:12px;">neutral-500</code>) nur für sekundäre, nicht-kritische Inhalte. Basis-Textfarbe: <code style="font-family:var(--font-mono);font-size:12px;">neutral-900</code> oder <code style="font-family:var(--font-mono);font-size:12px;">color-900</code>.</div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Danger / Success Tokens für Fehler- und Erfolgszustände</div>
+            <div class="gl-rule-desc">Eigene Token-Skala (<code style="font-family:var(--font-mono);font-size:12px;">--danger-*, --success-*</code>) in <code style="font-family:var(--font-mono);font-size:12px;">tokens.css</code>. Diese Farben abgeleitet aus bestehenden Rot-/Grün-Werten halten — nicht eigenständige neue Hues einführen.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 3. SPACING ─────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-spacing">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-spacing">3. Spacing — 8pt Grid</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Alle Abstände durch 4 oder 8 teilbar — keine Ausnahmen</div>
+            <div class="gl-rule-desc">15px, 22px, 7px, 13px sind verboten. Jeder Margin, Padding, Gap im gesamten CSS muss auf der Skala liegen.</div>
+            <table class="gl-compare" style="margin-top:var(--sp-2);">
+              <thead><tr><th>Token</th><th>Wert</th><th>Verwendung</th></tr></thead>
+              <tbody>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-1</code></td><td>4px</td><td>Icon-Padding, enge inline Gaps</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-2</code></td><td>8px</td><td>Label ↔ Icon, Input-Padding</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-3</code></td><td>16px</td><td>Elemente <em>innerhalb</em> einer Gruppe</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-4</code></td><td>24px</td><td>Card-internes Padding</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-5</code></td><td>32px</td><td>Zwischen Gruppen / Komponenten</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-6</code></td><td>48px</td><td>Section-Padding (Mobile)</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-7</code></td><td>64px</td><td>Section-Padding (Desktop)</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-8</code></td><td>96px</td><td>Große Layout-Trennung</td></tr>
+                <tr><td><code style="font-family:var(--font-mono);">--sp-9</code></td><td>128px</td><td>Hero-Vertikalrhythmus</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="gl-rule-source">Premium · Layout · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Proximity-Prinzip: Abstand kommuniziert Beziehung</div>
+            <div class="gl-rule-desc">
+              16px = gleiche Gruppe (Label über Input, Icon neben Text). 32px = verschiedene Gruppen. 64px+ = verschiedene Sections.
+              Das Auge liest Nähe als Zusammengehörigkeit — diese Logik muss konsistent eingehalten werden.
+            </div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Breakpoints durch 8 teilbar: 480 / 768 / 1024 / 1280 / 1536 px</div>
+            <div class="gl-rule-desc">Alle Media-Query-Breakpoints liegen auf der 8pt-Skala. Keine beliebigen Werte wie 900px oder 1100px.</div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Logical Properties + physikalischer Fallback für RTL-Support</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">padding-inline</code> statt <code style="font-family:var(--font-mono);font-size:12px;">padding-left/right</code>.
+              Immer physikalische Property zuerst als Fallback für ältere Browser, dann logical überschreiben.
+            </div>
+            <div class="gl-code-block"><code><span class="c-cmt">/* Richtig: Fallback + Logical */</span>
+padding-left: <span class="c-val">var(--sp-5)</span>;
+padding-right: <span class="c-val">var(--sp-5)</span>;
+padding-inline: <span class="c-val">var(--sp-5)</span>; <span class="c-cmt">/* überschreibt bei Support */</span></code></div>
+          </div>
+          <span class="gl-rule-source">STYLE-GUIDE</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 4. LAYOUT ──────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-layout">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-layout">4. Layout</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">12-Column Grid. Container max-width 1280px, padding 32px.</div>
+            <div class="gl-rule-desc">Content in 8 von 12 Spalten auf Desktop. Hero-Text zentriert in 8 Spalten. Volle Breite = 12/12, Content + Sidebar = 8+4, zwei gleiche = 6+6.</div>
+            <div class="gl-code-block"><code>.container {
+  width: <span class="c-val">100%</span>;
+  max-width: <span class="c-val">var(--container-max)</span>; <span class="c-cmt">/* 1280px */</span>
+  margin-inline: <span class="c-val">auto</span>;
+  padding-inline: <span class="c-val">var(--sp-5)</span>; <span class="c-cmt">/* 32px */</span>
+}</code></div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Standard-Seitenstruktur: app-shell → main.page → page-header</div>
+            <div class="gl-rule-desc">Jede Seite folgt diesem Template. Navbar wird via <code style="font-family:var(--font-mono);font-size:12px;">Navbar.init()</code> injiziert. Kein Abweichen von dieser Grundstruktur.</div>
+            <div class="gl-code-block"><code><span class="c-key">&lt;div</span> class=<span class="c-val">"app-shell"</span><span class="c-key">&gt;</span>
+  <span class="c-cmt">&lt;!-- Navbar via Navbar.init() --&gt;</span>
+  <span class="c-key">&lt;main</span> class=<span class="c-val">"page"</span><span class="c-key">&gt;</span>
+    <span class="c-key">&lt;div</span> class=<span class="c-val">"page-header"</span><span class="c-key">&gt;</span>
+      <span class="c-key">&lt;h2&gt;</span>Seitentitel<span class="c-key">&lt;/h2&gt;</span>
+      <span class="c-key">&lt;p&gt;</span>Untertitel<span class="c-key">&lt;/p&gt;</span>
+    <span class="c-key">&lt;/div&gt;</span>
+    <span class="c-cmt">&lt;!-- Seiteninhalt --&gt;</span>
+  <span class="c-key">&lt;/main&gt;</span>
+<span class="c-key">&lt;/div&gt;</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Navbar-Höhe: 64px. Immer sticky, border-bottom 1px, bg: neutral-0.</div>
+            <div class="gl-rule-desc">Alle Seiten nutzen <code style="font-family:var(--font-mono);font-size:12px;">Navbar.init(pagename, options)</code>. Keine eigene Navbar pro Seite implementieren.</div>
+          </div>
+          <span class="gl-rule-source">Layout · Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Sichtbarkeit via CSS-Klasse — niemals via inline JS</div>
+            <div class="gl-rule-desc">Elemente ein-/ausblenden ausschließlich über <code style="font-family:var(--font-mono);font-size:12px;">.is-hidden</code> (display:none) und <code style="font-family:var(--font-mono);font-size:12px;">.view-hidden</code>.</div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  el.classList.add('is-hidden');</span>
+<span class="c-ok">✅  el.classList.remove('is-hidden');</span>
+<span class="c-bad">❌  el.style.display = 'none';     /* verboten */</span>
+<span class="c-bad">❌  el.style.visibility = 'hidden'; /* verboten */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 5. KOMPONENTEN ─────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-comp">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-comp">5. Komponenten</h2>
+        <span class="gl-section-count">5 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Jedes interaktive Element braucht alle 5 Zustände</div>
+            <div class="gl-rule-desc">default · hover · active · focus · disabled — kein Element ohne vollständige State-Abdeckung in Produktion.</div>
+            <div class="gl-code-block"><code>.btn-primary           { background: <span class="c-val">var(--accent)</span>; }
+.btn-primary:hover     { background: <span class="c-val">var(--accent-hover)</span>; }
+.btn-primary:active    { background: <span class="c-val">var(--color-600)</span>; }
+.btn-primary:focus-visible { box-shadow: <span class="c-val">var(--focus-ring)</span>; }
+.btn-primary:disabled  { opacity: <span class="c-val">0.4</span>; cursor: <span class="c-val">not-allowed</span>; }</code></div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Focus-Ring: immer sichtbar, niemals unterdrückt</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">outline: none</code> nur in Kombination mit einem sichtbaren <code style="font-family:var(--font-mono);font-size:12px;">box-shadow</code>-Ersatz.
+              <code style="font-family:var(--font-mono);font-size:12px;">:focus-visible</code> verwenden — mit Fallback via <code style="font-family:var(--font-mono);font-size:12px;">@supports not selector(:focus-visible)</code>.
+            </div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hover-States nur in <code style="font-family:var(--font-mono);font-size:13px;">@media (hover: hover) and (pointer: fine)</code></div>
+            <div class="gl-rule-desc">Verhindert "sticky hover" auf Touch-Geräten. Active-State (<code style="font-family:var(--font-mono);font-size:12px;">:active</code>) übernimmt Touch-Feedback ohne Media-Query.</div>
+            <div class="gl-code-block"><code><span class="c-ok">✅  @media (hover: hover) and (pointer: fine) {
+      .btn:hover { background: var(--accent-hover); }
+    }</span>
+<span class="c-bad">❌  .btn:hover { ... }  /* direkt — klebt auf Touch */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium · iOS-Fixes</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Nur eine Icon-Library — Größen 16px oder 24px</div>
+            <div class="gl-rule-desc">Keine Emojis als Icons. Keine gemischten Icon-Styles. Primäre Aktionen: Icon immer mit Textlabel kombiniert.</div>
+          </div>
+          <span class="gl-rule-source">Premium · StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Touch Targets: min-height 44px für alle Buttons und Links</div>
+            <div class="gl-rule-desc">Apple HIG und WCAG empfehlen 44×44px als Mindestgröße für Touch-Ziele. Auf Mobile immer prüfen.</div>
+          </div>
+          <span class="gl-rule-source">StyleGuide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 6. MOTION ──────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-motion">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-motion">6. Motion &amp; Übergänge</h2>
+        <span class="gl-section-count">4 Regeln</span>
+      </div>
+      <div class="gl-rules" role="list">
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Transitions: 120ms ease (Hover) · 200ms ease (Panels/Drawers)</div>
+            <div class="gl-rule-desc">Motion kommuniziert State-Änderung — niemals Persönlichkeit. Kein Bounce, kein Spring, kein Elastic.</div>
+            <div class="gl-code-block"><code><span class="c-key">--transition-fast:</span> <span class="c-val">120ms ease</span>;  <span class="c-cmt">/* Hover, Icon-Wechsel */</span>
+<span class="c-key">--transition-base:</span> <span class="c-val">200ms ease</span>;  <span class="c-cmt">/* Panels, Drawers, Modals */</span></code></div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-hard" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔴 Hard</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Keine Layout-Animationen — nur transform und opacity</div>
+            <div class="gl-rule-desc">
+              <code style="font-family:var(--font-mono);font-size:12px;">width</code>, <code style="font-family:var(--font-mono);font-size:12px;">height</code>, <code style="font-family:var(--font-mono);font-size:12px;">top</code>, <code style="font-family:var(--font-mono);font-size:12px;">left</code> animieren = Layout-Thrashing. Immer <code style="font-family:var(--font-mono);font-size:12px;">transform: translateX()</code> bzw. <code style="font-family:var(--font-mono);font-size:12px;">opacity</code> für Übergänge.
+            </div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Smooth Scroll nur in <code style="font-family:var(--font-mono);font-size:13px;">prefers-reduced-motion: no-preference</code></div>
+            <div class="gl-rule-desc">Scroll-Animationen respektieren Accessibility-Einstellungen des Betriebssystems.</div>
+          </div>
+          <span class="gl-rule-source">StyleGuide</span>
+        </article>
+
+        <article class="gl-rule gl-rule-soft" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">🔵 Soft</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">CTAs: max. 3 Wörter, Verb-First, keine Füllwörter</div>
+            <div class="gl-rule-desc">"Anmelden", "Speichern", "Weiter" statt "Bitte hier klicken um fortzufahren". Passive Formulierungen vermeiden: "Gespeichert" statt "Wurde erfolgreich gespeichert".</div>
+          </div>
+          <span class="gl-rule-source">Premium · Styling-Guide</span>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ── 7. VERBOTEN ────────────────────────────────────── -->
+    <section class="gl-section" aria-labelledby="sec-forbidden">
+      <div class="gl-section-header">
+        <h2 class="gl-section-title" id="sec-forbidden">7. Verbotene Praktiken</h2>
+        <span class="gl-section-count">5 Einträge</span>
+      </div>
+      <div class="gl-callout gl-callout-warn">
+        <strong>Diese Muster werden in Code-Reviews abgelehnt</strong> und müssen vor jedem Merge behoben werden.
+      </div>
+      <div class="gl-rules" role="list">
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Inline-CSS im HTML (<code style="font-family:var(--font-mono);font-size:13px;">style="..."</code>)</div>
+            <div class="gl-rule-desc">Bricht das Token-System und macht Theming unmöglich. Einzige Ausnahme: dynamische Werte die per JS zur Laufzeit gesetzt werden müssen (z.B. dynamische Breiten).</div>
+          </div>
+          <span class="gl-rule-source">Layout · GUIDELINES_JS</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Hardcoded Hex/px-Werte außerhalb von <code style="font-family:var(--font-mono);font-size:13px;">:root</code> in tokens.css</div>
+            <div class="gl-rule-desc">Keine <code style="font-family:var(--font-mono);font-size:12px;">color: #4d7aa0</code> oder <code style="font-family:var(--font-mono);font-size:12px;">padding: 24px</code> direkt in Component-CSS-Dateien.</div>
+          </div>
+          <span class="gl-rule-source">Layout · STYLE-GUIDE</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title"><code style="font-family:var(--font-mono);font-size:13px;">window.alert()</code> / <code style="font-family:var(--font-mono);font-size:13px;">window.confirm()</code> / <code style="font-family:var(--font-mono);font-size:13px;">window.prompt()</code></div>
+            <div class="gl-rule-desc">Browser-Dialoge sind nicht themebar und blockieren den Rendering-Thread. Immer <code style="font-family:var(--font-mono);font-size:12px;">Modal.show()</code> oder <code style="font-family:var(--font-mono);font-size:12px;">Toast.*</code> aus <code style="font-family:var(--font-mono);font-size:12px;">ui.js</code>.</div>
+          </div>
+          <span class="gl-rule-source">Layout</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Mehr als 2 Font-Gewichte oder mehr als eine Hue</div>
+            <div class="gl-rule-desc">Bricht das Premium-Grundprinzip. Auch 500 Medium simuliert über opacity ist verboten.</div>
+          </div>
+          <span class="gl-rule-source">Premium</span>
+        </article>
+        <article class="gl-rule gl-rule-neg" role="listitem">
+          <div class="gl-rule-type"><span class="gl-rule-type-label">⛔ Verboten</span></div>
+          <div class="gl-rule-body">
+            <div class="gl-rule-title">Gradients, Texturen, starke Schatten für Tiefeneffekte</div>
+            <div class="gl-rule-desc">Tiefe entsteht ausschließlich durch Spacing-Hierarchie und Farbkontrast. Shadow max: <code style="font-family:var(--font-mono);font-size:12px;">0 1px 3px rgba(6,15,28,0.08)</code>.</div>
+          </div>
+          <span class="gl-rule-source">Premium · Styling-Guide</span>
+        </article>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="gl-footer">
+      <span class="gl-footer-text">GUIDELINE_NEW_STYLING.html · Stand: März 2026 · Ersetzt: Premium.txt, Layout.txt, STYLE-GUIDE.txt, Styling-Guide.txt, STYLE-DESCRIPTION.txt</span>
+      <span class="gl-footer-text">→ <a href="GUIDELINE_NEW_ARCHITECTURE.html">Weiter: Architektur</a></span>
+    </footer>
+
+  </div>
+</main>
+
+<script src="GUIDELINE_NEW_nav.js" defer></script>
+</body>
+</html>

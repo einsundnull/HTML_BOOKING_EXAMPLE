@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="BUGFIX">
+  <meta name="doc-subject"  content="Unbefugter Edit-Zugriff auf Fremdprofile in profile-view.html">
+  <title>BUGFIX — Profile View Edit Access 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy:     #060f1c;
+      --navy-800: #0f2035;
+      --n0:   #ffffff; --n50:  #f8f9fb; --n100: #f0f2f5;
+      --n200: #e2e6eb; --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d; --ok: #16a34a;
+      --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d; --err: #c0392b;
+      --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500; --warn: #d97706;
+      --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a; --info: #2563eb;
+    }
+
+    /* ── Header ── */
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.sev { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+
+    /* ── Layout ── */
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+
+    /* ── Section ── */
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+
+    /* ── Callout ── */
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+
+    /* ── Table ── */
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug  { background: #fff8f8; }
+    tbody tr.r-fix  { background: #f8fff8; }
+    tbody tr.r-ctx  { background: var(--n50); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+
+    /* ── Code blocks ── */
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; } .cn { color: #fde68a; }
+
+    /* ── Flow pipeline ── */
+    .pipe { display: flex; flex-direction: column; margin-bottom: 20px; }
+    .pipe-step { display: grid; grid-template-columns: 160px 1fr;
+                 border: 1px solid var(--n200); border-bottom: none; background: var(--n0); }
+    .pipe-step:first-child { border-radius: 8px 8px 0 0; }
+    .pipe-step:last-child  { border-bottom: 1px solid var(--n200); border-radius: 0 0 8px 8px; }
+    .pipe-step.bug  { background: #fff8f8; }
+    .pipe-step.fix  { background: #f8fff8; }
+    .pipe-left { padding: 10px 14px; border-right: 1px solid var(--n200);
+                 display: flex; flex-direction: column; gap: 3px; }
+    .pipe-file { font-family: var(--mono); font-size: 10px; font-weight: 700;
+                 text-transform: uppercase; letter-spacing: .05em; color: var(--n400); }
+    .pipe-fn   { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--navy); }
+    .pipe-right { padding: 10px 14px; font-size: 12px; color: var(--n500); line-height: 1.6; }
+    .pipe-arrow { text-align: center; padding: 3px 0; font-size: 14px; color: var(--n400); }
+
+    /* ── Severity badge ── */
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; letter-spacing: .03em; white-space: nowrap; }
+    .sev-crit { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .sev-ok   { background: var(--ok-bg);  color: var(--ok-tx);  border: 1px solid var(--ok-bd); }
+
+    /* ── Footer ── */
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">BUGFIX · Security · BookingSystem</div>
+  <div class="ph-title">Profile View — Unbefugter Edit-Zugriff</div>
+  <div class="ph-sub">
+    Jeder Besucher eines Lehrerprofils sah den Edit-Button und den
+    „Profil bearbeiten"-Link — unabhängig davon, ob er der Profilinhaber war.
+    Root Cause: Unsicherer <code>Auth.current()</code>-Fallback in
+    <code>ProfileView.init()</code> las die falsche <code>?uid=</code> aus der URL.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge sev">🔴 Security · Kritisch</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">1 Datei geändert · profile.js</span>
+    <span class="ph-badge ok">✅ Behoben · APP_VERSION 2026-03-21-5</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — ROOT CAUSE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-root">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-root">Root Cause</h2>
+    </div>
+
+    <div class="callout c-err">
+      <strong>Kern des Problems:</strong> <code>Auth.current()</code> liest
+      <code>?uid=</code> aus der aktuellen URL. Auf <code>profile-view.html</code>
+      identifiziert <code>?uid=</code> jedoch den <em>Profilinhaber</em>, nicht den
+      eingeloggten Besucher. Der Fallback führte dazu, dass
+      <code>_viewer.uid === _uid</code> immer <code>true</code> war —
+      und der Edit-Button für jeden Besucher sichtbar wurde.
+    </div>
+
+    <div class="code-label">profile.js — ProfileView.init() — VORHER (fehlerhaft)</div>
+    <div class="code-block"><code><span class="cm">/* viewer = the logged-in user, passed explicitly so we never confuse
+   the profile being viewed (?uid=) with the session owner */</span>
+<span class="ck">var</span> viewerUid = params.get(<span class="cs">'viewer'</span>);
+<span class="ce">_viewer = viewerUid ? AppService.getUserSync(decodeURIComponent(viewerUid)) : Auth.current();</span>
+<span class="cm">/* BUG: wenn viewerUid = '' (leer) → Auth.current() aufgerufen
+        Auth.current() liest ?uid= aus profile-view.html URL
+        ?uid= = Profilinhaber → _viewer = Profilinhaber
+        → _viewer.uid === _uid → true → Edit-Button für ALLE sichtbar */</span></code></div>
+
+    <div class="code-label">profile.js — ProfileView.init() — NACHHER (behoben)</div>
+    <div class="code-block"><code><span class="cm">/* SECURITY: Auth.current() MUST NOT be used as fallback here.
+   On profile-view.html the ?uid= param identifies the PROFILE being
+   viewed — not the session owner. If Auth.current() were called it
+   would return the profile owner, making _viewer.uid === _uid always
+   true and granting edit access to every visitor.
+   Rule: if ?viewer= is absent or empty → _viewer = null → read-only. */</span>
+<span class="ck">var</span> viewerUid = params.get(<span class="cs">'viewer'</span>);
+<span class="cs">_viewer = (viewerUid && viewerUid.trim())
+  ? AppService.getUserSync(decodeURIComponent(viewerUid.trim()))
+  : null;</span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — VERGLEICHSTABELLE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-compare">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-compare">Vergleichstabelle — Soll vs. Ist</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Aspekt</th>
+            <th>Soll-Verhalten</th>
+            <th>Ist-Verhalten (vor Fix)</th>
+            <th>Bewertung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><strong>Wer ist <code>_viewer</code>?</strong></td>
+            <td>Der eingeloggte Besucher des Profils (Schüler / Admin / etc.)</td>
+            <td>Wird aus <code>?viewer=</code> URL-Parameter geladen</td>
+            <td><span class="sev sev-ok">✓ Logik korrekt</span> — wenn <code>viewer</code> gesetzt ist</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>Fallback wenn <code>viewer</code> leer</strong></td>
+            <td><code>_viewer = null</code> → kein Edit-Zugriff</td>
+            <td><code>Auth.current()</code> aufgerufen → liest <code>?uid=</code> der aktuellen Seite</td>
+            <td><span class="sev sev-crit">🔴 BUG</span> — <code>?uid=</code> ist der Profilinhaber</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>URL auf <code>profile-view.html</code></strong></td>
+            <td><code>?uid=t2&amp;viewer=s1</code> (Schüler betrachtet Lehrerprofil)</td>
+            <td><code>?uid=t2&amp;viewer=</code> (leer wenn Katalog ohne Login)</td>
+            <td><span class="sev sev-crit">🔴 BUG</span> — <code>viewer</code> leer wenn <code>Auth.current()</code> auf Katalogseite <code>null</code></td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong><code>Auth.current()</code> auf <code>profile-view.html</code></strong></td>
+            <td>Soll den Besucher liefern</td>
+            <td>Liefert <code>Store.Users.byUid('t2')</code> — den Profilinhaber</td>
+            <td><span class="sev sev-crit">🔴 Falsch</span> — liest <code>?uid=t2</code> aus derselben URL</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>Ownership-Prüfung</strong></td>
+            <td><code>_viewer.uid ('s1') !== _uid ('t2')</code> → kein Edit</td>
+            <td><code>_viewer.uid ('t2') === _uid ('t2')</code> → Edit sichtbar</td>
+            <td><span class="sev sev-crit">🔴 BUG</span> — Edit-Button für alle Besucher sichtbar</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong><code>_buildCTASection</code> Prüfung</strong></td>
+            <td><code>_viewer.uid === _uid</code> nur für echten Eigentümer</td>
+            <td>Prüfung selbst ist korrekt — aber <code>_viewer</code> ist falsch befüllt</td>
+            <td>Logik OK, Input falsch</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Edit-FAB in <code>_bindJumper</code></strong></td>
+            <td>Nur sichtbar für Eigentümer</td>
+            <td>Gleicher Fehler durch falschen <code>_viewer</code></td>
+            <td><span class="sev sev-crit">🔴 BUG</span> — beide Stellen betroffen</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Wann tritt Bug auf</strong></td>
+            <td>Nie</td>
+            <td>Wenn <code>skiing-catalog.html</code> ohne <code>?uid=</code> geöffnet (direkt / öffentlich)</td>
+            <td>Systemisch — jeder Pfad ohne validen <code>viewer</code>-Param betroffen</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><strong>Wann tritt Bug NICHT auf</strong></td>
+            <td>Immer wenn <code>viewer</code> korrekt übergeben</td>
+            <td>Navigation über <code>student.html</code> → Katalog (<code>?uid=s1</code> → <code>viewer=s1</code>)</td>
+            <td>Pfad über Student-Dashboard war korrekt</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — EXPLOIT-PFAD (VOLLSTÄNDIG)
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-exploit">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-exploit">Exploit-Pfad — Schritt für Schritt</h2>
+    </div>
+
+    <div class="pipe">
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">Browser</span>
+          <span class="pipe-fn">Direktaufruf</span>
+        </div>
+        <div class="pipe-right">
+          Benutzer öffnet <code>skiing-catalog.html</code> direkt (kein <code>?uid=</code> in der URL)
+          oder ist nicht eingeloggt. <code>Auth.current()</code> auf der Katalogseite gibt <code>null</code> zurück.
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">skiing-catalog.js</span>
+          <span class="pipe-fn">_buildCard()</span>
+        </div>
+        <div class="pipe-right">
+          Link zum Profil wird mit leerem <code>viewer</code> gebaut:<br>
+          <code>profile-view.html?uid=t2&amp;viewer=</code><br>
+          (da <code>Auth.current() = null</code> → <code>viewer=''</code>)
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">profile.js</span>
+          <span class="pipe-fn">ProfileView.init()</span>
+        </div>
+        <div class="pipe-right">
+          <code>viewerUid = params.get('viewer')</code> → <code>''</code> (leer, aber nicht <code>null</code>)<br>
+          <code>'' → falsy</code> → Fallback: <code>_viewer = Auth.current()</code>
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">auth.js</span>
+          <span class="pipe-fn">Auth.current()</span>
+        </div>
+        <div class="pipe-right">
+          Liest <code>?uid=</code> aus der aktuellen URL (<code>profile-view.html?uid=t2&amp;viewer=</code>)<br>
+          → <code>Store.Users.byUid('t2')</code> → gibt <strong>Profilinhaber T2</strong> zurück
+        </div>
+      </div>
+      <div class="pipe-arrow">↓</div>
+      <div class="pipe-step bug">
+        <div class="pipe-left">
+          <span class="pipe-file">profile.js</span>
+          <span class="pipe-fn">_viewer.uid === _uid</span>
+        </div>
+        <div class="pipe-right">
+          <code>_viewer.uid = 't2'</code>, <code>_uid = 't2'</code><br>
+          → <code>true</code> → Edit-FAB sichtbar, „Profil bearbeiten"-Button sichtbar —
+          für <strong>jeden Besucher</strong>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-warn">
+      <strong>Wichtig:</strong> Der Bug tritt auch auf, wenn ein eingeloggter Schüler
+      den Katalog über einen Direktlink öffnet (z.B. Browser-Lesezeichen auf
+      <code>skiing-catalog.html</code> ohne <code>?uid=</code>). Es ist kein anonymer
+      Zugriff notwendig — der Schüler könnte über den fehlerhaft gesetzten Edit-Button
+      auf <code>profile-edit.html?uid=t2&amp;owner=t2</code> navigieren.
+      <code>ProfileEdit</code> prüft <code>owner</code> gegen <code>Auth.current()</code>
+      und würde den Zugriff dort blockieren — aber die irreführende UI war trotzdem sichtbar.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — BETROFFENE CALLER
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-callers">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-callers">Alle Aufrufer — <code>profile-view.html</code></h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Aufrufer</th>
+            <th>URL-Pattern</th>
+            <th>viewer korrekt?</th>
+            <th>Bug ausgelöst?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-ctx">
+            <td><code>navbar.js</code> — Hamburger-Menü</td>
+            <td><code>?uid=t1&amp;viewer=t1</code></td>
+            <td>✅ Ja — <code>viewer = _uid</code> (eigenes Profil)</td>
+            <td>Nein</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>student.js</code> — Teacherkarte</td>
+            <td><code>?uid=t1&amp;viewer=s1</code></td>
+            <td>✅ Ja — <code>viewer = Auth.current().uid</code></td>
+            <td>Nein</td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>skiing-catalog.js</code> — MIT Login (<code>?uid=s1</code>)</td>
+            <td><code>?uid=t1&amp;viewer=s1</code></td>
+            <td>✅ Ja — <code>Auth.current()</code> gibt Schüler zurück</td>
+            <td>Nein</td>
+          </tr>
+          <tr class="r-bug">
+            <td><code>skiing-catalog.js</code> — OHNE Login / Direktaufruf</td>
+            <td><code>?uid=t1&amp;viewer=</code></td>
+            <td>❌ Nein — <code>Auth.current() = null</code> → <code>viewer=''</code></td>
+            <td><strong>Ja — Bug ausgelöst</strong></td>
+          </tr>
+          <tr class="r-ctx">
+            <td><code>profile.js</code> — Nach Profil-Speichern</td>
+            <td><code>?uid=t1&amp;viewer=t1</code></td>
+            <td>✅ Ja — <code>viewer = _uid</code> (eigenes Profil)</td>
+            <td>Nein</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5 — IMPLEMENTIERTER FIX
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-fix">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-fix">Implementierter Fix</h2>
+      <span class="sec-sub">1 Datei · profile.js</span>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Fix-Strategie:</strong> Der Fix liegt ausschliesslich in
+      <code>profile.js</code>. Der <code>Auth.current()</code>-Fallback wird
+      entfernt. Wenn <code>?viewer=</code> fehlt oder leer ist, bleibt
+      <code>_viewer = null</code>. Alle drei Ownership-Checks
+      (<code>_buildCTASection</code>, <code>_bindJumper</code>, Z. 1811) schlagen
+      dann fehl → kein Edit-Zugriff. Korrekte Aufrufer (navbar, student.js) sind
+      nicht betroffen, da sie bereits einen validen <code>viewer</code>-Param übergeben.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Datei</th>
+            <th>Funktion</th>
+            <th>Zeile</th>
+            <th>Änderung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>js/profile.js</code></td>
+            <td><code>ProfileView.init()</code></td>
+            <td>1845</td>
+            <td>
+              <code>Auth.current()</code>-Fallback entfernt.<br>
+              <code>_viewer = null</code> wenn <code>viewerUid</code> leer oder fehlend.<br>
+              <code>viewerUid.trim()</code> schützt vor Whitespace-only-Werten.
+            </td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>js/app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td>23</td>
+            <td><code>'2026-03-21-4'</code> → <code>'2026-03-21-5'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">Diff · profile.js · ProfileView.init()</div>
+    <div class="code-block"><code><span class="cm">/* viewer = the logged-in user, passed explicitly so we never confuse
+   the profile being viewed (?uid=) with the session owner.
+   SECURITY: Auth.current() MUST NOT be used as fallback here.
+   On profile-view.html the ?uid= param identifies the PROFILE being
+   viewed — not the session owner. If Auth.current() were called it
+   would return the profile owner, making _viewer.uid === _uid always
+   true and granting edit access to every visitor.
+   Rule: if ?viewer= is absent or empty → _viewer = null → read-only. */</span>
+<span class="ck">var</span> viewerUid = params.get(<span class="cs">'viewer'</span>);
+
+<span class="ce">// VORHER (fehlerhaft):
+// _viewer = viewerUid ? AppService.getUserSync(decodeURIComponent(viewerUid)) : Auth.current();</span>
+
+<span class="cs">// NACHHER (behoben):
+_viewer = (viewerUid && viewerUid.trim())
+  ? AppService.getUserSync(decodeURIComponent(viewerUid.trim()))
+  : null;</span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 6 — OWNERSHIP-PRÜFUNGEN (unverändert)
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-checks">
+    <div class="sec-hdr">
+      <span class="sec-num">6</span>
+      <h2 class="sec-title" id="sec-checks">Ownership-Prüfungen — unverändert korrekt</h2>
+    </div>
+
+    <div class="callout c-ok">
+      <strong>Keine Änderung an den drei Prüfstellen notwendig.</strong>
+      Die Prüflogik <code>_viewer && _viewer.uid === _uid</code> war immer korrekt —
+      sie schlägt jetzt automatisch fehl wenn <code>_viewer = null</code>.
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Stelle</th>
+            <th>Datei · Zeile</th>
+            <th>Prüfung</th>
+            <th>Ergebnis nach Fix</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>Edit-FAB (<code>_bindJumper</code>)</td>
+            <td><code>profile.js</code> · Z. 2178</td>
+            <td><code>editBtn &amp;&amp; _viewer &amp;&amp; _viewer.uid === _uid</code></td>
+            <td><code>_viewer = null</code> → <code>false</code> → FAB bleibt versteckt ✅</td>
+          </tr>
+          <tr class="r-fix">
+            <td>„Profil bearbeiten"-Button (<code>_buildCTASection</code>)</td>
+            <td><code>profile.js</code> · Z. 2073</td>
+            <td><code>_viewer &amp;&amp; _viewer.uid === _uid</code></td>
+            <td><code>_viewer = null</code> → <code>false</code> → Booking-CTA statt Edit ✅</td>
+          </tr>
+          <tr class="r-fix">
+            <td>Älterer Edit-FAB-Bind (Z. 1811)</td>
+            <td><code>profile.js</code> · Z. 1811</td>
+            <td><code>editBtn &amp;&amp; _viewer &amp;&amp; _viewer.uid === _uid</code></td>
+            <td><code>_viewer = null</code> → <code>false</code> → FAB bleibt versteckt ✅</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 7 — AUDIT-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">7</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität des Fixes</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr>
+            <th>Guideline</th>
+            <th>Anforderung</th>
+            <th>Eingehalten?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>Architektur §2</code></td>
+            <td>Fehlerbehandlung: kein stiller Fail — <code>_viewer = null</code> ist explizit</td>
+            <td>✅ Ja — <code>null</code> ist ein definierter sicherer Zustand</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Auth-Guideline §4</code></td>
+            <td>Auth-Methoden nur für ihren definierten Zweck verwenden</td>
+            <td>✅ Ja — <code>Auth.current()</code> nicht mehr auf falscher Seite aufgerufen</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §8</code></td>
+            <td>Kein neuer Code, keine neuen CSS-Klassen</td>
+            <td>✅ Ja — einzige Änderung ist die Entfernung des Fallbacks</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §8</code></td>
+            <td>Asset Versioning — <code>APP_VERSION</code> erhöhen</td>
+            <td>✅ Ja — <code>2026-03-21-4</code> → <code>2026-03-21-5</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §3</code></td>
+            <td>Codebase-Check vor Implementierung</td>
+            <td>✅ Ja — alle 3 Ownership-Checks und alle 5 Aufrufer geprüft</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>BUGFIX_PROFILE_VIEW_EDIT_ACCESS_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-5 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>

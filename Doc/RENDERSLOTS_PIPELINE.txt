@@ -1,0 +1,21 @@
+Ich sehe das Problem klar. Im "Book a lesson" Tab zeigt `renderDaySlots` / `buildDaySlotRow` noch die alte flache Liste mit einzelnen Slots — keine gruppierten Blöcke, kein Amber-Staging. Lass mich beide Render-Pipelines vergleichen.
+
+Jetzt habe ich alles. Hier ist die vollständige Vergleichstabelle:
+
+---
+
+## Vergleich: Book a lesson (renderDaySlots) vs. My Bookings (renderMyBookingsList)
+
+| Feature | My Bookings `renderMyBookingsList` | Book a lesson `renderDaySlots` | Problem |
+|---|---|---|---|
+| **Slot-Gruppierung** | ✅ `_mergeStudentBookingBlocks` → Blöcke | ❌ flache Liste, jeder Slot einzeln | **FEHLT** |
+| **Block-Renderer** | ✅ `_buildStudentBookingBlock` | ❌ `buildDaySlotRow` — eigene alte Logik | **DUPLIZIERT** |
+| **Pending-Map lesen** | ✅ `_pending` Flag via map | ❌ liest Store direkt, kein pending | **FEHLT** |
+| **Amber-Highlight Block** | ✅ `.block-pending` | ❌ kein Staging | **FEHLT** |
+| **Amber-Highlight Slot-Row** | ✅ `.slot-pending` | ❌ kein Staging | **FEHLT** |
+| **Cancel → Undo toggle** | ✅ kein Modal, direkt stage | ❌ `Stornieren` → `cancelDaySlot` → Modal | **FALSCH** |
+| **+ Add → Undo toggle** | ✅ | ❌ `Buchen` → `bookDaySlot` → kein Undo | **FEHLT** |
+| **expandedStudentBlocks** | ✅ Block bleibt offen | ❌ kein Expand-State | **FEHLT** |
+| **Freie Slots anzeigen** | ✅ via `_populateStudentBlockDetail` | ✅ direkt in Liste | ✅ aber anders |
+| **Date label** | ✅ aus `block.dateStr` | ✅ `label` aus `selectedDate` | ✅ |
+| **card Wrapper** | ❌ kein card | ✅ `.day-slots-card` | Unterschied |

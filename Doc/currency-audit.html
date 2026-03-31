@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Currency Display Audit — myBio App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --color-50:  #f0f3f7;
+    --color-100: #dde4ed;
+    --color-200: #bccada;
+    --color-400: #4d7aa0;
+    --color-500: #3a6285;
+    --color-600: #2b4d6b;
+    --color-700: #1a3249;
+    --color-800: #0f2035;
+    --color-900: #060f1c;
+    --neutral-0:   #ffffff;
+    --neutral-50:  #f8f9fb;
+    --neutral-100: #f0f2f5;
+    --neutral-200: #e2e6eb;
+    --neutral-300: #c9d0d9;
+    --neutral-500: #6b7685;
+    --neutral-600: #505a68;
+    --neutral-700: #2d3540;
+    --font: 'Figtree', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --shadow: 0 1px 3px rgba(6,15,28,0.08);
+    --shadow-md: 0 4px 12px rgba(6,15,28,0.12);
+
+    /* Status colors */
+    --ok-bg:   #f0fdf4;
+    --ok-text: #166534;
+    --ok-border: #bbf7d0;
+    --warn-bg:   #fefce8;
+    --warn-text: #854d0e;
+    --warn-border: #fde68a;
+    --err-bg:   #fef2f2;
+    --err-text: #991b1b;
+    --err-border: #fecaca;
+    --info-bg:  #eff6ff;
+    --info-text: #1e40af;
+    --info-border: #bfdbfe;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    background: var(--neutral-50);
+    color: var(--color-900);
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 32px 24px 80px;
+  }
+
+  /* ── Page header ── */
+  .page-header {
+    max-width: 1200px;
+    margin: 0 auto 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid var(--color-900);
+  }
+  .page-header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .page-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--color-900);
+    letter-spacing: -0.5px;
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--neutral-500);
+    margin-top: 4px;
+  }
+  .page-meta {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .meta-badge {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--color-900);
+    color: var(--neutral-0);
+    letter-spacing: 0.5px;
+  }
+
+  /* ── Summary stats ── */
+  .summary-row {
+    max-width: 1200px;
+    margin: 0 auto 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .stat-card {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+  }
+  .stat-card-value {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-card-label {
+    font-size: 12px;
+    color: var(--neutral-500);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .stat-card.ok   .stat-card-value { color: var(--ok-text); }
+  .stat-card.err  .stat-card-value { color: var(--err-text); }
+  .stat-card.warn .stat-card-value { color: var(--warn-text); }
+  .stat-card.info .stat-card-value { color: var(--info-text); }
+
+  /* ── Legend ── */
+  .legend {
+    max-width: 1200px;
+    margin: 0 auto 24px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--neutral-600);
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge.ok   { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
+  .badge.err  { background: var(--err-bg);  color: var(--err-text);  border: 1px solid var(--err-border); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+  .badge.info { background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
+  .badge.neutral { background: var(--neutral-100); color: var(--neutral-600); border: 1px solid var(--neutral-200); }
+
+  /* ── Filter bar ── */
+  .filter-bar {
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--neutral-200);
+    background: var(--neutral-0);
+    color: var(--neutral-600);
+    cursor: pointer;
+    transition: all 120ms;
+  }
+  .filter-btn:hover, .filter-btn.active {
+    background: var(--color-900);
+    color: var(--neutral-0);
+    border-color: var(--color-900);
+  }
+
+  /* ── Section ── */
+  .section {
+    max-width: 1200px;
+    margin: 0 auto 28px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--neutral-500);
+    margin-bottom: 10px;
+    padding-left: 4px;
+  }
+
+  /* ── Table ── */
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--neutral-0);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    border: 1px solid var(--neutral-200);
+  }
+  .audit-table thead tr {
+    background: var(--color-900);
+    color: var(--neutral-0);
+  }
+  .audit-table thead th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 12px 16px;
+    white-space: nowrap;
+  }
+  .audit-table thead th:first-child { border-radius: 0; }
+  .audit-table tbody tr {
+    border-bottom: 1px solid var(--neutral-100);
+    transition: background 100ms;
+  }
+  .audit-table tbody tr:last-child { border-bottom: none; }
+  .audit-table tbody tr:hover { background: var(--color-50); }
+  .audit-table tbody tr.hidden-row { display: none; }
+
+  .audit-table td {
+    padding: 11px 16px;
+    vertical-align: top;
+    font-size: 13px;
+  }
+
+  /* File column */
+  .col-file {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-600);
+    white-space: nowrap;
+  }
+  /* Class/context column */
+  .col-class {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--neutral-500);
+    white-space: nowrap;
+  }
+  /* Function column */
+  .col-fn {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--color-700);
+    font-weight: 600;
+  }
+  /* What column */
+  .col-what {
+    color: var(--neutral-700);
+    font-size: 12px;
+    max-width: 320px;
+  }
+  /* Status column */
+  .col-status {
+    white-space: nowrap;
+  }
+  /* Page column */
+  .col-page {
+    font-size: 11px;
+    color: var(--neutral-500);
+    white-space: nowrap;
+  }
+
+  /* row group separator */
+  .audit-table tbody tr.group-header td {
+    background: var(--neutral-100);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--neutral-500);
+    padding: 6px 16px;
+    border-bottom: 1px solid var(--neutral-200);
+  }
+
+  /* note */
+  .note {
+    display: block;
+    font-size: 11px;
+    color: var(--neutral-500);
+    margin-top: 2px;
+    font-family: var(--font);
+    font-weight: 400;
+  }
+
+  /* ── Footer ── */
+  .page-footer {
+    max-width: 1200px;
+    margin: 40px auto 0;
+    padding-top: 16px;
+    border-top: 1px solid var(--neutral-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: var(--neutral-500);
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  @media (max-width: 768px) {
+    body { padding: 16px 12px 60px; }
+    .audit-table thead th:nth-child(3),
+    .audit-table tbody td:nth-child(3) { display: none; }
+    .page-title { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="page-header-top">
+    <div>
+      <div class="page-title">Currency Display Audit</div>
+      <div class="page-subtitle">Alle Preis-Abfragen, -Berechnungen und -Anzeigen — gesamte App-Codebase</div>
+    </div>
+    <div class="page-meta">
+      <span class="meta-badge">18. März 2026</span>
+      <span class="meta-badge">v1.0</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Summary Stats ── -->
+<div class="summary-row">
+  <div class="stat-card ok">
+    <div class="stat-card-value">10</div>
+    <div class="stat-card-label">✅ Korrekt</div>
+  </div>
+  <div class="stat-card err">
+    <div class="stat-card-value">26</div>
+    <div class="stat-card-label">❌ Hardcoded EUR</div>
+  </div>
+  <div class="stat-card warn">
+    <div class="stat-card-value">1</div>
+    <div class="stat-card-label">⚠️ Teilweise korrekt</div>
+  </div>
+  <div class="stat-card info">
+    <div class="stat-card-value">7</div>
+    <div class="stat-card-label">🔵 Interne Berechnung</div>
+  </div>
+  <div class="stat-card info">
+    <div class="stat-card-value">44</div>
+    <div class="stat-card-label">Gesamt Stellen</div>
+  </div>
+</div>
+
+<!-- ── Legend ── -->
+<div class="legend">
+  <strong style="font-size:12px;color:var(--neutral-700)">Legende:</strong>
+  <div class="legend-item"><span class="badge ok">✅ Korrekt</span> CurrencyService + korrekter Code</div>
+  <div class="legend-item"><span class="badge err">❌ Hardcoded €</span> Symbol/Code fest verdrahtet</div>
+  <div class="legend-item"><span class="badge warn">⚠️ Teilweise</span> fmtPrice ohne currencyCode</div>
+  <div class="legend-item"><span class="badge neutral">🔵 Intern</span> Berechnung, kein Display</div>
+</div>
+
+<!-- ── Filter Bar ── -->
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="filterRows('all', this)">Alle (44)</button>
+  <button class="filter-btn" onclick="filterRows('ok', this)">✅ Korrekt (10)</button>
+  <button class="filter-btn" onclick="filterRows('err', this)">❌ Hardcoded (26)</button>
+  <button class="filter-btn" onclick="filterRows('warn', this)">⚠️ Teilweise (1)</button>
+  <button class="filter-btn" onclick="filterRows('intern', this)">🔵 Intern (7)</button>
+  <button class="filter-btn" onclick="filterRows('profile.js', this)">profile.js</button>
+  <button class="filter-btn" onclick="filterRows('student.js', this)">student.js</button>
+  <button class="filter-btn" onclick="filterRows('teacher.js', this)">teacher.js</button>
+  <button class="filter-btn" onclick="filterRows('ui.js', this)">ui.js</button>
+  <button class="filter-btn" onclick="filterRows('wallet', this)">wallet-*</button>
+  <button class="filter-btn" onclick="filterRows('financial.js', this)">financial.js</button>
+  <button class="filter-btn" onclick="filterRows('admin.js', this)">admin.js</button>
+</div>
+
+<!-- ── Main Table ── -->
+<div class="section">
+  <table class="audit-table" id="auditTable">
+    <thead>
+      <tr>
+        <th>Datei</th>
+        <th>Klasse / Kontext</th>
+        <th>Funktion</th>
+        <th>Was wird angezeigt / berechnet</th>
+        <th>Seite / UI</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+
+      <!-- ─ profile.js ─ -->
+      <tr class="group-header"><td colspan="6">profile.js — ProfileStore / ProfileEdit / ProfileView</td></tr>
+
+      <tr data-file="profile.js" data-status="intern">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileStore</td>
+        <td class="col-fn">getDefault(uid)</td>
+        <td class="col-what">Default-Werte: <code>pricePerHalfHour: ''</code>, <code>priceCurrency: 'EUR'</code>, <code>displayCurrency: 'EUR'</code></td>
+        <td class="col-page">Alle Seiten</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="intern">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileStore</td>
+        <td class="col-fn">getPrice(uid)</td>
+        <td class="col-what">Liest <code>pricePerHalfHour</code> — Raw-Wert, kein Display</td>
+        <td class="col-page">Intern</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileEdit</td>
+        <td class="col-fn">_buildPaymentFields()</td>
+        <td class="col-what">Rendert <code>field-price</code>, <code>field-price-currency</code>, <code>field-display-currency</code> Dropdowns (Teacher)</td>
+        <td class="col-page">profile-edit.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileEdit</td>
+        <td class="col-fn">_buildStudentCurrencyFields()</td>
+        <td class="col-what">Rendert <code>field-display-currency</code> für Student — liest <code>_profile.displayCurrency</code>
+          <span class="note">Gefixt 18.03.2026 — vorher hardcoded 'EUR'</span></td>
+        <td class="col-page">profile-edit.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileEdit</td>
+        <td class="col-fn">_loadValues()</td>
+        <td class="col-what">Setzt <code>field-price-currency</code> und <code>field-display-currency</code> via <code>_setDropdownVal()</code>
+          <span class="note">Gefixt 18.03.2026 — vorher _setCustomDropdown() (non-existent)</span></td>
+        <td class="col-page">profile-edit.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileEdit</td>
+        <td class="col-fn">_collect()</td>
+        <td class="col-what">Liest <code>priceCurrency</code> und <code>displayCurrency</code> aus Dropdowns
+          <span class="note">Gefixt 18.03.2026 — vorher _getCustomDropdown() (non-existent)</span></td>
+        <td class="col-page">profile-edit.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="warn">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileEdit</td>
+        <td class="col-fn">_bindPaymentEvents() → _updatePreview()</td>
+        <td class="col-what">Deposit-Vorschau: berechnet <code>€ + amount.toFixed(2)</code>
+          <span class="note">Zeigt immer €-Symbol, ignoriert priceCurrency des Teachers</span></td>
+        <td class="col-page">profile-edit.html</td>
+        <td class="col-status"><span class="badge warn">⚠️ Teilweise</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">ProfileView</td>
+        <td class="col-fn">_buildHeroSection()</td>
+        <td class="col-what">Zeigt <code>pricePerHalfHour</code> in Teacher-Währung + Konversion in Viewer-<code>displayCurrency</code> via <code>convertSync()</code></td>
+        <td class="col-page">profile-view.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="profile.js" data-status="ok">
+        <td class="col-file">profile.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">_getPriceSymbol(profile)</td>
+        <td class="col-what">Liest Symbol für <code>priceCurrency</code> via <code>CurrencyService.getSymbol()</code></td>
+        <td class="col-page">Intern</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <!-- ─ student.js ─ -->
+      <tr class="group-header"><td colspan="6">student.js</td></tr>
+
+      <tr data-file="student.js" data-status="intern">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">_updatePendingBadge()</td>
+        <td class="col-what">Liest <code>slot.price</code> oder <code>getTeacherPriceSync()</code> — nur für <code>pendingSlots</code>-Array, kein Display</td>
+        <td class="col-page">student.html</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+      <tr data-file="student.js" data-status="ok">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">_renderSaveSummary()</td>
+        <td class="col-what">Live-Panel: Slot-Preise, Gesamt, Guthaben, Deposit — via <code>_fmtInStudentCur()</code> mit <code>getUserCurrency()</code> + <code>convertSync()</code>
+          <span class="note">Gefixt 18.03.2026 — vorher fmtPrice() ohne Code → immer EUR</span></td>
+        <td class="col-page">student.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="student.js" data-status="ok">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">_confirmBookings()</td>
+        <td class="col-what">Confirm-Dialog: Slot-Preise, Gesamt, Deposit, Guthaben danach — via <code>_fmtD()</code> mit <code>convertSync()</code>
+          <span class="note">Gefixt 18.03.2026 — vorher fmtPrice() ohne Code → immer EUR</span></td>
+        <td class="col-page">student.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="student.js" data-status="ok">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">_buildTeacherCard()</td>
+        <td class="col-what">Teacher-Karte: Preis in <code>tCur</code> + Konversion in <code>sCur</code> (Student-Währung) via <code>convertSync()</code></td>
+        <td class="col-page">student.html</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="student.js" data-status="err">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">priceFn in My-Bookings-Config (Z. 1737)</td>
+        <td class="col-what"><code>fmtPrice(price * b.bookedSlots.length)</code> — kein Currency-Code übergeben</td>
+        <td class="col-page">student.html → Meine Buchungen</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="student.js" data-status="err">
+        <td class="col-file">student.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">Toast nach Block-Release (Z. 1952)</td>
+        <td class="col-what"><code>fmtPrice(releaseNow)</code> ohne Currency-Code</td>
+        <td class="col-page">student.html → Toast</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <!-- ─ teacher.js ─ -->
+      <tr class="group-header"><td colspan="6">teacher.js</td></tr>
+
+      <tr data-file="teacher.js" data-status="err">
+        <td class="col-file">teacher.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">Pending-Buchungen (Z. 312)</td>
+        <td class="col-what"><code>fmtPrice(b.total)</code> — kein Currency-Code</td>
+        <td class="col-page">teacher.html → Pending-Liste</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="teacher.js" data-status="err">
+        <td class="col-file">teacher.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">priceFn Buchungsliste (Z. 1765)</td>
+        <td class="col-what"><code>fmtPrice(price * b.bookedSlots.length)</code> — kein Currency-Code</td>
+        <td class="col-page">teacher.html → Alle Buchungen</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="teacher.js" data-status="err">
+        <td class="col-file">teacher.js</td>
+        <td class="col-class">Modul-Ebene</td>
+        <td class="col-fn">slotPriceFn (Z. 1786)</td>
+        <td class="col-what"><code>fmtPrice(slot.price)</code> — kein Currency-Code</td>
+        <td class="col-page">teacher.html → Slot-Liste</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <!-- ─ ui.js ─ -->
+      <tr class="group-header"><td colspan="6">ui.js — Global shared UI helpers</td></tr>
+
+      <tr data-file="ui.js" data-status="ok">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">fmtPrice(amount, currencyCode?)</td>
+        <td class="col-what">Shared Formatter — nutzt <code>CurrencyService.format()</code> wenn geladen
+          <span class="note">Korrekt wenn currencyCode übergeben wird; fällt auf EUR wenn nicht</span></td>
+        <td class="col-page">Alle Seiten</td>
+        <td class="col-status"><span class="badge ok">✅ Korrekt</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">_buildProfileSheet() (Z. 611)</td>
+        <td class="col-what"><code>'€' + p.pricePerHalfHour + ' / 30 min'</code> — hardcoded €-Symbol</td>
+        <td class="col-page">Profile-Sheet Overlay</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">_buildConfirmFilterRow() (Z. 921)</td>
+        <td class="col-what"><code>fmtPrice(total)</code> — kein Currency-Code übergeben</td>
+        <td class="col-page">Confirm-Filter (student/teacher)</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">buildCancelDialog() (Z. 959, 962)</td>
+        <td class="col-what"><code>fmtPrice(policy.refundAmount)</code>, <code>fmtPrice(policy.forfeitAmount)</code> — kein Code</td>
+        <td class="col-page">Storno-Dialog</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">buildBookingConfirmBlock() (Z. 1021–1026)</td>
+        <td class="col-what"><code>fmtPrice(fullAmount / depositAmount / releaseNow / balanceAfter)</code> — alle ohne Code</td>
+        <td class="col-page">Buchungs-Bestätigungs-Block</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">Wallet-Update nach Cancel (Z. 1086, 1183)</td>
+        <td class="col-what"><code>wallet.balance.toFixed(2) + ' €'</code> — hardcoded €</td>
+        <td class="col-page">Nach Stornierung (inline update)</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="ui.js" data-status="err">
+        <td class="col-file">ui.js</td>
+        <td class="col-class">Global</td>
+        <td class="col-fn">Toast nach Storno (Z. 1074, 1076, 1166, 1168)</td>
+        <td class="col-what"><code>fmtPrice(refundAmount / forfeitAmount)</code> ohne Code — 4 Stellen</td>
+        <td class="col-page">Toast (student + teacher)</td>
+        <td class="col-status"><span class="badge err">❌ Immer EUR</span></td>
+      </tr>
+
+      <!-- ─ financial.js ─ -->
+      <tr class="group-header"><td colspan="6">financial.js — FinancialView (Teacher-only)</td></tr>
+
+      <tr data-file="financial.js" data-status="err">
+        <td class="col-file">financial.js</td>
+        <td class="col-class">FinancialView</td>
+        <td class="col-fn">_fmt(n) intern</td>
+        <td class="col-what"><code>n.toFixed(2).replace('.', ',') + ' €'</code> — Basis aller Financial-Anzeigen, hardcoded €</td>
+        <td class="col-page">financial.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="financial.js" data-status="err">
+        <td class="col-file">financial.js</td>
+        <td class="col-class">FinancialView</td>
+        <td class="col-fn">_renderKPIs()</td>
+        <td class="col-what">KPI-Karten: Bestätigt, Gehalten, Ausstehend, Zukunft, Rückerstattung — alle via <code>_fmt()</code></td>
+        <td class="col-page">financial.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="financial.js" data-status="err">
+        <td class="col-file">financial.js</td>
+        <td class="col-class">FinancialView</td>
+        <td class="col-fn">_renderChart()</td>
+        <td class="col-what">Balkendiagramm-Tooltips: Bestätigt + Gebucht pro Monat — via <code>_fmt()</code></td>
+        <td class="col-page">financial.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="financial.js" data-status="err">
+        <td class="col-file">financial.js</td>
+        <td class="col-class">FinancialView</td>
+        <td class="col-fn">_renderTopStudents()</td>
+        <td class="col-what">Revenue pro Student — via <code>_fmt()</code></td>
+        <td class="col-page">financial.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="financial.js" data-status="err">
+        <td class="col-file">financial.js</td>
+        <td class="col-class">FinancialView</td>
+        <td class="col-fn">_renderDrilldown()</td>
+        <td class="col-what">Slot-Preise, Deposit, Tagessummen, Ausstehend-Beträge — via <code>_fmt()</code></td>
+        <td class="col-page">financial.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <!-- ─ admin.js ─ -->
+      <tr class="group-header"><td colspan="6">admin.js — AdminView (Admin-only)</td></tr>
+
+      <tr data-file="admin.js" data-status="err">
+        <td class="col-file">admin.js</td>
+        <td class="col-class">AdminView</td>
+        <td class="col-fn">fmt() lokal (Z. 816, 962, 1051)</td>
+        <td class="col-what"><code>parseFloat(n).toFixed(2) + ' €'</code> — Basis aller Admin-Anzeigen, 3 lokale Varianten</td>
+        <td class="col-page">admin.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="admin.js" data-status="err">
+        <td class="col-file">admin.js</td>
+        <td class="col-class">AdminView</td>
+        <td class="col-fn">_renderKPIs()</td>
+        <td class="col-what">Confirmed Revenue, Held Escrow, Future Revenue, Wallet Total — alle via <code>fmt()</code></td>
+        <td class="col-page">admin.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="admin.js" data-status="err">
+        <td class="col-file">admin.js</td>
+        <td class="col-class">AdminView</td>
+        <td class="col-fn">_renderBookingList()</td>
+        <td class="col-what">Slot-Preise in Buchungsliste — via <code>fmt()</code></td>
+        <td class="col-page">admin.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="admin.js" data-status="err">
+        <td class="col-file">admin.js</td>
+        <td class="col-class">AdminView</td>
+        <td class="col-fn">_renderTxList()</td>
+        <td class="col-what">Wallet-Transaktionen: Amount + Balance — via <code>fmt()</code> und <code>toFixed(2) + ' €'</code></td>
+        <td class="col-page">admin.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="admin.js" data-status="err">
+        <td class="col-file">admin.js</td>
+        <td class="col-class">AdminView</td>
+        <td class="col-fn">_renderEscrowList()</td>
+        <td class="col-what">Deposit-Beträge in Escrow-Liste — via <code>fmt()</code></td>
+        <td class="col-page">admin.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <!-- ─ wallet-core.js ─ -->
+      <tr class="group-header"><td colspan="6">wallet-core.js / wallet-panel.js / wallet.js</td></tr>
+
+      <tr data-file="wallet" data-status="err">
+        <td class="col-file">wallet-core.js</td>
+        <td class="col-class">WalletCore</td>
+        <td class="col-fn">formatAmount(amount)</td>
+        <td class="col-what"><code>n.toFixed(2)</code> — kein Währungssymbol hier, aber Aufrufer hängen <code>' €'</code> an</td>
+        <td class="col-page">wallet.html, wallet-panel</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="wallet" data-status="err">
+        <td class="col-file">wallet-core.js</td>
+        <td class="col-class">WalletCore</td>
+        <td class="col-fn">_buildTxItem(tx)</td>
+        <td class="col-what">TX-Item: <code>formatAmount(tx.amount) + ' €'</code> und <code>formatAmount(tx.balance) + ' €'</code> — beide hardcoded</td>
+        <td class="col-page">wallet.html, wallet-panel</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="wallet" data-status="err">
+        <td class="col-file">wallet-panel.js</td>
+        <td class="col-class">WalletPanel</td>
+        <td class="col-fn">_onBalanceUpdate()</td>
+        <td class="col-what">Navbar-Badge: <code>WalletCore.formatAmount(wallet.balance) + ' €'</code></td>
+        <td class="col-page">Navbar (alle Seiten)</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="wallet" data-status="err">
+        <td class="col-file">wallet-panel.js</td>
+        <td class="col-class">WalletPanel</td>
+        <td class="col-fn">_buildHTML()</td>
+        <td class="col-what">Einzahlungs-/Auszahlungs-Präfix <code>'€'</code> hardcoded im Input-Feld</td>
+        <td class="col-page">wallet-panel (student/teacher)</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <!-- ─ skiing-catalog.js ─ -->
+      <tr class="group-header"><td colspan="6">skiing-catalog.js / app-service.js</td></tr>
+
+      <tr data-file="skiing-catalog.js" data-status="err">
+        <td class="col-file">skiing-catalog.js</td>
+        <td class="col-class">CatalogView</td>
+        <td class="col-fn">Preis-Filter Badge</td>
+        <td class="col-what"><code>'CHF ' + f.priceMin + '–' + f.priceMax</code> — hardcoded CHF-Bezeichner im Filter-Badge</td>
+        <td class="col-page">skiing-catalog.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded CHF</span></td>
+      </tr>
+
+      <tr data-file="skiing-catalog.js" data-status="err">
+        <td class="col-file">skiing-catalog.js</td>
+        <td class="col-class">CatalogView</td>
+        <td class="col-fn">_buildTeacherCard() (Z. 287)</td>
+        <td class="col-what"><code>'€' + p.pricePerHalfHour + ' / 30min'</code> — hardcoded €-Symbol</td>
+        <td class="col-page">skiing-catalog.html</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="user-detail.js" data-status="err">
+        <td class="col-file">user-detail.js</td>
+        <td class="col-class">UserDetail</td>
+        <td class="col-fn">_renderBalance()</td>
+        <td class="col-what">Admin-Wallet-Balance: <code>_fmt(wallet.balance)</code> → hardcoded €</td>
+        <td class="col-page">user-detail.html (Admin)</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="user-detail.js" data-status="err">
+        <td class="col-file">user-detail.js</td>
+        <td class="col-class">UserDetail</td>
+        <td class="col-fn">_renderEscrow()</td>
+        <td class="col-what">Escrow <code>depositAmount</code>: <code>_fmt(esc.depositAmount)</code> → hardcoded €</td>
+        <td class="col-page">user-detail.html (Admin)</td>
+        <td class="col-status"><span class="badge err">❌ Hardcoded €</span></td>
+      </tr>
+
+      <tr data-file="app-service.js" data-status="intern">
+        <td class="col-file">app-service.js</td>
+        <td class="col-class">AppService</td>
+        <td class="col-fn">checkPendingAffordability()</td>
+        <td class="col-what">Berechnet <code>totalCost</code>, <code>depositAmount</code>, <code>walletBalance</code> — gibt Raw-EUR zurück, kein Display</td>
+        <td class="col-page">Intern</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+      <tr data-file="app-service.js" data-status="intern">
+        <td class="col-file">app-service.js</td>
+        <td class="col-class">AppService</td>
+        <td class="col-fn">getTeacherPriceSync(teacherId)</td>
+        <td class="col-what">Liest <code>pricePerHalfHour</code> aus Profil — Raw-Wert, kein Display</td>
+        <td class="col-page">Intern</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+      <tr data-file="app-service.js" data-status="intern">
+        <td class="col-file">app-service.js</td>
+        <td class="col-class">AppService</td>
+        <td class="col-fn">calcDepositInfo()</td>
+        <td class="col-what">Berechnet Deposit-Betrag aus <code>pricePerHalfHour</code> — Interne Berechnung</td>
+        <td class="col-page">Intern</td>
+        <td class="col-status"><span class="badge neutral">🔵 Intern</span></td>
+      </tr>
+
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Footer ── -->
+<div class="page-footer">
+  <span>myBio App · Currency Display Audit · Stand 18. März 2026</span>
+  <span>Erstellt als Grundlage für Currency-Refactor</span>
+</div>
+
+<script>
+  function filterRows(filter, btn) {
+    /* Update active button */
+    var btns = document.querySelectorAll('.filter-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    btn.classList.add('active');
+
+    var rows = document.querySelectorAll('#auditTable tbody tr:not(.group-header)');
+    var groupHeaders = document.querySelectorAll('#auditTable tbody tr.group-header');
+
+    rows.forEach(function(row) {
+      var file   = row.getAttribute('data-file') || '';
+      var status = row.getAttribute('data-status') || '';
+
+      var show = false;
+      if (filter === 'all') {
+        show = true;
+      } else if (filter === 'ok')     { show = status === 'ok'; }
+      else if (filter === 'err')      { show = status === 'err'; }
+      else if (filter === 'warn')     { show = status === 'warn'; }
+      else if (filter === 'intern')   { show = status === 'intern'; }
+      else if (filter === 'wallet')   { show = file.indexOf('wallet') !== -1; }
+      else                            { show = file === filter; }
+
+      row.classList.toggle('hidden-row', !show);
+    });
+
+    /* Hide group headers that have no visible data rows following them */
+    groupHeaders.forEach(function(gh) {
+      var next = gh.nextElementSibling;
+      var hasVisible = false;
+      while (next && !next.classList.contains('group-header')) {
+        if (!next.classList.contains('hidden-row')) { hasVisible = true; break; }
+        next = next.nextElementSibling;
+      }
+      gh.classList.toggle('hidden-row', !hasVisible);
+    });
+  }
+</script>
+</body>
+</html>

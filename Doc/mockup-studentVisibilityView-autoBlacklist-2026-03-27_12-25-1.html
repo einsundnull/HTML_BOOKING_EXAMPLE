@@ -1,0 +1,897 @@
+<!--
+  MOCKUP: studentVisibilityView + autoBlacklistPromotion
+  FILE:   teacher.js — new function _openStudentVisibilityView()
+          app-service.js — new function _promoteStudentToBlacklist(studentId, teacherId)
+  CSS:    teacher.css — new section: STUDENT VISIBILITY VIEW (.svv-*)
+          teacher.css — new section: AUTO-BLACKLIST BANNER (.abl-*)
+  CHANGE: 1. New "Schüler-Sichtbarkeit" tab/panel in Teacher Dashboard
+             - Combobox to select one student
+             - Shows all slots of teacher with live visibility status for that student
+             - Each row: toggle to manually override (add/remove from whitelist/blacklist)
+          2. Auto-Blacklist Promotion:
+             - On first booking of a student → all slots with new-only / excludeNewStudents
+               automatically add student to their visibilityList as blacklist entry
+             - Visual banner in slot row when auto-promoted
+          3. Full state matrix visualised in mockup
+  DATE:   2026-03-27 12:25
+-->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mockup — Student Visibility View + Auto-Blacklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ── Tokens 1:1 aus tokens.css ── */
+:root {
+  --color-50:#f0f3f7;--color-100:#dde4ed;--color-200:#bccada;
+  --color-300:#8fa9c0;--color-400:#4d7aa0;--color-500:#3a6285;
+  --color-600:#2b4d6b;--color-700:#1a3249;--color-800:#0f2035;--color-900:#060f1c;
+  --neutral-0:#fff;--neutral-50:#f8f9fb;--neutral-100:#f0f2f5;
+  --neutral-200:#e2e6eb;--neutral-300:#c9d0d9;--neutral-400:#9aa3af;
+  --neutral-500:#6b7685;--neutral-600:#505a68;--neutral-700:#2d3540;
+  --neutral-800:#1a2130;--neutral-900:#0d1117;
+  --font:'Figtree',sans-serif;
+  --text-heading:24px;--text-body:16px;--text-small:14px;--text-caption:12px;
+  --weight-semibold:600;--weight-regular:400;
+  --sp-1:4px;--sp-2:8px;--sp-3:16px;--sp-4:24px;--sp-5:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
+  --shadow:0 1px 3px rgba(6,15,28,.08);--shadow-lg:0 4px 16px rgba(6,15,28,.12);
+  --focus-ring:0 0 0 3px rgba(77,122,160,.30);
+  --transition:150ms ease;
+  /* Visibility colours */
+  --vis-new:#8b5cf6;--vis-new-bg:#faf5ff;--vis-new-bd:#ddd6fe;
+  --vis-white:#0ea5e9;--vis-white-bg:#f0f9ff;--vis-white-bd:#bae6fd;
+  --vis-black:#f97316;--vis-black-bg:#fff7ed;--vis-black-bd:#fed7aa;
+  --vis-blknew:#e11d48;--vis-blknew-bg:#fff1f2;--vis-blknew-bd:#fecdd3;
+  --vis-public:#10b981;--vis-public-bg:#f0fdf4;--vis-public-bd:#bbf7d0;
+  /* Auto-blacklist */
+  --abl-bg:#fef3c7;--abl-bd:#fde68a;--abl-tx:#78350f;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:var(--font); background:#d1d9e0; min-height:100vh; padding:20px 16px 60px; color:var(--neutral-900); }
+
+/* ── Page layout ── */
+.mock-page { max-width:900px; margin:0 auto; display:flex; flex-direction:column; gap:48px; }
+.mock-title { font-size:11px; font-weight:var(--weight-semibold); color:var(--neutral-500); text-transform:uppercase; letter-spacing:.08em; margin-bottom:6px; }
+.mock-note { font-size:12px; color:var(--neutral-600); background:var(--neutral-100); border-radius:var(--radius-sm); padding:10px 14px; border-left:3px solid var(--color-300); line-height:1.6; margin-bottom:16px; }
+.mock-note strong { color:var(--neutral-800); }
+.state-label { font-size:10px; font-weight:var(--weight-semibold); color:var(--neutral-400); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px; }
+
+/* ── Two-column layout ── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
+@media (max-width:680px) { .two-col { grid-template-columns:1fr; } }
+
+/* ── App shell mock ── */
+.app-shell {
+  background:var(--neutral-0); border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.topbar {
+  background:var(--color-900); color:var(--neutral-0);
+  padding:12px 16px; display:flex; align-items:center; gap:12px;
+}
+.topbar-title { font-size:var(--text-small); font-weight:var(--weight-semibold); }
+.topbar-sub   { font-size:var(--text-caption); opacity:.5; margin-left:auto; }
+
+/* ── Tab nav (view-nav style) ── */
+.view-nav {
+  display:flex; gap:4px; padding:10px 12px 0;
+  border-bottom:1px solid var(--neutral-200); overflow-x:auto;
+  background:var(--neutral-0);
+}
+.view-nav-btn {
+  font-family:var(--font); font-size:var(--text-caption); font-weight:var(--weight-semibold);
+  color:var(--neutral-500); background:none; border:none;
+  padding:6px 12px 8px; cursor:pointer; white-space:nowrap;
+  border-bottom:2px solid transparent; margin-bottom:-1px;
+  transition:color var(--transition), border-color var(--transition);
+}
+.view-nav-btn.active { color:var(--color-400); border-bottom-color:var(--color-400); }
+
+/* ══════════════════════════════════════════════════
+   NEW: teacher.css — STUDENT VISIBILITY VIEW .svv-*
+   Append after: /* SLOT VISIBILITY CONFIG section
+══════════════════════════════════════════════════ */
+
+.svv-panel { padding:var(--sp-3); display:flex; flex-direction:column; gap:var(--sp-3); }
+
+/* ── Student selector ── */
+.svv-selector-wrap { display:flex; flex-direction:column; gap:var(--sp-2); }
+.svv-selector-label { font-size:var(--text-caption); font-weight:var(--weight-semibold); color:var(--neutral-500); text-transform:uppercase; letter-spacing:.06em; }
+
+/* Reuses .stu-filter-combo pattern */
+.svv-combo { position:relative; }
+.svv-combo-trigger {
+  width:100%; display:flex; align-items:center; gap:var(--sp-2);
+  font-family:var(--font); font-size:var(--text-small); font-weight:var(--weight-semibold);
+  padding:10px var(--sp-2) 10px var(--sp-3);
+  border:1.5px solid var(--neutral-200); border-radius:var(--radius-md);
+  background:var(--neutral-0); color:var(--neutral-800);
+  cursor:pointer; text-align:left;
+  transition:border-color var(--transition), box-shadow var(--transition);
+  box-shadow:var(--shadow);
+}
+.svv-combo-trigger:hover { border-color:var(--color-300); }
+.svv-combo-trigger.is-open { border-color:var(--color-400); box-shadow:var(--focus-ring); border-radius:var(--radius-md) var(--radius-md) 0 0; }
+.svv-combo-avatar {
+  width:32px; height:32px; border-radius:50%; background:var(--color-700);
+  color:var(--neutral-0); font-size:12px; font-weight:var(--weight-semibold);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.svv-combo-info { flex:1; min-width:0; }
+.svv-combo-name { font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--neutral-900); }
+.svv-combo-meta { font-size:var(--text-caption); color:var(--neutral-400); margin-top:1px; }
+.svv-combo-badge {
+  font-size:10px; font-weight:var(--weight-semibold); padding:2px 8px;
+  border-radius:99px; flex-shrink:0;
+}
+.svv-combo-badge-new  { background:var(--vis-new-bg); color:var(--vis-new); border:1px solid var(--vis-new-bd); }
+.svv-combo-badge-known { background:var(--vis-public-bg); color:var(--vis-public); border:1px solid var(--vis-public-bd); }
+.svv-combo-chevron { color:var(--neutral-400); flex-shrink:0; display:flex; align-items:center; transition:transform var(--transition); }
+.svv-combo-trigger.is-open .svv-combo-chevron { transform:rotate(180deg); }
+
+/* Dropdown panel */
+.svv-combo-panel {
+  position:absolute; top:100%; left:0; right:0; z-index:300;
+  background:var(--neutral-0); border:1.5px solid var(--color-400); border-top:none;
+  border-radius:0 0 var(--radius-md) var(--radius-md);
+  box-shadow:var(--shadow-lg); overflow:hidden;
+}
+.svv-combo-search {
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:var(--sp-2) var(--sp-3); border-bottom:1px solid var(--neutral-100);
+}
+.svv-combo-search input {
+  flex:1; font-family:var(--font); font-size:var(--text-caption);
+  color:var(--neutral-900); border:none; outline:none; background:transparent;
+}
+.svv-combo-search input::placeholder { color:var(--neutral-400); }
+.svv-combo-list { overflow-y:auto; max-height:200px; }
+.svv-combo-row {
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:8px var(--sp-3); cursor:pointer;
+  transition:background var(--transition);
+}
+.svv-combo-row:hover { background:var(--neutral-50); }
+.svv-combo-row-av {
+  width:28px; height:28px; border-radius:50%; background:var(--color-700);
+  color:var(--neutral-0); font-size:11px; font-weight:var(--weight-semibold);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.svv-combo-row-name { flex:1; font-size:var(--text-caption); font-weight:var(--weight-semibold); color:var(--neutral-800); }
+.svv-combo-row-meta { font-size:var(--text-caption); color:var(--neutral-400); }
+.svv-combo-row-badge { font-size:10px; font-weight:var(--weight-semibold); padding:1px 6px; border-radius:99px; }
+.svv-combo-row-badge-new   { background:var(--vis-new-bg); color:var(--vis-new); }
+.svv-combo-row-badge-known { background:var(--vis-public-bg); color:var(--vis-public); }
+
+/* ── Slot visibility list ── */
+.svv-list-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:var(--sp-2) 0; border-bottom:1px solid var(--neutral-200);
+  margin-bottom:var(--sp-1);
+}
+.svv-list-header-title {
+  font-size:var(--text-caption); font-weight:var(--weight-semibold);
+  color:var(--neutral-500); text-transform:uppercase; letter-spacing:.06em;
+}
+.svv-list-header-count { font-size:var(--text-caption); color:var(--neutral-400); }
+
+.svv-slot-list { display:flex; flex-direction:column; gap:2px; }
+
+/* ── Each slot row ── */
+.svv-slot-row {
+  display:flex; align-items:center; gap:var(--sp-2);
+  padding:8px var(--sp-2); border-radius:var(--radius-sm);
+  border:1px solid transparent;
+  transition:background var(--transition), border-color var(--transition);
+  cursor:default;
+}
+.svv-slot-row-visible   { background:var(--vis-public-bg); border-color:var(--vis-public-bd); }
+.svv-slot-row-hidden    { background:var(--neutral-50); border-color:var(--neutral-200); opacity:.75; }
+.svv-slot-row-auto-bl   { background:var(--abl-bg); border-color:var(--abl-bd); }
+
+/* Time */
+.svv-slot-time {
+  font-size:var(--text-caption); font-weight:var(--weight-semibold);
+  color:var(--neutral-700); font-family:monospace; width:50px; flex-shrink:0;
+}
+.svv-slot-row-hidden .svv-slot-time   { color:var(--neutral-400); }
+.svv-slot-row-auto-bl .svv-slot-time  { color:var(--abl-tx); }
+
+/* Date chip */
+.svv-slot-date {
+  font-size:10px; color:var(--neutral-400); white-space:nowrap; flex-shrink:0; width:38px;
+}
+
+/* Config badge (slot's visibility setting) */
+.svv-vis-pill {
+  font-size:10px; font-weight:var(--weight-semibold);
+  padding:2px 7px; border-radius:99px; white-space:nowrap; flex-shrink:0;
+}
+.svv-vis-pill-public    { background:var(--vis-public-bg); color:var(--vis-public); }
+.svv-vis-pill-new-only  { background:var(--vis-new-bg);    color:var(--vis-new); }
+.svv-vis-pill-whitelist { background:var(--vis-white-bg);  color:var(--vis-white); }
+.svv-vis-pill-blacklist { background:var(--vis-black-bg);  color:var(--vis-black); }
+.svv-vis-pill-blknew    { background:var(--vis-blknew-bg); color:var(--vis-blknew); }
+
+/* Result indicator */
+.svv-result {
+  font-size:10px; font-weight:var(--weight-semibold);
+  display:flex; align-items:center; gap:4px; white-space:nowrap; flex-shrink:0;
+}
+.svv-result-yes { color:var(--vis-public); }
+.svv-result-no  { color:var(--neutral-400); }
+.svv-result-abl { color:var(--abl-tx); }
+
+/* Reason text */
+.svv-reason { flex:1; font-size:10px; color:var(--neutral-400); min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.svv-slot-row-auto-bl .svv-reason { color:var(--abl-tx); }
+
+/* Override toggle */
+.svv-override {
+  width:28px; height:28px; border-radius:var(--radius-sm);
+  border:1px solid var(--neutral-200); background:transparent;
+  color:var(--neutral-400); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  transition:background var(--transition), color var(--transition), border-color var(--transition);
+  font-size:12px;
+}
+.svv-override:hover { background:var(--neutral-100); color:var(--neutral-700); border-color:var(--neutral-300); }
+.svv-override.is-active { background:var(--color-900); color:var(--neutral-0); border-color:var(--color-900); }
+
+/* ── Auto-Blacklist Banner ── */
+/* NEW: teacher.css — append after .svv-* section */
+.abl-banner {
+  display:flex; align-items:flex-start; gap:var(--sp-2);
+  padding:var(--sp-2) var(--sp-3);
+  background:var(--abl-bg); border-radius:var(--radius-md);
+  border:1px solid var(--abl-bd);
+}
+.abl-icon { font-size:14px; line-height:1; flex-shrink:0; margin-top:1px; }
+.abl-body { flex:1; }
+.abl-title { font-size:var(--text-caption); font-weight:var(--weight-semibold); color:var(--abl-tx); }
+.abl-desc  { font-size:11px; color:var(--abl-tx); opacity:.8; margin-top:2px; line-height:1.5; }
+
+/* ── Summary counters ── */
+.svv-summary {
+  display:flex; gap:var(--sp-2); flex-wrap:wrap;
+  padding:var(--sp-2) var(--sp-3);
+  background:var(--neutral-50); border-radius:var(--radius-md);
+  border:1px solid var(--neutral-200);
+}
+.svv-summary-item { display:flex; align-items:center; gap:5px; font-size:var(--text-caption); }
+.svv-summary-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+.svv-summary-count { font-weight:var(--weight-semibold); color:var(--neutral-800); }
+.svv-summary-label { color:var(--neutral-500); }
+
+/* ── State Matrix Table ── */
+.matrix-wrap { background:var(--neutral-0); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); overflow:hidden; }
+.matrix-header { background:var(--color-900); color:var(--neutral-0); padding:var(--sp-3) var(--sp-4); }
+.matrix-header-title { font-size:var(--text-small); font-weight:var(--weight-semibold); }
+.matrix-header-sub { font-size:var(--text-caption); opacity:.5; margin-top:2px; }
+.matrix-table { width:100%; border-collapse:collapse; font-size:var(--text-caption); }
+.matrix-table th {
+  padding:8px 12px; background:var(--color-800); color:rgba(255,255,255,.7);
+  font-size:10px; font-weight:var(--weight-semibold); text-transform:uppercase;
+  letter-spacing:.06em; text-align:left; white-space:nowrap;
+}
+.matrix-table td {
+  padding:8px 12px; border-bottom:1px solid var(--neutral-100);
+  vertical-align:middle; line-height:1.4;
+}
+.matrix-table tr:last-child td { border-bottom:none; }
+.matrix-table tr:nth-child(even) td { background:var(--neutral-50); }
+code { font-family:monospace; font-size:11px; background:rgba(6,15,28,.07); padding:1px 5px; border-radius:3px; }
+.pill { display:inline-block; font-size:10px; font-weight:var(--weight-semibold); padding:1px 7px; border-radius:99px; white-space:nowrap; }
+.pill-new     { background:var(--vis-new-bg);    color:var(--vis-new); }
+.pill-known   { background:var(--vis-public-bg); color:var(--vis-public); }
+.pill-yes     { background:#dcfce7; color:#14532d; }
+.pill-no      { background:#fee2e2; color:#991b1b; }
+.pill-abl     { background:var(--abl-bg); color:var(--abl-tx); }
+.pill-public  { background:var(--vis-public-bg); color:var(--vis-public); }
+.pill-noonly  { background:var(--vis-new-bg);    color:var(--vis-new); }
+.pill-wl      { background:var(--vis-white-bg);  color:var(--vis-white); }
+.pill-bl      { background:var(--vis-black-bg);  color:var(--vis-black); }
+.pill-blnew   { background:var(--vis-blknew-bg); color:var(--vis-blknew); }
+.pill-excnew  { background:#fef3c7; color:#92400e; }
+
+/* ── Logic diagram ── */
+.logic-wrap { background:var(--neutral-0); border-radius:var(--radius-lg); box-shadow:var(--shadow-lg); overflow:hidden; }
+.logic-header { background:var(--color-900); color:var(--neutral-0); padding:var(--sp-3) var(--sp-4); }
+.logic-body { padding:var(--sp-4); display:flex; flex-direction:column; gap:var(--sp-3); }
+.logic-step {
+  display:flex; align-items:flex-start; gap:var(--sp-3);
+  padding:var(--sp-3); border-radius:var(--radius-md);
+  border:1px solid var(--neutral-200);
+}
+.logic-step-num {
+  width:24px; height:24px; border-radius:50%; background:var(--color-400);
+  color:var(--neutral-0); font-size:11px; font-weight:var(--weight-semibold);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.logic-step-content { flex:1; }
+.logic-step-title { font-size:var(--text-small); font-weight:var(--weight-semibold); color:var(--neutral-900); margin-bottom:4px; }
+.logic-step-desc  { font-size:var(--text-caption); color:var(--neutral-600); line-height:1.6; }
+.logic-step-code  {
+  font-family:monospace; font-size:11px; color:var(--color-400);
+  background:var(--color-50); border:1px solid var(--color-200);
+  border-radius:var(--radius-sm); padding:var(--sp-2) var(--sp-3);
+  margin-top:var(--sp-2); display:block; line-height:1.8;
+}
+.logic-arrow { text-align:center; color:var(--neutral-300); font-size:18px; margin:-8px 0; }
+</style>
+</head>
+<body>
+<div class="mock-page">
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 1 — STATE MATRIX
+  ═══════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-title">Zustandsmatrix — alle Sichtbarkeitsfälle</div>
+    <div class="mock-note">
+      <strong>Das Problem:</strong> <code>_isNew()</code> wird dynamisch berechnet. Nach der ersten Buchung
+      wechselt der Schüler von „neu" → „bekannt" und sieht plötzlich alle zuvor gesperrten Slots.
+      Die Lösung: <strong>Auto-Blacklist-Promotion</strong> bei der ersten Buchung + <strong>Student-Visibility-View</strong> für manuelle Kontrolle.
+    </div>
+    <div class="matrix-wrap">
+      <div class="matrix-header">
+        <div class="matrix-header-title">Vollständige Zustands-Matrix: Slot-Sichtbarkeit pro Schüler</div>
+        <div class="matrix-header-sub">Alle Kombinationen von visibility + excludeNewStudents + Schüler-Status</div>
+      </div>
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>slot.visibility</th>
+            <th>excludeNewStudents</th>
+            <th>Schüler-Status</th>
+            <th>Sichtbar?</th>
+            <th>Auto-Blacklist bei 1. Buchung</th>
+            <th>Ergebnis nach Buchung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>public</code></td>
+            <td>—</td>
+            <td><span class="pill pill-new">neu</span></td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ bleibt sichtbar</span></td>
+          </tr>
+          <tr>
+            <td><code>public</code></td>
+            <td>—</td>
+            <td><span class="pill pill-known">bekannt</span></td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ bleibt sichtbar</span></td>
+          </tr>
+          <tr>
+            <td><code>public</code></td>
+            <td><code>true</code></td>
+            <td><span class="pill pill-new">neu</span></td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td><span class="pill pill-abl">⚡ Auto → blacklist</span></td>
+            <td><span class="pill pill-no">✗ bleibt gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>public</code></td>
+            <td><code>true</code></td>
+            <td><span class="pill pill-known">bekannt</span></td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ sichtbar</span></td>
+          </tr>
+          <tr>
+            <td><code>new-only</code></td>
+            <td>—</td>
+            <td><span class="pill pill-new">neu</span></td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td><span class="pill pill-abl">⚡ Auto → blacklist</span></td>
+            <td><span class="pill pill-no">✗ gesperrt (in BL)</span></td>
+          </tr>
+          <tr>
+            <td><code>new-only</code></td>
+            <td>—</td>
+            <td><span class="pill pill-known">bekannt</span></td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td>— (bereits bekannt)</td>
+            <td><span class="pill pill-no">✗ gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>whitelist</code></td>
+            <td>—</td>
+            <td>in Liste</td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ sichtbar</span></td>
+          </tr>
+          <tr>
+            <td><code>whitelist</code></td>
+            <td>—</td>
+            <td>nicht in Liste</td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td>—</td>
+            <td><span class="pill pill-no">✗ gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist</code></td>
+            <td>—</td>
+            <td>in Liste</td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td>—</td>
+            <td><span class="pill pill-no">✗ gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist</code></td>
+            <td>—</td>
+            <td>nicht in Liste</td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ sichtbar</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist-new</code></td>
+            <td>—</td>
+            <td><span class="pill pill-new">neu</span> + nicht in Liste</td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td><span class="pill pill-abl">⚡ Auto → in BL</span></td>
+            <td><span class="pill pill-no">✗ bleibt gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist-new</code></td>
+            <td>—</td>
+            <td><span class="pill pill-new">neu</span> + in Liste</td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td>— (bereits in BL)</td>
+            <td><span class="pill pill-no">✗ bleibt gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist-new</code></td>
+            <td>—</td>
+            <td><span class="pill pill-known">bekannt</span> + in Liste</td>
+            <td><span class="pill pill-no">✗ Nein</span></td>
+            <td>—</td>
+            <td><span class="pill pill-no">✗ gesperrt</span></td>
+          </tr>
+          <tr>
+            <td><code>blacklist-new</code></td>
+            <td>—</td>
+            <td><span class="pill pill-known">bekannt</span> + nicht in Liste</td>
+            <td><span class="pill pill-yes">✓ Ja</span></td>
+            <td>—</td>
+            <td><span class="pill pill-yes">✓ sichtbar</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 2 — STUDENT VISIBILITY VIEW UI
+  ═══════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-title">Student Visibility View — UI Mockup</div>
+
+    <div class="two-col">
+
+      <!-- State A: No student selected -->
+      <div>
+        <div class="state-label">State A — Kein Schüler ausgewählt</div>
+        <div class="app-shell">
+          <div class="topbar">
+            <div class="topbar-title">Lehrer-Dashboard</div>
+            <div class="topbar-sub">teacher1</div>
+          </div>
+          <div class="view-nav">
+            <button class="view-nav-btn">Kalender</button>
+            <button class="view-nav-btn">Buchungen</button>
+            <button class="view-nav-btn">Schüler</button>
+            <button class="view-nav-btn active">Sichtbarkeit</button>
+            <button class="view-nav-btn">Wallet</button>
+          </div>
+          <div class="svv-panel">
+            <div class="svv-selector-wrap">
+              <div class="svv-selector-label">Schüler auswählen</div>
+              <div class="svv-combo">
+                <button class="svv-combo-trigger">
+                  <div class="svv-combo-avatar" style="background:var(--neutral-300);">?</div>
+                  <div class="svv-combo-info">
+                    <div class="svv-combo-name" style="color:var(--neutral-400);">Schüler wählen…</div>
+                    <div class="svv-combo-meta">Sichtbarkeit pro Schüler anzeigen</div>
+                  </div>
+                  <svg class="svv-combo-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+              </div>
+            </div>
+            <div style="padding:var(--sp-5) 0; text-align:center; color:var(--neutral-400); font-size:var(--text-caption);">
+              <div style="font-size:32px; margin-bottom:8px;">👁️</div>
+              Schüler auswählen, um alle<br>sichtbaren Slots anzuzeigen
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- State B: Student selected, dropdown open -->
+      <div>
+        <div class="state-label">State B — Dropdown geöffnet</div>
+        <div class="app-shell">
+          <div class="topbar">
+            <div class="topbar-title">Lehrer-Dashboard</div>
+            <div class="topbar-sub">teacher1</div>
+          </div>
+          <div class="view-nav">
+            <button class="view-nav-btn">Kalender</button>
+            <button class="view-nav-btn">Buchungen</button>
+            <button class="view-nav-btn">Schüler</button>
+            <button class="view-nav-btn active">Sichtbarkeit</button>
+            <button class="view-nav-btn">Wallet</button>
+          </div>
+          <div class="svv-panel">
+            <div class="svv-selector-wrap">
+              <div class="svv-selector-label">Schüler auswählen</div>
+              <div class="svv-combo">
+                <button class="svv-combo-trigger is-open">
+                  <div class="svv-combo-avatar">A</div>
+                  <div class="svv-combo-info">
+                    <div class="svv-combo-name">Anna Mayer</div>
+                    <div class="svv-combo-meta">3 Buchungen · bekannt</div>
+                  </div>
+                  <svg class="svv-combo-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="transform:rotate(180deg)"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="svv-combo-panel">
+                  <div class="svv-combo-search">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--neutral-400)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input placeholder="Name suchen…" value="">
+                  </div>
+                  <div class="svv-combo-list">
+                    <div class="svv-combo-row" style="background:var(--color-50);">
+                      <div class="svv-combo-row-av" style="background:var(--color-500);">A</div>
+                      <div class="svv-combo-row-name">Anna Mayer</div>
+                      <div class="svv-combo-row-meta">3 Buchungen</div>
+                      <span class="svv-combo-row-badge svv-combo-row-badge-known">bekannt</span>
+                    </div>
+                    <div class="svv-combo-row">
+                      <div class="svv-combo-row-av" style="background:var(--color-700);">B</div>
+                      <div class="svv-combo-row-name">Ben Krause</div>
+                      <div class="svv-combo-row-meta">0 Buchungen</div>
+                      <span class="svv-combo-row-badge svv-combo-row-badge-new">neu</span>
+                    </div>
+                    <div class="svv-combo-row">
+                      <div class="svv-combo-row-av" style="background:var(--color-600);">C</div>
+                      <div class="svv-combo-row-name">Clara Sommer</div>
+                      <div class="svv-combo-row-meta">1 Buchung</div>
+                      <span class="svv-combo-row-badge svv-combo-row-badge-known">bekannt</span>
+                    </div>
+                    <div class="svv-combo-row">
+                      <div class="svv-combo-row-av" style="background:var(--color-800);">M</div>
+                      <div class="svv-combo-row-name">Max Huber</div>
+                      <div class="svv-combo-row-meta">0 Buchungen</div>
+                      <span class="svv-combo-row-badge svv-combo-row-badge-new">neu</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- State C: Student selected, full list with auto-blacklist -->
+    <div style="margin-top:24px;">
+      <div class="state-label">State C — Schüler ausgewählt, vollständige Slot-Liste (mit Auto-Blacklist-Banner)</div>
+      <div class="app-shell">
+        <div class="topbar">
+          <div class="topbar-title">Lehrer-Dashboard</div>
+          <div class="topbar-sub">teacher1</div>
+        </div>
+        <div class="view-nav">
+          <button class="view-nav-btn">Kalender</button>
+          <button class="view-nav-btn">Buchungen</button>
+          <button class="view-nav-btn">Schüler</button>
+          <button class="view-nav-btn active">Sichtbarkeit</button>
+          <button class="view-nav-btn">Wallet</button>
+        </div>
+        <div class="svv-panel">
+
+          <!-- Selector — collapsed, student selected -->
+          <div class="svv-selector-wrap">
+            <div class="svv-selector-label">Schüler auswählen</div>
+            <div class="svv-combo">
+              <button class="svv-combo-trigger">
+                <div class="svv-combo-avatar" style="background:var(--color-500);">A</div>
+                <div class="svv-combo-info">
+                  <div class="svv-combo-name">Anna Mayer</div>
+                  <div class="svv-combo-meta">3 Buchungen · bekannt</div>
+                </div>
+                <span class="svv-combo-badge svv-combo-badge-known">bekannt</span>
+                <svg class="svv-combo-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Auto-Blacklist Banner -->
+          <div class="abl-banner">
+            <div class="abl-icon">⚡</div>
+            <div class="abl-body">
+              <div class="abl-title">Auto-Blacklist aktiv für Anna Mayer</div>
+              <div class="abl-desc">Nach der ersten Buchung wurden 2 Slots automatisch gesperrt (<code>new-only</code> → Blacklist). Die Einträge sind manuell überschreibbar.</div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="svv-summary">
+            <div class="svv-summary-item">
+              <div class="svv-summary-dot" style="background:var(--vis-public)"></div>
+              <span class="svv-summary-count">4</span>
+              <span class="svv-summary-label">sichtbar</span>
+            </div>
+            <div class="svv-summary-item">
+              <div class="svv-summary-dot" style="background:var(--neutral-300)"></div>
+              <span class="svv-summary-count">2</span>
+              <span class="svv-summary-label">gesperrt (Regel)</span>
+            </div>
+            <div class="svv-summary-item">
+              <div class="svv-summary-dot" style="background:var(--abl-bd)"></div>
+              <span class="svv-summary-count">2</span>
+              <span class="svv-summary-label">gesperrt (Auto-BL)</span>
+            </div>
+            <div style="margin-left:auto; font-size:var(--text-caption); color:var(--neutral-400);">Mo–Fr diese Woche</div>
+          </div>
+
+          <!-- List header -->
+          <div>
+            <div class="svv-list-header">
+              <div class="svv-list-header-title">Alle Slots — Sichtbarkeit für Anna Mayer</div>
+              <div class="svv-list-header-count">8 Slots</div>
+            </div>
+
+            <div class="svv-slot-list">
+
+              <!-- Row: public → sichtbar -->
+              <div class="svv-slot-row svv-slot-row-visible">
+                <div class="svv-slot-time">09:00</div>
+                <div class="svv-slot-date">Mo 30.3</div>
+                <span class="svv-vis-pill svv-vis-pill-public">public</span>
+                <div class="svv-reason">Für alle sichtbar</div>
+                <div class="svv-result svv-result-yes">✓ sichtbar</div>
+                <button class="svv-override" title="Manuell sperren">🚫</button>
+              </div>
+
+              <!-- Row: new-only → Auto-BL gesperrt -->
+              <div class="svv-slot-row svv-slot-row-auto-bl">
+                <div class="svv-slot-time">09:30</div>
+                <div class="svv-slot-date">Mo 30.3</div>
+                <span class="svv-vis-pill svv-vis-pill-new-only">new-only</span>
+                <div class="svv-reason">⚡ Auto-BL — nach 1. Buchung gesperrt</div>
+                <div class="svv-result svv-result-abl">✗ Auto-BL</div>
+                <button class="svv-override is-active" title="Override: wieder freigeben">↩</button>
+              </div>
+
+              <!-- Row: whitelist — student is in it → sichtbar -->
+              <div class="svv-slot-row svv-slot-row-visible">
+                <div class="svv-slot-time">10:00</div>
+                <div class="svv-slot-date">Di 31.3</div>
+                <span class="svv-vis-pill svv-vis-pill-whitelist">Whitelist (2)</span>
+                <div class="svv-reason">In Whitelist enthalten</div>
+                <div class="svv-result svv-result-yes">✓ sichtbar</div>
+                <button class="svv-override" title="Aus Whitelist entfernen">✏️</button>
+              </div>
+
+              <!-- Row: blacklist — student NOT in it → sichtbar -->
+              <div class="svv-slot-row svv-slot-row-visible">
+                <div class="svv-slot-time">11:00</div>
+                <div class="svv-slot-date">Di 31.3</div>
+                <span class="svv-vis-pill svv-vis-pill-blacklist">Blacklist (1)</span>
+                <div class="svv-reason">Nicht in Blacklist</div>
+                <div class="svv-result svv-result-yes">✓ sichtbar</div>
+                <button class="svv-override" title="Zur Blacklist hinzufügen">🚫</button>
+              </div>
+
+              <!-- Row: blacklist — student IN it → gesperrt -->
+              <div class="svv-slot-row svv-slot-row-hidden">
+                <div class="svv-slot-time">14:00</div>
+                <div class="svv-slot-date">Mi 1.4</div>
+                <span class="svv-vis-pill svv-vis-pill-blacklist">Blacklist (3)</span>
+                <div class="svv-reason">In Blacklist enthalten</div>
+                <div class="svv-result svv-result-no">✗ gesperrt</div>
+                <button class="svv-override" title="Aus Blacklist entfernen">↩</button>
+              </div>
+
+              <!-- Row: blacklist-new → Auto-BL gesperrt -->
+              <div class="svv-slot-row svv-slot-row-auto-bl">
+                <div class="svv-slot-time">15:00</div>
+                <div class="svv-slot-date">Mi 1.4</div>
+                <span class="svv-vis-pill svv-vis-pill-blknew">BL+KeineNeuen</span>
+                <div class="svv-reason">⚡ Auto-BL — war neu, jetzt in Blacklist</div>
+                <div class="svv-result svv-result-abl">✗ Auto-BL</div>
+                <button class="svv-override is-active" title="Override">↩</button>
+              </div>
+
+              <!-- Row: public + excludeNewStudents → sichtbar (bekannt) -->
+              <div class="svv-slot-row svv-slot-row-visible">
+                <div class="svv-slot-time">09:00</div>
+                <div class="svv-slot-date">Do 3.4</div>
+                <span class="svv-vis-pill svv-vis-pill-public">public</span>
+                <div class="svv-reason">excl. Neue — bekannt → sichtbar</div>
+                <div class="svv-result svv-result-yes">✓ sichtbar</div>
+                <button class="svv-override" title="Manuell sperren">🚫</button>
+              </div>
+
+              <!-- Row: new-only → regular block (bekannt, not auto-bl) -->
+              <div class="svv-slot-row svv-slot-row-hidden">
+                <div class="svv-slot-time">16:00</div>
+                <div class="svv-slot-date">Fr 4.4</div>
+                <span class="svv-vis-pill svv-vis-pill-new-only">new-only</span>
+                <div class="svv-reason">Bekannt → new-only sperrt</div>
+                <div class="svv-result svv-result-no">✗ gesperrt</div>
+                <button class="svv-override" title="Manuell freigeben">↩</button>
+              </div>
+
+            </div><!-- /slot-list -->
+          </div>
+
+        </div><!-- /svv-panel -->
+      </div><!-- /app-shell -->
+    </div>
+
+    <!-- State D: New student (Ben) — before first booking -->
+    <div style="margin-top:24px;">
+      <div class="state-label">State D — Neuer Schüler (Ben Krause, 0 Buchungen) — vor erster Buchung</div>
+      <div class="app-shell">
+        <div class="topbar"><div class="topbar-title">Lehrer-Dashboard</div></div>
+        <div class="svv-panel">
+          <div class="svv-selector-wrap">
+            <div class="svv-selector-label">Schüler auswählen</div>
+            <div class="svv-combo">
+              <button class="svv-combo-trigger">
+                <div class="svv-combo-avatar" style="background:var(--color-700);">B</div>
+                <div class="svv-combo-info">
+                  <div class="svv-combo-name">Ben Krause</div>
+                  <div class="svv-combo-meta">0 Buchungen · neu</div>
+                </div>
+                <span class="svv-combo-badge svv-combo-badge-new">neu</span>
+                <svg class="svv-combo-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="svv-summary">
+            <div class="svv-summary-item"><div class="svv-summary-dot" style="background:var(--vis-public)"></div><span class="svv-summary-count">4</span><span class="svv-summary-label">sichtbar</span></div>
+            <div class="svv-summary-item"><div class="svv-summary-dot" style="background:var(--neutral-300)"></div><span class="svv-summary-count">0</span><span class="svv-summary-label">gesperrt</span></div>
+            <div class="svv-summary-item"><div class="svv-summary-dot" style="background:var(--vis-new)"></div><span class="svv-summary-count">2</span><span class="svv-summary-label">new-only</span></div>
+          </div>
+          <div>
+            <div class="svv-list-header">
+              <div class="svv-list-header-title">Sichtbarkeit für Ben Krause (neu)</div>
+              <div class="svv-list-header-count">6 Slots</div>
+            </div>
+            <div class="svv-slot-list">
+              <div class="svv-slot-row svv-slot-row-visible">
+                <div class="svv-slot-time">09:00</div>
+                <div class="svv-slot-date">Mo 30.3</div>
+                <span class="svv-vis-pill svv-vis-pill-public">public</span>
+                <div class="svv-reason">Für alle sichtbar</div>
+                <div class="svv-result svv-result-yes">✓ sichtbar</div>
+                <button class="svv-override">🚫</button>
+              </div>
+              <div class="svv-slot-row svv-slot-row-visible" style="border-color:var(--vis-new-bd); background:var(--vis-new-bg);">
+                <div class="svv-slot-time">09:30</div>
+                <div class="svv-slot-date">Mo 30.3</div>
+                <span class="svv-vis-pill svv-vis-pill-new-only">new-only</span>
+                <div class="svv-reason">Neu → new-only sichtbar</div>
+                <div class="svv-result" style="color:var(--vis-new)">✓ nur für Neue</div>
+                <button class="svv-override">🚫</button>
+              </div>
+              <div class="svv-slot-row svv-slot-row-visible" style="border-color:var(--vis-new-bd); background:var(--vis-new-bg);">
+                <div class="svv-slot-time">15:00</div>
+                <div class="svv-slot-date">Mi 1.4</div>
+                <span class="svv-vis-pill svv-vis-pill-new-only">new-only</span>
+                <div class="svv-reason">Neu → new-only sichtbar</div>
+                <div class="svv-result" style="color:var(--vis-new)">✓ nur für Neue</div>
+                <button class="svv-override">🚫</button>
+              </div>
+              <div class="svv-slot-row svv-slot-row-hidden">
+                <div class="svv-slot-time">14:00</div>
+                <div class="svv-slot-date">Mi 1.4</div>
+                <span class="svv-vis-pill svv-vis-pill-blacklist">Blacklist (3)</span>
+                <div class="svv-reason">In Blacklist</div>
+                <div class="svv-result svv-result-no">✗ gesperrt</div>
+                <button class="svv-override">↩</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       SECTION 3 — AUTO-BLACKLIST PROMOTION LOGIC
+  ═══════════════════════════════════════════════════ -->
+  <div>
+    <div class="mock-title">Auto-Blacklist-Promotion — Implementierungslogik</div>
+    <div class="logic-wrap">
+      <div class="logic-header">
+        <div class="matrix-header-title">Trigger: erste Buchung eines Schülers bei einem Lehrer</div>
+        <div class="matrix-header-sub">Hook in app-service.js → bookSlotWithEscrowSilent() — nach erfolgreichem Speichern</div>
+      </div>
+      <div class="logic-body">
+
+        <div class="logic-step">
+          <div class="logic-step-num">1</div>
+          <div class="logic-step-content">
+            <div class="logic-step-title">Prüfen: Ist dies die erste Buchung?</div>
+            <div class="logic-step-desc">Nach dem Speichern zählen wir alle <code>booked</code>-Slots des Schülers bei diesem Lehrer. Wenn genau 1 → erste Buchung.</div>
+            <code class="logic-step-code">
+var allBooked = Store.Slots.byStudent(studentId);<br>
+var withTeacher = allBooked.filter(function(s) {<br>
+&nbsp;&nbsp;return s.teacherId === teacherId && s.status === 'booked';<br>
+});<br>
+var isFirstBooking = (withTeacher.length === 1);
+            </code>
+          </div>
+        </div>
+
+        <div class="logic-arrow">↓</div>
+
+        <div class="logic-step">
+          <div class="logic-step-num">2</div>
+          <div class="logic-step-content">
+            <div class="logic-step-title">Alle Slots des Lehrers scannen</div>
+            <div class="logic-step-desc">Nur Slots mit <code>new-only</code>, <code>blacklist-new</code> oder <code>excludeNewStudents: true</code> sind betroffen.</div>
+            <code class="logic-step-code">
+var teacherSlots = Store.Slots.byTeacher(teacherId);<br>
+var toPromote = teacherSlots.filter(function(s) {<br>
+&nbsp;&nbsp;return s.visibility === 'new-only'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|| s.visibility === 'blacklist-new'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;|| s.excludeNewStudents === true;<br>
+});
+            </code>
+          </div>
+        </div>
+
+        <div class="logic-arrow">↓</div>
+
+        <div class="logic-step">
+          <div class="logic-step-num">3</div>
+          <div class="logic-step-content">
+            <div class="logic-step-title">Schüler in visibilityList (Blacklist) eintragen</div>
+            <div class="logic-step-desc">Für jeden betroffenen Slot: Schüler-UID zur <code>visibilityList</code> hinzufügen, <code>visibility</code> auf <code>'blacklist'</code> setzen (wenn noch <code>new-only</code>). Bereits in Liste → skip. Flag <code>autoPromoted: true</code> setzen für UI-Kennzeichnung.</div>
+            <code class="logic-step-code">
+toPromote.forEach(function(slot) {<br>
+&nbsp;&nbsp;var list = (slot.visibilityList || []).slice();<br>
+&nbsp;&nbsp;if (list.indexOf(studentId) !== -1) return; /* bereits drin */<br>
+&nbsp;&nbsp;list.push(studentId);<br>
+&nbsp;&nbsp;var newVis = slot.visibility === 'new-only' ? 'blacklist' : slot.visibility;<br>
+&nbsp;&nbsp;Store.Slots.update(slot.slotId, {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;visibility: newVis,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;visibilityList: list,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;autoPromotedStudents: (slot.autoPromotedStudents || []).concat([studentId])<br>
+&nbsp;&nbsp;});<br>
+});
+            </code>
+          </div>
+        </div>
+
+        <div class="logic-arrow">↓</div>
+
+        <div class="logic-step" style="border-color:var(--vis-public-bd); background:var(--vis-public-bg);">
+          <div class="logic-step-num" style="background:var(--vis-public);">✓</div>
+          <div class="logic-step-content">
+            <div class="logic-step-title" style="color:var(--vis-public);">Ergebnis</div>
+            <div class="logic-step-desc">Der Schüler ist jetzt fest in der Blacklist der betroffenen Slots. <code>_isNew()</code> wird für diesen Schüler irrelevant — die explizite Blacklist-Regel greift immer. Sichtbarkeit bleibt stabil, egal wie viele Buchungen noch kommen. <br><br>Das neue Feld <code>autoPromotedStudents[]</code> ermöglicht im <em>Student Visibility View</em> die Kennzeichnung als „Auto-BL" und die Override-Möglichkeit.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div><!-- /mock-page -->
+</body>
+</html>

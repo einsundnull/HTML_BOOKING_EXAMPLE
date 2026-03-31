@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Currency Refactor — Dokumentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy-900: #060f1c;
+    --navy-800: #0f2035;
+    --navy-700: #1a3249;
+    --navy-600: #2b4d6b;
+    --navy-500: #3a6285;
+    --navy-400: #4d7aa0;
+    --navy-100: #dde4ed;
+    --navy-50:  #f0f3f7;
+    --neutral-0:   #ffffff;
+    --neutral-50:  #f8f9fb;
+    --neutral-100: #f0f2f5;
+    --neutral-200: #e2e6eb;
+    --neutral-300: #c9d0d9;
+    --neutral-500: #6b7685;
+    --neutral-600: #505a68;
+    --neutral-700: #2d3540;
+    --ok-bg: #f0fdf4; --ok-text: #166534; --ok-border: #bbf7d0;
+    --err-bg: #fef2f2; --err-text: #991b1b; --err-border: #fecaca;
+    --warn-bg: #fefce8; --warn-text: #854d0e; --warn-border: #fde68a;
+    --info-bg: #eff6ff; --info-text: #1e40af; --info-border: #bfdbfe;
+    --font: 'Figtree', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: var(--font);
+    background: var(--neutral-50);
+    color: var(--navy-900);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* ── Layout ── */
+  .layout { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 240px;
+    flex-shrink: 0;
+    background: var(--navy-900);
+    color: var(--neutral-100);
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 24px 0 40px;
+  }
+  .sidebar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--navy-400);
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--navy-700);
+    margin-bottom: 16px;
+  }
+  .sidebar-section {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--navy-500);
+    padding: 14px 20px 6px;
+  }
+  .sidebar a {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--neutral-300);
+    padding: 7px 20px;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all 100ms;
+  }
+  .sidebar a:hover, .sidebar a.active {
+    color: var(--neutral-0);
+    border-left-color: var(--navy-400);
+    background: rgba(77,122,160,0.12);
+  }
+  .main {
+    flex: 1;
+    padding: 48px 56px 80px;
+    max-width: 960px;
+  }
+
+  /* ── Page header ── */
+  .page-header { margin-bottom: 48px; padding-bottom: 28px; border-bottom: 2px solid var(--navy-900); }
+  .page-title { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.2; }
+  .page-meta { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .meta-tag {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--navy-900);
+    color: var(--neutral-100);
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+  .meta-tag.ok   { background: var(--ok-bg);   color: var(--ok-text); }
+  .meta-tag.info { background: var(--info-bg);  color: var(--info-text); }
+
+  /* ── Section headings ── */
+  .doc-section { margin-bottom: 52px; }
+  .doc-section + .doc-section { border-top: 1px solid var(--neutral-200); padding-top: 48px; }
+  h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--navy-900);
+    color: var(--neutral-0);
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin: 24px 0 8px;
+    color: var(--navy-700);
+  }
+  p { margin-bottom: 12px; color: var(--neutral-700); }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .badge.ok   { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
+  .badge.err  { background: var(--err-bg);  color: var(--err-text);  border: 1px solid var(--err-border); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+  .badge.info { background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
+  .badge.neu  { background: var(--navy-50); color: var(--navy-700);  border: 1px solid var(--navy-100); }
+
+  /* ── Decision box ── */
+  .decision-box {
+    background: var(--navy-50);
+    border: 1px solid var(--navy-100);
+    border-left: 4px solid var(--navy-400);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 16px 0;
+  }
+  .decision-box .decision-title {
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 8px;
+    color: var(--navy-700);
+  }
+  .decision-box ul { padding-left: 18px; color: var(--neutral-700); }
+  .decision-box li { margin-bottom: 4px; font-size: 13px; }
+
+  /* ── Code blocks ── */
+  pre {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--navy-900);
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.6;
+  }
+  code {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--neutral-100);
+    color: var(--navy-700);
+    padding: 1px 5px;
+    border-radius: 3px;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+  .code-comment { color: #64748b; }
+  .code-key     { color: #93c5fd; }
+  .code-fn      { color: #86efac; }
+  .code-str     { color: #fca5a5; }
+  .code-kw      { color: #c084fc; }
+
+  /* ── Change table ── */
+  .change-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .change-table thead tr { background: var(--navy-900); color: var(--neutral-0); }
+  .change-table thead th { text-align: left; padding: 10px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; white-space: nowrap; }
+  .change-table tbody tr { border-bottom: 1px solid var(--neutral-100); }
+  .change-table tbody tr:last-child { border-bottom: none; }
+  .change-table tbody tr:hover { background: var(--navy-50); }
+  .change-table td { padding: 10px 14px; vertical-align: top; }
+  .change-table td.mono { font-family: var(--mono); font-size: 11px; color: var(--navy-600); }
+  .change-table td.fn   { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--navy-700); }
+
+  /* ── Summary stats ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .stat { background: var(--neutral-0); border: 1px solid var(--neutral-200); border-radius: 8px; padding: 14px 18px; }
+  .stat-val { font-size: 26px; font-weight: 700; line-height: 1; }
+  .stat-lbl { font-size: 11px; font-weight: 600; color: var(--neutral-500); text-transform: uppercase; letter-spacing: 0.4px; margin-top: 4px; }
+  .stat.ok  .stat-val { color: var(--ok-text); }
+  .stat.err .stat-val { color: var(--err-text); }
+  .stat.info .stat-val { color: var(--info-text); }
+
+  /* ── Diff block ── */
+  .diff { font-family: var(--mono); font-size: 12px; border-radius: 8px; overflow: hidden; margin: 12px 0; border: 1px solid var(--neutral-200); }
+  .diff-header { background: var(--neutral-100); padding: 6px 14px; font-size: 11px; color: var(--neutral-500); font-weight: 600; border-bottom: 1px solid var(--neutral-200); }
+  .diff-body { background: #1e293b; padding: 14px 16px; overflow-x: auto; }
+  .diff-line { display: block; padding: 1px 0; line-height: 1.6; }
+  .diff-rem { color: #fca5a5; background: rgba(252,165,165,0.08); }
+  .diff-add { color: #86efac; background: rgba(134,239,172,0.08); }
+  .diff-ctx { color: #94a3b8; }
+
+  /* ── Scope box ── */
+  .scope-box {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0;
+  }
+  .scope-item {
+    background: var(--neutral-0);
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .scope-item-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--neutral-500); margin-bottom: 8px; }
+  .scope-item ul { padding-left: 16px; font-size: 13px; color: var(--neutral-700); }
+  .scope-item li { margin-bottom: 3px; }
+
+  @media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: static; padding: 16px 0; }
+    .sidebar a { display: inline-block; }
+    .main { padding: 24px 20px 60px; }
+    .scope-box { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ── Sidebar ── -->
+<nav class="sidebar">
+  <div class="sidebar-logo">Currency Refactor</div>
+
+  <div class="sidebar-section">Überblick</div>
+  <a href="#intro">Ziel & Entscheidungen</a>
+  <a href="#architecture">Architektur</a>
+  <a href="#scope">Scope</a>
+
+  <div class="sidebar-section">Neue Helpers</div>
+  <a href="#fmtForUser">_fmtForUser()</a>
+  <a href="#getActorUid">_getActorUid()</a>
+
+  <div class="sidebar-section">Datei-Changes</div>
+  <a href="#uijs">ui.js</a>
+  <a href="#profilejs">profile.js</a>
+  <a href="#studentjs">student.js</a>
+  <a href="#teacherjs">teacher.js</a>
+
+  <div class="sidebar-section">Offen / Skipped</div>
+  <a href="#skipped">Skipped Files</a>
+  <a href="#open">Offene Punkte</a>
+</nav>
+
+<!-- ── Main content ── -->
+<main class="main">
+
+<!-- ── Page Header ── -->
+<div class="page-header">
+  <div class="page-title">Currency Display Refactor<br>Dokumentation</div>
+  <div class="page-meta">
+    <span class="meta-tag">18. März 2026</span>
+    <span class="meta-tag">v1.0 — Phase 1</span>
+    <span class="meta-tag ok">✅ profile · student · teacher · ui</span>
+    <span class="meta-tag info">⏭ financial · admin · wallet · catalog</span>
+  </div>
+</div>
+
+<!-- ── 1. Intro ── -->
+<div class="doc-section" id="intro">
+  <h2><span class="num">1</span> Ziel &amp; Entscheidungen</h2>
+
+  <p>Ziel dieses Refactors ist es, alle hardcodierten <code>€</code>-Symbole und <code>fmtPrice()</code>-Aufrufe ohne Currency-Code durch korrekte, nutzerabhängige Währungsformatierung zu ersetzen. Der CurrencyService mit Mockup-Rates war bereits vollständig implementiert — er wurde nur nicht konsequent genutzt.</p>
+
+  <div class="decision-box">
+    <div class="decision-title">Architekturentscheidungen (vor Implementierung festgelegt)</div>
+    <ul>
+      <li><strong>Wallet-Währung:</strong> Admin-Seiten immer EUR, alle anderen Seiten: <code>displayCurrency</code> des eingeloggten Users</li>
+      <li><strong>financial.js &amp; admin.js:</strong> Phase 1 übersprungen — nur student/teacher-facing fixes</li>
+      <li><strong>Reihenfolge:</strong> profile → student → teacher → ui (shared helpers zuerst, Consumer danach)</li>
+      <li><strong>Konversionsbasis:</strong> Alle internen Preise sind in EUR gespeichert. Display-Konversion läuft immer via <code>convertSync(amount, 'EUR', displayCurrency)</code></li>
+      <li><strong>Fallback:</strong> Bei kaltem Cache oder fehlendem CurrencyService → immer EUR, kein Crash</li>
+    </ul>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat ok"><div class="stat-val">27</div><div class="stat-lbl">Fixes Phase 1</div></div>
+    <div class="stat err"><div class="stat-val">17</div><div class="stat-lbl">Noch offen</div></div>
+    <div class="stat info"><div class="stat-val">2</div><div class="stat-lbl">Neue Helpers</div></div>
+    <div class="stat info"><div class="stat-val">4</div><div class="stat-lbl">Dateien geändert</div></div>
+  </div>
+</div>
+
+<!-- ── 2. Architecture ── -->
+<div class="doc-section" id="architecture">
+  <h2><span class="num">2</span> Architektur</h2>
+
+  <p>Der Kern des Refactors ist ein neuer globaler Helper <code>_fmtForUser()</code> in <code>ui.js</code>. Statt in jeder Datei denselben CurrencyService-Lookup zu duplizieren (wie es in den bereits korrekten Stellen in student.js der Fall war), wird die Logik zentralisiert:</p>
+
+  <pre><code><span class="code-comment">/* Vorher: duplizierter Lookup in jedem Aufrufer */</span>
+<span class="code-kw">var</span> <span class="code-key">sCur</span> = CurrencyService.getUserCurrency(currentUser.uid);
+<span class="code-kw">if</span> (sCur === <span class="code-str">'EUR'</span>) <span class="code-kw">return</span> <span class="code-fn">fmtPrice</span>(amount, <span class="code-str">'EUR'</span>);
+<span class="code-kw">var</span> <span class="code-key">conv</span> = CurrencyService.<span class="code-fn">convertSync</span>(amount, <span class="code-str">'EUR'</span>, sCur);
+<span class="code-kw">if</span> (conv === <span class="code-kw">null</span>) <span class="code-kw">return</span> <span class="code-fn">fmtPrice</span>(amount, <span class="code-str">'EUR'</span>);
+<span class="code-kw">return</span> CurrencyService.<span class="code-fn">format</span>(conv, sCur);
+
+<span class="code-comment">/* Nachher: ein zentraler Aufruf */</span>
+<span class="code-kw">return</span> <span class="code-fn">_fmtForUser</span>(amount, currentUser.uid);</code></pre>
+
+  <p>Die Konversionskette bleibt identisch — nur der Ort der Logik ändert sich. <code>CurrencyService.warmUp()</code> läuft bereits beim Seitenstart via <code>DOMContentLoaded</code>, sodass der Rate-Cache bei der ersten User-Interaktion garantiert warm ist.</p>
+</div>
+
+<!-- ── 3. Scope ── -->
+<div class="doc-section" id="scope">
+  <h2><span class="num">3</span> Scope Phase 1</h2>
+
+  <div class="scope-box">
+    <div class="scope-item">
+      <div class="scope-item-title">✅ In Scope (Phase 1)</div>
+      <ul>
+        <li>ui.js — alle shared helpers</li>
+        <li>profile.js — deposit preview</li>
+        <li>student.js — Buchungslisten, Toasts</li>
+        <li>teacher.js — Buchungslisten, Badges</li>
+      </ul>
+    </div>
+    <div class="scope-item">
+      <div class="scope-item-title">⏭ Out of Scope (Phase 2)</div>
+      <ul>
+        <li>financial.js — Teacher-only, _fmt() hardcoded</li>
+        <li>admin.js — Admin-only, immer EUR by design</li>
+        <li>wallet-core.js — formatAmount() + TX-Items</li>
+        <li>wallet-panel.js — Balance-Badge, Input-Prefix</li>
+        <li>skiing-catalog.js — Preis-Karte, Filter-Badge</li>
+        <li>user-detail.js — Admin-Balance, Escrow</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ── 4. _fmtForUser ── -->
+<div class="doc-section" id="fmtForUser">
+  <h2><span class="num">4</span> Neuer Helper: <code>_fmtForUser()</code></h2>
+  <p>Definiert in <code>ui.js</code>, global verfügbar über <code>window._fmtForUser</code>.</p>
+
+  <pre><code><span class="code-comment">/**
+ * _fmtForUser(amountEUR, uid)
+ *
+ * Formatiert einen EUR-Betrag in der displayCurrency des Users.
+ * Liest displayCurrency über CurrencyService.getUserCurrency(uid),
+ * der wiederum ProfileStore.get(uid).displayCurrency liest.
+ *
+ * Fallback-Kette:
+ *   1. CurrencyService nicht geladen  → fmtPrice(amount, 'EUR')
+ *   2. uid fehlt / kein Profil        → fmtPrice(amount, 'EUR')
+ *   3. displayCurrency === 'EUR'      → fmtPrice(amount, 'EUR')
+ *   4. convertSync gibt null zurück   → fmtPrice(amount, 'EUR')  (Cache kalt)
+ *   5. Alles OK                       → CurrencyService.format(converted, cur)
+ */</span>
+<span class="code-kw">function</span> <span class="code-fn">_fmtForUser</span>(amountEUR, uid) {
+  <span class="code-kw">if</span> (<span class="code-kw">typeof</span> CurrencyService === <span class="code-str">'undefined'</span>) <span class="code-kw">return</span> <span class="code-fn">fmtPrice</span>(amountEUR, <span class="code-str">'EUR'</span>);
+  <span class="code-kw">var</span> cur = (uid &amp;&amp; <span class="code-kw">typeof</span> ProfileStore !== <span class="code-str">'undefined'</span>)
+    ? CurrencyService.<span class="code-fn">getUserCurrency</span>(uid)
+    : <span class="code-str">'EUR'</span>;
+  <span class="code-kw">if</span> (!cur || cur === <span class="code-str">'EUR'</span>) <span class="code-kw">return</span> <span class="code-fn">fmtPrice</span>(amountEUR, <span class="code-str">'EUR'</span>);
+  <span class="code-kw">var</span> converted = CurrencyService.<span class="code-fn">convertSync</span>(amountEUR, <span class="code-str">'EUR'</span>, cur);
+  <span class="code-kw">if</span> (converted === <span class="code-kw">null</span>) <span class="code-kw">return</span> <span class="code-fn">fmtPrice</span>(amountEUR, <span class="code-str">'EUR'</span>);
+  <span class="code-kw">return</span> CurrencyService.<span class="code-fn">format</span>(converted, cur);
+}
+window._fmtForUser = _fmtForUser;</code></pre>
+
+  <h3>Aufruf-Konventionen</h3>
+  <pre><code><span class="code-comment">/* Student-Kontext */</span>
+<span class="code-fn">_fmtForUser</span>(amount, currentUser ? currentUser.uid : <span class="code-kw">null</span>)
+
+<span class="code-comment">/* Teacher-Kontext */</span>
+<span class="code-fn">_fmtForUser</span>(amount, currentUser ? currentUser.uid : <span class="code-kw">null</span>)
+
+<span class="code-comment">/* Shared UI-Helper ohne direkten currentUser-Zugriff */</span>
+<span class="code-fn">_fmtForUser</span>(amount, <span class="code-fn">_getActorUid</span>())</code></pre>
+</div>
+
+<!-- ── 5. _getActorUid ── -->
+<div class="doc-section" id="getActorUid">
+  <h2><span class="num">5</span> Neuer Helper: <code>_getActorUid()</code></h2>
+  <p>Shared UI-Funktionen wie <code>_buildConfirmFilterRow()</code> haben keinen direkten Zugriff auf <code>currentUser</code>. Dieser Helper löst das auf:</p>
+
+  <pre><code><span class="code-kw">function</span> <span class="code-fn">_getActorUid</span>() {
+  <span class="code-kw">if</span> (<span class="code-kw">typeof</span> currentUser !== <span class="code-str">'undefined'</span> &amp;&amp; currentUser) <span class="code-kw">return</span> currentUser.uid;
+  <span class="code-kw">if</span> (<span class="code-kw">typeof</span> Auth !== <span class="code-str">'undefined'</span> &amp;&amp; Auth.current) {
+    <span class="code-kw">var</span> u = Auth.<span class="code-fn">current</span>();
+    <span class="code-kw">return</span> u ? u.uid : <span class="code-kw">null</span>;
+  }
+  <span class="code-kw">return</span> <span class="code-kw">null</span>;
+}
+window._getActorUid = _getActorUid;</code></pre>
+</div>
+
+<!-- ── 6. ui.js ── -->
+<div class="doc-section" id="uijs">
+  <h2><span class="num">6</span> ui.js — Änderungen</h2>
+  <p>ui.js ist die shared-Basis. Alle Fixes hier wirken auf student.html, teacher.html und alle anderen Seiten, die diese Funktionen nutzen.</p>
+
+  <table class="change-table">
+    <thead>
+      <tr><th>Funktion</th><th>Zeile (alt)</th><th>Was geändert</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fn">fmtPrice() — Definition</td>
+        <td class="mono">Z. 1388</td>
+        <td>Unverändert. <code>_fmtForUser()</code> und <code>_getActorUid()</code> direkt danach eingefügt.</td>
+        <td><span class="badge ok">✅ Neu</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_buildProfileSheet()</td>
+        <td class="mono">Z. 611</td>
+        <td><code>'€' + p.pricePerHalfHour</code> → <code>CurrencyService.format(price, p.priceCurrency || 'EUR')</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_buildConfirmFilterRow()</td>
+        <td class="mono">Z. 921</td>
+        <td><code>fmtPrice(total)</code> → <code>_fmtForUser(total, _getActorUid())</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_buildCancelPolicyBody()</td>
+        <td class="mono">Z. 941</td>
+        <td>Signatur um <code>actorUid</code> erweitert. <code>fmtPrice(refundAmount/forfeitAmount)</code> → <code>_fmtForUser(..., actorUid)</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_buildConfirmDetailBody()</td>
+        <td class="mono">Z. 990</td>
+        <td><code>opts.actorUid</code> hinzugefügt. <code>fmtPrice(fullAmount / depositAmount / releaseNow / balanceAfter)</code> → <code>_fmtForUser(..., actorUid)</code> (4 Stellen)</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_showCancelPolicyDialog()</td>
+        <td class="mono">Z. 1050</td>
+        <td><code>actorUid</code> aus <code>currentUser</code> aufgelöst. Toasts + navbar wallet badge nutzen <code>_fmtForUser()</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_showCancelBlockPolicyDialog()</td>
+        <td class="mono">Z. 1105</td>
+        <td>Identisch wie single-slot. <code>actorUid</code> aufgelöst, Toasts + wallet badge gefixt.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_updateBookingBadges() → setPriceBadge()</td>
+        <td class="mono">Z. 1821</td>
+        <td><code>fmtPrice(total)</code> → <code>_fmtForUser(total, _getActorUid())</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>Diff — _buildCancelPolicyBody Signatur</h3>
+  <div class="diff">
+    <div class="diff-header">ui.js — _buildCancelPolicyBody()</div>
+    <div class="diff-body">
+      <span class="diff-line diff-rem">- function _buildCancelPolicyBody(policy, teacherName, time, endTime, dateStr) {</span>
+      <span class="diff-line diff-add">+ function _buildCancelPolicyBody(policy, teacherName, time, endTime, dateStr, actorUid) {</span>
+      <span class="diff-line diff-ctx">    ...</span>
+      <span class="diff-line diff-rem">-   moneyLine = '...&lt;strong&gt;' + fmtPrice(policy.refundAmount) + '&lt;/strong&gt;...';</span>
+      <span class="diff-line diff-add">+   moneyLine = '...&lt;strong&gt;' + _fmtForUser(policy.refundAmount, actorUid) + '&lt;/strong&gt;...';</span>
+    </div>
+  </div>
+
+  <h3>Diff — _buildConfirmDetailBody opts</h3>
+  <div class="diff">
+    <div class="diff-header">ui.js — _buildConfirmDetailBody()</div>
+    <div class="diff-body">
+      <span class="diff-line diff-ctx">  var balance   = (opts.walletBalance != null) ? parseFloat(opts.walletBalance) : null;</span>
+      <span class="diff-line diff-add">+ var actorUid  = opts.actorUid || null;</span>
+      <span class="diff-line diff-ctx">  ...</span>
+      <span class="diff-line diff-rem">- rows += '...&lt;strong&gt;' + fmtPrice(fullAmount) + '&lt;/strong&gt;...';</span>
+      <span class="diff-line diff-add">+ rows += '...&lt;strong&gt;' + _fmtForUser(fullAmount, actorUid) + '&lt;/strong&gt;...';</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 7. profile.js ── -->
+<div class="doc-section" id="profilejs">
+  <h2><span class="num">7</span> profile.js — Änderungen</h2>
+  <p>Eine einzige verbleibende Stelle nach den Fixes vom Vortag: die Deposit-Vorschau im Teacher-Profil-Editor.</p>
+
+  <table class="change-table">
+    <thead>
+      <tr><th>Funktion</th><th>Zeile (alt)</th><th>Was geändert</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fn">_bindPaymentEvents() → _updatePreview()</td>
+        <td class="mono">Z. 1128</td>
+        <td><code>'€' + amount.toFixed(2)</code> → liest <code>field-price-currency</code> via <code>_getDropdownVal()</code>, nutzt <code>CurrencyService.format(amount, pCur)</code>. Fallback auf <code>'€' + toFixed(2)</code> wenn CurrencyService nicht geladen.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="diff">
+    <div class="diff-header">profile.js — _updatePreview()</div>
+    <div class="diff-body">
+      <span class="diff-line diff-rem">-     previewEl.textContent = '€' + amount.toFixed(2);</span>
+      <span class="diff-line diff-add">+     var _pCur = _getDropdownVal('field-price-currency') || 'EUR';</span>
+      <span class="diff-line diff-add">+     previewEl.textContent = (typeof CurrencyService !== 'undefined')</span>
+      <span class="diff-line diff-add">+       ? CurrencyService.format(amount, _pCur)</span>
+      <span class="diff-line diff-add">+       : '€' + amount.toFixed(2);</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 8. student.js ── -->
+<div class="doc-section" id="studentjs">
+  <h2><span class="num">8</span> student.js — Änderungen</h2>
+  <p>Die zentralen Summary-Fixes (<code>_renderSaveSummary</code> und <code>_confirmBookings</code>) wurden bereits am Vortag implementiert. In Phase 1 werden die verbleibenden 3 Stellen gefixt.</p>
+
+  <table class="change-table">
+    <thead>
+      <tr><th>Funktion</th><th>Zeile (alt)</th><th>Was geändert</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fn">_renderSaveSummary()</td>
+        <td class="mono">Vortag</td>
+        <td>Bereits gefixt (18.03.2026). Slot-Preise, Gesamt, Guthaben, Deposit — alle via lokalem <code>_fmtInStudentCur()</code>.</td>
+        <td><span class="badge ok">✅ Bereits OK</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_confirmBookings()</td>
+        <td class="mono">Vortag</td>
+        <td>Bereits gefixt (18.03.2026). Confirm-Dialog — alle Beträge via lokalem <code>_fmtD()</code>.</td>
+        <td><span class="badge ok">✅ Bereits OK</span></td>
+      </tr>
+      <tr>
+        <td class="fn">priceFn — My-Bookings-Liste</td>
+        <td class="mono">Z. 1733</td>
+        <td><code>fmtPrice(price * b.bookedSlots.length)</code> → <code>_fmtForUser(price * b.bookedSlots.length, currentUser.uid)</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_openStudentConfirmDialog() — Toast</td>
+        <td class="mono">Z. 1952</td>
+        <td><code>fmtPrice(releaseNow)</code> → <code>_fmtForUser(releaseNow, currentUser.uid)</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_openStudentConfirmDialog() — _buildConfirmDetailBody</td>
+        <td class="mono">Z. 1934</td>
+        <td><code>actorUid: currentUser.uid</code> zu opts hinzugefügt, damit ui.js helper korrekt konvertiert.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="diff">
+    <div class="diff-header">student.js — priceFn My-Bookings</div>
+    <div class="diff-body">
+      <span class="diff-line diff-rem">-     return fmtPrice(price * b.bookedSlots.length);</span>
+      <span class="diff-line diff-add">+     return _fmtForUser(price * b.bookedSlots.length, currentUser ? currentUser.uid : null);</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 9. teacher.js ── -->
+<div class="doc-section" id="teacherjs">
+  <h2><span class="num">9</span> teacher.js — Änderungen</h2>
+
+  <table class="change-table">
+    <thead>
+      <tr><th>Funktion</th><th>Zeile (alt)</th><th>Was geändert</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="fn">_renderStudentRow() — Pending-Badge</td>
+        <td class="mono">Z. 312</td>
+        <td><code>fmtPrice(b.total)</code> → <code>_fmtForUser(b.total, currentUser.uid)</code>. Zeigt Teacher's eigene Einnahmen in ihrer displayCurrency.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">priceFn — All-Bookings-Liste</td>
+        <td class="mono">Z. 1760</td>
+        <td><code>fmtPrice(price * b.bookedSlots.length)</code> → <code>_fmtForUser(..., currentUser.uid)</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">slotPriceFn — populateAllBookingDetail</td>
+        <td class="mono">Z. 1786</td>
+        <td><code>fmtPrice(slot.price)</code> → <code>_fmtForUser(slot.price, currentUser.uid)</code></td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_openConfirmDialog() — Block</td>
+        <td class="mono">Z. 1906</td>
+        <td><code>actorUid: currentUser.uid</code> zu <code>_buildConfirmDetailBody</code> opts hinzugefügt.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+      <tr>
+        <td class="fn">_openConfirmDialogSingle() — Single</td>
+        <td class="mono">Z. 1940</td>
+        <td><code>actorUid: currentUser.uid</code> zu <code>_buildConfirmDetailBody</code> opts hinzugefügt.</td>
+        <td><span class="badge ok">✅ Fix</span></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="diff">
+    <div class="diff-header">teacher.js — _buildConfirmDetailBody opts</div>
+    <div class="diff-body">
+      <span class="diff-line diff-rem">-     escrow: syntheticEscrow, walletBalance: null, actorRole: 'teacher'</span>
+      <span class="diff-line diff-add">+     escrow: syntheticEscrow, walletBalance: null, actorRole: 'teacher', actorUid: currentUser ? currentUser.uid : null</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── 10. Skipped ── -->
+<div class="doc-section" id="skipped">
+  <h2><span class="num">10</span> Skipped — Phase 2</h2>
+  <p>Diese Dateien sind aus Phase 1 bewusst ausgeschlossen. Die Audit-Tabelle (<code>currency-audit.html</code>) listet alle Stellen im Detail.</p>
+
+  <table class="change-table">
+    <thead>
+      <tr><th>Datei</th><th>Stellen</th><th>Begründung</th><th>Phase 2 Strategie</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="mono">financial.js</td>
+        <td>5 (alle <code>_fmt()</code>)</td>
+        <td>Teacher-only. <code>_fmt()</code> ist lokal, hardcoded €.</td>
+        <td><code>_fmt()</code> auf <code>_fmtForUser(uid)</code> umstellen. Teacher-uid ist <code>currentUser.uid</code>.</td>
+      </tr>
+      <tr>
+        <td class="mono">admin.js</td>
+        <td>5 (alle lokalen <code>fmt()</code>)</td>
+        <td>Admin-only. Entscheidung: Admin-Seiten immer EUR.</td>
+        <td>Bleibt EUR. Keine Änderung nötig.</td>
+      </tr>
+      <tr>
+        <td class="mono">wallet-core.js</td>
+        <td>2 (<code>formatAmount</code>, <code>_buildTxItem</code>)</td>
+        <td>Shared kernel. Ändert Signatur von <code>formatAmount()</code>.</td>
+        <td><code>formatAmount(amount, currencyCode)</code> erweitern. Aufrufer durchschleifen.</td>
+      </tr>
+      <tr>
+        <td class="mono">wallet-panel.js</td>
+        <td>2 (Balance-Badge, Input-Prefix)</td>
+        <td>Abhängig von wallet-core.js Fix.</td>
+        <td>Nach wallet-core.js Fix: <code>displayCurrency</code> des Users übergeben.</td>
+      </tr>
+      <tr>
+        <td class="mono">skiing-catalog.js</td>
+        <td>2 (Card-Preis, Filter-Badge)</td>
+        <td>Preis-Karte zeigt Teacher-Preis in Teacher-Währung.</td>
+        <td>Card: <code>CurrencyService.format(price, tCur)</code> + optionale Konversion in Viewer-Währung wie in profile-view.html. Filter-Badge: Viewer-Währung.</td>
+      </tr>
+      <tr>
+        <td class="mono">user-detail.js</td>
+        <td>2 (Balance, Escrow)</td>
+        <td>Admin-Ansicht.</td>
+        <td>Bleibt EUR. Keine Änderung nötig.</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── 11. Open ── -->
+<div class="doc-section" id="open">
+  <h2><span class="num">11</span> Offene Punkte &amp; Hinweise</h2>
+
+  <h3>1. Doppelter Lokaler Helper in student.js</h3>
+  <p>Die Funktionen <code>_fmtInStudentCur()</code> (in <code>_renderSaveSummary</code>) und <code>_fmtD()</code> (in <code>_confirmBookings</code>) sind lokale Inline-Varianten von <code>_fmtForUser()</code> — entstanden bevor der zentrale Helper existierte. Sie können in einem separaten Cleanup-Schritt durch <code>_fmtForUser(amount, currentUser.uid)</code> ersetzt werden. Funktional korrekt, aber redundant.</p>
+
+  <h3>2. wallet-core.js — Signaturänderung mit Risiko</h3>
+  <p><code>WalletCore.formatAmount()</code> wird an mehreren Stellen aufgerufen (wallet.js, wallet-panel.js, student.js, teacher.js). Die Erweiterung um einen optionalen <code>currencyCode</code>-Parameter ist rückwärtskompatibel, aber alle Aufrufer müssen geprüft werden.</p>
+
+  <h3>3. Currency-Cache beim Seitenstart</h3>
+  <p><code>CurrencyService.warmUp()</code> ist async (setTimeout 0). Bei sehr schnellen Interaktionen direkt nach Seitenload kann <code>convertSync()</code> noch <code>null</code> zurückgeben und EUR-Fallback zeigen. Dies ist by design und kein Bug — nach dem ersten Render ist der Cache warm.</p>
+
+  <h3>4. teacher.js — walletBalance ist null</h3>
+  <p>In Teacher-Confirm-Dialogen wird <code>walletBalance: null</code> übergeben (Teacher sieht kein eigenes Wallet im Confirm). Daher zeigt <code>_buildConfirmDetailBody</code> keine "Guthaben danach"-Zeile — korrekt so.</p>
+
+  <div class="decision-box">
+    <div class="decision-title">Empfehlung für Phase 2 Reihenfolge</div>
+    <ul>
+      <li>1. <strong>wallet-core.js</strong> — Basis für wallet-panel.js</li>
+      <li>2. <strong>wallet-panel.js</strong> — Balance-Badge (sichtbar auf allen Seiten)</li>
+      <li>3. <strong>financial.js</strong> — Teacher-Revenue in priceCurrency</li>
+      <li>4. <strong>skiing-catalog.js</strong> — Teacher-Preis in Karte</li>
+      <li>5. <strong>Cleanup</strong> — _fmtInStudentCur / _fmtD in student.js durch _fmtForUser ersetzen</li>
+    </ul>
+  </div>
+</div>
+
+</main>
+</div>
+</body>
+</html>

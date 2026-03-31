@@ -1,0 +1,170 @@
+================================================================================
+BOOKING CONFIRMATION LOGIC
+BookingSystem | Stand: März 2026
+================================================================================
+
+INHALTSVERZEICHNIS
+  1.  Übersicht
+  2.  Effekte der Bestätigung — Tabelle
+  3.  Confirm-Dialog (vor Bestätigung)
+  4.  Store-Methoden
+  5.  Implementierung Schüler-Interface
+  6.  Regeln & Einschränkungen
+
+────────────────────────────────────────────────────────────────────────────────
+1. ÜBERSICHT
+────────────────────────────────────────────────────────────────────────────────
+
+  Die Bestätigung einer Buchung ist eine IRREVERSIBLE Aktion.
+  Sie markiert eine Stunde als abgehalten und löst (künftig) die Escrow-
+  Zahlung aus. Nach der Bestätigung sind alle Mutationen gesperrt.
+
+  Wer bestätigt:
+    Lehrer → bestätigt die Stunde im Teacher-Interface (All Bookings)
+    Schüler → kann ebenfalls bestätigen (Day Slot List / My Bookings)
+
+  Technisch: Store.Slots.confirm(slotId) setzt das Feld confirmedAt
+  auf einen ISO-8601-Timestamp. confirmedAt !== null = bestätigt.
+
+────────────────────────────────────────────────────────────────────────────────
+2. EFFEKTE DER BESTÄTIGUNG — TABELLE
+────────────────────────────────────────────────────────────────────────────────
+
+  LEHRER-INTERFACE (All Bookings)
+  ─────────────────────────────────────────────────────────────────────────────
+  Element / Aktion              │ UNBESTÄTIGT          │ BESTÄTIGT
+  ──────────────────────────────┼──────────────────────┼────────────────────────
+  Header: „✓ Bestätigen"-Button │ ✅ sichtbar           │ ❌ nicht vorhanden
+  Header: Badge „✓ Bestätigt"   │ ❌ nicht vorhanden    │ ✅ sichtbar
+  Header: „⇄ Move"-Button       │ ✅ sichtbar (future)  │ ❌ nicht vorhanden
+  Header: „↩ Freigeben"-Button  │ ❌ nicht vorhanden    │ ✅ nur bei past-Blöcken
+  Detail: Confirm-Button (✓)    │ ✅ pro Slot sichtbar  │ ❌ ersetzt durch Badge
+  Detail: Cancel-Button         │ ✅ sichtbar (future)  │ ❌ nicht vorhanden
+  Detail: „+ Add"-Button        │ ✅ sichtbar           │ ❌ nicht vorhanden
+  Zeitslots hinzufügen          │ ✅ möglich            │ ❌ gesperrt
+  Zeitslots entfernen           │ ✅ möglich            │ ❌ gesperrt
+  Stornierung                   │ ✅ möglich            │ ❌ gesperrt
+  Verschiebung                  │ ✅ möglich            │ ❌ gesperrt
+  Escrow-Zahlung                │ ausstehend (Hold)     │ freigegeben (Release)
+
+  SCHÜLER-INTERFACE (My Bookings / Day Slot List)
+  ─────────────────────────────────────────────────────────────────────────────
+  Element / Aktion              │ UNBESTÄTIGT          │ BESTÄTIGT
+  ──────────────────────────────┼──────────────────────┼────────────────────────
+  Badge „✓ Bestätigt"           │ ❌ nicht vorhanden    │ ✅ sichtbar
+  „✓ Bestätigen"-Button         │ ✅ sichtbar (future)  │ ❌ nicht vorhanden
+  „Stornieren"-Button           │ ✅ sichtbar (future)  │ ❌ gesperrt / versteckt
+  Escrow-Zahlung                │ ausstehend (Hold)     │ freigegeben (Release)
+
+────────────────────────────────────────────────────────────────────────────────
+3. CONFIRM-DIALOG (vor Bestätigung)
+────────────────────────────────────────────────────────────────────────────────
+
+  Es gibt zwei Varianten des Dialogs — beide zeigen dieselbe Warnung:
+
+  A) Block-Level (_openConfirmDialog)
+     → Bestätigt alle Slots eines zusammenhängenden Buchungsblocks auf einmal
+     → Auslöser: „✓ Bestätigen"-Button im Block-Header
+
+  B) Slot-Level (_openConfirmDialogSingle)
+     → Bestätigt einen einzelnen 30-Minuten-Slot
+     → Auslöser: „✓"-Button in der Slot-Detailzeile
+
+  DIALOG-INHALT (Lehrer-Formulierung):
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  Titel: „Stunde bestätigen"                                             │
+  │                                                                         │
+  │  ⚠ Achtung: Diese Aktion kann nicht rückgängig gemacht werden.         │
+  │                                                                         │
+  │  Mit der Bestätigung der Stunde von [Name] ([Zeit]):                    │
+  │   • kann die Stunde nicht mehr verschoben werden                        │
+  │   • kann die Stunde nicht mehr storniert werden                         │
+  │   • wird die Zahlung für die Stunde freigegeben                         │
+  │                                                                         │
+  │  [Abbrechen]  [Jetzt bestätigen]                                        │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  DIALOG-INHALT (Schüler-Formulierung):
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  │  Titel: „Buchung bestätigen"                                            │
+  │                                                                         │
+  │  ⚠ Achtung: Diese Aktion kann nicht rückgängig gemacht werden.         │
+  │                                                                         │
+  │  Mit der Bestätigung deiner Buchung bei [Lehrername] ([Zeit]):          │
+  │   • kann die Buchung nicht mehr storniert werden                        │
+  │   • wird die Zahlung für diese Stunde freigegeben                       │
+  │                                                                         │
+  │  [Abbrechen]  [Jetzt bestätigen]                                        │
+  └─────────────────────────────────────────────────────────────────────────┘
+
+  Buttons:
+    „Abbrechen"       → .btn-ghost  → schließt Dialog ohne Aktion
+    „Jetzt bestätigen" → .btn-primary → ruft Store.Slots.confirm(slotId) auf
+
+────────────────────────────────────────────────────────────────────────────────
+4. STORE-METHODEN
+────────────────────────────────────────────────────────────────────────────────
+
+  Store.Slots.confirm(slotId)
+    → Setzt confirmedAt = ISO-Timestamp
+    → Slot bleibt status='booked', studentId bleibt erhalten
+    → IRREVERSIBEL (kein Undo)
+
+  Store.Slots.release(slotId)
+    → Setzt status zurück auf baseStatus (z.B. 'available')
+    → Löscht studentId (null)
+    → Setzt releasedAt = ISO-Timestamp
+    → Nur über Lehrer-Interface (nach Bestätigung, bei past-Blöcken)
+    → Macht Slot wieder buchbar für andere Schüler
+
+  Store.Slots.cancelBooking(slotId)
+    → Nur bei UNBESTÄTIGTEN Buchungen erlaubt
+    → Setzt status zurück auf baseStatus
+    → Löscht studentId
+    → NICHT bei confirmedAt !== null verwenden
+
+────────────────────────────────────────────────────────────────────────────────
+5. IMPLEMENTIERUNG SCHÜLER-INTERFACE
+────────────────────────────────────────────────────────────────────────────────
+
+  Geänderte Dateien: student.js, student.html
+
+  renderMyBookingsList():
+    → Filtert & gruppiert Slots
+    → Ruft _buildBookingDateBlock() → _buildMyBookingSlotRow() auf
+
+  _buildMyBookingSlotRow(slot, isPast):
+    UNBESTÄTIGT + future:
+      → „✓ Bestätigen"-Button → öffnet _openStudentConfirmDialog(slotId)
+      → „Stornieren"-Button   → öffnet _cancelBookingFromList(...)
+
+    BESTÄTIGT:
+      → Badge „✓ Bestätigt" (booking-confirm-count)
+      → Kein Bestätigen-Button
+      → Kein Stornieren-Button
+
+    UNBESTÄTIGT + past:
+      → Kein Bestätigen-Button
+      → Kein Stornieren-Button
+
+  _openStudentConfirmDialog(slotId):
+    → Modal.show() mit Warntext (Schüler-Formulierung)
+    → Bestätigen → Store.Slots.confirm(slotId)
+    → Aktualisiert Badge + Liste
+
+  buildDaySlotRow() (Day Slot List):
+    → confirmBtn öffnet _openStudentConfirmDialog(slotId)
+    → cancelBtn nur wenn !confirmedAt
+
+────────────────────────────────────────────────────────────────────────────────
+6. REGELN & EINSCHRÄNKUNGEN
+────────────────────────────────────────────────────────────────────────────────
+
+  ❌  Store.Slots.cancelBooking() NIEMALS auf bestätigten Slots aufrufen
+  ❌  Store.Slots.confirm() ist irreversibel — kein Undo möglich
+  ✅  Vor jeder Bestätigung IMMER den Confirm-Dialog anzeigen
+  ✅  confirmedAt prüfen VOR jedem Render von Cancel/Move/Add-Buttons
+  ✅  Badge „✓ Bestätigt" immer anzeigen wenn confirmedAt !== null
+  ✅  Freigabe (release) ist ausschließlich Lehrer-Funktion
+
+================================================================================

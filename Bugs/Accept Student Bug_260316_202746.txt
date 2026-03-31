@@ -1,0 +1,60 @@
+Let me read all relevant code for the teacher selection/approval flow.
+
+Now I see it. The `_respondServiceRequest` handles accept/decline — on accept it sends email but **does NOT call `AppService.createSelection`** — it only removes on decline. So when teacher accepts, the selection is never actually created in the store. Let me verify:
+
+## Status-Analyse
+
+Das gesamte System ist noch vorhanden — aber es gibt **zwei kritische Bugs**:
+
+---
+
+### Bug 1 — Student `selectTeacher()` erstellt Selection sofort ohne Genehmigung
+
+In `student.js` Zeile 451:
+```js
+function selectTeacher(teacherId) {
+  AppService.createSelection(currentUser.uid, teacherId, ...);  // ← sofort!
+  Toast.success('added to your teachers.');
+}
+```
+Der Schüler wird **sofort** als Schüler des Lehrers eingetragen — keine Anfrage, keine Wartezeit, keine Genehmigung nötig. `sendServiceMessage` wird nie aufgerufen.
+
+---
+
+### Bug 2 — `_respondServiceRequest` in `chat.js` erstellt Selection bei Annahme NICHT
+
+Wenn der Lehrer im Chat auf "Annehmen" klickt:
+```js
+if (response === 'accepted') {
+  Toast.success(...);
+  EmailService.onRequestAccepted(studentId, tName);
+  // ← AppService.createSelection() fehlt hier!
+}
+if (response === 'declined') {
+  Store.Selections.delete(studentId, teacherId);  // ← löscht bei Ablehnung
+}
+```
+Bei Annahme wird E-Mail gesendet aber **keine Selection angelegt**. Bei Ablehnung wird sie gelöscht — das funktioniert also nur, weil Bug 1 sie schon angelegt hat.
+
+---
+
+### Korrekte Flow-Logik (was sein sollte)
+
+```
+Student klickt "Add teacher" im Katalog
+  → ChatStore.sendServiceMessage(teacherId, studentId, 'student_request')
+  → EmailService.onRequestReceived(teacherId, studentName)
+  → Toast: "Request sent — waiting for approval"
+  → Selection wird NICHT angelegt
+  → Teacher sieht Chat-Badge (unread)
+
+Teacher öffnet Chat → sieht Request-Karte mit Accept/Decline
+  → Accept: AppService.createSelection(studentId, teacherId, cb)
+            EmailService.onRequestAccepted(studentId, teacherName)
+  → Decline: Store.Selections.delete (bereits vorhanden)
+             EmailService.onRequestDeclined (bereits vorhanden)
+
+Student sieht Lehrer erst nach Annahme in seiner Teacher-Liste
+```
+
+Soll ich implementieren?

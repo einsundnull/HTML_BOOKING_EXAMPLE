@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IMPL — Dashboard Status Badges &amp; Action Gating</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', system-ui, sans-serif; font-size: 14px;
+           background: #f8f9fb; color: #0d1117; line-height: 1.6; }
+    :root {
+      --navy:#060f1c; --navy-800:#0f2035;
+      --n0:#fff; --n50:#f8f9fb; --n100:#f0f2f5; --n200:#e2e6eb;
+      --n400:#9aa3af; --n500:#6b7685; --n700:#2d3540; --n900:#0d1117;
+      --mono:'Consolas','JetBrains Mono','Courier New',monospace;
+      --ok:#16a34a; --ok-bg:#f0fff4; --ok-bd:#bbf7d0;
+      --info:#2563eb; --info-bg:#eff6ff; --info-bd:#bfdbfe;
+      --warn:#d97706; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+      --green-icon:#065f46; --green-bg:#f0fdf4; --green-bd:#bbf7d0;
+      --amber:#f5a623; --amber-bg:#fef3cd;
+    }
+    .ph { background:var(--navy); padding:28px 40px 24px; }
+    .ph-eye { font-family:var(--mono); font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:rgba(255,255,255,.4); margin-bottom:6px; }
+    .ph-title { font-size:26px; font-weight:700; color:#fff; margin-bottom:5px; }
+    .ph-sub { font-size:13px; color:rgba(255,255,255,.5); max-width:760px; margin-bottom:14px; }
+    .ph-meta { display:flex; gap:8px; flex-wrap:wrap; }
+    .ph-badge { display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:600; background:rgba(255,255,255,.1); color:rgba(255,255,255,.75); border:1px solid rgba(255,255,255,.15); }
+    .page { padding:28px 40px; max-width:1100px; margin:0 auto; }
+    @media(max-width:700px){.ph,.page{padding:16px;}}
+    .sec { margin-bottom:44px; }
+    .sec-hdr { display:flex; align-items:baseline; gap:10px; margin-bottom:16px; padding-bottom:9px; border-bottom:2px solid var(--n200); }
+    .sec-title { font-size:17px; font-weight:700; }
+    .callout { padding:11px 16px; border-radius:8px; border-left:3px solid; font-size:13px; line-height:1.6; margin-bottom:14px; }
+    .c-ok  { background:var(--ok-bg);   border-color:var(--ok);   color:#14532d; }
+    .c-inf { background:var(--info-bg); border-color:var(--info); color:#1a3a6b; }
+    .callout strong { font-weight:700; }
+    .callout code { font-family:var(--mono); font-size:11.5px; background:rgba(0,0,0,.08); padding:1px 4px; border-radius:3px; }
+    .tw { overflow-x:auto; border-radius:8px; border:1px solid var(--n200); margin-bottom:14px; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { background:var(--navy-800); color:rgba(255,255,255,.82); text-align:left; padding:9px 13px; font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; white-space:nowrap; }
+    tbody td { padding:9px 13px; border-bottom:1px solid var(--n200); vertical-align:middle; color:var(--n700); line-height:1.5; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr.r-new { background:var(--info-bg); }
+    tbody tr.r-mod { background:var(--warn-bg); }
+    code { font-family:var(--mono); font-size:11.5px; background:rgba(6,15,28,.07); padding:1px 5px; border-radius:3px; color:#1a3249; }
+    .code-label { display:inline-block; background:rgba(255,255,255,.1); color:rgba(255,255,255,.6); font-family:var(--mono); font-size:10px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; padding:3px 10px; border-radius:4px 4px 0 0; }
+    .code-block { background:var(--navy); border-radius:0 8px 8px 8px; padding:14px 18px; overflow-x:auto; margin-bottom:14px; }
+    .code-block code { font-family:var(--mono); font-size:12px; color:#e2e8f0; white-space:pre; display:block; line-height:1.75; background:none; padding:0; border-radius:0; }
+    .cm{color:#64748b} .ck{color:#93c5fd} .cs{color:#86efac}
+
+    /* ── Live badge previews ── */
+    .badge-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:20px; }
+    .badge-demo { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .badge-demo-label { font-size:11px; color:var(--n500); text-align:center; }
+    .dbadge { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:6px; }
+    .dbadge-confirmed { color:var(--green-icon); background:var(--green-bg); border:1px solid var(--green-bd); }
+    .dbadge-pending   { color:var(--amber); background:var(--amber-bg); border:1px solid var(--amber); }
+    .dbadge-done      { color:#9aa3af; background:#f0f2f5; border:1px solid #e2e6eb; }
+    .dbadge-overdue   { color:#9aa3af; background:#f0f2f5; border:1px solid #e2e6eb; }
+    .dbadge-label { width:auto; gap:6px; padding:3px 8px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+
+    /* ── Mock card ── */
+    .mock-cards { display:flex; flex-direction:column; gap:8px; max-width:320px; margin-bottom:16px; }
+    .mock-card { display:flex; align-items:center; gap:10px; background:#fff; border:1px solid #e2e6eb; border-radius:8px; border-left:3px solid; padding:8px 10px; }
+    .mc-confirmed { border-left-color:#065f46; }
+    .mc-pending   { border-left-color:#f5a623; }
+    .mc-done      { border-left-color:#c9d0d9; opacity:.7; }
+    .mc-overdue   { border-left-color:#c9d0d9; opacity:.7; }
+    .mc-body { flex:1; }
+    .mc-name { font-size:13px; font-weight:600; color:#0d1117; }
+    .mc-time { font-size:11px; color:#6b7685; }
+    .mc-avatar { width:28px; height:28px; border-radius:50%; background:#e2e6eb; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#6b7685; flex-shrink:0; }
+
+    /* Matrix */
+    .check { color:#16a34a; font-weight:700; }
+    .cross { color:#c0392b; font-weight:700; }
+    .dash  { color:#9aa3af; }
+
+    footer { margin-top:48px; padding:14px 0; border-top:1px solid var(--n200); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+    footer span { font-family:var(--mono); font-size:11px; color:var(--n500); }
+  </style>
+</head>
+<body>
+
+<div class="ph">
+  <div class="ph-eye">Implementation Documentation · BookingSystem · Dashboard Badges &amp; Action Gating</div>
+  <div class="ph-title">Dashboard — Status Badges &amp; Aktions-Gating</div>
+  <div class="ph-sub">
+    4 SVG-Icon-Badges für Buchungszustände. Verlegen/Stornieren nur für unbestätigte Zukünftige.
+    Alle Badges ohne Emojis, schwarz-weiß SVG, farbig via Design-Tokens.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge">📅 19. März 2026</span>
+    <span class="ph-badge">dashboard.js · dashboard.css</span>
+    <span class="ph-badge">APP_VERSION 2026-03-19-29</span>
+  </div>
+</div>
+
+<div class="page">
+
+  <!-- BADGE OVERVIEW -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Badge-Übersicht — 4 Zustände</div></div>
+
+    <div class="badge-row">
+      <!-- Bestätigt -->
+      <div class="badge-demo">
+        <div class="dbadge dbadge-confirmed">
+          <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="badge-demo-label"><strong>confirmed</strong><br>Zukunft, bestätigt</div>
+        <div class="dbadge dbadge-confirmed dbadge-label">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Bestätigt
+        </div>
+      </div>
+      <!-- Ausstehend -->
+      <div class="badge-demo">
+        <div class="dbadge dbadge-pending">
+          <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M6 3.5V6l2 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="badge-demo-label"><strong>pending</strong><br>Zukunft, unbestätigt</div>
+        <div class="dbadge dbadge-pending dbadge-label">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M6 3.5V6l2 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Ausstehend
+        </div>
+      </div>
+      <!-- Abgeschlossen -->
+      <div class="badge-demo">
+        <div class="dbadge dbadge-done">
+          <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 1.5"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="badge-demo-label"><strong>done</strong><br>Vergangen, bestätigt</div>
+        <div class="dbadge dbadge-done dbadge-label">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 1.5"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Abgeschlossen
+        </div>
+      </div>
+      <!-- Nicht bestätigt -->
+      <div class="badge-demo">
+        <div class="dbadge dbadge-overdue">
+          <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M3 1.5h6M3 10.5h6M4 1.5C4 4 8 5 8 6S4 8 4 10.5M8 1.5C8 4 4 5 4 6s4 2 4 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="badge-demo-label"><strong>overdue</strong><br>Vergangen, unbestätigt</div>
+        <div class="dbadge dbadge-overdue dbadge-label">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 1.5h6M3 10.5h6M4 1.5C4 4 8 5 8 6S4 8 4 10.5M8 1.5C8 4 4 5 4 6s4 2 4 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Nicht bestätigt
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-inf">
+      <strong>Kartenansicht (kompakt):</strong> Nur Icon 22×22px mit <code>title</code>-Tooltip.<br>
+      <strong>Dialogansicht (mehr Platz):</strong> Icon + Text via Modifier-Klasse <code>.dash-badge--label</code>.
+    </div>
+  </div>
+
+  <!-- MOCK CARDS -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Karten-Vorschau</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div>
+        <p style="font-size:12px;color:var(--n500);margin-bottom:8px">Alle 4 Zustände in der Liste</p>
+        <div class="mock-cards">
+          <div class="mock-card mc-confirmed">
+            <div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">14:00 – 15:00 · 2 Slots</div></div>
+            <div class="dbadge dbadge-confirmed" title="Bestätigt"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="mc-avatar">MH</div>
+          </div>
+          <div class="mock-card mc-pending">
+            <div class="mc-body"><div class="mc-name">S1</div><div class="mc-time">15:30 – 16:00</div></div>
+            <div class="dbadge dbadge-pending" title="Ausstehend"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4"/><path d="M6 3.5V6l2 1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="mc-avatar">S1</div>
+          </div>
+          <div class="mock-card mc-done">
+            <div class="mc-body"><div class="mc-name">Matthias H.</div><div class="mc-time">10:00 – 10:30</div></div>
+            <div class="dbadge dbadge-done" title="Abgeschlossen"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.4" stroke-dasharray="2 1.5"/><path d="M3.5 6l1.8 1.8 3-3.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="mc-avatar">MH</div>
+          </div>
+          <div class="mock-card mc-overdue">
+            <div class="mc-body"><div class="mc-name">S1</div><div class="mc-time">14:30 – 15:00</div></div>
+            <div class="dbadge dbadge-overdue" title="Nicht bestätigt"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M3 1.5h6M3 10.5h6M4 1.5C4 4 8 5 8 6S4 8 4 10.5M8 1.5C8 4 4 5 4 6s4 2 4 4.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="mc-avatar">S1</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <p style="font-size:12px;color:var(--n500);margin-bottom:8px">Icon-Logik</p>
+        <div class="tw">
+          <table>
+            <thead><tr><th>State</th><th>Icon</th><th>Begründung</th></tr></thead>
+            <tbody>
+              <tr><td><code>confirmed</code></td><td>Kreis + Häkchen (Vollkreis)</td><td>Eindeutiger Abschluss-Status</td></tr>
+              <tr><td><code>pending</code></td><td>Analoguhr mit Zeiger</td><td>„Wartet" — zeitliche Erwartung</td></tr>
+              <tr><td><code>done</code></td><td>Gestrichelter Kreis + Häkchen</td><td>Bestätigt aber abgelaufen — gedämpft</td></tr>
+              <tr><td><code>overdue</code></td><td>Sanduhr</td><td>Zeit ist abgelaufen ohne Bestätigung</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION MATRIX -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Aktions-Matrix</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Zustand</th><th>Kontaktieren</th><th>Bestätigen</th><th>Verlegen</th><th>Stornieren</th><th>Freigeben (Lehrer)</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Zukunft · unbestätigt</strong></td>
+            <td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="check">✓</td><td class="dash">—</td>
+          </tr>
+          <tr>
+            <td><strong>Zukunft · bestätigt</strong></td>
+            <td class="check">✓</td><td class="dash">—</td><td class="cross">✗</td><td class="cross">✗</td><td class="check">✓</td>
+          </tr>
+          <tr>
+            <td><strong>Vergangen · egal</strong></td>
+            <td class="check">✓</td><td class="dash">—</td><td class="cross">✗</td><td class="cross">✗</td><td class="dash">—</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout c-ok">
+      <strong>Schlüsselregel:</strong> <code>canMove = !isPast &amp;&amp; !isConfirmed</code> —
+      Verlegen und Stornieren sind nur erlaubt solange die Stunde weder vergangen noch bestätigt ist.
+      Bestätigte Stunden können nur über „Freigeben" (Lehrer) wieder geöffnet werden.
+    </div>
+  </div>
+
+  <!-- BADGE STATE LOGIC -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Badge-State-Logik</div></div>
+    <div class="code-label">dashboard.js — _buildBlockCard &amp; _openBlockDialog</div>
+    <div class="code-block"><code><span class="cm">/* State-Bestimmung — identisch in Karte und Dialog */</span>
+<span class="ck">var</span> badgeState;
+<span class="ck">if</span>      (isPast && isConfirmed)  badgeState = <span class="cs">'done'</span>;
+<span class="ck">else if</span> (isPast && !isConfirmed) badgeState = <span class="cs">'overdue'</span>;
+<span class="ck">else if</span> (isConfirmed)           badgeState = <span class="cs">'confirmed'</span>;
+<span class="ck">else</span>                            badgeState = <span class="cs">'pending'</span>;
+
+<span class="cm">/* Aktions-Gating */</span>
+<span class="ck">var</span> canConfirm = !isPast && !isConfirmed;
+<span class="ck">var</span> canMove    = !isPast && !isConfirmed;
+<span class="ck">var</span> canCancel  = !isPast && !isConfirmed;
+<span class="ck">var</span> canRelease = !isPast && isConfirmed && currentUser.role === <span class="cs">'teacher'</span>;</code></div>
+  </div>
+
+  <!-- CSS CLASSES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Neue CSS-Klassen (dashboard.css)</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Klasse</th><th>Beschreibung</th></tr></thead>
+        <tbody>
+          <tr class="r-new"><td><code>.dash-badge</code></td><td>Basis: 22×22px, inline-flex, zentriert, border-radius sm</td></tr>
+          <tr class="r-new"><td><code>.dash-badge--confirmed</code></td><td>Grün: <code>--status-confirmed-*</code> Tokens</td></tr>
+          <tr class="r-new"><td><code>.dash-badge--pending</code></td><td>Amber: <code>--pending-amber-*</code> Tokens</td></tr>
+          <tr class="r-new"><td><code>.dash-badge--done</code></td><td>Grau: <code>--neutral-100/200/400</code></td></tr>
+          <tr class="r-new"><td><code>.dash-badge--overdue</code></td><td>Grau: identisch mit done (kein Drama)</td></tr>
+          <tr class="r-new"><td><code>.dash-badge--label</code></td><td>Modifier: auto-width, gap, padding, uppercase-Text für Dialog</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHANGED FILES -->
+  <div class="sec">
+    <div class="sec-hdr"><div class="sec-title">Geänderte Dateien</div></div>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Datei</th><th>Änderung</th></tr></thead>
+        <tbody>
+          <tr class="r-mod"><td><code>js/dashboard.js</code></td><td><code>_ICONS</code> Konstante (4 SVG-Strings). <code>_buildStatusBadge(state)</code> Funktion. Badge in <code>_buildBlockCard()</code> zwischen Body und Avatar. Badge + Aktions-Gating in <code>_openBlockDialog()</code>.</td></tr>
+          <tr class="r-mod"><td><code>css/dashboard.css</code></td><td>6 neue Klassen: <code>.dash-badge</code> + 4 Zustands-Modifier + <code>.dash-badge--label</code>.</td></tr>
+          <tr class="r-mod"><td><code>js/app-config.js</code></td><td><code>APP_VERSION → 2026-03-19-29</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>
+    <span>IMPL_DASHBOARD_BADGES_20260319.html · BookingSystem</span>
+    <span>APP_VERSION: 2026-03-19-29 · 19. März 2026</span>
+  </footer>
+</div>
+</body>
+</html>

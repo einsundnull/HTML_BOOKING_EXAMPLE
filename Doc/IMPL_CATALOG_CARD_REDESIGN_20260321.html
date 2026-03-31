@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="doc-created"  content="2026-03-21">
+  <meta name="doc-type"     content="IMPL+BUGFIX">
+  <meta name="doc-subject"  content="Catalog Teacher Card — Bug Fixes + Layout Redesign">
+  <title>IMPL — Catalog Card Redesign 2026-03-21</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      font-size: 14px; background: #f8f9fb; color: #0d1117; line-height: 1.6;
+    }
+    :root {
+      --navy: #060f1c; --navy-800: #0f2035;
+      --n0: #fff; --n50: #f8f9fb; --n100: #f0f2f5; --n200: #e2e6eb;
+      --n400: #9aa3af; --n500: #6b7685; --n700: #2d3540;
+      --mono: 'Consolas', 'JetBrains Mono', 'Courier New', monospace;
+      --ok: #16a34a; --ok-bg: #f0fff4; --ok-bd: #bbf7d0; --ok-tx: #14532d;
+      --err: #c0392b; --err-bg: #fff0f0; --err-bd: #fecaca; --err-tx: #7f1d1d;
+      --warn: #d97706; --warn-bg: #fffbeb; --warn-bd: #fde68a; --warn-tx: #7b3500;
+      --info: #2563eb; --info-bg: #eff6ff; --info-bd: #bfdbfe; --info-tx: #1e3a8a;
+    }
+    .ph { background: var(--navy); padding: 28px 40px 24px; }
+    .ph-eye { font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+              text-transform: uppercase; color: rgba(255,255,255,.4); margin-bottom: 6px; }
+    .ph-title { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 5px; }
+    .ph-sub { font-size: 13px; color: rgba(255,255,255,.5); max-width: 760px; margin-bottom: 14px; }
+    .ph-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+    .ph-badge { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
+                border-radius: 999px; font-size: 11px; font-weight: 600;
+                background: rgba(255,255,255,.1); color: rgba(255,255,255,.75);
+                border: 1px solid rgba(255,255,255,.15); }
+    .ph-badge.err { background: rgba(192,57,43,.35); border-color: rgba(192,57,43,.6); }
+    .ph-badge.ok  { background: rgba(22,163,74,.3);  border-color: rgba(22,163,74,.5); }
+    .ph-badge.inf { background: rgba(37,99,235,.3);  border-color: rgba(37,99,235,.5); }
+    .page { padding: 28px 40px; max-width: 1100px; margin: 0 auto; }
+    @media (max-width: 700px) { .ph, .page { padding: 16px; } }
+    .sec { margin-bottom: 44px; }
+    .sec-hdr { display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+               padding-bottom: 9px; border-bottom: 2px solid var(--n200); }
+    .sec-num { display: inline-flex; align-items: center; justify-content: center;
+               width: 24px; height: 24px; border-radius: 50%; background: var(--navy);
+               color: #fff; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+    .sec-title { font-size: 17px; font-weight: 700; }
+    .sec-sub { font-size: 12px; color: var(--n500); margin-left: auto; font-family: var(--mono); }
+    .callout { padding: 11px 16px; border-radius: 8px; border-left: 3px solid;
+               font-size: 13px; line-height: 1.6; margin-bottom: 16px; }
+    .c-ok   { background: var(--ok-bg);   border-color: var(--ok);   color: var(--ok-tx); }
+    .c-err  { background: var(--err-bg);  border-color: var(--err);  color: var(--err-tx); }
+    .c-warn { background: var(--warn-bg); border-color: var(--warn); color: var(--warn-tx); }
+    .c-info { background: var(--info-bg); border-color: var(--info); color: var(--info-tx); }
+    .callout strong { font-weight: 700; }
+    .callout code { font-family: var(--mono); font-size: 11.5px;
+                    background: rgba(0,0,0,.08); padding: 1px 4px; border-radius: 3px; }
+    .tw { overflow-x: auto; border-radius: 8px; border: 1px solid var(--n200); margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead th { background: var(--navy-800); color: rgba(255,255,255,.82); text-align: left;
+               padding: 9px 13px; font-size: 10px; font-weight: 700;
+               letter-spacing: .07em; text-transform: uppercase; white-space: nowrap; }
+    tbody td { padding: 10px 13px; border-bottom: 1px solid var(--n200);
+               vertical-align: top; color: var(--n700); line-height: 1.5; }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr.r-bug { background: #fff8f8; }
+    tbody tr.r-fix { background: #f8fff8; }
+    tbody tr.r-ctx { background: var(--n50); }
+    tbody tr.r-new { background: var(--info-bg); }
+    code { font-family: var(--mono); font-size: 11.5px; background: rgba(6,15,28,.07);
+           padding: 1px 5px; border-radius: 3px; color: #1a3249; }
+    .code-label { display: inline-block; background: rgba(255,255,255,.1);
+                  color: rgba(255,255,255,.6); font-family: var(--mono); font-size: 10px;
+                  font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+                  padding: 3px 10px; border-radius: 4px 4px 0 0; }
+    .code-block { background: var(--navy); border-radius: 0 8px 8px 8px;
+                  padding: 14px 18px; overflow-x: auto; margin-bottom: 16px; }
+    .code-block code { font-family: var(--mono); font-size: 12px; color: #e2e8f0;
+                       white-space: pre; display: block; line-height: 1.75;
+                       background: none; padding: 0; border-radius: 0; }
+    .cm { color: #64748b; } .ck { color: #93c5fd; }
+    .cs { color: #86efac; } .ce { color: #fca5a5; }
+    /* Card mock */
+    .mock-wrap { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 20px; align-items: flex-start; }
+    .mock-label { font-size: 11px; font-weight: 700; text-transform: uppercase;
+                  letter-spacing: .05em; margin-bottom: 8px; }
+    .mock-label.before { color: var(--err); }
+    .mock-label.after  { color: var(--ok); }
+    .mock-card-old { background: #fff; border: 1px solid #e2e6eb; border-radius: 12px;
+                     overflow: hidden; width: 280px; }
+    .mock-card-new { background: #fff; border: 1px solid #e2e6eb; border-radius: 12px;
+                     overflow: hidden; width: 280px; box-shadow: 0 2px 8px rgba(6,15,28,.07); }
+    /* Old layout mock */
+    .old-summary { display: flex; align-items: center; gap: 10px; padding: 12px; }
+    .old-avatar { width: 44px; height: 44px; border-radius: 50%; background: #dde4ed;
+                  display: flex; align-items: center; justify-content: center;
+                  font-size: 13px; font-weight: 700; color: #3a6285; flex-shrink: 0; }
+    .old-info { flex: 1; min-width: 0; }
+    .old-name { font-size: 14px; font-weight: 600; color: #0d1117;
+                overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .old-meta { font-size: 11px; color: #6b7685; }
+    .old-price { font-size: 11px; font-weight: 700; color: #4d7aa0; }
+    .old-btns { display: flex; gap: 6px; flex-shrink: 0; }
+    .old-btn { width: 28px; height: 28px; border-radius: 50%; background: #f0f2f5;
+               border: none; display: flex; align-items: center; justify-content: center;
+               color: #6b7685; font-size: 11px; }
+    .old-preview { padding: 0 12px 12px; border-top: 1px solid #f0f2f5; }
+    .old-bio { font-size: 12px; color: #6b7685; margin: 8px 0; }
+    .old-chips { display: flex; gap: 5px; }
+    .old-chip { font-size: 11px; padding: 2px 8px; border-radius: 20px;
+                background: #f0f2f5; color: #505a68; }
+    /* New layout mock */
+    .new-summary { display: flex; align-items: flex-start; gap: 12px; padding: 14px; }
+    .new-avatar-wrap { position: relative; flex-shrink: 0; }
+    .new-avatar { width: 64px; height: 64px; border-radius: 8px; background: #dde4ed;
+                  display: flex; align-items: center; justify-content: center;
+                  font-size: 15px; font-weight: 700; color: #3a6285; border: 1px solid #e2e6eb; }
+    .new-fav { position: absolute; top: -6px; right: -6px; width: 22px; height: 22px;
+               border-radius: 50%; background: #fff; border: 1.5px solid #e2e6eb;
+               display: flex; align-items: center; justify-content: center;
+               box-shadow: 0 1px 4px rgba(0,0,0,.1); font-size: 11px; color: #9aa3af; }
+    .new-fav.active { border-color: #e53e3e; color: #e53e3e; background: #fff5f5; }
+    .new-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+    .new-name { font-size: 15px; font-weight: 600; color: #0d1117; white-space: nowrap;
+                overflow: hidden; text-overflow: ellipsis; }
+    .new-disc { display: inline-flex; align-items: center; gap: 4px; font-size: 11px;
+                font-weight: 600; background: #eff6ff; color: #2563eb;
+                border: 1px solid #bfdbfe; border-radius: 4px; padding: 1px 7px; width: fit-content; }
+    .new-meta { display: flex; gap: 8px; font-size: 11px; color: #6b7685; flex-wrap: wrap; }
+    .new-price { font-size: 14px; font-weight: 700; color: #4d7aa0; }
+    .new-langs { display: flex; gap: 3px; }
+    .new-lang { font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 3px;
+                border: 1px solid #e2e6eb; color: #6b7685; }
+    .new-preview { padding: 0 14px 10px; font-size: 12px; color: #6b7685; }
+    .new-chips { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+    .new-chip { font-size: 11px; padding: 2px 8px; border-radius: 20px;
+                background: #f0f2f5; color: #505a68; }
+    .new-actions { display: flex; border-top: 1px solid #f0f2f5; }
+    .new-act { flex: 1; display: flex; align-items: center; justify-content: center;
+               gap: 5px; padding: 9px 8px; font-size: 11px; font-weight: 600;
+               color: #505a68; border-right: 1px solid #f0f2f5; }
+    .new-act:last-child { border-right: none; }
+    .new-act.connected { color: #16a34a; }
+    .sev { display: inline-flex; align-items: center; padding: 2px 9px; border-radius: 999px;
+           font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .sev-crit { background: var(--err-bg); color: var(--err-tx); border: 1px solid var(--err-bd); }
+    .sev-fix  { background: var(--ok-bg);  color: var(--ok-tx);  border: 1px solid var(--ok-bd); }
+    .sev-new  { background: var(--info-bg); color: var(--info-tx); border: 1px solid var(--info-bd); }
+    footer { margin-top: 48px; padding: 14px 0; border-top: 1px solid var(--n200);
+             display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+    footer span { font-family: var(--mono); font-size: 11px; color: var(--n500); }
+  </style>
+</head>
+<body>
+
+<header class="ph">
+  <div class="ph-eye">IMPL + BUGFIX · Catalog Card · BookingSystem</div>
+  <div class="ph-title">Catalog Teacher Card — Bug Fixes &amp; Layout Redesign</div>
+  <div class="ph-sub">
+    3 Bugs behoben (undefined Toast, doppelte Event-Handler, fehlende i18n-Keys) +
+    vollständiges Redesign der Lehrerkarte: Avatar-Wrap mit Herz-Overlay,
+    strukturierte Info-Spalte, dedizierte Aktions-Zeile mit Text-Labels.
+  </div>
+  <div class="ph-meta">
+    <span class="ph-badge err">🔴 3 Bugs behoben</span>
+    <span class="ph-badge inf">🔵 Layout Redesign</span>
+    <span class="ph-badge">📅 21. März 2026</span>
+    <span class="ph-badge">2 Dateien · skiing-catalog.js · skiing-catalog.css</span>
+    <span class="ph-badge ok">✅ APP_VERSION 2026-03-21-10</span>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- ══════════════════════════════════════
+       SECTION 1 — BUG DIAGNOSE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-bugs">
+    <div class="sec-hdr">
+      <span class="sec-num">1</span>
+      <h2 class="sec-title" id="sec-bugs">Bug-Diagnose — 3 Ursachen</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Symptom</th><th>Root Cause</th><th>Fix</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-bug">
+            <td><strong>1</strong></td>
+            <td>Toast zeigt <strong>„Matthias Heinold undefined"</strong></td>
+            <td>
+              <code>CatalogI18n</code> ist ein reines JS-Objekt — die
+              <code>locales/skiing-catalog.json</code> wird nie per XHR geladen.
+              Neue Keys wie <code>connectAddedToast</code>, <code>connectRemovedToast</code>,
+              <code>favAdd</code>, <code>favRemove</code> wurden nur in der JSON ergänzt,
+              nicht im JS-Defaults-Objekt. Ergebnis:
+              <code>teacherName + ' ' + undefined</code> → <em>„Name undefined"</em>
+            </td>
+            <td>8 fehlende Keys direkt in <code>CatalogI18n</code>-Defaults eingetragen</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>2</strong></td>
+            <td>Connect-Button löst gleichzeitig Add <em>und</em> Remove aus (grüner + roter Toast)</td>
+            <td>
+              <code>_bindCards()</code> wurde <strong>zweimal</strong> aufgerufen:
+              einmal direkt in <code>_initCatalog()</code> (Z. 115) und einmal am Ende
+              des asynchronen <code>_loadTeachers()</code>-Callbacks (Z. 143).
+              Zwei Event-Listener auf demselben Grid → jeder Klick feuert doppelt.
+            </td>
+            <td><code>_bindCards()</code> aus <code>_loadTeachers</code>-Callback entfernt</td>
+          </tr>
+          <tr class="r-bug">
+            <td><strong>3</strong></td>
+            <td>Herz-Button: <code>aria-label</code> ist <code>undefined</code></td>
+            <td>Gleiche Ursache wie Bug 1 — <code>favAdd</code> und <code>favRemove</code>
+              nicht in JS-Defaults.</td>
+            <td>In CatalogI18n-Defaults ergänzt (Punkt 1 deckt ab)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-label">skiing-catalog.js — CatalogI18n Defaults — alle neuen Keys</div>
+    <div class="code-block"><code><span class="cs">favAdd:               'Als Favorit speichern',
+favRemove:            'Aus Favoriten entfernen',
+favTabLabel:          'Favoriten',
+favEmpty:             'Noch keine Favoriten gespeichert.',
+connectAdd:           'Lehrer hinzufügen',
+connectRemove:        'Lehrer entfernen',
+connectAddedToast:    'wurde hinzugefügt. Warte auf Bestätigung.',
+connectRemovedToast:  'wurde entfernt.',
+actionChat:           'Nachricht',
+actionDetails:        'Details'</span></code></div>
+
+    <div class="code-label">Fix 2 — _bindCards Duplikat entfernt</div>
+    <div class="code-block"><code><span class="cm">// _loadTeachers() callback — VORHER (buggy):</span>
+<span class="ce">_render();
+_bindCards();   // ← zweiter Aufruf → doppelte Handler!</span>
+
+<span class="cm">// NACHHER (fix):</span>
+<span class="cs">_render();
+<span class="cm">// _bindCards() hier entfernt — wird einmalig in _initCatalog() gebunden</span></span></code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 2 — LAYOUT SCHEMA
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-schema">
+    <div class="sec-hdr">
+      <span class="sec-num">2</span>
+      <h2 class="sec-title" id="sec-schema">Layout Schema — Vorher / Nachher</h2>
+    </div>
+
+    <div class="mock-wrap">
+      <div>
+        <div class="mock-label before">❌ Vorher</div>
+        <div class="mock-card-old">
+          <div class="old-summary">
+            <div class="old-avatar">MH</div>
+            <div class="old-info">
+              <div class="old-name">Matthias Hei...</div>
+              <div class="old-meta">Zermat · 12 J.</div>
+              <div class="old-price">€45,00 / 30min</div>
+            </div>
+            <div class="old-btns">
+              <div class="old-btn">♡</div>
+              <div class="old-btn">👤</div>
+              <div class="old-btn">💬</div>
+              <div class="old-btn">∨</div>
+            </div>
+          </div>
+          <div class="old-preview">
+            <div class="old-bio">Demo-Lehrer</div>
+            <div class="old-chips">
+              <span class="old-chip">Freeride</span>
+              <span class="old-chip">Freestyle</span>
+            </div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#9aa3af;max-width:280px;line-height:1.6;">
+          Icon-only Buttons schwer verständlich · Avatar zu klein und rund ·
+          Preis in Meta-Zeile verloren · 4 gleich aussehende Buttons nebeneinander
+        </div>
+      </div>
+
+      <div>
+        <div class="mock-label after">✅ Nachher</div>
+        <div class="mock-card-new">
+          <div class="new-summary">
+            <div class="new-avatar-wrap">
+              <div class="new-avatar">MH</div>
+              <div class="new-fav active">♥</div>
+            </div>
+            <div class="new-info">
+              <div class="new-name">Matthias Heinold</div>
+              <div class="new-disc">🎿 Ski</div>
+              <div class="new-meta">
+                <span>📍 Zermat</span>
+                <span>12 J.</span>
+              </div>
+              <div class="new-price">€45,00 / 30min</div>
+              <div class="new-langs">
+                <span class="new-lang">DE</span>
+                <span class="new-lang">IT</span>
+              </div>
+            </div>
+          </div>
+          <div class="new-preview">
+            Demo-Lehrer
+            <div class="new-chips">
+              <span class="new-chip">Freeride</span>
+              <span class="new-chip">Freestyle</span>
+            </div>
+          </div>
+          <div class="new-actions">
+            <div class="new-act connected">✓ <span>Verbunden</span></div>
+            <div class="new-act">💬 <span>Nachricht</span></div>
+            <div class="new-act">∨ <span>Details</span></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#9aa3af;max-width:280px;line-height:1.6;">
+          Herz als Overlay rechts-oben am Avatar · Rechteckiger Avatar (64px) ·
+          Preis prominent in eigener Zeile · Aktions-Zeile mit Text-Labels ·
+          Verbunden-Status farbig sichtbar
+        </div>
+      </div>
+    </div>
+
+    <div class="callout c-info">
+      <strong>Layout-Logik:</strong> Das Herz-Icon als Overlay über dem Avatar folgt dem
+      Airbnb/Booking.com-Pattern — daumenfreundlich positioniert, gut erkennbar,
+      ohne den Namen oder Preis zu verdecken. Die Aktions-Zeile mit Text+Icon-Buttons
+      folgt dem Mobile-First-Prinzip: auf engen Screens sind beschriftete Buttons
+      deutlich besser als reine Icon-Buttons.
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 3 — DOM STRUKTUR
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-dom">
+    <div class="sec-hdr">
+      <span class="sec-num">3</span>
+      <h2 class="sec-title" id="sec-dom">Neue DOM-Struktur</h2>
+    </div>
+
+    <div class="code-label">skiing-catalog.js — _buildSummaryHTML() Ausgabe</div>
+    <div class="code-block"><code><span class="cm">/* Collapsed card */</span>
+&lt;<span class="ck">div</span> class=<span class="cs">"tc-summary"</span> data-uid=<span class="cs">"t1"</span>&gt;
+
+  &lt;<span class="ck">div</span> class=<span class="cs">"tc-avatar-wrap"</span>&gt;             <span class="cm">← position:relative container</span>
+    &lt;<span class="ck">img</span> class=<span class="cs">"tc-avatar"</span> …&gt;             <span class="cm">← 64×64px, border-radius md (not circle)</span>
+    &lt;<span class="ck">button</span> class=<span class="cs">"tc-fav-btn"</span> …&gt;        <span class="cm">← absolute, top:-6px right:-6px</span>
+  &lt;/<span class="ck">div</span>&gt;
+
+  &lt;<span class="ck">div</span> class=<span class="cs">"tc-summary-info"</span>&gt;           <span class="cm">← flex-col, all text</span>
+    &lt;<span class="ck">p</span> class=<span class="cs">"tc-summary-name"</span>&gt;…&lt;/<span class="ck">p</span>&gt;
+    &lt;<span class="ck">span</span> class=<span class="cs">"tc-discipline-badge"</span>&gt;…&lt;/<span class="ck">span</span>&gt;
+    &lt;<span class="ck">div</span> class=<span class="cs">"tc-summary-meta"</span>&gt;…&lt;/<span class="ck">div</span>&gt;  <span class="cm">← location + exp</span>
+    &lt;<span class="ck">span</span> class=<span class="cs">"tc-summary-price"</span>&gt;…&lt;/<span class="ck">span</span>&gt; <span class="cm">← prominent, own line</span>
+    &lt;<span class="ck">div</span> class=<span class="cs">"tc-summary-langs"</span>&gt;…&lt;/<span class="ck">div</span>&gt;
+  &lt;/<span class="ck">div</span>&gt;
+
+&lt;/<span class="ck">div</span>&gt;
+
+&lt;<span class="ck">div</span> class=<span class="cs">"tc-actions"</span>&gt;                  <span class="cm">← border-top, flex, 3 columns</span>
+  &lt;<span class="ck">button</span> class=<span class="cs">"tc-action-btn tc-connect-btn"</span>&gt;  <span class="cm">← icon + text label</span>
+  &lt;<span class="ck">button</span> class=<span class="cs">"tc-action-btn tc-chat-btn"</span>&gt;     <span class="cm">← icon + text label</span>
+  &lt;<span class="ck">button</span> class=<span class="cs">"tc-action-btn tc-expand-btn"</span>&gt;   <span class="cm">← icon + text label</span>
+&lt;/<span class="ck">div</span>&gt;</code></div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 4 — IMPLEMENTIERUNGSTABELLE
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-impl">
+    <div class="sec-hdr">
+      <span class="sec-num">4</span>
+      <h2 class="sec-title" id="sec-impl">Implementierungstabelle</h2>
+      <span class="sec-sub">2 Dateien geändert</span>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>#</th><th>Datei</th><th>Stelle</th><th>Art</th><th>Änderung</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td>1</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>CatalogI18n</code> Defaults</td>
+            <td><span class="sev sev-fix">Bug Fix</span></td>
+            <td>10 fehlende Keys ergänzt: <code>favAdd</code>, <code>favRemove</code>, <code>favTabLabel</code>, <code>favEmpty</code>, <code>connectAdd</code>, <code>connectRemove</code>, <code>connectAddedToast</code>, <code>connectRemovedToast</code>, <code>actionChat</code>, <code>actionDetails</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td>2</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_loadTeachers()</code> Callback</td>
+            <td><span class="sev sev-fix">Bug Fix</span></td>
+            <td>Zweiten <code>_bindCards()</code>-Aufruf entfernt — verhindert doppelt feuernde Event-Handler</td>
+          </tr>
+          <tr class="r-new">
+            <td>3</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildSummaryHTML()</code> — Avatar</td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Avatar in <code>.tc-avatar-wrap</code> (<code>position:relative</code>) eingebettet. Herz-Button als <code>position:absolute</code> Overlay (<code>top:-6px; right:-6px</code>)</td>
+          </tr>
+          <tr class="r-new">
+            <td>4</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildSummaryHTML()</code> — Info</td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Preis aus <code>tc-summary-meta</code> herausgelöst, eigene <code>tc-summary-price</code>-Zeile im <code>flex-col</code>-Info-Block</td>
+          </tr>
+          <tr class="r-new">
+            <td>5</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildSummaryHTML()</code> — Actions</td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Neue <code>.tc-actions</code>-Zeile mit <code>.tc-action-btn</code>-Buttons (Icon + Text-Label): Connect, Chat, Details. Ersetzt die alten Icon-only-Buttons</td>
+          </tr>
+          <tr class="r-new">
+            <td>6</td>
+            <td><code>skiing-catalog.js</code></td>
+            <td><code>_buildSummaryHTML()</code> — Currency</td>
+            <td><span class="sev sev-fix">Bug Fix</span></td>
+            <td><code>currentUser</code> → <code>_currentUser</code> für Currency-Konvertierung (falscher Variablenname)</td>
+          </tr>
+          <tr class="r-new">
+            <td>7</td>
+            <td><code>skiing-catalog.css</code></td>
+            <td><code>.tc-avatar-wrap</code>, <code>.tc-avatar</code></td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Avatar 56→64px, rund→<code>border-radius md</code> (Rechteck), Wrap <code>position:relative</code></td>
+          </tr>
+          <tr class="r-new">
+            <td>8</td>
+            <td><code>skiing-catalog.css</code></td>
+            <td><code>.tc-fav-btn</code></td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Von <code>flex-shrink:0</code> in der Summary-Zeile zu <code>position:absolute; top:-6px; right:-6px</code> als Overlay. Hover: leichte Scale-Animation</td>
+          </tr>
+          <tr class="r-new">
+            <td>9</td>
+            <td><code>skiing-catalog.css</code></td>
+            <td><code>.tc-actions</code>, <code>.tc-action-btn</code></td>
+            <td><span class="sev sev-new">Neu</span></td>
+            <td>Neue CSS-Klassen. <code>.tc-actions</code>: flex, <code>border-top</code>. <code>.tc-action-btn</code>: flex:1, Icon+Text, <code>border-right</code> als Trennlinie. <code>.is-connected</code>: grüne Akzentfarbe</td>
+          </tr>
+          <tr class="r-new">
+            <td>10</td>
+            <td><code>skiing-catalog.css</code></td>
+            <td><code>.tc-expand-btn</code></td>
+            <td><span class="sev sev-new">Redesign</span></td>
+            <td>Standalone-Block entfernt (jetzt <code>.tc-action-btn.tc-expand-btn</code>). Behalten: SVG-Rotation bei <code>.tc-card.is-expanded .tc-expand-btn svg</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td>11</td>
+            <td><code>app-config.js</code></td>
+            <td><code>APP_VERSION</code></td>
+            <td><span class="sev sev-fix">Standard</span></td>
+            <td><code>'2026-03-21-9'</code> → <code>'2026-03-21-10'</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════
+       SECTION 5 — GUIDELINE-KONFORMITÄT
+       ══════════════════════════════════════ -->
+  <section class="sec" aria-labelledby="sec-audit">
+    <div class="sec-hdr">
+      <span class="sec-num">5</span>
+      <h2 class="sec-title" id="sec-audit">Guideline-Konformität</h2>
+    </div>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Guideline</th><th>Anforderung</th><th>Eingehalten?</th></tr>
+        </thead>
+        <tbody>
+          <tr class="r-fix">
+            <td><code>Layout §6 — i18n</code></td>
+            <td>Jeder sichtbare Text über i18n-Keys — Standard Deutsch</td>
+            <td>✅ Alle neuen Button-Labels über <code>CatalogI18n.*</code> Keys (Namespace: <code>skiing-catalog</code>)</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §8 — Verboten</code></td>
+            <td>Kein <code>element.style.*</code>, keine Inline-CSS</td>
+            <td>✅ Nur CSS-Klassen (<code>is-favorite</code>, <code>is-connected</code>, <code>tc-action-btn</code>)</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §2 — Tokens</code></td>
+            <td>Alle Farben via CSS Custom Properties</td>
+            <td>✅ <code>var(--catalog-fav-fill)</code>, <code>var(--neutral-*)</code>, <code>var(--ok)</code> — nur 2 Hardcoded-Hex für OK-Grün (<code>#16a34a</code>) wo Token nicht verfügbar</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §3 — Codebase-Check</code></td>
+            <td>Vor Implementierung prüfen ob Klassen/Funktionen existieren</td>
+            <td>✅ <code>tc-action-btn</code> neu — kein bestehendes Pattern überschrieben. Alte <code>tc-expand-btn</code>-Standalone-Styles entfernt, nicht dupliziert</td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Architektur §8 — Asset Versioning</code></td>
+            <td>APP_VERSION bei jeder Änderung erhöhen</td>
+            <td>✅ <code>2026-03-21-9</code> → <code>2026-03-21-10</code></td>
+          </tr>
+          <tr class="r-fix">
+            <td><code>Layout §5 — Overlays Debug</code></td>
+            <td>Fehler sichtbar — kein stiller Fail</td>
+            <td>✅ <code>_handleConnect</code> und <code>_toggleFavorite</code> zeigen <code>Toast.error()</code> bei Fehlern</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<footer class="page">
+  <span>IMPL_CATALOG_CARD_REDESIGN_20260321.html · BookingSystem</span>
+  <span>APP_VERSION: 2026-03-21-10 · 21. März 2026</span>
+</footer>
+
+</body>
+</html>
